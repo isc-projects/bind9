@@ -18,6 +18,7 @@ import dns.rdatatype
 import pytest
 
 import isctest
+import isctest.mark
 
 ZONE = "f043.test."
 QUERY = f"svc.{ZONE}"
@@ -27,12 +28,15 @@ LEGIT_A = "192.0.2.50"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-        "ans*/keys.json",
-    ]
-)
+pytestmark = [
+    isctest.mark.with_algorithm("ECDSAP256SHA256"),
+    pytest.mark.extra_artifacts(
+        [
+            "ans*/ans.run",
+            "ans*/keys.json",
+        ]
+    ),
+]
 
 
 def _make_key():
