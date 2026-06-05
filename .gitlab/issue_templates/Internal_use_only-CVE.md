@@ -9,6 +9,7 @@ confidential!
 | Quick Links              | :link:                                          |
 | ------------------------ | ----------------------------------------------- |
 | Incident Manager:        | @user (assigned SwEng person)                   |
+| Multi-vendor?            | :question: Yes/No?                              |
 | Public Disclosure Date:  | YYYY-MM-DD                                      |
 | CVSS Score:              | [0.0][cvss_score_url]                           |
 | CWE:                     | [CWE-NNN][cwe_category_url]                     |
