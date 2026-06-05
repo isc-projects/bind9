@@ -9,7 +9,6 @@ confidential!
 | Quick Links              | :link:                                          |
 | ------------------------ | ----------------------------------------------- |
 | Incident Manager:        | @user                                           |
-| Deputy Incident Manager: | @user                                           |
 | Public Disclosure Date:  | YYYY-MM-DD                                      |
 | CVSS Score:              | [0.0][cvss_score_url]                           |
 | CWE:                     | [CWE-NNN][cwe_category_url]                     |
@@ -29,7 +28,6 @@ confidential!
 
 ### Before Code Freeze
 
-  - [ ] [:link:][step_deputy]            **(IM)** Pick a Deputy Incident Manager
   - [ ] [:link:][step_respond]           **(IM)** Respond to the bug reporter
   - [ ] [:link:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
   - [ ] [:link:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
@@ -84,7 +82,6 @@ confidential!
   - [ ] [:link:][step_evn_clear]         **(Support)** Update the tickets in the EVN queues in RT that the embargo is lifted
   - [ ] [:link:][step_customers]         **(Marketing)** Ensure that a ticket has been sent in the appropriate announce queue in RT to notify customers that the release is published (as outlined in the release checklist)
 
-[step_deputy]:            https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#pick-a-deputy-incident-manager
 [step_respond]:           https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#respond-to-the-bug-reporter
 [step_public_mrs]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-there-are-no-public-merge-requests-which-inadvertently-disclose-the-issue
 [step_coordinate_cve_id]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#check-if-we-need-to-coordinate-with-other-vendors-an-industry-wide-cve-identifier-might-be-necessary
