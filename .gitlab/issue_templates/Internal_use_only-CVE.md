@@ -15,13 +15,13 @@ confidential!
 | CWE:                     | [CWE-NNN][cwe_category_url]                     |
 | Earliest Notification:   | support-team/earliest-notification-drafting!NNN |
 | Security Advisory:       | isc-private/printing-press!NNN                  |
-| Mattermost Channel:      | [CVE-YYYY-NNNN][mattermost_url]                 |
+| Zulip Topic:             | [CVE-YYYY-NNNN][zulip_url]                 |
 | Support Ticket:          | [URL]                                           |
 | Release Checklist:       | #NNNN                                           |
 
 [cvss_score_url]: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X&version=3.1
 [cwe_category_url]: https://cwe.mitre.org/data/definitions/NNN.html
-[mattermost_url]: https://mattermost.isc.org/isc/channels/cve-YYYY-NNNN
+[zulip_url]: https://zulip.isc.org/#narrow/channel/4-bind9/topic/CVE-...
 
 :bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
 
