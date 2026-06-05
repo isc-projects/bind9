@@ -2266,9 +2266,10 @@ update-docker-image:
     - git commit -m "Version bump to ${VERSION}" Dockerfile
     - git push
     - COMMIT_SHA="$(git log -n1 --format=%H)"
-    - MSG="Docker image for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})"
-    - |
-      curl -s -o /dev/null -X POST -H "Content-Type: application/json" -d '{"channel": "packaging", "text": "'"${MSG}"'"}' "${MATTERMOST_WEBHOOK_URL}"
+    - *git_clone_bind9-qa
+    - echo "Docker image for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})" > message.txt
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9 --topic Packaging
   needs:
     - job: release
       artifacts: true
@@ -2288,7 +2289,7 @@ prepare-release-announcement:
   rules:
     - *rule_tag_open_source
   after_script:
-    - if [ "${CI_JOB_STATUS}" = "success" ]; then "$CI_PROJECT_DIR"/bind9-qa/releng/send_release_links.py --metadata "$CI_PROJECT_DIR"/bind9-qa/releng/metadata.json --message-mattermost; fi
+    - if [ "${CI_JOB_STATUS}" = "success" ]; then "$CI_PROJECT_DIR"/bind9-qa/releng/send_release_links.py --metadata "$CI_PROJECT_DIR"/bind9-qa/releng/metadata.json --message-zulip; fi
 
 # Job preparing an EVN MR in Printing Press
 
@@ -2693,8 +2694,9 @@ merged-metadata:
       MSG="${MSG}\n**Job**: ${CI_JOB_URL}"
       MSG="${MSG}\n**Reason**: ${REASON}"
       MSG="${MSG}${REASON_DETAILS}"
-    - |
-      curl -s -o /dev/null -X POST -H content-type:application/json -d '{"channel":"bind-9-team", "text": "'"${MSG}"'" }' "${MATTERMOST_WEBHOOK_URL}"
+      echo "$MSG" > message.txt
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-team --topic 'Autorebase errors'
 
 autorebase-merge-request:
   <<: *autorebase
