@@ -1873,6 +1873,13 @@ subdir('doc')
 subdir('tests')
 
 foreach name, sources : fuzz_binaries
+    # Only fuzz_dns_qp uses the qp test helpers; give it just those sources
+    # rather than the whole libbindtest library (see libtest_qp_dep).
+    fuzz_deps = [libdns_dep, libisc_dep]
+    if name == 'fuzz_dns_qp'
+        fuzz_deps += libtest_qp_dep
+    endif
+
     fuzz_bin = executable(
         name,
         sources,
@@ -1880,13 +1887,10 @@ foreach name, sources : fuzz_binaries
         implicit_include_directories: true,
         install: false,
         c_args: ['-Wno-vla'],
+        include_directories: test_inc,
         link_args: fuzz_link_args,
         sources: default_sanitize_options,
-        dependencies: [
-            libdns_dep,
-            libisc_dep,
-            libtest_dep,
-        ],
+        dependencies: fuzz_deps,
     )
 
     test(
