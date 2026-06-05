@@ -687,7 +687,7 @@ tostring_namelist(dns_namelist_t *namelist, const char *id, FILE *fp) {
 		fprintf(fp, " %s=", id);
 		ISC_LIST_FOREACH(*namelist, name, link) {
 			isc_buffer_t nameb;
-			char bdata[DNS_NAME_MAXWIRE] = { 0 };
+			char bdata[DNS_NAME_FORMATSIZE] = { 0 };
 
 			isc_buffer_init(&nameb, bdata, sizeof(bdata));
 			dns_name_totext(name, 0, &nameb);
@@ -763,7 +763,7 @@ delegset_tostring(const dns_name_t *zonecut, dns_delegset_t *delegset,
 		  isc_stdtime_t now, bool expired, FILE *fp) {
 	ISC_LIST_FOREACH(delegset->delegs, deleg, link) {
 		isc_buffer_t zonecutb;
-		char bdata[DNS_NAME_MAXWIRE];
+		char bdata[DNS_NAME_FORMATSIZE];
 		dns_ttl_t ttl = 0;
 
 		if (delegset->expires > now) {
