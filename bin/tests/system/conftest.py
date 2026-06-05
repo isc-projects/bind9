@@ -319,10 +319,12 @@ def logger(request, system_test_name):
 def expected_artifacts(request):
     common_artifacts = [
         ".libs/*",  # possible build artifacts, see GL #5055
+        "ns*/keys",
         "ns*/named*.conf",
         "ns*/named.memstats",
         "ns*/named.run",
         "ns*/named.run.prev",
+        "ns*/zones",
         "core.[0-9]*-backtrace.txt",
         "core.[0-9]*.gz",
         "pytest.log.txt",
