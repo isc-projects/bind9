@@ -34,7 +34,7 @@ confidential!
   - [ ] [:link:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
   - [ ] [:link:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier
   - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and the CWE category
-  - [ ] [:link:][step_versions_affected] **(SwEng)** Determine the range of product versions affected (including the Subscription Edition)
+  - [ ] [:link:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition)
   - [ ] [:link:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
   - [ ] [:link:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:link:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
