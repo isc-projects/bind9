@@ -36,7 +36,7 @@ confidential!
   - [ ] [:grey_question:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
   - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier
   - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and the CWE category
-  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition)
+  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition and supported EOL versions)
   - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
   - [ ] [:grey_question:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
