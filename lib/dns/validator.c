@@ -912,6 +912,10 @@ validator_callback_nsec(void *arg) {
 		switch (eresult) {
 		case ISC_R_CANCELED:
 		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
+			val->attributes |= subvalidator->attributes &
+					   (VALATTR_MAXVALIDATIONS |
+					    VALATTR_MAXVALIDATIONFAILS);
 			result = eresult;
 			break;
 		case DNS_R_BROKENCHAIN:
