@@ -21,4 +21,9 @@ zone "secure." {
 	server-addresses { 10.53.0.2; };
 };
 
+zone "stuffed." {
+	type static-stub;
+	server-addresses { 10.53.0.2; };
+};
+
 include "trusted.conf";
