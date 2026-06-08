@@ -1,3 +1,0 @@
-@ 3600 SOA . . 1 86400 3600 86400 3600
-@ 3600 CH NS invalid.
-version CH TXT "2"

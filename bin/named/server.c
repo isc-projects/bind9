@@ -5806,10 +5806,26 @@ get_viewinfo(const cfg_obj_t *vconfig, const char **namep,
 		classobj = cfg_tuple_get(vconfig, "class");
 		CHECK(named_config_getclass(classobj, dns_rdataclass_in,
 					    &viewclass));
-		if (dns_rdataclass_ismeta(viewclass)) {
+		switch (viewclass) {
+		case dns_rdataclass_in:
+			break;
+		case dns_rdataclass_chaos:
+			/* allow the builtin _bind view */
+			if (strcmp(viewname, "_bind") != 0) {
+				isc_log_write(
+					NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+					"view '%s': only builtin _bind view is "
+					"allowed in Chaos (CH) class",
+					viewname);
+				CLEANUP(ISC_R_FAILURE);
+			}
+			break;
+		default:
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "view '%s': class must not be meta",
+				      "view '%s': only Internet (IN) class is "
+				      "allowed",
 				      viewname);
 			CLEANUP(ISC_R_FAILURE);
 		}

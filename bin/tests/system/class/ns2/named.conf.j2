@@ -30,13 +30,3 @@ view default {
 		};
 	};
 };
-
-view chaos ch {
-	match-clients { any; };
-	recursion no;
-	zone example {
-		type primary;
-		file "example.db";
-		allow-update { any; };
-	};
-};

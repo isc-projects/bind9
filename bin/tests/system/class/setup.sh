@@ -14,6 +14,4 @@
 # shellcheck source=conf.sh
 . ../conf.sh
 
-cp ns1/chaos.db.in ns1/chaos.db
-cp ns2/example.db.in ns2/example.db
 cp ns2/localhost.db.in ns2/localhost.db

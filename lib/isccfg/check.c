@@ -6303,6 +6303,18 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 			}
 		}
 		symtype = vclass + 1;
+		/*
+		 * Only the Internet (IN) class is allowed for user-defined
+		 * views.  The builtin "_bind" view (Chaos) is generated
+		 * internally and never appears in the configuration here.
+		 */
+		if (tresult == ISC_R_SUCCESS && vclass != dns_rdataclass_in) {
+			cfg_obj_log(view, ISC_LOG_ERROR,
+				    "view '%s': only Internet (IN) class is "
+				    "allowed",
+				    key);
+			tresult = ISC_R_FAILURE;
+		}
 		if (tresult == ISC_R_SUCCESS && symtab != NULL) {
 			symvalue.as_cpointer = view;
 			tresult = isc_symtab_define(symtab, key, symtype,

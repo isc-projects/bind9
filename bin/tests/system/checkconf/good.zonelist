@@ -22,4 +22,3 @@ dnssec-view1 IN fifth primary
 dnssec-view2 IN fifth primary
 dnssec-view3 IN fifth primary
 dnssec-view4 IN fifth primary
-hostname.bind chaos chaos primary

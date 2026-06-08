@@ -6742,9 +6742,8 @@ with that view. When no view-specific value is given, the value in the
 default values specified in the :any:`view` statement; these view-specific
 defaults take precedence over those in the :namedconf:ref:`options` statement.
 
-Views are class-specific. If no class is given, class IN is assumed.
-Note that all non-IN views must contain a hint zone, since only the IN
-class has compiled-in default hints.
+Only class IN can be used for the views.  If no class is given, class IN is
+assumed.
 
 If there are no :any:`view` statements in the config file, a default view
 that matches any client is automatically created in class IN. Any
