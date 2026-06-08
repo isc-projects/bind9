@@ -1,18 +1,10 @@
-$TTL 300
-@		IN SOA	mname1. . (
-				1	; serial
-				600	; refresh
-				600	; retry
-				1200	; expire
-				600	; minimum
-				)
-
-@		NS	@
-@		A 10.53.0.2
+{% include '_common/zones/soa.partial.db.j2' %}
+{% include '_common/zones/ns.partial.db.j2' %}
 
 ; All of the following DNSKEYs are malformed and have the same key tag - 20071.
 ; The keys use invalid parameters for the ECDSA curve.
 
+{% raw %}
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF1z4ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3YPgZjMZtl1Wd/fvtHF/3sU3HoOfwFg5Y9Ytl2+URx5Or0NNksES2iAAwmRfEEnH/hzk+8xF
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF1z4ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3YPgZjMZtl1Wd/fvtHF/3sU3HoOfjFg5Y9Ytl2+UR1JO/UNNksES2iAAwmRfEEnH/hzk+8v3
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF1z4ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3YPgZjMZtl1Wd/fvtHF/3sW2HoOfwFg5Y1ctl2+URx5O/UNNksES2iAAwmRfEEnH/hzk+8v3
@@ -112,6 +104,7 @@ $TTL 300
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF534ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3YPgZjMZtl1Wd/fvtHF/3sU3HoOfwFg5Y9Ytl2+URx5O/UNNksES2h+/wmRfEEnH/hzk+8v3
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF1z4ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3QngZjMZtl1Wd/fvtHF/3sU3HoOfwFg5ZFAtl2+URx5O/UNNksES2iAAwmRfEEnH/hzk+8v3
 @		DNSKEY	256 3 14 rdZ3Mr7XEQoEdD5EF1z4ulhFFbCNxbiu1BvD9cNCeMAGu8qmCKB+KmHS3YPgZjMZtl1Wd/fvtHF/3sU3HoOfwFg5Y9Ytl2+URx5O/UNNksES2iAAwmRfEEnH/hzk+8v3
+{% endraw %}
 
-malformed-dnskey		A	10.53.0.2
+invalid-rrsig			A	10.53.0.2
 multiple-rrsigs			A	10.53.0.2
