@@ -1,7 +1,0 @@
-child.example.	300	IN	SOA	ns1.child.example. admin.child.example. 2026021901 3600 900 86400 300
-api.child.example.	300	IN	A	192.0.2.102
-child.example.	300	IN	MX	10 mail.child.example.
-mail.child.example.	300	IN	A	192.0.2.101
-www.child.example.	300	IN	A	192.0.2.100
-ns1.child.example.	300	IN	A	10.53.0.3
-child.example.	300	IN	NS	ns1.child.example.

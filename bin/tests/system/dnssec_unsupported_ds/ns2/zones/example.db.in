@@ -1,5 +1,0 @@
-example.	300	IN	SOA	ns1.example. admin.example. 2026021901 3600 900 86400 300
-ns1.example.		300	IN	A 10.53.0.2
-ns1.child.example.	300	IN	A 10.53.0.3
-child.example.	300	IN	NS	ns1.child.example.
-example.	300	IN	NS	ns1.example.
