@@ -251,7 +251,22 @@ isc_ossl_wrap_generate_pkcs11_rsa_key(char *uri, size_t bit_size,
  */
 
 bool
-isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit);
+isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey);
+/*%
+ * Returns true if the RSA public exponent of `pkey` is odd and lies
+ * within the closed range [3, 2^32 + 1].  This covers every Fermat
+ * prime up to F5 plus all odd intermediate values seen in deployed
+ * DNSSEC keys.  Returns false if the exponent cannot be retrieved or
+ * falls outside that range.
+ */
+
+bool
+isc_ossl_wrap_rsa_modulus_bits_in_range(EVP_PKEY *pkey, size_t min, size_t max);
+/*%
+ * Returns true if the RSA modulus bit length of `pkey` is between `min`
+ * and `max` inclusive.  Returns false if the modulus bit length cannot
+ * be determined.
+ */
 
 isc_result_t
 isc_ossl_wrap_rsa_public_components(EVP_PKEY			   *pkey,

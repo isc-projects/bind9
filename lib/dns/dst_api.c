@@ -237,6 +237,8 @@ dst__lib_initialize(void) {
 
 void
 dst__lib_shutdown(void) {
+	dst__opensslrsa_shutdown();
+
 	isc_mem_detach(&dst__mctx);
 }
 

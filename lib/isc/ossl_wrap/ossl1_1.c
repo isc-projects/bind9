@@ -440,24 +440,48 @@ isc_ossl_wrap_generate_pkcs11_ed448_key(char *uri, EVP_PKEY **pkeyp) {
 }
 
 bool
-isc_ossl_wrap_rsa_key_bits_leq(EVP_PKEY *pkey, size_t limit) {
+isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	const RSA *rsa;
 	const BIGNUM *ce;
+	BIGNUM *emin = NULL;
+	BIGNUM *emax = NULL;
+	bool ok = false;
 
 	REQUIRE(pkey != NULL);
 
 	rsa = EVP_PKEY_get0_RSA(pkey);
-	if (rsa != NULL) {
-		ce = NULL;
-		RSA_get0_key(rsa, NULL, &ce, NULL);
-		if (ce != NULL) {
-			int bits = BN_num_bits(ce);
-
-			return bits > 0 && (size_t)bits <= limit;
-		}
+	if (rsa == NULL) {
+		return false;
+	}
+	ce = NULL;
+	RSA_get0_key(rsa, NULL, &ce, NULL);
+	if (ce == NULL) {
+		return false;
 	}
 
-	return false;
+	emin = BN_new();
+	if (emin == NULL || !BN_set_word(emin, 3)) {
+		goto cleanup;
+	}
+	if (BN_hex2bn(&emax, "100000001") == 0) {
+		goto cleanup;
+	}
+
+	ok = BN_is_odd(ce) && BN_cmp(ce, emin) >= 0 && BN_cmp(ce, emax) <= 0;
+
+cleanup:
+	BN_free(emin);
+	BN_free(emax);
+	return ok;
+}
+
+bool
+isc_ossl_wrap_rsa_modulus_bits_in_range(EVP_PKEY *pkey, size_t min,
+					size_t max) {
+	REQUIRE(pkey != NULL);
+
+	int bits = EVP_PKEY_bits(pkey);
+	return bits > 0 && (size_t)bits >= min && (size_t)bits <= max;
 }
 
 isc_result_t
