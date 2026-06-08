@@ -39,6 +39,15 @@ libtest_dep = declare_dependency(
     include_directories: test_inc,
 )
 
+# Minimal dependency providing just the qp test helpers (compiled into the
+# consumer), for the fuzzers.  It avoids linking the whole libbindtest shared
+# library, which cannot be built from static archives - e.g. the OSS-Fuzz
+# build, where libbindtest's netmgr wrappers clash with libisc/libns.
+libtest_qp_dep = declare_dependency(
+    sources: files('libtest' / 'qp.c'),
+    include_directories: test_inc,
+)
+
 if not cmocka_dep.found()
     subdir_done()
 endif
