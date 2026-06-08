@@ -258,6 +258,7 @@ dst_lib_destroy(void) {
 			dst_t_func[i]->cleanup();
 		}
 	}
+	dst__opensslrsa_shutdown();
 	dst__openssl_destroy();
 }
 

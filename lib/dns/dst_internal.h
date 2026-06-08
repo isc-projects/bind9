@@ -211,6 +211,8 @@ isc_result_t
 dst__hmacsha512_init(struct dst_func **funcp);
 isc_result_t
 dst__opensslrsa_init(struct dst_func **funcp, unsigned char algorithm);
+void
+dst__opensslrsa_shutdown(void);
 isc_result_t
 dst__opensslecdsa_init(struct dst_func **funcp);
 #if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
