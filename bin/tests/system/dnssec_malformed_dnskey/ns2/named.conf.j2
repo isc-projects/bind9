@@ -22,16 +22,6 @@ options {
 	allow-transfer { any; };
 	recursion no;
 	dnssec-validation yes;
-
-	/* Keep the order of RRSIGs in the response static. */
-	rrset-order {
-		name "example." order none;
-	};
-};
-
-zone example. {
-	type primary;
-	file "example.db.signed.malformed";
 };
 
 zone truncated-active.selfsigned. {
