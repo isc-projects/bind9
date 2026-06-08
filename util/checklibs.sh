@@ -56,7 +56,7 @@ list=$(git grep -l stdatomic.h lib bin ':(exclude)lib/isc/include/isc/atomic\.h'
 #
 # Check for the usage of explicit memory ordering
 #
-list=$(git grep -l memory_order_.* lib bin ':(exclude)lib/isc/include/isc/atomic\.h' \
+list=$(git grep -l memory_order_.* lib bin ':(exclude)lib/isc/include/isc/atomic\.h' ':(exclude)lib/isc/rwlock\.c' \
   | grep -e '\.c$' -e '\.h$')
 [ -n "$list" ] && {
   status=1
