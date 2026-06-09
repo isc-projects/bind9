@@ -1744,7 +1744,7 @@ dns__rpz_timer_stop(void *arg) {
 }
 
 static void
-update_rpz_done_cb(void *data) {
+update_rpz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
 	char dname[DNS_NAME_FORMATSIZE];
 
@@ -2050,7 +2050,8 @@ dns__rpz_timer_cb(void *arg) {
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
 	dns_rpz_zones_ref(rpz->rpzs);
-	isc_work_enqueue(rpz->loop, update_rpz_cb, update_rpz_done_cb, rpz);
+	isc_work_enqueue(rpz->loop, ISC_WORKLANE_SLOW, update_rpz_cb,
+			 update_rpz_done_cb, rpz);
 
 	isc_timer_destroy(&rpz->updatetimer);
 	rpz->loop = NULL;
