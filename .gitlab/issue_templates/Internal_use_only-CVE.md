@@ -23,7 +23,7 @@ confidential!
 [cwe_category_url]: https://cwe.mitre.org/data/definitions/NNN.html
 [earliest_url]: support-team/earliest-notification-drafting!NNN
 [press_url]: isc-private/printing-press!NNN
-[zulip_url]: https://zulip.isc.org/#narrow/channel/4-bind9/topic/CVE-...
+[zulip_url]: https://zulip.isc.org/#narrow/channel/41-bind9-incidents/topic/XXXXX
 
 :bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
 
