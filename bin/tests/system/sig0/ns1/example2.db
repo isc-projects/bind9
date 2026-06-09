@@ -1,0 +1,9 @@
+@	3600	SOA	n1.example. hostmaster.ns1.example. (
+			1 3600 1200 604800 7200 )
+		NS	ns2.example.
+		NS	ns3.example.
+ns1		A	10.53.0.1
+ns2		A	10.53.0.2
+ns3		A	10.53.0.3
+test		A	1.2.3.4
+sig0.example2. IN KEY 0 3 163 c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K

@@ -21,8 +21,15 @@ options {
 
 view "v1" {
 	match-clients { any; };
+
 	zone "." {
 		type hint;
 		file "/dev/null";
+	};
+
+	zone "example2" {
+		type primary;
+		file "example2.db";
+		allow-query { key sig0.example2.; };
 	};
 };
