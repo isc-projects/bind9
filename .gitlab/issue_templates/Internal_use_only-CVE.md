@@ -6,7 +6,12 @@ if it involves an assertion failure or other crash in `named` that can be
 triggered repeatedly - then please make sure that you make the new issue
 confidential!
 -->
-| How to?            | Click on [:grey_question:][checklist_explanations] for each step       |
+
+[checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
+
+⏩ **Each [:grey_question:][checklist_explanations] is a link to [explainations of each checklist step][checklist_explanations].** ⏪
+
+| Quick Links        |                                                                        |
 | ------------------ | ---------------------------------------------------------------------- |
 | Incident Manager:  | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
 | Multi-vendor?      | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
@@ -24,12 +29,6 @@ confidential!
 [earliest_url]: support-team/earliest-notification-drafting!NNN
 [press_url]: isc-private/printing-press!NNN
 [zulip_url]: https://zulip.isc.org/#narrow/channel/41-bind9-incidents/topic/XXXXX
-
-:bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
-
-:question: Not sure about something? Ask!
-
-[checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
 
 ### Before Code Freeze
 
