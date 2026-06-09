@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -11,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Silence incorrect warnings cause by hypothesis.assume()
+# Silence incorrect warnings caused by hypothesis.assume()
 # https://github.com/pylint-dev/pylint/issues/10785#issuecomment-3677224217
 # pylint: disable=unreachable
 
@@ -20,6 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import os
+import time
 
 from hypothesis import assume, given
 
@@ -34,17 +33,43 @@ import dns.rdtypes.ANY.RRSIG
 import dns.rrset
 import pytest
 
+from dnssec_py.common import DNSSEC_PY_MARK
 from isctest.hypothesis.strategies import dns_names, sampled_from
+from isctest.template import NS2, zones
+from isctest.zone import Zone, configure_root
 
 import isctest
 import isctest.name
 
-SUFFIX = dns.name.from_text(".")
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
+pytestmark = DNSSEC_PY_MARK
+
+
+def bootstrap():
+    zone = Zone(
+        "nsec3-answer",
+        NS2,
+        signed=True,
+    )
+    zone.add_keys()
+    salt = int(time.time()) // 3600 % 65536
+    salt_hex = f"{salt:04X}"
+    isctest.log.info(f"NSEC3 salt for this hour: {salt_hex}")
+    zone.sign(f"-3 {salt_hex}")
+
+    root = configure_root([zone])
+    return {
+        "trust_anchors": root.trust_anchors(),
+        "zones": zones([root, zone]),
+    }
+
+
+SUFFIX = dns.name.from_text("nsec3-answer.")
+AUTH = "10.53.0.2"
+RESOLVER = "10.53.0.9"
 TIMEOUT = 5
 ZONE = isctest.name.ZoneAnalyzer.read_path(
-    Path(os.environ["srcdir"]) / "nsec3_answer/ns1/root.db.in", origin=SUFFIX
+    Path(os.environ["srcdir"]) / "dnssec_py/ns2/zones/nsec3-answer.db",
+    origin=SUFFIX,
 )
 
 
@@ -71,7 +96,7 @@ def do_test_query(
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(
     qname=sampled_from(
@@ -84,7 +109,7 @@ def test_nodata(server: str, qname: dns.name.Name, named_port: int) -> None:
     check_nodata(qname, nsec3check)
 
 
-@pytest.mark.parametrize("server", [pytest.param(AUTH, id="ns1")])
+@pytest.mark.parametrize("server", [pytest.param(AUTH, id="ns2")])
 @given(
     qname=dns_names(
         suffix=(ZONE.delegations - ZONE.get_names_with_type(dns.rdatatype.DS))
@@ -116,7 +141,7 @@ def assume_nx_and_no_delegation(qname: dns.name.Name) -> None:
     assume(qname not in ZONE.all_existing_names)
 
     # name must not be under a delegation or DNAME:
-    # it would not work with resolver ns2
+    # it would not work with resolver ns9
     assume(
         not is_related_to_any(
             qname,
@@ -127,7 +152,7 @@ def assume_nx_and_no_delegation(qname: dns.name.Name) -> None:
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=dns_names(suffix=SUFFIX))
 def test_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
@@ -141,7 +166,7 @@ def test_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=sampled_from(sorted(ZONE.get_names_with_type(dns.rdatatype.CNAME))))
 def test_cname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
@@ -157,7 +182,7 @@ def test_cname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> N
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=dns_names(suffix=ZONE.get_names_with_type(dns.rdatatype.DNAME)))
 def test_dname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
@@ -175,7 +200,7 @@ def test_dname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> N
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=dns_names(suffix=ZONE.ents))
 def test_ents(server: str, qname: dns.name.Name, named_port: int) -> None:
@@ -193,7 +218,7 @@ def test_ents(server: str, qname: dns.name.Name, named_port: int) -> None:
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=dns_names(suffix=ZONE.reachable_wildcard_parents))
 def test_wildcard_synthesis(server: str, qname: dns.name.Name, named_port: int) -> None:
@@ -207,7 +232,7 @@ def test_wildcard_synthesis(server: str, qname: dns.name.Name, named_port: int) 
 
 
 @pytest.mark.parametrize(
-    "server", [pytest.param(AUTH, id="ns1"), pytest.param(RESOLVER, id="ns2")]
+    "server", [pytest.param(AUTH, id="ns2"), pytest.param(RESOLVER, id="ns9")]
 )
 @given(qname=dns_names(suffix=ZONE.reachable_wildcard_parents))
 def test_wildcard_nodata(server: str, qname: dns.name.Name, named_port: int) -> None:
