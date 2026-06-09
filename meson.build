@@ -729,6 +729,16 @@ if urcu_dep[1].version().version_compare('<0.13.0')
     urcu_dep += cc.find_library('liburcu-common')
 endif
 
+foreach h : [
+    'urcu/uatomic.h',
+    'urcu/assert.h',
+    'urcu/pointer.h',
+]
+    if cc.has_header(h, dependencies: urcu_dep)
+        config.set('HAVE_@0@'.format(h.underscorify().to_upper()), 1)
+    endif
+endforeach
+
 config.set_quoted('RCU_FLAVOR', f'liburcu-@rcu_flavor@')
 config.set_quoted('RCU_VERSION', urcu_dep[0].version())
 

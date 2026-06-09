@@ -15,13 +15,12 @@
 
 #include <inttypes.h>
 
-#include <urcu/compiler.h>
-#include <urcu/system.h>
-
 #include <isc/job.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
+#include <isc/work.h>
 
 typedef void (*isc_job_cb)(void *);
 
@@ -204,14 +203,4 @@ isc_loop_shuttingdown(isc_loop_t *loop);
  * Requires:
  *
  * \li 'loop' is a valid loop and the loop tid matches the current tid.
- */
-
-isc_loop_t *
-isc_loop_helper(isc_loop_t *loop);
-/*%<
- * Returns the helper thread corresponding to the thread ID for 'loop'.
- *
- * Requires:
- *
- * \li 'loop' is a valid loop.
  */

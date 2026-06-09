@@ -47,14 +47,15 @@ work_cb(void *arg ISC_ATTR_UNUSED) {
 }
 
 static void
-after_work_cb(void *arg ISC_ATTR_UNUSED) {
+after_work_cb(void *arg ISC_ATTR_UNUSED, isc_result_t result ISC_ATTR_UNUSED) {
 	assert_int_equal(atomic_load(&scheduled), 1);
 	isc_loopmgr_shutdown();
 }
 
 static void
 work_enqueue_cb(void *arg ISC_ATTR_UNUSED) {
-	isc_work_enqueue(isc_loop(), work_cb, after_work_cb, NULL);
+	isc_work_enqueue(isc_loop(), ISC_WORKLANE_FAST, work_cb, after_work_cb,
+			 NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_work_enqueue) {

@@ -841,7 +841,8 @@ static void
 start_next_command(void);
 
 static void
-process_next_command(void *arg ISC_ATTR_UNUSED) {
+process_next_command(void *arg ISC_ATTR_UNUSED,
+		     isc_result_t result ISC_ATTR_UNUSED) {
 	isc_loop_t *loop = isc_loop_main();
 	if (cmdline == NULL) {
 		in_use = false;
@@ -868,11 +869,11 @@ start_next_command(void) {
 
 	isc_loopmgr_pause();
 	if (interactive) {
-		isc_work_enqueue(loop, readline_next_command,
+		isc_work_enqueue(loop, ISC_WORKLANE_FAST, readline_next_command,
 				 process_next_command, loop);
 	} else {
-		isc_work_enqueue(loop, fgets_next_command, process_next_command,
-				 loop);
+		isc_work_enqueue(loop, ISC_WORKLANE_FAST, fgets_next_command,
+				 process_next_command, loop);
 	}
 	isc_loopmgr_resume();
 }
