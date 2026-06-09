@@ -6,18 +6,18 @@ if it involves an assertion failure or other crash in `named` that can be
 triggered repeatedly - then please make sure that you make the new issue
 confidential!
 -->
-| How to?                  | Click on [:grey_question:][checklist_explanations] for each step       |
-| ------------------------ | ---------------------------------------------------------------------- |
-| Incident Manager:        | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
-| Multi-vendor?            | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
-| Public Disclosure Date:  | YYYY-MM-DD                                                             |
-| CVSS Score:              | [0.0][cvss_score_url]                                                  |
-| CWE:                     | [CWE-NNN][cwe_category_url]                                            |
-| Earliest Notification:   | [e-n-d!NNN][earliest_url]                                              |
-| Security Advisory:       | [p-p!NNN][press_url]                                                   |
-| Zulip Topic:             | [CVE-YYYY-NNNN][zulip_url]                                             |
-| Support Ticket:          | [URL]                                                                  |
-| Release Checklist:       | #NNNN                                                                  |
+| How to?            | Click on [:grey_question:][checklist_explanations] for each step       |
+| ------------------ | ---------------------------------------------------------------------- |
+| Incident Manager:  | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
+| Multi-vendor?      | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
+| Public Disclosure: | YYYY-MM-DD                                                             |
+| CVSS Score:        | [0.0][cvss_score_url]                                                  |
+| CWE:               | [CWE-NNN][cwe_category_url]                                            |
+| Earliest EVN:      | [e-n-d!NNN][earliest_url]                                              |
+| Security Advisory: | [p-p!NNN][press_url]                                                   |
+| Zulip Topic:       | [CVE-YYYY-NNNN][zulip_url]                                             |
+| Support Ticket:    | [URL]                                                                  |
+| Release Checklist: | #NNNN                                                                  |
 
 [cvss_score_url]: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X&version=3.1
 [cwe_category_url]: https://cwe.mitre.org/data/definitions/NNN.html
