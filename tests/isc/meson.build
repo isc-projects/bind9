@@ -62,6 +62,14 @@ flaky_isc_test = [
 
 is_el8 = run_command('grep', '-q', '-F', 'platform:el8', '/etc/os-release', check: false).returncode() == 0
 
+_all_isc_test = isc_test + ['doh']
+run_command(
+    check_test_registration,
+    meson.current_source_dir(),
+    _all_isc_test,
+    check: true,
+)
+
 if config.has('HAVE_LIBNGHTTP2') and not is_el8
     isc_test += 'doh'
 endif

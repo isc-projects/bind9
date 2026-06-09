@@ -32,4 +32,5 @@ dangerfile.py			 export-ignore
 /util/dtrace.sh			-export-ignore
 /util/meson.build		-export-ignore
 /util/meson-system-test-init.sh	-export-ignore
+/util/check_test_registration.py	-export-ignore
 /util/meson-dist-package.sh	-export-ignore

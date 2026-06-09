@@ -18,6 +18,7 @@ dns_tests = [
     'dbiterator',
     'dbversion',
     'deleg',
+    'diff',
     'dispatch',
     'dns64',
     'dst',
@@ -40,6 +41,7 @@ dns_tests = [
     'resolver',
     'rsa',
     'sigs',
+    'skr',
     'time',
     'transport',
     'tsig',
@@ -50,6 +52,14 @@ dns_tests = [
     'zonemgr',
     'zt',
 ]
+
+_all_dns_tests = dns_tests + ['geoip', 'dnstap']
+run_command(
+    check_test_registration,
+    meson.current_source_dir(),
+    _all_dns_tests,
+    check: true,
+)
 
 if config.has('HAVE_GEOIP2')
     dns_tests += 'geoip'

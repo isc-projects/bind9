@@ -9,11 +9,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-foreach unit : [
+ns_tests = [
     'notify',
     'plugin',
     'query',
 ]
+
+run_command(check_test_registration, meson.current_source_dir(), ns_tests, check: true)
+
+foreach unit : ns_tests
     test_bin = executable(
         unit,
         files(f'@unit@_test.c', 'netmgr_wrap.c'),

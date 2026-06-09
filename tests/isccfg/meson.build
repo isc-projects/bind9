@@ -9,11 +9,20 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-foreach unit : [
+isccfg_tests = [
     'duration',
     'grammar',
     'parser',
 ]
+
+run_command(
+    check_test_registration,
+    meson.current_source_dir(),
+    isccfg_tests,
+    check: true,
+)
+
+foreach unit : isccfg_tests
     test_bin = executable(
         unit,
         files(f'@unit@_test.c'),
