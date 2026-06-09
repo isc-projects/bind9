@@ -240,6 +240,8 @@ hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned int digestlen = sizeof(digest);
+	unsigned int sig_expected_length = ISC_MAX_MD_SIZE;
+	uint16_t digestbits = dst_key_getbits(dctx->key);
 
 	REQUIRE(ctx != NULL);
 
@@ -251,7 +253,21 @@ hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 		return DST_R_OPENSSLFAILURE;
 	}
 
-	if (sig->length > digestlen) {
+	if (digestbits == 0) {
+		/*
+		 * If digestbits is zero then HMAC truncation is not used, just
+		 * use the key's actual length.
+		 */
+		isc_result_t result = dst_key_sigsize(dctx->key,
+						      &sig_expected_length);
+		if (result != ISC_R_SUCCESS) {
+			return DST_R_VERIFYFAILURE;
+		}
+	} else {
+		sig_expected_length = (digestbits + 7) / 8;
+	}
+
+	if (sig->length != sig_expected_length || sig->length > digestlen) {
 		return DST_R_VERIFYFAILURE;
 	}
 
