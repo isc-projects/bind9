@@ -8091,9 +8091,9 @@ query_filter64(query_ctx_t *qctx) {
 }
 
 /*%
- * Handle the case of a name not being found in a database lookup.
+ * Handle the case of a name not being found in a local zone database lookup.
  * Called from query_gotanswer(). Passes off processing to
- * query_cache_delegation() for a root referral if appropriate.
+ * query_cache_delegation().
  */
 static isc_result_t
 query_notfound(query_ctx_t *qctx) {
@@ -8105,77 +8105,7 @@ query_notfound(query_ctx_t *qctx) {
 
 	INSIST(!qctx->is_zone);
 
-	if (qctx->db != NULL) {
-		dns_db_detach(&qctx->db);
-	}
-
-	/*
-	 * If the cache doesn't even have the root NS, try to get that from
-	 * the rootdb (root hints, refreshed by priming).
-	 */
-	if (qctx->view->rootdb != NULL) {
-		dns_clientinfomethods_t cm;
-		dns_clientinfo_t ci;
-
-		dns_clientinfomethods_init(&cm, ns_client_sourceip);
-		dns_clientinfo_init(&ci, qctx->client, NULL);
-
-		dns_db_attach(qctx->view->rootdb, &qctx->db);
-		result = dns_db_findext(
-			qctx->db, dns_rootname, NULL, dns_rdatatype_ns, 0,
-			qctx->client->inner.now, qctx->fname, &cm, &ci,
-			qctx->rdataset, qctx->sigrdataset);
-	}
-	if (result != ISC_R_SUCCESS) {
-		/*
-		 * Nonsensical root hints may require cleanup.
-		 */
-		qctx_clean(qctx);
-
-		/*
-		 * We don't have any root server hints, but
-		 * we may have working forwarders, so try to
-		 * recurse anyway.
-		 */
-		if (qctx->client->query.recursionok) {
-			INSIST(!qctx->client->query.is_redirect);
-			result = ns_query_recurse(qctx->client, qctx->qtype,
-						  qctx->client->query.qname,
-						  NULL, NULL, qctx->resuming);
-			if (result == ISC_R_SUCCESS) {
-				CALL_HOOK(NS_QUERY_NOTFOUND_RECURSE, qctx);
-				qctx->client->query.recursing = true;
-
-				if (qctx->dns64) {
-					qctx->client->query.dns64 = true;
-				}
-				if (qctx->dns64_exclude) {
-					qctx->client->query.dns64exclude = true;
-				}
-			} else if (result != DNS_R_DROP &&
-				   result != DNS_R_DUPLICATE &&
-				   query_usestale(qctx))
-			{
-				/*
-				 * If serve-stale is enabled, query_usestale()
-				 * already set up 'qctx' for looking up a
-				 * stale response.
-				 */
-				return query_lookup(qctx);
-			} else {
-				QUERY_ERROR(qctx, result);
-			}
-			return ns_query_done(qctx);
-		} else {
-			/* Unable to give root server referral. */
-			CCTRACE(ISC_LOG_ERROR, "unable to give root server "
-					       "referral");
-			QUERY_ERROR(qctx, result);
-			return ns_query_done(qctx);
-		}
-	}
-
-	return query_cache_delegation(qctx);
+	result = query_cache_delegation(qctx);
 
 cleanup:
 	return result;
@@ -8189,6 +8119,20 @@ static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx) {
 	dns_rdataset_t **sigrdatasetp = NULL;
 	bool detach = false;
+
+	/*
+	 * No recursion is available, and there is no data pulled from the local
+	 * cache/local authority zones, this is a SERVFAIL.
+	 *
+	 * (Note that, in the future, we could also look into the delegdb and
+	 * return in ADDITIONAL what's in the delegation cache.)
+	 */
+	if (!qctx->client->query.recursionok &&
+	    !dns_rdataset_isassociated(qctx->rdataset))
+	{
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		goto querydone;
+	}
 
 	/*
 	 * qctx->fname could be released in query_addrrset(), so save a copy of
@@ -8226,6 +8170,7 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	 */
 	query_addds(qctx);
 
+querydone:
 	return ns_query_done(qctx);
 }
 
@@ -8383,6 +8328,41 @@ cleanup:
 	return result;
 }
 
+static bool
+use_zone_delegation(query_ctx_t *qctx) {
+	/*
+	 * Nothing found in authoritative zone.
+	 */
+	if (qctx->zfname == NULL) {
+		return false;
+	}
+
+	/*
+	 * Nothing found in the cache, `qctx->fname` remains in
+	 * its initial state.
+	 */
+	if (!dns_name_isabsolute(qctx->fname)) {
+		return true;
+	}
+
+	/*
+	 * We've already got a delegation from authoritative data, and it is
+	 *    better than what we found in the cache.
+	 */
+	if (dns_name_issubdomain(qctx->fname, qctx->zfname)) {
+		return true;
+	}
+
+	/*
+	 * The query name matches the origin name of a static-stub zone. This
+	 * needs to be considered for the case where the NS of the static-stub
+	 * zone and the cached NS are different. We still need to contact the
+	 * nameservers configured in the static-stub zone.
+	 */
+	return qctx->is_staticstub_zone &&
+	       dns_name_equal(qctx->fname, qctx->zfname);
+}
+
 /*%
  * Handle delegation responses from cache data, including root referrals.
  */
@@ -8396,26 +8376,11 @@ query_cache_delegation(query_ctx_t *qctx) {
 
 	qctx->authoritative = false;
 
-	if (qctx->zfname != NULL &&
-	    (!dns_name_issubdomain(qctx->fname, qctx->zfname) ||
-	     (qctx->is_staticstub_zone &&
-	      dns_name_equal(qctx->fname, qctx->zfname))))
-	{
-		/*
-		 * In the following cases use "authoritative"
-		 * data instead of the cache delegation:
-		 * 1. We've already got a delegation from
-		 *    authoritative data, and it is better
-		 *    than what we found in the cache.
-		 *    (See the comment above.)
-		 * 2. The query name matches the origin name
-		 *    of a static-stub zone.  This needs to be
-		 *    considered for the case where the NS of
-		 *    the static-stub zone and the cached NS
-		 *    are different.  We still need to contact
-		 *    the nameservers configured in the
-		 *    static-stub zone.
-		 */
+	/*
+	 * A delegation was previously found from a local authority zone. (See
+	 * `query_zone_delegation()` flow above, which ends up here.)
+	 */
+	if (use_zone_delegation(qctx)) {
 		ns_client_releasename(qctx->client, &qctx->fname);
 
 		/*
@@ -8491,33 +8456,15 @@ query_delegation_recurse(query_ctx_t *qctx) {
 					  NULL, NULL, qctx->resuming);
 	} else {
 		/*
-		 * Any other recursion.
+		 * Any other recursion. If qctx->fname/qctx->rdataset are
+		 * valid/associated, it  means we found a delegation from a
+		 * local zone. But we can safely ignore them, as the resolver
+		 * will find this out by itself internally. This is useful only
+		 * in the case recursion is not available, so it can be returned
+		 * as referral.
 		 */
-		dns_delegset_t *delegset = NULL;
-		dns_fixedname_t ffname;
-		dns_name_t *fname = dns_fixedname_initname(&ffname);
-		isc_result_t tresult;
-
-		tresult = dns_view_bestzonecut(qctx->view, qname, fname, NULL,
-					       qctx->client->inner.now, 0, true,
-					       true, &delegset);
-		if (tresult != ISC_R_SUCCESS) {
-			dns_delegset_fromnsrdataset(qctx->client->manager->mctx,
-						    qctx->rdataset, &delegset);
-			fname = qctx->fname;
-		}
-
-		if (delegset == NULL) {
-			result = ISC_R_NOTFOUND;
-		} else {
-			result = ns_query_recurse(qctx->client, qctx->qtype,
-						  qname, fname, delegset,
-						  qctx->resuming);
-		}
-
-		if (delegset != NULL) {
-			dns_delegset_detach(&delegset);
-		}
+		result = ns_query_recurse(qctx->client, qctx->qtype, qname,
+					  NULL, NULL, qctx->resuming);
 	}
 
 	if (result == ISC_R_SUCCESS) {
