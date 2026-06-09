@@ -7,11 +7,15 @@ triggered repeatedly - then please make sure that you make the new issue
 confidential!
 -->
 
+[TOC]
+
+## Quick Links
+
 [checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
 
 ⏩ **Each [:grey_question:][checklist_explanations] is a link to [explainations of each checklist step][checklist_explanations].** ⏪
 
-| Quick Links        |                                                                        |
+|                    |                                                                        |
 | ------------------ | ---------------------------------------------------------------------- |
 | Incident Manager:  | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
 | Multi-vendor?      | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
@@ -29,6 +33,8 @@ confidential!
 [earliest_url]: support-team/earliest-notification-drafting!NNN
 [press_url]: isc-private/printing-press!NNN
 [zulip_url]: https://zulip.isc.org/#narrow/channel/41-bind9-incidents/topic/XXXXX
+
+## CVE Checklist
 
 ### Before Code Freeze
 
@@ -124,5 +130,7 @@ confidential!
 [step_embargo_end]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#inform-original-reporter-if-external-that-the-security-disclosure-process-is-complete
 [step_evn_clear]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-the-tickets-in-the-evn-queues-in-rt-that-the-embargo-is-lifted
 [step_customers]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-that-a-ticket-has-been-sent-in-the-appropriate-announce-queue-in-rt-to-notify-customers-that-the-release-is-published-as-outlined-in-the-release-checklist
+
+## Original Report
 
 /confidential
