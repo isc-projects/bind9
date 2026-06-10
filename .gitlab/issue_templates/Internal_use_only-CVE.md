@@ -43,7 +43,9 @@ confidential!
   - [ ] [:grey_question:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
   - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier, and update the GitLab Issue with it
   - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Determine CVSS score and CWE category, and update the GitLab Issue with them
-  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition and supported EOL versions)
+  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine product branches/versions affected
+    - [ ] **(SwEng)** Including Subscription Edition(s)
+    - [ ] **(SwEng)** Including EOL version(s) receiving paid support
   - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
   - [ ] [:grey_question:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
   - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
