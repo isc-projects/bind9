@@ -41,8 +41,8 @@ confidential!
   - [ ] [:grey_question:][step_respond]           **(SwEng)** Respond to the bug reporter
   - [ ] [:grey_question:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
   - [ ] [:grey_question:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
-  - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier
-  - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and the CWE category
+  - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier, and update the GitLab Issue with it
+  - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Determine CVSS score and CWE category, and update the GitLab Issue with them
   - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition and supported EOL versions)
   - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
   - [ ] [:grey_question:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
