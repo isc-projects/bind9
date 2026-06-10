@@ -46,9 +46,9 @@ confidential!
   - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine product branches/versions affected
     - [ ] **(SwEng)** Including Subscription Edition(s)
     - [ ] **(SwEng)** Including EOL version(s) receiving paid support
-  - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
-  - [ ] [:grey_question:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
-  - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
+  - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare text for Earliest EVN notification in e-n-d
+  - [ ] [:grey_question:][step_earliest_send]     **(Support)** Send Earliest EVN notification in RT
+  - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Begin preparing the Security Advisory in printing-press
   - [ ] [:grey_question:][step_reproducer]        **(SwEng)** Prepare a private merge request containing a system test reproducing the problem
   - [ ] [:grey_question:][step_notify_support]    **(SwEng)** Notify Support when a reproducer is ready
   - [ ] [:grey_question:][step_code_analysis]     **(SwEng)** Prepare a detailed explanation of the code flow triggering the problem
@@ -57,7 +57,7 @@ confidential!
   - [ ] [:grey_question:][step_review_docs]       **(Support)** Review the documentation changes introduced by the merge request with the fix
   - [ ] [:grey_question:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
   - [ ] [:grey_question:][step_merge_fixes]       **(SwEng)** Merge the CVE fixes and reproducer when they get approved
-  - [ ] [:grey_question:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
+  - [ ] [:grey_question:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory in printing-press
   - [ ] [:grey_question:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
   - [ ] [:grey_question:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
 
