@@ -111,8 +111,12 @@ get_sn() {
   $DIG -p "${PORT}" +short +norecurse soa "$1" "@$2" "-b$2" >$DIGNM
   SN=$(awk '{ print $3 }' <$DIGNM)
   [ -n "$SN" ] && return
+  # A policy zone being (re)loaded can briefly answer with no SOA
+  # (SERVFAIL/REFUSED), which +short renders as empty output.  Return
+  # failure rather than aborting so the retry_quiet() in ck_soa() can
+  # probe again instead of dying on a single transient miss.
   echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\`"
-  exit 1
+  return 1
 }
 
 # check the serial number in an SOA to ensure that a policy zone has
@@ -121,7 +125,7 @@ get_sn() {
 # $2=domain
 # $3=DNS server
 test_soa() {
-  get_sn "$2" "$3"
+  get_sn "$2" "$3" || return 1
   test "$SN" -eq "$1"
 }
 
