@@ -13,7 +13,7 @@ confidential!
 
 [checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
 
-⏩ **Each [:grey_question:][checklist_explanations] is a link to [explainations of each checklist step][checklist_explanations].** ⏪
+⏩ **Each [:grey_question:][checklist_explanations] is a link to [explanations of each checklist step][checklist_explanations].** ⏪
 
 |                    |                                                                        |
 | ------------------ | ---------------------------------------------------------------------- |
