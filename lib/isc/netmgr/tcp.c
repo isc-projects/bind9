@@ -778,7 +778,10 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 		goto free;
 	}
 
-	if (nread < 0) {
+	if (nread == 0) {
+		/* EAGAIN/EWOULDBLOCK: no data yet, not an error on libuv. */
+		goto free;
+	} else if (nread < 0) {
 		if (nread != UV_EOF) {
 			isc__nm_incstats(sock, STATID_RECVFAIL);
 		}
@@ -837,7 +840,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	}
 
 free:
-	if (nread < 0) {
+	if (nread <= 0) {
 		/*
 		 * The buffer may be a null buffer on error.
 		 */
