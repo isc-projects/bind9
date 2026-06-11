@@ -198,8 +198,8 @@ stages:
 
 # Alpine Linux
 
-.alpine-3.23-amd64: &alpine_3_23_amd64_image
-  image: "$CI_REGISTRY_IMAGE:alpine-3.23-amd64"
+.alpine-3.24-amd64: &alpine_3_24_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.24-amd64"
   <<: *linux_amd64
 
 # AlmaLinux
@@ -987,7 +987,7 @@ coverity:
 # Simple reproductibilty test, needs an image with meson >=1.6.0
 reproducible-build:
   <<: *other_checks_job
-  <<: *alpine_3_23_amd64_image
+  <<: *alpine_3_24_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
@@ -1133,28 +1133,28 @@ cross-version-config-tests:
     when: always
   allow_failure: true # !12163, commit 9771df0a
 
-# Jobs for regular GCC builds on Alpine Linux 3.23 (amd64)
+# Jobs for regular GCC builds on Alpine Linux 3.24 (amd64)
 
-gcc:alpine3.23:amd64:
+gcc:alpine3.24:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "${WITHOUT_LIBEDIT}"
-  <<: *alpine_3_23_amd64_image
+  <<: *alpine_3_24_amd64_image
   <<: *build_job
 
-system:gcc:alpine3.23:amd64:
-  <<: *alpine_3_23_amd64_image
+system:gcc:alpine3.24:amd64:
+  <<: *alpine_3_24_amd64_image
   <<: *system_test_job
   needs:
-    - job: gcc:alpine3.23:amd64
+    - job: gcc:alpine3.24:amd64
       artifacts: true
 
-unit:gcc:alpine3.23:amd64:
-  <<: *alpine_3_23_amd64_image
+unit:gcc:alpine3.24:amd64:
+  <<: *alpine_3_24_amd64_image
   <<: *unit_test_job
   needs:
-    - job: gcc:alpine3.23:amd64
+    - job: gcc:alpine3.24:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Alma Linux 8 (amd64)
