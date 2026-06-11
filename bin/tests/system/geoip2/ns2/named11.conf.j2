@@ -91,6 +91,14 @@ view seven {
 	};
 };
 
+view eight {
+	match-clients { geoip domain seven; }; # non-matching name (a substring of the previous entry), see GL#6019
+	zone "example" {
+		type primary;
+		file "example8.db";
+	};
+};
+
 view none {
 	match-clients { any; };
 	zone "example" {
