@@ -124,11 +124,21 @@ setret() {
 # $1=domain
 # $2=DNS server and client IP address
 get_sn() {
-  SOA=$($DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2")
-  SN=$(expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*' || true)
-  test "$SN" != "" && return
-  echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\` in \"$SOA\""
-  exit 1
+  gsn_n=0
+  while true; do
+    SOA=$($DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2")
+    SN=$(expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*' || true)
+    test "$SN" != "" && return
+    # A policy zone being (re)loaded can briefly answer with no SOA
+    # (SERVFAIL/REFUSED), which +short renders as empty output; keep
+    # probing instead of failing on a single transient miss.
+    gsn_n=$((gsn_n + 1))
+    if test "$gsn_n" -gt $TEN_SECS; then
+      echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\` in \"$SOA\""
+      exit 1
+    fi
+    $WAIT_CMD
+  done
 }
 
 get_sn_fast() {
