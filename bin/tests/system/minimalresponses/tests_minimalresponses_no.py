@@ -9,14 +9,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from dns.rcode import NOERROR, REFUSED
+from dns.rcode import NOERROR, REFUSED, SERVFAIL
 
 import pytest
 
 from minimalresponses.common import (
     AEXAMPLE2_A,
     AEXAMPLE4_A,
-    AROOTSERVER_NS,
     EXAMPLE2_NS,
     EXAMPLE4_NS,
     INPUTPARAMS,
@@ -64,8 +63,8 @@ INPUTS = [
     ("ns3", "a.example4", "A", True, False, NOERROR, AEXAMPLE4_A, None, None),
     ("ns3", "a.example2", "A", True, True, NOERROR, AEXAMPLE2_A, None, None),
     ("ns3", "a.example4", "A", True, True, NOERROR, AEXAMPLE4_A, None, None),
-    ("ns3", "a.example2", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
-    ("ns3", "a.example4", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns3", "a.example2", "A", False, False, SERVFAIL, None, None, None),
+    ("ns3", "a.example4", "A", False, False, SERVFAIL, None, None, None),
     ("ns3", "a.example2", "A", False, True, NOERROR, AEXAMPLE2_A, None, None),
     ("ns3", "a.example4", "A", False, True, NOERROR, AEXAMPLE4_A, None, None),
     # ns4 is authoritative on example4, so gives us everything in any cases.
@@ -96,7 +95,7 @@ INPUTS = [
         NSEXAMPLE4_A,
     ),
     ("ns4", "a.example2", "A", False, True, NOERROR, AEXAMPLE2_A, None, None),
-    ("ns4", "a.example2", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns4", "a.example2", "A", False, False, SERVFAIL, None, None, None),
     (
         "ns4",
         "a.example4",
@@ -121,7 +120,7 @@ INPUTS = [
     ),
     # Resolver always provides glues with associated NS for qtype=NS
     ("ns3", "example2", "NS", True, False, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
-    ("ns3", "example2", "NS", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns3", "example2", "NS", False, False, SERVFAIL, None, None, None),
     ("ns3", "example2", "NS", False, True, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
     ("ns3", "example2", "NS", True, True, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
 ]
