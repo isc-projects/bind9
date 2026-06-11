@@ -6,40 +6,49 @@ if it involves an assertion failure or other crash in `named` that can be
 triggered repeatedly - then please make sure that you make the new issue
 confidential!
 -->
-| How to?                  | Click on [:grey_question:][checklist_explanations] for each step       |
-| ------------------------ | ---------------------------------------------------------------------- |
-| Incident Manager:        | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
-| Multi-vendor?            | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
-| Public Disclosure Date:  | YYYY-MM-DD                                                             |
-| CVSS Score:              | [0.0][cvss_score_url]                                                  |
-| CWE:                     | [CWE-NNN][cwe_category_url]                                            |
-| Earliest Notification:   | support-team/earliest-notification-drafting!NNN                        |
-| Security Advisory:       | isc-private/printing-press!NNN                                         |
-| Zulip Topic:             | [CVE-YYYY-NNNN][zulip_url]                                             |
-| Support Ticket:          | [URL]                                                                  |
-| Release Checklist:       | #NNNN                                                                  |
+
+[TOC]
+
+## Quick Links
+
+[checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
+
+⏩ **Each [:grey_question:][checklist_explanations] is a link to [explanations of each checklist step][checklist_explanations].** ⏪
+
+|                    |                                                                        |
+| ------------------ | ---------------------------------------------------------------------- |
+| Incident Manager:  | @user (assigned SwEng person) [:grey_question:][step_incident_manager] |
+| Multi-vendor?      | :question: Yes/No? [:grey_question:][step_coordinate_cve_id]           |
+| Public Disclosure: | YYYY-MM-DD                                                             |
+| CVSS Score:        | [0.0][cvss_score_url]                                                  |
+| CWE:               | [CWE-NNN][cwe_category_url]                                            |
+| Earliest EVN:      | [e-n-d!NNN][earliest_url]                                              |
+| Security Advisory: | [p-p!NNN][press_url]                                                   |
+| Zulip Topic:       | [CVE-YYYY-NNNN][zulip_url]                                             |
+| Support Ticket:    | [URL]                                                                  |
+| Release Checklist: | #NNNN                                                                  |
 
 [cvss_score_url]: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X&version=3.1
 [cwe_category_url]: https://cwe.mitre.org/data/definitions/NNN.html
-[zulip_url]: https://zulip.isc.org/#narrow/channel/4-bind9/topic/CVE-...
+[earliest_url]: support-team/earliest-notification-drafting!NNN
+[press_url]: isc-private/printing-press!NNN
+[zulip_url]: https://zulip.isc.org/#narrow/channel/41-bind9-incidents/topic/XXXXX
 
-:bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
-
-:question: Not sure about something? Ask!
-
-[checklist_explanations]: https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations
+## CVE Checklist
 
 ### Before Code Freeze
 
   - [ ] [:grey_question:][step_respond]           **(SwEng)** Respond to the bug reporter
   - [ ] [:grey_question:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
   - [ ] [:grey_question:][step_coordinate_cve_id] **(SwEng)** Check if we need to coordinate with other vendors (an industry-wide CVE identifier might be necessary)
-  - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier
-  - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier, the CVSS score, and the CWE category
-  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine the branches of product versions affected (including the Subscription Edition and supported EOL versions)
-  - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare "earliest" notification text
-  - [ ] [:grey_question:][step_earliest_send]     **(Support)** Update "earliest" notification ticket in support portal Earliest queue which will notify earliest customers
-  - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Create a merge request for the Security Advisory and include all readily available information in it
+  - [ ] [:grey_question:][step_assign_cve_id]     **(SwEng)** Assign a CVE identifier, and update the GitLab Issue with it
+  - [ ] [:grey_question:][step_note_cve_info]     **(SwEng)** Determine CVSS score and CWE category, and update the GitLab Issue with them
+  - [ ] [:grey_question:][step_versions_affected] **(SwEng)** Determine product branches/versions affected
+    - [ ] **(SwEng)** Including Subscription Edition(s)
+    - [ ] **(SwEng)** Including EOL version(s) receiving paid support
+  - [ ] [:grey_question:][step_earliest_prepare]  **(Support)** Prepare text for Earliest EVN notification in e-n-d
+  - [ ] [:grey_question:][step_earliest_send]     **(Support)** Send Earliest EVN notification in RT
+  - [ ] [:grey_question:][step_advisory_mr]       **(Support)** Begin preparing the Security Advisory in printing-press
   - [ ] [:grey_question:][step_reproducer]        **(SwEng)** Prepare a private merge request containing a system test reproducing the problem
   - [ ] [:grey_question:][step_notify_support]    **(SwEng)** Notify Support when a reproducer is ready
   - [ ] [:grey_question:][step_code_analysis]     **(SwEng)** Prepare a detailed explanation of the code flow triggering the problem
@@ -48,7 +57,7 @@ confidential!
   - [ ] [:grey_question:][step_review_docs]       **(Support)** Review the documentation changes introduced by the merge request with the fix
   - [ ] [:grey_question:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
   - [ ] [:grey_question:][step_merge_fixes]       **(SwEng)** Merge the CVE fixes and reproducer when they get approved
-  - [ ] [:grey_question:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory
+  - [ ] [:grey_question:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory in printing-press
   - [ ] [:grey_question:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
   - [ ] [:grey_question:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
 
@@ -123,5 +132,7 @@ confidential!
 [step_embargo_end]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#inform-original-reporter-if-external-that-the-security-disclosure-process-is-complete
 [step_evn_clear]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-the-tickets-in-the-evn-queues-in-rt-that-the-embargo-is-lifted
 [step_customers]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-that-a-ticket-has-been-sent-in-the-appropriate-announce-queue-in-rt-to-notify-customers-that-the-release-is-published-as-outlined-in-the-release-checklist
+
+## Original Report
 
 /confidential
