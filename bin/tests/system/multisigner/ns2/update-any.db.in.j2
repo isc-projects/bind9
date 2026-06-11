@@ -1,0 +1,23 @@
+$TTL 300
+$ORIGIN update-any.
+
+update-any.	IN	SOA  mname1. . (
+			1       ; serial
+			20      ; refresh (20 seconds)
+			20      ; retry (20 seconds)
+			1814400 ; expire (3 weeks)
+			3600    ; minimum (1 hour)
+			)
+
+			NS	ns2
+ns2			A	10.53.0.2
+
+scanner			A	10.53.0.2
+
+model2			NS	ns3
+			NS	ns4
+
+ns3.model2		A	10.53.0.3
+ns4.model2		A	10.53.0.4
+
+*._dsync		DSYNC	CDS NOTIFY @PORT@ scanner

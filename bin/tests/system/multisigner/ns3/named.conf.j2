@@ -33,6 +33,14 @@ zone "model2.multisigner." {
 	inline-signing no;
 };
 
+zone "model2.update-any." {
+	type primary;
+	allow-update { any; };
+	file "model2.update-any.db";
+	dnssec-policy model2;
+	inline-signing no;
+};
+
 zone "model2.bad-dsync." {
 	type primary;
 	allow-update { any; };

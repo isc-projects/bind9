@@ -13952,6 +13952,10 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 	keydir = dns_zone_getkeydirectory(zone);
 	keystores = dns_zone_getkeystores(zone);
 
+	if (kasp == NULL) {
+		return ISC_R_SUCCESS;
+	}
+
 	dns_zone_lock_keyfiles(zone);
 	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), kasp,
 					     keydir, keystores, now, false,
