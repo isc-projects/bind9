@@ -25,6 +25,9 @@
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
 #include <openssl/dh.h>
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
+#include <openssl/engine.h>
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
