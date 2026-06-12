@@ -2,6 +2,8 @@
  * Copyright (c) 2009-2014 Kazuho Oku, Tokuhiro Matsuno, Daisuke Murase,
  *                         Shigeo Mitsunari
  *
+ * SPDX-License-Identifier: MIT
+ *
  * The software is licensed under either the MIT License (below) or the Perl
  * license.
  *
@@ -159,11 +161,12 @@ get_token_to_eol(const char *buf, const char *buf_end, const char **token,
 	/* find non-printable char within the next 8 bytes, this is the hottest
 	 * code; manually inlined */
 	while (likely(buf_end - buf >= 8)) {
-#define DOIT()                                           \
-	do {                                             \
-		if (unlikely(!IS_PRINTABLE_ASCII(*buf))) \
-			goto NonPrintable;               \
-		++buf;                                   \
+#define DOIT()                                             \
+	do {                                               \
+		if (unlikely(!IS_PRINTABLE_ASCII(*buf))) { \
+			goto NonPrintable;                 \
+		}                                          \
+		++buf;                                     \
 	} while (0)
 		DOIT();
 		DOIT();
@@ -441,7 +444,7 @@ phr_parse_request(const char *buf_start, size_t len, const char **method,
 		  size_t *num_headers, size_t last_len) {
 	const char *buf = buf_start, *buf_end = buf_start + len;
 	size_t max_headers = *num_headers;
-	int r;
+	int r = -1;
 
 	*method = NULL;
 	*method_len = 0;
@@ -645,7 +648,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			}
 			decoder->_hex_count = 0;
 			decoder->_state = CHUNKED_IN_CHUNK_EXT;
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_CHUNK_EXT:
 			/* RFC 7230 A.2 "Line folding in chunk extensions is
 			 * disallowed" */
@@ -662,7 +665,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			}
 			++src;
 			decoder->_state = CHUNKED_IN_CHUNK_HEADER_EXPECT_LF;
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_CHUNK_HEADER_EXPECT_LF:
 			if (src == bufsz) {
 				goto Exit;
@@ -682,7 +685,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 				}
 			}
 			decoder->_state = CHUNKED_IN_CHUNK_DATA;
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_CHUNK_DATA: {
 			size_t avail = bufsz - src;
 			if (avail < decoder->bytes_left_in_chunk) {
@@ -703,7 +706,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			decoder->bytes_left_in_chunk = 0;
 			decoder->_state = CHUNKED_IN_CHUNK_DATA_EXPECT_CR;
 		}
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_CHUNK_DATA_EXPECT_CR:
 			if (src == bufsz) {
 				goto Exit;
@@ -714,7 +717,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 			}
 			++src;
 			decoder->_state = CHUNKED_IN_CHUNK_DATA_EXPECT_LF;
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_CHUNK_DATA_EXPECT_LF:
 			if (src == bufsz) {
 				goto Exit;
@@ -739,7 +742,7 @@ phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf,
 				goto Complete;
 			}
 			decoder->_state = CHUNKED_IN_TRAILERS_LINE_MIDDLE;
-		/* fallthru */
+		/* fall through */
 		case CHUNKED_IN_TRAILERS_LINE_MIDDLE:
 			for (;; ++src) {
 				if (src == bufsz) {
