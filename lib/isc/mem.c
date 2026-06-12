@@ -960,27 +960,6 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 	return ns;
 }
 
-char *
-isc__mem_strndup(isc_mem_t *mctx, const char *s, size_t size FLARG) {
-	size_t len;
-	char *ns = NULL;
-
-	REQUIRE(VALID_CONTEXT(mctx));
-	REQUIRE(s != NULL);
-	REQUIRE(size != 0);
-
-	len = strlen(s) + 1;
-	if (len > size) {
-		len = size;
-	}
-
-	ns = isc__mem_allocate(mctx, len, 0 FLARG_PASS);
-
-	strlcpy(ns, s, len);
-
-	return ns;
-}
-
 void
 isc_mem_setdestroycheck(isc_mem_t *ctx, bool flag) {
 	REQUIRE(VALID_CONTEXT(ctx));
