@@ -430,6 +430,12 @@ resume_answer_with_key(void *arg) {
 	dns_validator_t *val = arg;
 	dns_rdataset_t *rdataset = &val->frdataset;
 
+	if (CANCELED(val) || CANCELING(val)) {
+		val->result = ISC_R_CANCELED;
+		(void)validate_async_run(val, resume_answer_with_key_done);
+		return;
+	}
+
 	isc_result_t result = select_signing_key(val, rdataset);
 	if (result == ISC_R_SUCCESS) {
 		val->keyset = &val->frdataset;
@@ -1989,14 +1995,49 @@ validate_async_run(dns_validator_t *val, isc_job_cb cb) {
 }
 
 static void
-null_done(void *arg ISC_ATTR_UNUSED, isc_result_t result ISC_ATTR_UNUSED) {
-	/* no-op for now */
+helper_done(void *arg, isc_result_t result) {
+	dns_validator_t *val = arg;
+
+	if (result == ISC_R_CANCELED) {
+		/*
+		 * The job was tombstoned by dns_validator_cancel(), which has
+		 * already scheduled helper_cancel() to unwind the validation on
+		 * the loop.  That unwind may have freed the validator, so 'val'
+		 * is now a dangling pointer and must not be dereferenced.
+		 */
+		val = NULL;
+	}
+
+	/*
+	 * Nothing to do on either path: on success the offloaded callback has
+	 * already run on the worker and scheduled its continuation, which owns
+	 * the validator from here; on cancel helper_cancel() owns the unwind.
+	 */
+
+	UNUSED(val);
+
+	return;
+}
+
+static void
+helper_cancel(void *arg) {
+	dns_validator_t *val = arg;
+	/*
+	 * The job was canceled while it was still queued, so the offloaded
+	 * callback never ran.  Run it here on the loop instead: it sees the
+	 * canceling flag, skips the crypto, and unwinds the validation the
+	 * same way it would have after waiting its turn in the work queue.
+	 */
+	val->offloaded_work = NULL;
+	val->offloaded_cb(val);
 }
 
 static isc_result_t
 validate_work_enqueue(dns_validator_t *val, isc_job_cb cb) {
 	val->attributes |= VALATTR_OFFLOADED;
-	isc_work_enqueue(val->loop, ISC_WORKLANE_FAST, cb, null_done, val);
+	val->offloaded_cb = cb;
+	val->offloaded_work = isc_work_enqueue(val->loop, ISC_WORKLANE_FAST, cb,
+					       helper_done, val);
 	return DNS_R_WAIT;
 }
 
@@ -3713,6 +3754,23 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 	if (!OFFLOADED(validator)) {
 		validator_cancel_finish(validator);
+	} else if (validator->offloaded_work != NULL) {
+		/*
+		 * Try to drop the offloaded job before its crypto runs.  If it
+		 * is still queued, isc_work_cancel() tombstones it so the
+		 * worker discards it without running the callback, and we
+		 * schedule helper_cancel() to unwind the validation on the loop
+		 * right away -- reclaiming the pinned response now instead of
+		 * waiting for the tombstone to reach the head of the work
+		 * queue.  If the job is already running, isc_work_cancel()
+		 * returns false and we leave the unwind to the worker, which
+		 * notices the canceling flag, skips the crypto, and finishes
+		 * through its continuation.
+		 */
+		if (isc_work_cancel(validator->offloaded_work)) {
+			isc_async_run(validator->loop, helper_cancel,
+				      validator);
+		}
 	}
 }
 
