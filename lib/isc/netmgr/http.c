@@ -2185,8 +2185,9 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 	if (socket->h2->request_path != NULL) {
 		isc_mem_free(socket->worker->mctx, socket->h2->request_path);
 	}
-	socket->h2->request_path = isc_mem_strndup(
-		socket->worker->mctx, (const char *)value, vlen + 1);
+	socket->h2->request_path = isc_mem_allocate(socket->worker->mctx,
+						    vlen + 1);
+	strlcpy(socket->h2->request_path, (const char *)value, vlen + 1);
 
 	if (!isc_nm_http_path_isvalid(socket->h2->request_path)) {
 		isc_mem_free(socket->worker->mctx, socket->h2->request_path);
