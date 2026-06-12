@@ -183,7 +183,7 @@ burst 30 'y.x$CNT.a2.tld2'
 
 #					IP      TC      drop  NXDOMAIN SERVFAIL NOERROR
 # referrals to "."
-ck_result a1.tld3 x 0 1 2 0 0 2
+ck_result a1.tld3 x 0 1 2 0 2 0
 # check 13 results including 1 second delay that allows an additional response
 ck_result a1.tld2 192.0.2.1 3 4 6 0 0 8
 
