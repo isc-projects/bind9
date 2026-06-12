@@ -353,6 +353,16 @@ nochange() {
   make_dignm
   digcmd $* >$DIGNM
   digcmd $* @$ns1 >${DIGNM}_OK
+
+  # A resolver with no cache hit and RD=0 returns SERVFAIL, but status
+  # code aside, everything else should match.
+  case $* in
+    *+norecur*)
+      sed -i.orig 's/status: NOERROR/status: SERVFAIL/' ${DIGNM}_OK
+      rm ${DIGNM}_OK.orig
+      ;;
+  esac
+
   ckresult "$*" ${DIGNM}_OK && clean_result ${DIGNM}_OK
 }
 
