@@ -43,6 +43,10 @@ The tests are completely self-contained and do not require access to the real
 DNS.  Generally, one of the test servers (usually ns1) is set up as a root
 nameserver and is listed in the hints file of the others.
 
+For task-oriented recipes (adding a new test directory, writing a regression
+reproducer, mocking a misbehaving server, setting up zones), see
+[the cookbook](COOKBOOK.md).
+
 
 ## Running the Tests
 
@@ -301,7 +305,8 @@ same directory has no `bootstrap()`):
 ```
 
 `bootstrap()` is also the place where a module generates test data that has
-to exist before the servers start — typically zone files and DNSSEC keys.
+to exist before the servers start — typically zone files and DNSSEC keys (see
+[the cookbook](COOKBOOK.md) for a complete example).
 
 Templates can also be re-rendered while the test is running, using the
 `templates` fixture, e.g. to change a server's config before reloading it:
