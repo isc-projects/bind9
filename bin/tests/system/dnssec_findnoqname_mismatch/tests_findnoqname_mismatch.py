@@ -29,8 +29,8 @@ RESOLVER = "10.53.0.2"
 
 pytestmark = pytest.mark.extra_artifacts(
     [
-        "ans*/ans.run",
-        "keys.json",
+        "ans1/ans.run",
+        "ans1/keys.json",
     ]
 )
 
@@ -55,7 +55,7 @@ def _make_key():
 
 def bootstrap():
     keys = {ZONE: _make_key()}
-    Path("keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
+    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
     zone_dnskey = "".join(keys[ZONE]["dnskey"].split()[3:])
     return {"ZONE_DNSKEY": zone_dnskey}
 
@@ -92,14 +92,16 @@ def _check_rrsig(response, section, owner, rdtype, signer, labels=None):
         assert rrsig[0].labels == labels, response.to_text()
 
 
-def test_repro_5985_direct_findnoqname_addnoqname_mismatch_fixture():
+def test_malicious_findnoqname_addnoqname_mismatch():
     response = _query(AUTH, ATTACK, "A")
     isctest.check.noerror(response)
     assert _has_a(response, response.answer, ATTACK, FORGED_A), response.to_text()
     _check_rrsig(response, response.answer, ATTACK, dns.rdatatype.A, CHILD, labels=1)
 
+    # Has NSEC
     assert _rrset(response, response.authority, NSEC_OWNER, dns.rdatatype.NSEC)
     _check_rrsig(response, response.authority, NSEC_OWNER, dns.rdatatype.NSEC, CHILD)
+    # Has NSEC3
     assert _rrset(response, response.authority, NSEC_OWNER, dns.rdatatype.NSEC3)
     assert (
         _rrset(
@@ -113,8 +115,8 @@ def test_repro_5985_direct_findnoqname_addnoqname_mismatch_fixture():
     )
 
 
-def test_repro_5985_resolver_does_not_abort_on_noqname_type_mismatch():
+def test_resolver_findnoqname_addnoqname_mismatch():
+    # Send one trigger query
     _query(RESOLVER, ATTACK, "A")
-
     response = _query(RESOLVER, ZONE, "SOA")
     isctest.check.noerror(response)
