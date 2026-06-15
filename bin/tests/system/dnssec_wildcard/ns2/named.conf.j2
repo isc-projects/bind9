@@ -9,10 +9,7 @@ options {
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
 	recursion yes;
-
-	// P1: named runs with dnssec-validation auto or yes
 	dnssec-validation yes;
-	// P2: minimal-responses is not set to the explicit value yes
 	minimal-responses no;
 };
 
@@ -27,11 +24,23 @@ zone "." {
 	file "../../_common/root.hint";
 };
 
-zone "parent.hack" {
+
+{% if PARENT_DNSKEY is defined and PARENT_DNSKEY|length %}
+zone "f045.test" {
+        type static-stub;
+        server-addresses { 10.53.0.1; };
+};
+
+trust-anchors {
+        f045.test. static-key 257 3 13 "@PARENT_DNSKEY@";
+};
+{% else %}
+zone "f043.test" {
 	type static-stub;
 	server-addresses { 10.53.0.1; };
 };
 
 trust-anchors {
-	parent.hack. static-key 257 3 13 "@PARENT_DNSKEY@";
+	f043.test. static-key 257 3 13 "@TESTZONE_DNSKEY@";
 };
+{% endif %}

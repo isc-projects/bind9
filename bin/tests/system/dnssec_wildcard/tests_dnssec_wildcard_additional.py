@@ -20,16 +20,16 @@ import pytest
 import isctest
 import isctest.mark
 
-ZONE = "f043.test."
-QUERY = f"svc.{ZONE}"
-VICTIM = f"victim.{ZONE}"
-FORGED_A = "198.51.100.90"
-LEGIT_A = "192.0.2.50"
+TESTZONE = "f043.test."
+QUERY = f"svc.{TESTZONE}"
+VICTIM = f"victim.{TESTZONE}"
+FORGED_A = "198.51.100.45"
+LEGIT_A = "192.0.2.113"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
 pytestmark = [
-    isctest.mark.with_algorithm("ECDSAP256SHA256"),
+    isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
             "ans*/ans.run",
@@ -39,13 +39,14 @@ pytestmark = [
 ]
 
 
-def _make_key():
+def _make_key(zone):
     private_key = ec.generate_private_key(ec.SECP256R1())
     dnskey = dns.dnssec.make_dnskey(
         private_key.public_key(),
         algorithm="ECDSAP256SHA256",
         flags=257,
     )
+    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -54,14 +55,15 @@ def _make_key():
     return {
         "private_pem": private_pem,
         "dnskey": dnskey.to_text(),
+        "ds": ds.to_text(),
     }
 
 
 def bootstrap():
-    keys = {ZONE: _make_key()}
+    keys = {TESTZONE: _make_key(TESTZONE)}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    zone_dnskey = "".join(keys[ZONE]["dnskey"].split()[3:])
-    return {"ZONE_DNSKEY": zone_dnskey}
+    zone_dnskey = "".join(keys[TESTZONE]["dnskey"].split()[3:])
+    return {"TESTZONE_DNSKEY": zone_dnskey}
 
 
 def _query(server, qname, qtype, cd=False):
@@ -106,13 +108,13 @@ def test_direct_fromwildcard_additional_fixture():
         carrier.additional,
         VICTIM,
         dns.rdatatype.A,
-        ZONE,
+        TESTZONE,
         labels=2,
     )
 
 
 def test_resolver_rejects_fromwildcard_additional_replay():
-    soa = _query(RESOLVER, ZONE, "SOA")
+    soa = _query(RESOLVER, TESTZONE, "SOA")
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
@@ -124,4 +126,4 @@ def test_resolver_rejects_fromwildcard_additional_replay():
     isctest.check.adflag(response)
     assert not _has_a(response, response.answer, VICTIM, FORGED_A), response.to_text()
     assert _has_a(response, response.answer, VICTIM, LEGIT_A), response.to_text()
-    _check_rrsig(response, response.answer, VICTIM, dns.rdatatype.A, ZONE)
+    _check_rrsig(response, response.answer, VICTIM, dns.rdatatype.A, TESTZONE)
