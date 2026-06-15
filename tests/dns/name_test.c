@@ -335,6 +335,35 @@ ISC_RUN_TEST_IMPL(fromregion) {
 	assert_false(dns_name_isabsolute(&name));
 }
 
+ISC_RUN_TEST_IMPL(fromwire) {
+	dns_decompress_t dctx;
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	isc_buffer_t b;
+	unsigned char source[] = { 0x03, 'o', 'n', 'e',	 0x00, 0x03,
+				   't',	 'w', 'o', 0x00, 0x05, 't',
+				   'h',	 'r', 'e', 'e',	 0x00 };
+	isc_result_t result;
+
+	isc_buffer_init(&b, source, sizeof(source));
+	isc_buffer_add(&b, sizeof(source));
+	isc_buffer_setactive(&b, 10); /* names 'one.' and 'two.' */
+
+	/*
+	 * We should only be able to read two names from the buffer
+	 * as the active region has been set to cover only the first
+	 * two.
+	 */
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_NONE);
+	result = dns_name_fromwire(name, &b, &dctx, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_name_fromwire(name, &b, &dctx, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_name_fromwire(name, &b, &dctx, 0, NULL);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+}
+
 /* is trust-anchor-telemetry test */
 ISC_RUN_TEST_IMPL(istat) {
 	dns_fixedname_t fixed;
@@ -778,6 +807,7 @@ ISC_TEST_LIST_START
 ISC_TEST_ENTRY(fullcompare)
 ISC_TEST_ENTRY(compression)
 ISC_TEST_ENTRY(fromregion)
+ISC_TEST_ENTRY(fromwire)
 ISC_TEST_ENTRY(istat)
 ISC_TEST_ENTRY(init)
 ISC_TEST_ENTRY(invalidate)
