@@ -121,20 +121,30 @@ def add_ds_denial(response: dns.message.Message, key: Key) -> None:
 
 
 def add_attack_answer(response: dns.message.Message) -> None:
+    """
+    Crafted authoritative response to <q>.evil.f217.hack./A
+
+        ;; ANSWER
+        <q>.evil.f217.hack.        300 IN A     192.0.2.217
+        <q>.evil.f217.hack.        300 IN RRSIG A 13 1 300 <exp> <inc> 12345 evil.f217.hack. <base64 of 64×0x00>
+                                                    ^^^ Labels = 1, qname has 4 labels, wildcard heuristic fires
+
+        ;; AUTHORITY (single owner, three rdatasets in this wire order)
+        00000000.evil.f217.hack.   300 IN NSEC  zzz.evil.f217.hack. A RRSIG NSEC
+        00000000.evil.f217.hack.   300 IN RRSIG NSEC 13 4 300 <exp> <inc> 12345 evil.f217.hack. <base64 of 64×0x00>
+        00000000.evil.f217.hack.   300 IN NSEC3 1 0 0 - VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV A RRSIG
+    """
+    # A + RRSIG
     response.answer.append(rrset(ATTACK, dns.rdatatype.A, FORGED_A))
     response.answer.append(garbage_rrsig(ATTACK, dns.rdatatype.A, 1, CHILD))
-
+    # NSEC
     nsec = rrset(
         NSEC_OWNER,
         dns.rdatatype.NSEC,
         f"{NSEC_NEXT} A RRSIG NSEC",
     )
-    nsec3 = rrset(
-        NSEC_OWNER,
-        dns.rdatatype.NSEC3,
-        "1 0 0 - VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV A RRSIG",
-    )
     response.authority.append(nsec)
+    # RRSIG(NSEC)
     response.authority.append(
         garbage_rrsig(
             NSEC_OWNER,
@@ -142,6 +152,12 @@ def add_attack_answer(response: dns.message.Message) -> None:
             len(name(NSEC_OWNER).labels) - 1,
             CHILD,
         )
+    )
+    # NSEC3
+    nsec3 = rrset(
+        NSEC_OWNER,
+        dns.rdatatype.NSEC3,
+        "1 0 0 - VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV A RRSIG",
     )
     response.authority.append(nsec3)
 
@@ -187,3 +203,7 @@ def main() -> None:
     server = AsyncDnsServer(default_aa=True)
     server.install_response_handlers(RuntimeCheckHandler(load_key()))
     server.run()
+
+
+if __name__ == "__main__":
+    main()
