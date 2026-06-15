@@ -39,6 +39,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/keyvalues.h>
 #include <dns/lib.h>
 
 #include <dst/dst.h>
@@ -46,6 +47,44 @@
 #include "dst_internal.h"
 
 #include <tests/dns.h>
+
+#define VARGC(...) (sizeof((unsigned char[]){ __VA_ARGS__ }))
+#define FROMDATA(secalg, dstalg, ...) \
+	{ { __VA_ARGS__ }, VARGC(__VA_ARGS__), secalg, dstalg }
+
+ISC_RUN_TEST_IMPL(algorithm_fromdata) {
+	struct {
+		unsigned char data[512];
+		size_t len;
+		dns_secalg_t secalg;
+		dst_algorithm_t dstalg;
+	} fromdata[] = {
+		/* An unsupported private dns algorithm */
+		FROMDATA(DNS_KEYALG_PRIVATEDNS, 0, 0x04, 't', 'e', 's', 't',
+			 0x00),
+
+		/* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
+		FROMDATA(DNS_KEYALG_PRIVATEOID, DST_ALG_RSASHA256PRIVATEOID,
+			 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d,
+			 0x01, 0x01, 0x0b),
+
+		/* length byte + 1.2.840.113549.1.1.13 BER encoded RFC 4055 */
+		FROMDATA(DNS_KEYALG_PRIVATEOID, DST_ALG_RSASHA512PRIVATEOID,
+			 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d,
+			 0x01, 0x01, 0x0d),
+
+		/* An unsupported private oid algorithm */
+		FROMDATA(DNS_KEYALG_PRIVATEOID, 0, 0x0b, 0x06, 0x09, 0x2a, 0x86,
+			 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0c)
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(fromdata); i++) {
+		dst_algorithm_t alg;
+		alg = dst_algorithm_fromdata(fromdata[i].secalg,
+					     fromdata[i].data, fromdata[i].len);
+		assert_int_equal(alg, fromdata[i].dstalg);
+	}
+}
 
 /* Read sig in file at path to buf. Check signature ineffability */
 static isc_result_t
@@ -487,6 +526,7 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY(algorithm_fromdata)
 ISC_TEST_ENTRY(sig_test)
 ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_ENTRY(ecdsa_determinism_test)

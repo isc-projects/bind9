@@ -2633,7 +2633,7 @@ dst_algorithm_fromprivatedns(isc_buffer_t *buffer) {
 	dns_name_t *name = dns_fixedname_initname(&fixed);
 	isc_result_t result;
 
-	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_DEFAULT, NULL);
+	result = dns_name_fromwire(name, buffer, DNS_DECOMPRESS_NEVER, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return 0;
 	}
@@ -2700,6 +2700,7 @@ dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,
 	case DNS_KEYALG_PRIVATEDNS:
 		isc_buffer_init(&b, data, length);
 		isc_buffer_add(&b, length);
+		isc_buffer_setactive(&b, length);
 		return dst_algorithm_fromprivatedns(&b);
 	case DNS_KEYALG_PRIVATEOID:
 		isc_buffer_init(&b, data, length);
