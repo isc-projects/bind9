@@ -53,6 +53,7 @@ isc_test = [
     'tls',
     'tlsdns',
     'udp',
+    'url',
     'work',
 ]
 
