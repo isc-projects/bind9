@@ -46,6 +46,7 @@
 #include <dns/ede.h>
 #include <dns/keytable.h>
 #include <dns/message.h>
+#include <dns/nametree.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -10580,6 +10581,7 @@ query_cname(query_ctx_t *qctx) {
 	dns_name_copy(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
+
 	ns_client_qnamereplace(qctx->client, tname);
 	qctx->want_restart = true;
 	if (!WANTRECURSION(qctx->client)) {
@@ -10699,6 +10701,37 @@ query_dname(query_ctx_t *qctx) {
 		qctx->client->message->rcode = dns_rcode_yxdomain;
 	}
 	if (result != ISC_R_SUCCESS) {
+		(void)ns_query_done(qctx);
+		goto cleanup;
+	}
+
+	/*
+	 * If the target is a denied alias, and both the `except-from` list
+	 * and the subdomain rule of the `deny-answer-aliases`
+	 * configuration option (see ARM) don't give an exception, then
+	 * answer with a SERVFAIL.
+	 */
+	dns_fixedname_t fdeniedname;
+	dns_name_t *deniedname = dns_fixedname_initname(&fdeniedname);
+	if (qctx->view->denyanswernames != NULL &&
+	    dns_nametree_covered(qctx->view->denyanswernames, qctx->fname,
+				 deniedname, 0) &&
+	    !dns_nametree_covered(qctx->view->answernames_exclude,
+				  qctx->client->query.qname, NULL, 0) &&
+	    !dns_name_issubdomain(qctx->client->query.qname, deniedname))
+	{
+		char qnamebuf[DNS_NAME_FORMATSIZE];
+		char tnamebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(qctx->client->query.qname, qnamebuf,
+				sizeof(qnamebuf));
+		dns_name_format(qctx->fname, tnamebuf, sizeof(tnamebuf));
+		ns_client_log(qctx->client, NS_LOGCATEGORY_QUERIES,
+			      NS_LOGMODULE_QUERY, ISC_LOG_NOTICE,
+			      "DNAME target %s denied for %s (cache)", tnamebuf,
+			      qnamebuf);
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		ns_client_releasename(qctx->client, &qctx->fname);
 		(void)ns_query_done(qctx);
 		goto cleanup;
 	}
