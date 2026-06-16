@@ -9247,6 +9247,10 @@ rctx_authority_negative(respctx_t *rctx) {
 
 			switch (type) {
 			case dns_rdatatype_ns:
+				if (name_external(name, dns_rdatatype_ns, rctx))
+				{
+					continue;
+				}
 				/*
 				 * NS or RRSIG NS.
 				 *
@@ -9427,6 +9431,12 @@ rctx_referral(respctx_t *rctx) {
 
 	if (rctx->negative || rctx->ns_name == NULL) {
 		return ISC_R_SUCCESS;
+	}
+
+	if (name_external(rctx->ns_name, dns_rdatatype_ns, rctx)) {
+		log_formerr(fctx, "external referral");
+		rctx->result = DNS_R_FORMERR;
+		return ISC_R_COMPLETE;
 	}
 
 	/*
