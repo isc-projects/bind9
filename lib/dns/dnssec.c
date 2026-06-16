@@ -342,7 +342,7 @@ cleanup_databuf:
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  bool ignoretime, isc_mem_t *mctx, dns_rdata_t *sigrdata,
-		  dns_name_t *wild) {
+		  dns_name_t *wild, dns_name_t *wildsigner) {
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
 	isc_region_t r;
@@ -549,6 +549,9 @@ cleanup_struct:
 					      dns_wildcardname,
 					      dns_fixedname_name(&fnewname),
 					      wild) == ISC_R_SUCCESS);
+		}
+		if (wildsigner != NULL) {
+			dns_name_copy(&sig.signer, wildsigner);
 		}
 		inc_stat(dns_dnssecstats_wildcard);
 		result = DNS_R_FROMWILDCARD;
@@ -1035,7 +1038,7 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 		if (sig.algorithm == key.algorithm && sig.keyid == keytag) {
 			result = dns_dnssec_verify(name, rdataset, dstkey,
 						   ignoretime, mctx, &sigrdata,
-						   NULL);
+						   NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 				dst_key_free(&dstkey);
 				return true;

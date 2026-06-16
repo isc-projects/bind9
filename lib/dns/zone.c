@@ -8967,8 +8967,6 @@ revocable(dns_zonefetch_t *fetch, dns_rdata_keydata_t *keydata) {
 	/* See if that key generated any of the signatures */
 	DNS_RDATASET_FOREACH(&fetch->sigset) {
 		dns_rdata_t sigrr = DNS_RDATA_INIT;
-		dns_fixedname_t fixed;
-		dns_fixedname_init(&fixed);
 
 		dns_rdataset_current(&fetch->sigset, &sigrr);
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
@@ -8981,7 +8979,7 @@ revocable(dns_zonefetch_t *fetch, dns_rdata_keydata_t *keydata) {
 		{
 			result = dns_dnssec_verify(keyname, &fetch->rrset,
 						   dstkey, false, mctx, &sigrr,
-						   dns_fixedname_name(&fixed));
+						   NULL, NULL);
 
 			dnssec_log(fetch->zone, ISC_LOG_DEBUG(3),
 				   "Confirm revoked DNSKEY is self-signed: %s",
@@ -9198,7 +9196,8 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 			}
 
 			result = dns_dnssec_verify(keyname, dnskeys, dstkey,
-						   false, mctx, &sigrr, NULL);
+						   false, mctx, &sigrr, NULL,
+						   NULL);
 			dst_key_free(&dstkey);
 
 			dnssec_log(zone, ISC_LOG_DEBUG(3),

@@ -1491,9 +1491,9 @@ selfsigned_dnskey(dns_validator_t *val) {
 				}
 				consume_validation(val);
 
-				result = dns_dnssec_verify(name, rdataset,
-							   dstkey, true, mctx,
-							   &sigrdata, NULL);
+				result = dns_dnssec_verify(
+					name, rdataset, dstkey, true, mctx,
+					&sigrdata, NULL, NULL);
 				switch (result) {
 				case DNS_R_SIGFUTURE:
 				case DNS_R_SIGEXPIRED:
@@ -1550,9 +1550,10 @@ static isc_result_t
 verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
        uint16_t keyid) {
 	isc_result_t result;
-	dns_fixedname_t fixed;
+	dns_fixedname_t fwild, fsigner;
 	bool ignore = false;
-	dns_name_t *wild = dns_fixedname_initname(&fixed);
+	dns_name_t *wild = dns_fixedname_initname(&fwild);
+	dns_name_t *wildsigner = dns_fixedname_initname(&fsigner);
 
 	if (DNS_TRUST_SECURE(val->rdataset->trust)) {
 		/*
@@ -1569,7 +1570,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 
 again:
 	result = dns_dnssec_verify(val->name, val->rdataset, key, ignore,
-				   val->view->mctx, rdata, wild);
+				   val->view->mctx, rdata, wild, wildsigner);
 	if ((result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE) &&
 	    val->view->acceptexpired)
 	{
@@ -1595,17 +1596,18 @@ again:
 	}
 	if (result == DNS_R_FROMWILDCARD) {
 		if (!dns_name_equal(val->name, wild)) {
-			dns_name_t *closest;
-			unsigned int labels;
+			dns_name_t *closest = dns_fixedname_name(&val->closest);
 
 			/*
 			 * Compute the closest encloser in case we need it
 			 * for the NSEC3 NOQNAME proof.
 			 */
-			closest = dns_fixedname_name(&val->closest);
 			dns_name_copy(wild, closest);
-			labels = dns_name_countlabels(closest) - 1;
-			dns_name_getlabelsequence(closest, 1, labels, closest);
+			dns_name_getlabelsequence(
+				closest, 1, dns_name_countlabels(closest) - 1,
+				closest);
+			dns_name_copy(wildsigner,
+				      dns_fixedname_name(&val->wildsigner));
 			val->attributes |= VALATTR_NEEDNOQNAME;
 		}
 		result = ISC_R_SUCCESS;
@@ -2796,10 +2798,13 @@ findnsec3proofs(dns_validator_t *val) {
 	 * have a valid closest encloser.  Otherwise we could still be looking
 	 * at proofs from the parent zone.
 	 */
+	dns_name_t *wildsigner = dns_fixedname_name(&val->wildsigner);
 	if (dns_name_countlabels(closest) > 0 &&
 	    dns_name_countlabels(nearest) ==
 		    dns_name_countlabels(closest) + 1 &&
-	    dns_name_issubdomain(nearest, closest))
+	    dns_name_issubdomain(nearest, closest) &&
+	    (dns_name_countlabels(wildsigner) == 0 ||
+	     dns_name_equal(zonename, wildsigner)))
 	{
 		val->attributes |= VALATTR_FOUNDCLOSEST;
 		result = dns_name_concatenate(dns_wildcardname, closest,
@@ -3811,6 +3816,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_rdataset_init(&val->dsrdataset);
 	dns_fixedname_init(&val->wild);
+	dns_fixedname_init(&val->wildsigner);
 	dns_fixedname_init(&val->closest);
 	val->start = isc_stdtime_now();
 	val->magic = VALIDATOR_MAGIC;
