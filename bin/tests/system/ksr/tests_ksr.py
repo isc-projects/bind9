@@ -18,8 +18,8 @@ import time
 
 import pytest
 
+from isctest.algorithms import Algorithm
 from isctest.kasp import KeyTimingMetadata
-from isctest.vars.algorithms import Algorithm
 from rollover.common import TIMEDELTA
 
 import isctest

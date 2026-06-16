@@ -29,9 +29,9 @@ import dns.rdatatype
 import dns.tsig
 import dns.zone
 
+from isctest.algorithms import ALL_ALGORITHMS_BY_DST, ECDSAP256SHA256, Algorithm
 from isctest.instance import NamedInstance
 from isctest.run import EnvCmd
-from isctest.vars.algorithms import ALL_ALGORITHMS_BY_DST, ECDSAP256SHA256, Algorithm
 from isctest.zone import FileZoneKey
 
 import isctest.log

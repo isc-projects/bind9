@@ -30,10 +30,7 @@ import dns.rdatatype
 import dns.rrset
 import dns.zonefile
 
-from .log import debug
-from .run import EnvCmd
-from .template import NS1, Nameserver, TemplateEngine, TrustAnchor
-from .vars.algorithms import (
+from .algorithms import (
     ALL_ALGORITHMS_BY_NUM,
     ECDSAP256SHA256,
     ECDSAP384SHA384,
@@ -41,6 +38,9 @@ from .vars.algorithms import (
     ED25519,
     Algorithm,
 )
+from .log import debug
+from .run import EnvCmd
+from .template import NS1, Nameserver, TemplateEngine, TrustAnchor
 
 KEYDIR = "keys"
 DNSKEY_TTL = 3600
