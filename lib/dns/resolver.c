@@ -9607,6 +9607,19 @@ rctx_referral(respctx_t *rctx) {
 	}
 
 	/*
+	 * If a global forwarder is in use, we don't want to cache its
+	 * referrals. Dual-stack alternates are not treated as forwarders for
+	 * namespace checks, even if their address info uses the forwarder flag.
+	 */
+	if (ISFORWARDER(fctx->addrinfo) && !ISDUALSTACK(fctx->addrinfo) &&
+	    dns_name_equal(fctx->fwdname, dns_rootname))
+	{
+		log_formerr(fctx, "referral from global forwarder");
+		rctx->result = DNS_R_FORMERR;
+		return ISC_R_COMPLETE;
+	}
+
+	/*
 	 * We already know ns_name is a subdomain of fctx->domain.
 	 * If ns_name is equal to fctx->domain, we're not making
 	 * progress.  We return DNS_R_FORMERR so that we'll keep
