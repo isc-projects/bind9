@@ -19,31 +19,36 @@ import dns.rdatatype
 import pytest
 
 import isctest
+import isctest.mark
 
-PARENT = "p.test."
-EVIL = "evil.p.test."
+F023_ZONE = "f023.test."
+EVIL = f"evil.{F023_ZONE}"
 POISON = f"0.{EVIL}"
-POISON_NEXT = "zzz.p.test."
-TARGET = f"target.{PARENT}"
+POISON_NEXT = f"zzz.{F023_ZONE}"
+TARGET = f"target.{F023_ZONE}"
 TARGET_A = "192.0.2.77"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-        "ans*/keys.json",
-    ]
-)
+pytestmark = [
+    isctest.mark.with_ecdsa_deterministic,
+    pytest.mark.extra_artifacts(
+        [
+            "ans*/ans.run",
+            "ans*/keys.json",
+        ]
+    ),
+]
 
 
-def _make_key():
+def _make_key(zone: str):
     private_key = ec.generate_private_key(ec.SECP256R1())
     dnskey = dns.dnssec.make_dnskey(
         private_key.public_key(),
         algorithm="ECDSAP256SHA256",
         flags=257,
     )
+    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -52,14 +57,15 @@ def _make_key():
     return {
         "private_pem": private_pem,
         "dnskey": dnskey.to_text(),
+        "ds": ds.to_text(),
     }
 
 
 def bootstrap():
-    keys = {PARENT: _make_key()}
+    keys = {F023_ZONE: _make_key(F023_ZONE)}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    parent_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
-    return {"PARENT_DNSKEY": parent_dnskey}
+    dnskey = "".join(keys[F023_ZONE]["dnskey"].split()[3:])
+    return {"DNSKEY": dnskey}
 
 
 def _query(server, qname, qtype):
@@ -102,16 +108,16 @@ def _check_malicious_nsec(response, section):
         covers=dns.rdatatype.NSEC,
     )
     assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(PARENT), response.to_text()
+    assert rrsig[0].signer == dns.name.from_text(F023_ZONE), response.to_text()
     assert rrsig[0].key_tag == 12345, response.to_text()
 
 
 def _prime_parent_for_aggressive_nsec():
-    soa = _query(RESOLVER, PARENT, "SOA")
+    soa = _query(RESOLVER, F023_ZONE, "SOA")
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
-    nsec = _query(RESOLVER, PARENT, "NSEC")
+    nsec = _query(RESOLVER, F023_ZONE, "NSEC")
     isctest.check.noerror(nsec)
     isctest.check.adflag(nsec)
 
