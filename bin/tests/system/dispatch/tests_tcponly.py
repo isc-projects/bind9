@@ -27,13 +27,12 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def _count_received(path, qname, protocol):
+def _count_received(ans, qname, protocol):
     pattern = Re(rf"Received {escape(qname)}/IN/A .* \({protocol}\)$")
-    with open(path, encoding="utf-8") as fh:
-        return sum(1 for line in fh if pattern.search(line.rstrip()))
+    return len(ans.log.grep(pattern))
 
 
-def test_tcponly_fallback():
+def test_tcponly_fallback(ans4):
     """
     A resolver must fall back to TCP after repeated UDP timeouts to the
     same authoritative server.  ans4 drops every UDP query and answers
@@ -51,7 +50,7 @@ def test_tcponly_fallback():
     )
     assert str(rdataset[0]) == "127.0.0.1"
 
-    udp = _count_received("ans4/ans.run", "foo.tcp-only", "UDP")
-    tcp = _count_received("ans4/ans.run", "foo.tcp-only", "TCP")
+    udp = _count_received(ans4, "foo.tcp-only", "UDP")
+    tcp = _count_received(ans4, "foo.tcp-only", "TCP")
     assert udp == 2, f"expected exactly 2 UDP queries, got {udp}"
     assert tcp == 1, f"expected exactly 1 TCP query, got {tcp}"
