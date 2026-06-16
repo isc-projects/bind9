@@ -111,6 +111,10 @@ ALL_ALGORITHMS = [
 ]
 
 ALL_ALGORITHMS_BY_NUM = {alg.number: alg for alg in ALL_ALGORITHMS}
+# Keyed by the DST identifier rather than the on-wire number: unlike `number`
+# (where both private-OID variants collide at 254), `dst` is unique, so this
+# map distinguishes RSASHA256OID (256) from RSASHA512OID (257).
+ALL_ALGORITHMS_BY_DST = {alg.dst: alg for alg in ALL_ALGORITHMS}
 
 ALGORITHM_SETS = {
     "stable": AlgorithmSet(
