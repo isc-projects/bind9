@@ -20,22 +20,19 @@ import os
 import re
 import time
 
-import dns.dnssec
 import dns.exception
 import dns.message
 import dns.name
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
 import dns.tsig
 import dns.zone
-import dns.zonefile
 
 from isctest.instance import NamedInstance
 from isctest.run import EnvCmd
-from isctest.template import TrustAnchor
 from isctest.vars.algorithms import ALL_ALGORITHMS_BY_NUM, Algorithm
+from isctest.zone import FileZoneKey
 
 import isctest.log
 import isctest.query
@@ -380,26 +377,18 @@ class SettimeOptions:
 
 
 @total_ordering
-class Key:
+class Key(FileZoneKey):
     """
-    Represent a key from a keyfile.
+    A FileZoneKey specialized with KASP timing and state-file operations.
 
-    This object keeps track of its origin (keydir + name), can be used to
-    retrieve metadata from the underlying files and supports convenience
-    operations for KASP tests.
+    Inherits the key-material accessors (dnskey, into_ta, ...) from FileZoneKey
+    and adds the metadata reads, signing-state derivation, and timing
+    convenience operations used by the KASP/rollover tests.
     """
 
     def __init__(self, name: str, keydir: str | Path | None = None):
-        self.name = name
-        if keydir is None:
-            self.keydir = Path()
-        else:
-            self.keydir = Path(keydir)
-        self.path = str(self.keydir / name)
-        self.privatefile = f"{self.path}.private"
-        self.keyfile = f"{self.path}.key"
+        super().__init__(name, keydir)
         self.statefile = f"{self.path}.state"
-        self.tag = int(self.name[-5:])
         self.external = False
 
     def get_timing(
@@ -522,20 +511,9 @@ class Key:
         ), f"DNSKEY not found in {self.keyfile}"
         return dnskey_rr
 
-    def into_ta(self, ta_type: str, dsdigest=dns.dnssec.DSDigest.SHA256) -> TrustAnchor:
-        dnskey = self.dnskey
-        if ta_type in ["static-ds", "initial-ds"]:
-            ds = dns.dnssec.make_ds(dnskey.name, dnskey[0], dsdigest)
-            parts = str(ds).split()
-            contents = " ".join(parts[:3]) + f' "{parts[3]}"'
-        elif ta_type in ["static-key", "initial-key"]:
-            parts = str(dnskey).split()
-            contents = " ".join(parts[4:7]) + f' "{"".join(parts[7:])}"'
-        else:
-            raise ValueError(f"invalid trust anchor type: {ta_type}")
-        return TrustAnchor(str(dnskey.name), ta_type, contents)
-
     def is_ksk(self) -> bool:
+        # KASP role follows the .state KSK metadata, not the DNSKEY SEP flag:
+        # a CSK may be configured without SEP (see the csk-nosep test).
         return self.get_metadata("KSK") == "yes"
 
     def is_zsk(self) -> bool:

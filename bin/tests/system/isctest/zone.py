@@ -27,8 +27,8 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+import dns.zonefile
 
-from .kasp import Key
 from .log import debug
 from .run import EnvCmd
 from .template import NS1, Nameserver, TemplateEngine, TrustAnchor
@@ -50,7 +50,7 @@ class ZoneKey(ABC):
     Abstract base for a DNSSEC key attached to a Zone.
 
     Two concrete implementations exist:
-      FileZoneKey    — wraps a dnssec-keygen-managed key file pair (kasp.Key).
+      FileZoneKey    — reads a dnssec-keygen-managed key file pair.
       PythonZoneKey  — holds a Python-native (private_key, dnskey_rdata) pair
                        required for dnspython-based operations and signing.
 
@@ -107,18 +107,28 @@ class FileZoneKey(ZoneKey):
     """
     A ZoneKey backed by dnssec-keygen-managed key files.
 
-    Constructed by FileZoneKey.generate(); callers normally do not
-    instantiate this directly.  The underlying kasp.Key is accessible via
-    .key for working with timing metadata, state files, etc.
+    Reads key material directly from the .key/.private file pair.  Normally
+    constructed via FileZoneKey.generate() (or Zone.add_keys());
+    isctest.kasp.Key subclasses it to add KASP timing/state operations.
     """
 
-    def __init__(self, key: Key, zone: Zone) -> None:
-        self.key = key
+    def __init__(
+        self,
+        name: str,
+        keydir: str | Path | None = None,
+        zone: Zone | None = None,
+    ) -> None:
+        self.name = name
+        self.keydir = Path() if keydir is None else Path(keydir)
+        self.path = str(self.keydir / name)
+        self.privatefile = f"{self.path}.private"
+        self.keyfile = f"{self.path}.key"
+        self.tag = int(self.name[-5:])
         self.zone = zone
 
     @property
     def dnskey(self) -> dns.rrset.RRset:
-        return self.key.dnskey
+        raise NotImplementedError  # TODO will be re-implemented in the followup commit
 
     def write_dsset(
         self,
@@ -134,6 +144,7 @@ class FileZoneKey(ZoneKey):
         PythonZoneKey KSKs (PythonZoneKey appends to the same file);
         Zone.copy_dssets enforces this.
         """
+        assert self.zone is not None, "write_dsset requires a zone-attached key"
         src = Path(self.zone.ns.name) / f"dsset-{self.zone.name}."
         shutil.copy(src, Path(target_dir))
         debug(f"{self.zone.name}: dsset copied to {target_dir}")
@@ -160,7 +171,7 @@ class FileZoneKey(ZoneKey):
             "KEYGEN", f"-q -a {alg.number} -b {alg.bits} -K {KEYDIR} -L {DNSKEY_TTL}"
         )
         key_name = keygen(f"{params} {zone.name}", cwd=zone.ns.name).out.strip()
-        return FileZoneKey(Key(key_name, keydir=keydir), zone=zone)
+        return FileZoneKey(key_name, keydir=keydir, zone=zone)
 
 
 class PythonZoneKey(ZoneKey):
