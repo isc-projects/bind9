@@ -20,6 +20,7 @@
 #include <isc/hashmap.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/sieve.h>
 #include <isc/stdio.h>
 #include <isc/stdtime.h>
 
@@ -67,13 +68,11 @@ struct dns_tsigkeyring {
 	unsigned int   writecount;
 	isc_rwlock_t   lock;
 	isc_mem_t     *mctx;
-	/*
-	 * LRU list of generated key along with a count of the keys on the
-	 * list and a maximum size.
-	 */
-	unsigned int generated;
-	ISC_LIST(dns_tsigkey_t) lru;
+
+	unsigned int   generated;
 	isc_refcount_t references;
+
+	ISC_SIEVE(dns_tsigkey_t) lrulist;
 };
 
 struct dns_tsigkey {
@@ -92,7 +91,9 @@ struct dns_tsigkey {
 	isc_stdtime_t  inception;     /*%< start of validity period */
 	isc_stdtime_t  expire;	      /*%< end of validity period */
 	isc_refcount_t references;    /*%< reference counter */
-	ISC_LINK(dns_tsigkey_t) link;
+
+	bool visited;
+	ISC_LINK(dns_tsigkey_t) lrulink; /*%< SIEVE LRU link */
 };
 
 const dns_name_t *
