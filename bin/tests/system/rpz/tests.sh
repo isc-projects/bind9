@@ -857,11 +857,16 @@ grep "status: SERVFAIL" dig.out.${t} >/dev/null || setret "failed"
 
 t=$((t + 1))
 echo_i "checking that 'servfail-until-ready yes' works (part 2) (${t})"
-# The 'slow-rpz.' zone has 30 records (RPZ rules), and '-T rpzslow' forces a
-# 100ms delay for each rule. Wait enough time for processing to finish.
-wait_for_log 10 "slow-rpz: reload done" ns3/named.run
-# Now the same request as in the previous test should return NOERROR
-$DIG tld2. NS -p ${PORT} @$ns3 >dig.out.${t} || setret "failed"
-grep "status: NOERROR" dig.out.${t} >/dev/null || setret "failed"
+# RPZ becomes ready only after *all* policy zones have finished their initial
+# update, and the zones do not finish in a fixed order. The 'slow-rpz' zone (30
+# rules, each delayed 100ms by '-T rpzslow') only keeps RPZ busy long enough for
+# part 1 above; it is not necessarily the last zone to finish, so its "reload
+# done" log line does not mean RPZ is ready. Poll the query until it returns
+# NOERROR instead.
+_servfail_until_ready() {
+  $DIG tld2. NS -p ${PORT} @$ns3 >dig.out.${t} \
+    && grep "status: NOERROR" dig.out.${t} >/dev/null
+}
+retry_quiet 20 _servfail_until_ready || setret "failed"
 
 [ $status -eq 0 ] || exit 1
