@@ -495,22 +495,6 @@ class Key(FileZoneKey):
             return isctest.vars.algorithms.RSASHA512OID.number
         return alg
 
-    @property
-    def dnskey(self) -> dns.rrset.RRset:
-        with open(self.keyfile, "r", encoding="utf-8") as file:
-            rrsets = dns.zonefile.read_rrsets(
-                file.read(),
-                rdclass=None,  # read rdclass from the file
-                default_ttl=DEFAULT_TTL,  # use this TTL if not present
-            )
-        assert len(rrsets) == 1, f"{self.keyfile} has multiple RRsets"
-        dnskey_rr = rrsets[0]
-        assert len(dnskey_rr) == 1, f"{self.keyfile} has multiple RRs"
-        assert (
-            dnskey_rr.rdtype == dns.rdatatype.DNSKEY
-        ), f"DNSKEY not found in {self.keyfile}"
-        return dnskey_rr
-
     def is_ksk(self) -> bool:
         # KASP role follows the .state KSK metadata, not the DNSKEY SEP flag:
         # a CSK may be configured without SEP (see the csk-nosep test).
