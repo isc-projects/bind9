@@ -438,14 +438,6 @@ class Key:
 
         return ksigning, zsigning
 
-    def ttl(self) -> int:
-        with open(self.keyfile, "r", encoding="utf-8") as file:
-            for line in file:
-                if line.startswith(";"):
-                    continue
-                return int(line.split()[1])
-        return 0
-
     @property
     def dnskey(self) -> dns.rrset.RRset:
         with open(self.keyfile, "r", encoding="utf-8") as file:
@@ -513,7 +505,7 @@ class Key:
         dsfromkey_command = [
             os.environ.get("DSFROMKEY"),
             "-T",
-            str(self.ttl()),
+            str(self.dnskey.ttl),
             "-a",
             alg,
             "-C",
