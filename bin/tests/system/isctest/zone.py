@@ -16,6 +16,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypeAlias
 
+import base64
 import shutil
 
 from cryptography.hazmat.primitives import serialization
@@ -32,7 +33,14 @@ import dns.zonefile
 from .log import debug
 from .run import EnvCmd
 from .template import NS1, Nameserver, TemplateEngine, TrustAnchor
-from .vars.algorithms import Algorithm
+from .vars.algorithms import (
+    ALL_ALGORITHMS_BY_NUM,
+    ECDSAP256SHA256,
+    ECDSAP384SHA384,
+    ED448,
+    ED25519,
+    Algorithm,
+)
 
 KEYDIR = "keys"
 DNSKEY_TTL = 3600
@@ -61,7 +69,16 @@ class ZoneKey(ABC):
     @property
     @abstractmethod
     def dnskey(self) -> dns.rrset.RRset:
-        """The DNSKEY RRset for this key (single-record, with TTL)."""
+        """
+        The DNSKEY RRset for this key (single-record, with TTL).
+        """
+
+    @property
+    @abstractmethod
+    def private_key(self) -> PrivateKey:
+        """
+        The dnspython private-key object, for use with dns.dnssec signing.
+        """
 
     def is_ksk(self) -> bool:
         return bool(self.dnskey[0].flags & int(Flag.SEP))
@@ -142,6 +159,53 @@ class FileZoneKey(ZoneKey):
         ), f"DNSKEY not found in {self.keyfile}"
         return dnskey_rr
 
+    @property
+    def private_key(self) -> PrivateKey:
+        """
+        Read the .private file and build the corresponding cryptography
+        private-key object, dispatching on the DNSKEY algorithm.
+
+        Supports the RSA, ECDSA and EdDSA families; other algorithms raise
+        NotImplementedError.
+        """
+        alg = ALL_ALGORITHMS_BY_NUM[self.dnskey[0].algorithm]
+
+        fields = {}
+        with open(self.privatefile, "r", encoding="utf-8") as file:
+            for line in file:
+                name, sep, value = line.partition(":")
+                if sep:
+                    fields[name.strip()] = value.strip()
+
+        def field(name: str) -> bytes:
+            return base64.b64decode(fields[name])
+
+        if "Modulus" in fields:  # RSA family, including the private-OID variants
+            public = rsa.RSAPublicNumbers(
+                int.from_bytes(field("PublicExponent"), "big"),
+                int.from_bytes(field("Modulus"), "big"),
+            )
+            return rsa.RSAPrivateNumbers(
+                p=int.from_bytes(field("Prime1"), "big"),
+                q=int.from_bytes(field("Prime2"), "big"),
+                d=int.from_bytes(field("PrivateExponent"), "big"),
+                dmp1=int.from_bytes(field("Exponent1"), "big"),
+                dmq1=int.from_bytes(field("Exponent2"), "big"),
+                iqmp=int.from_bytes(field("Coefficient"), "big"),
+                public_numbers=public,
+            ).private_key()
+
+        secret = field("PrivateKey")
+        if alg == ECDSAP256SHA256:
+            return ec.derive_private_key(int.from_bytes(secret, "big"), ec.SECP256R1())
+        if alg == ECDSAP384SHA384:
+            return ec.derive_private_key(int.from_bytes(secret, "big"), ec.SECP384R1())
+        if alg == ED25519:
+            return ed25519.Ed25519PrivateKey.from_private_bytes(secret)
+        if alg == ED448:
+            return ed448.Ed448PrivateKey.from_private_bytes(secret)
+        raise NotImplementedError(f"dnskey algorithm {alg.name} not implemented")
+
     def write_dsset(
         self,
         target_dir: Path | str,
@@ -215,9 +279,13 @@ class PythonZoneKey(ZoneKey):
         ttl: int = DNSKEY_TTL,
     ) -> None:
         self.zone = zone
-        self.private_key = private_key
+        self._private_key = private_key
         self._dnskey_rdata = dnskey_rdata
         self.ttl = ttl
+
+    @property
+    def private_key(self) -> PrivateKey:
+        return self._private_key
 
     @property
     def dnskey(self) -> dns.rrset.RRset:
