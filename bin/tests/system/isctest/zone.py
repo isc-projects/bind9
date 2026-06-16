@@ -128,7 +128,19 @@ class FileZoneKey(ZoneKey):
 
     @property
     def dnskey(self) -> dns.rrset.RRset:
-        raise NotImplementedError  # TODO will be re-implemented in the followup commit
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            rrsets = dns.zonefile.read_rrsets(
+                file.read(),
+                rdclass=None,  # read rdclass from the file
+                default_ttl=DNSKEY_TTL,  # use this TTL if not present
+            )
+        assert len(rrsets) == 1, f"{self.keyfile} has multiple RRsets"
+        dnskey_rr = rrsets[0]
+        assert len(dnskey_rr) == 1, f"{self.keyfile} has multiple RRs"
+        assert (
+            dnskey_rr.rdtype == dns.rdatatype.DNSKEY
+        ), f"DNSKEY not found in {self.keyfile}"
+        return dnskey_rr
 
     def write_dsset(
         self,
