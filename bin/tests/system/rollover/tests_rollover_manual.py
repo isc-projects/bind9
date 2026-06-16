@@ -11,10 +11,10 @@
 
 from datetime import timedelta
 
+from isctest.algorithms import Algorithm
 from isctest.kasp import Ipub, Iret, KeyTimingMetadata, private_type_record
 from isctest.run import EnvCmd
 from isctest.template import NS3, Zone
-from isctest.vars.algorithms import Algorithm
 from rollover.setup import configure_root, configure_tld
 
 import isctest

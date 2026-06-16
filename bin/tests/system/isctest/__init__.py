@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 from . import (  # pylint: disable=redefined-builtin
+    algorithms,
     check,
     hypothesis,
     instance,
@@ -29,6 +30,7 @@ from . import (  # pylint: disable=redefined-builtin
 # instead.
 
 __all__ = [
+    "algorithms",
     "check",
     "hypothesis",
     "instance",

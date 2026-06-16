@@ -274,7 +274,7 @@ def control_port():
 
 @pytest.fixture(scope="module")
 def default_algorithm():
-    return isctest.vars.algorithms.Algorithm.default()
+    return isctest.algorithms.Algorithm.default()
 
 
 @pytest.fixture(scope="module")
