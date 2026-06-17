@@ -226,18 +226,17 @@ server's default rcode (REFUSED unless configured otherwise).
 
 When one mock server accrues several unrelated domains — typical for a
 shared `ansN` in a multi-module family directory — keep each domain's
-handler logic in its own module: one `<domain>_ans.py` file per domain next
-to `ans.py`, with `ans.py` reduced to a loader that imports and installs
-each handler (the test directory is on the server's `PYTHONPATH`):
+handler logic in its own module next to `ans.py`, with `ans.py` reduced
+to a loader that imports and installs each handler:
 
 ```python
-from mytest.ans4 import broken_example_ans
+from mytest.ans4 import broken_example
 from isctest.asyncserver import AsyncDnsServer
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(broken_example_ans.BrokenExampleHandler())
+    server.install_response_handler(broken_example.BrokenExampleHandler())
     server.run()
 
 

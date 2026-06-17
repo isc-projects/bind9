@@ -67,6 +67,7 @@ paths = [
 ]
 exclude = [
   "*ans.py",
+  "*/ans[0-9]*/*",
   "contrib",
   "*doc/arm/_ext/*conf.py",
   "doc/arm/conf.py",
