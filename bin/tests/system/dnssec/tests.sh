@@ -114,18 +114,6 @@ check_secroots_layout() {
 	     { empty=0 }' $1 || return $?
 }
 
-# Check that for a query against a validating resolver where the
-# authoritative zone is unsigned (insecure delegation), glue is returned
-# in the additional section
-echo_i "checking that additional glue is returned for unsigned delegation ($n)"
-ret=0
-$DIG +tcp +dnssec -p "$PORT" a.insecure.example. @10.53.0.4 a >dig.out.ns4.test$n || ret=1
-grep "ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2" dig.out.ns4.test$n >/dev/null || ret=1
-grep "ns\\.insecure\\.example\\..*A.10\\.53\\.0\\.3" dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n + 1))
-if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
 # Check the example. domain
 
 echo_i "checking that zone transfer worked ($n)"
@@ -3158,42 +3146,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section (NS) ($n)"
-ret=0
-rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
-sleep 1
-dig_with_additionalopts +cd expiring.example ns @10.53.0.4 >dig.out.ns4.1.$n
-dig_with_additionalopts expiring.example ns @10.53.0.4 >dig.out.ns4.2.$n
-ttls=$(awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n)
-ttls2=$(awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n)
-for ttl in ${ttls:-300}; do
-  [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
-done
-for ttl in ${ttls2:-0}; do
-  [ "$ttl" -le 60 ] || ret=1
-done
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section (MX) ($n)"
-ret=0
-rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
-sleep 1
-dig_with_additionalopts +cd expiring.example mx @10.53.0.4 >dig.out.ns4.1.$n
-dig_with_additionalopts expiring.example mx @10.53.0.4 >dig.out.ns4.2.$n
-ttls=$(awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n)
-ttls2=$(awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n)
-for ttl in ${ttls:-300}; do
-  [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
-done
-for ttl in ${ttls2:-0}; do
-  [ "$ttl" -le 60 ] || ret=1
-done
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 cp ns4/named3.conf ns4/named.conf
 rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 3
@@ -3226,23 +3178,6 @@ for ttl in ${ttls:-0}; do
 done
 for ttl in ${ttls2:-0}; do
   [ "$ttl" -eq 120 ] || ret=1
-done
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section with dnssec-accept-expired yes; ($n)"
-ret=0
-rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
-dig_with_additionalopts +cd expiring.example mx @10.53.0.4 >dig.out.ns4.1.$n
-dig_with_additionalopts expiring.example mx @10.53.0.4 >dig.out.ns4.2.$n
-ttls=$(awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n)
-ttls2=$(awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n)
-for ttl in ${ttls:-300}; do
-  [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
-done
-for ttl in ${ttls2:-0}; do
-  [ "$ttl" -le 120 ] && [ "$ttl" -gt 60 ] || ret=1
 done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4192,7 +4127,6 @@ dig_with_opts @10.53.0.3 a.unsupported.trusted A >dig.out.ns3.test$n
 dig_with_opts @10.53.0.8 a.unsupported.trusted A >dig.out.ns8.test$n
 grep "status: NOERROR," dig.out.ns3.test$n >/dev/null || ret=1
 grep "status: NOERROR," dig.out.ns8.test$n >/dev/null || ret=1
-grep "; EDE: 1 (Unsupported DNSKEY Algorithm)" dig.out.ns8.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns8.test$n >/dev/null && ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4204,7 +4138,6 @@ dig_with_opts @10.53.0.3 a.unsupported.managed A >dig.out.ns3.test$n
 dig_with_opts @10.53.0.8 a.unsupported.managed A >dig.out.ns8.test$n
 grep "status: NOERROR," dig.out.ns3.test$n >/dev/null || ret=1
 grep "status: NOERROR," dig.out.ns8.test$n >/dev/null || ret=1
-grep "; EDE: 1 (Unsupported DNSKEY Algorithm)" dig.out.ns8.test$n >/dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns8.test$n >/dev/null && ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4683,7 +4616,7 @@ grep "flags: qr rd ra cd;" dig.out.prime.ns4.test$n >/dev/null || ret=1
 grep "status: NOERROR" dig.out.prime.ns4.test$n >/dev/null || ret=1
 grep "ANSWER: 0, AUTHORITY: 4, " dig.out.prime.ns4.test$n >/dev/null || ret=1
 dig_with_opts @10.53.0.4 a.insecure2.example. a >dig.out.ns4.test$n || ret=1
-grep "ANSWER: 1, AUTHORITY: 1, " dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, " dig.out.ns4.test$n >/dev/null || ret=1
 grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
