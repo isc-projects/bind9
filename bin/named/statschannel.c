@@ -4303,7 +4303,12 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	     result == ISC_R_SUCCESS; next = NULL,
 	    result = dns_zonemgr_next_zone(zone, &next), zone = next)
 	{
+		if (dns_zone_getstatlevel(zone) != dns_zonestat_full) {
+			continue;
+		}
+
 		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
+
 		if (zonestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
 			dns_view_t *view = dns_zone_getview(zone);
@@ -4332,7 +4337,12 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	     result == ISC_R_SUCCESS; next = NULL,
 	    result = dns_zonemgr_next_zone(zone, &next), zone = next)
 	{
+		if (dns_zone_getstatlevel(zone) != dns_zonestat_full) {
+			continue;
+		}
+
 		isc_stats_t *gluecachestats = dns_zone_getgluecachestats(zone);
+
 		if (gluecachestats != NULL) {
 			char zonename[DNS_NAME_FORMATSIZE];
 			dns_view_t *view = dns_zone_getview(zone);
