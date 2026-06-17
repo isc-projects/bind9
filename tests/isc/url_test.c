@@ -31,6 +31,19 @@
 
 #include <tests/isc.h>
 
+typedef struct {
+	const char *uri;
+	isc_result_t result;
+	/* Expected components (checked only when result is ISC_R_SUCCESS). */
+	const char *scheme;
+	const char *userinfo;
+	const char *host;
+	const char *port;
+	const char *path;
+	const char *query;
+	const char *fragment;
+} url_testcase_t;
+
 /*
  * Extract the substring of component 'uf' from 'buf' and compare it with
  * 'expected'. A field that is not set is treated as the empty string.
@@ -49,6 +62,29 @@ check_field(const isc_url_parser_t *up, const char *buf, isc_url_field_t uf,
 	}
 
 	assert_string_equal(got, expected);
+}
+
+static void
+run_url_testcases(const url_testcase_t *cases, size_t ncases) {
+	for (size_t i = 0; i < ncases; i++) {
+		const url_testcase_t *tc = &cases[i];
+		isc_url_parser_t up = { 0 };
+		isc_result_t result = isc_url_parse(tc->uri, strlen(tc->uri),
+						    false, &up);
+
+		assert_int_equal(result, tc->result);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		check_field(&up, tc->uri, ISC_UF_SCHEMA, tc->scheme);
+		check_field(&up, tc->uri, ISC_UF_USERINFO, tc->userinfo);
+		check_field(&up, tc->uri, ISC_UF_HOST, tc->host);
+		check_field(&up, tc->uri, ISC_UF_PORT, tc->port);
+		check_field(&up, tc->uri, ISC_UF_PATH, tc->path);
+		check_field(&up, tc->uri, ISC_UF_QUERY, tc->query);
+		check_field(&up, tc->uri, ISC_UF_FRAGMENT, tc->fragment);
+	}
 }
 
 ISC_RUN_TEST_IMPL(parse) {
@@ -115,18 +151,7 @@ ISC_RUN_TEST_IMPL(parse) {
  * rather than normalized.
  */
 ISC_RUN_TEST_IMPL(parse_rfc3986) {
-	static const struct {
-		const char *uri;
-		isc_result_t result;
-		/* Expected components (when result is ISC_R_SUCCESS). */
-		const char *scheme;
-		const char *userinfo;
-		const char *host;
-		const char *port;
-		const char *path;
-		const char *query;
-		const char *fragment;
-	} testcases[] = {
+	static const url_testcase_t testcases[] = {
 		/* The base URI used throughout RFC 3986 section 5.4. */
 		{ "http://a/b/c/d;p?q", ISC_R_SUCCESS, "http", "", "a", "",
 		  "/b/c/d;p", "q", "" },
@@ -174,31 +199,78 @@ ISC_RUN_TEST_IMPL(parse_rfc3986) {
 		{ "http:g", ISC_R_FAILURE, "", "", "", "", "", "", "" },
 	};
 
-	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
-		isc_url_parser_t up = { 0 };
-		const char *uri = testcases[i].uri;
-		isc_result_t result = isc_url_parse(uri, strlen(uri), false,
-						    &up);
+	run_url_testcases(testcases, ARRAY_SIZE(testcases));
+}
 
-		assert_int_equal(result, testcases[i].result);
-		if (result != ISC_R_SUCCESS) {
-			continue;
-		}
+/*
+ * Authority and IPv6 edge cases, drawn from the Addressable URI test suite.
+ * isc_url_parse() is stricter than a generic RFC 3986 parser: it requires a
+ * scheme followed by "://" and an authority, the host of an IPv6 literal
+ * excludes the surrounding brackets, and it neither percent-decodes nor
+ * case-normalizes any component.
+ */
+ISC_RUN_TEST_IMPL(parse_addressable) {
+	static const url_testcase_t testcases[] = {
+		/* IPv6 literal hosts: the brackets are stripped from the host.
+		 */
+		{ "http://[::1]/", ISC_R_SUCCESS, "http", "", "::1", "", "/",
+		  "", "" },
+		{ "http://[fe80::200:f8ff:fe21:67cf]/", ISC_R_SUCCESS, "http",
+		  "", "fe80::200:f8ff:fe21:67cf", "", "/", "", "" },
+		{ "http://[2001:db8::7]:8080/path", ISC_R_SUCCESS, "http", "",
+		  "2001:db8::7", "8080", "/path", "", "" },
+		{ "ldap://[2001:db8::7]/c=GB?objectClass?one", ISC_R_SUCCESS,
+		  "ldap", "", "2001:db8::7", "", "/c=GB", "objectClass?one",
+		  "" },
+		/* An IPv6 zone identifier is kept verbatim (not decoded). */
+		{ "http://[fe80::1%25en0]/", ISC_R_SUCCESS, "http", "",
+		  "fe80::1%25en0", "", "/", "", "" },
 
-		check_field(&up, uri, ISC_UF_SCHEMA, testcases[i].scheme);
-		check_field(&up, uri, ISC_UF_USERINFO, testcases[i].userinfo);
-		check_field(&up, uri, ISC_UF_HOST, testcases[i].host);
-		check_field(&up, uri, ISC_UF_PORT, testcases[i].port);
-		check_field(&up, uri, ISC_UF_PATH, testcases[i].path);
-		check_field(&up, uri, ISC_UF_QUERY, testcases[i].query);
-		check_field(&up, uri, ISC_UF_FRAGMENT, testcases[i].fragment);
-	}
+		/* IPv4 host with an explicit port. */
+		{ "telnet://192.0.2.16:80/", ISC_R_SUCCESS, "telnet", "",
+		  "192.0.2.16", "80", "/", "", "" },
+
+		/* Userinfo, with and without a password; case is preserved. */
+		{ "http://user@example.com/", ISC_R_SUCCESS, "http", "user",
+		  "example.com", "", "/", "", "" },
+		{ "http://:@example.com/", ISC_R_SUCCESS, "http", ":",
+		  "example.com", "", "/", "", "" },
+		{ "HTTP://EXAMPLE.COM/", ISC_R_SUCCESS, "HTTP", "",
+		  "EXAMPLE.COM", "", "/", "", "" },
+
+		/* A trailing dot in the host is part of the host. */
+		{ "http://example.com./", ISC_R_SUCCESS, "http", "",
+		  "example.com.", "", "/", "", "" },
+
+		/* No path component at all. */
+		{ "http://example.com", ISC_R_SUCCESS, "http", "",
+		  "example.com", "", "", "", "" },
+
+		/* Path parameters stay in the path. */
+		{ "http://example.com/file.txt;x=y", ISC_R_SUCCESS, "http", "",
+		  "example.com", "", "/file.txt;x=y", "", "" },
+
+		/*
+		 * Rejected where a generic RFC 3986 parser would succeed: a '+'
+		 * in the scheme, an IPvFuture literal, and a percent-encoded
+		 * port.
+		 */
+		{ "svn+ssh://developername@rubyforge.org/var/svn/project",
+		  ISC_R_FAILURE, "", "", "", "", "", "", "" },
+		{ "http://[v9.3ffe:1900:4545:3:200:f8ff:fe21:67cf]/",
+		  ISC_R_FAILURE, "", "", "", "", "", "", "" },
+		{ "http://example.com:%38%30/", ISC_R_FAILURE, "", "", "", "",
+		  "", "", "" },
+	};
+
+	run_url_testcases(testcases, ARRAY_SIZE(testcases));
 }
 
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(parse)
 ISC_TEST_ENTRY(parse_rfc3986)
+ISC_TEST_ENTRY(parse_addressable)
 
 ISC_TEST_LIST_END
 
