@@ -483,16 +483,15 @@ http_parse_host(const char *buf, isc_url_parser_t *up, int found_at) {
 			up->field_data[ISC_UF_HOST].len++;
 			break;
 
-		case s_http_host_v6:
-			if (s != s_http_host_v6) {
-				up->field_data[ISC_UF_HOST].off =
-					(uint16_t)(p - buf);
-			}
+		case s_http_host_v6_start:
+			up->field_data[ISC_UF_HOST].off = (uint16_t)(p - buf);
 			up->field_data[ISC_UF_HOST].len++;
 			break;
 
+		case s_http_host_v6:
 		case s_http_host_v6_zone_start:
 		case s_http_host_v6_zone:
+		case s_http_host_v6_end:
 			up->field_data[ISC_UF_HOST].len++;
 			break;
 
