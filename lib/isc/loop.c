@@ -289,8 +289,7 @@ loop_thread(void *arg) {
 	UV_RUNTIME_CHECK(uv_prepare_start, r);
 
 	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
-		loop->workthreads[lane] =
-			isc__workthread_create(isc__loopmgr->mctx, lane);
+		loop->workthreads[lane] = isc__workthread_create(loop, lane);
 	}
 
 	isc_barrier_wait(&loopmgr->starting);
