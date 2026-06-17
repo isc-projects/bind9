@@ -68,7 +68,7 @@ typedef struct isc__workthread {
 		struct {
 			unsigned int magic;
 			isc_worklane_t lane;
-			isc_mem_t *mctx;
+			isc_loop_t *loop;
 			isc_thread_t thread;
 			struct __cds_wfcq_head qhead;
 			int32_t state; /* enum waitstate */
@@ -204,7 +204,8 @@ work_done(void *arg) {
 }
 
 static void
-work_run(isc_work_t *work) {
+work_run(void *arg) {
+	isc_work_t *work = arg;
 	/*
 	 * The CAS *is* the tombstone check: whoever moves the item out
 	 * of WORK_QUEUED first — this worker or isc_work_cancel() —
@@ -307,7 +308,7 @@ isc_work_enqueue(isc_loop_t *loop, isc_worklane_t lane, isc_work_cb cb,
 		 * remaining enqueue tasks and shutdown after, see
 		 * workthread_thread().)
 		 */
-		work_run(work);
+		isc_async_run(loop, work_run, work);
 	} else {
 		(void)cds_wfcq_enqueue(&thread->qhead, &thread->qtail,
 				       &work->node);
@@ -339,14 +340,14 @@ isc_work_cancel(isc_work_t *work) {
 }
 
 isc__workthread_t *
-isc__workthread_create(isc_mem_t *mctx, isc_worklane_t lane) {
-	isc__workthread_t *thread = isc_mem_get(mctx, sizeof(*thread));
+isc__workthread_create(isc_loop_t *loop, isc_worklane_t lane) {
+	isc__workthread_t *thread = isc_mem_get(loop->mctx, sizeof(*thread));
 
 	*thread = (isc__workthread_t){
 		.lane = lane,
 		.magic = WORKTHREAD_MAGIC,
 		.state = THREAD_WAITING,
-		.mctx = isc_mem_ref(mctx),
+		.loop = loop,
 	};
 
 	__cds_wfcq_init(&thread->qhead, &thread->qtail);
@@ -394,7 +395,7 @@ isc__workthread_destroy(isc__workthread_t **threadp) {
 	INSIST(cds_wfcq_empty(&thread->qhead, &thread->qtail));
 
 	thread->magic = 0;
-	isc_mem_putanddetach(&thread->mctx, thread, sizeof(*thread));
+	isc_mem_put(thread->loop->mctx, thread, sizeof(*thread));
 }
 
 void

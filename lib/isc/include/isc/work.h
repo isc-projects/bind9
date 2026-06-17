@@ -85,7 +85,7 @@ isc_work_cancel(isc_work_t *work);
 typedef struct isc__workthread isc__workthread_t;
 
 isc__workthread_t *
-isc__workthread_create(isc_mem_t *mctx, isc_worklane_t lane);
+isc__workthread_create(isc_loop_t *loop, isc_worklane_t lane);
 /*%<
  * Create one worker thread for 'lane' with its own dispatch queue (the loop
  * manager creates one per loop).  Used by the loop manager; not for general
