@@ -22,6 +22,7 @@
 #define DNS_DSDIGEST_SHA256 (2)
 #define DNS_DSDIGEST_GOST   (3)
 #define DNS_DSDIGEST_SHA384 (4)
+#define DNS_DSDIGEST_TOTAL  (5)
 
 #define DNS_DSDIGEST_MAX (255)
 
