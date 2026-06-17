@@ -2596,7 +2596,7 @@ master_load_callback(void *arg) {
 }
 
 static void
-master_load_done(void *arg) {
+master_load_done(void *arg, isc_result_t result ISC_ATTR_UNUSED) {
 	dns_loadctx_t *lctx = arg;
 
 	isc_async_run(lctx->loop, master_load_callback, lctx);
@@ -2632,7 +2632,8 @@ dns_master_loadfileasync(const char *master_file, dns_name_t *top,
 
 	dns_loadctx_ref(lctx);
 	isc_loop_attach(loop, &lctx->loop);
-	isc_work_enqueue(isc_loop(), master_load, master_load_done, lctx);
+	isc_work_enqueue(isc_loop(), ISC_WORKLANE_SLOW, master_load,
+			 master_load_done, lctx);
 
 	*lctxp = lctx;
 

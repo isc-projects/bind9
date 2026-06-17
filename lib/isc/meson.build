@@ -86,7 +86,6 @@ isc_srcset.add(
         'hash.c',
         'hashmap.c',
         'heap.c',
-        'helper.c',
         'hex.c',
         'histo.c',
         'ht.c',

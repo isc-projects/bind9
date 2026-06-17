@@ -25,7 +25,6 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
-#include <isc/helper.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -3001,23 +3000,22 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 #endif /* ifdef SKAN_MSG_DEBUG */
 
 static void
-checksig_done(void *arg);
+checksig_done(void *arg, isc_result_t result);
 
 static void
 checksig_run(void *arg) {
 	checksig_ctx_t *chsigctx = arg;
 
 	chsigctx->result = dns_message_checksig(chsigctx->msg, chsigctx->view);
-
-	isc_async_run(chsigctx->loop, checksig_done, chsigctx);
 }
 
 static void
-checksig_done(void *arg) {
+checksig_done(void *arg, isc_result_t result ISC_ATTR_UNUSED) {
 	checksig_ctx_t *chsigctx = arg;
 	dns_message_t *msg = chsigctx->msg;
 
-	chsigctx->cb(chsigctx->cbarg, chsigctx->result);
+	chsigctx->cb(chsigctx->cbarg,
+		     (result != ISC_R_SUCCESS) ? result : chsigctx->result);
 
 	dns_view_detach(&chsigctx->view);
 	isc_loop_detach(&chsigctx->loop);
@@ -3044,7 +3042,8 @@ dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
 	dns_view_attach(view, &chsigctx->view);
 
 	dns_message_clonebuffer(msg);
-	isc_helper_run(loop, checksig_run, chsigctx);
+	isc_work_enqueue(loop, ISC_WORKLANE_FAST, checksig_run, checksig_done,
+			 chsigctx);
 
 	return DNS_R_WAIT;
 }
