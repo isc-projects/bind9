@@ -204,7 +204,8 @@ work_done(void *arg) {
 }
 
 static void
-work_run(isc_work_t *work) {
+work_run(void *arg) {
+	isc_work_t *work = arg;
 	/*
 	 * The CAS *is* the tombstone check: whoever moves the item out
 	 * of WORK_QUEUED first — this worker or isc_work_cancel() —
@@ -307,7 +308,7 @@ isc_work_enqueue(isc_loop_t *loop, isc_worklane_t lane, isc_work_cb cb,
 		 * remaining enqueue tasks and shutdown after, see
 		 * workthread_thread().)
 		 */
-		work_run(work);
+		isc_async_run(loop, work_run, work);
 	} else {
 		(void)cds_wfcq_enqueue(&thread->qhead, &thread->qtail,
 				       &work->node);
