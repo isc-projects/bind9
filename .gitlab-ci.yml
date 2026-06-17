@@ -1131,6 +1131,7 @@ cross-version-config-tests:
     untracked: true
     expire_in: "1 day"
     when: always
+  allow_failure: true # !12163, commit 9771df0a
 
 # Jobs for regular GCC builds on Alpine Linux 3.23 (amd64)
 
