@@ -250,6 +250,8 @@ AC_DEFINE_UNQUOTED([RCU_VERSION], ["$RCU_VERSION"], [Compile-time Userspace-RCU 
 CFLAGS="$CFLAGS $LIBURCU_CFLAGS"
 LIBS="$LIBS $LIBURCU_LIBS"
 
+AC_CHECK_HEADERS([urcu/assert.h urcu/uatomic.h urcu/pointer.h])
+
 #
 # Userspace-RCU inlining doesn't work for rcu_deference() with some combination
 # of C compiler and library version.

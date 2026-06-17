@@ -30,6 +30,7 @@
 
 #include <dns/catz.h>
 #include <dns/dbiterator.h>
+#include <dns/name.h>
 #include <dns/rdatasetiter.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -115,7 +116,7 @@ dns__catz_timer_stop(void *arg);
 static void
 dns__catz_update_cb(void *data);
 static void
-dns__catz_done_cb(void *data);
+dns__catz_done_cb(void *data, isc_result_t result);
 
 static isc_result_t
 catz_process_zones_entry(dns_catz_zone_t *catz, dns_rdataset_t *value,
@@ -2122,8 +2123,8 @@ dns__catz_timer_cb(void *arg) {
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
 	dns_catz_zone_ref(catz);
-	isc_work_enqueue(catz->loop, dns__catz_update_cb, dns__catz_done_cb,
-			 catz);
+	isc_work_enqueue(catz->loop, ISC_WORKLANE_SLOW, dns__catz_update_cb,
+			 dns__catz_done_cb, catz);
 
 exit:
 	isc_timer_destroy(&catz->updatetimer);
@@ -2517,7 +2518,7 @@ exit:
 }
 
 static void
-dns__catz_done_cb(void *data) {
+dns__catz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
 	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
 	char dname[DNS_NAME_FORMATSIZE];
 

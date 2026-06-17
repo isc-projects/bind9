@@ -92,6 +92,11 @@ static void
 pause_loop(isc_loop_t *loop) {
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
 
+	/* Quiesce this loop's own workers before going to the barrier. */
+	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
+		isc__workthread_pause(loop->workthreads[lane]);
+	}
+
 	rcu_thread_offline();
 
 	loop->paused = true;
@@ -106,6 +111,10 @@ resume_loop(isc_loop_t *loop) {
 	loop->paused = false;
 
 	rcu_thread_online();
+
+	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
+		isc__workthread_resume(loop->workthreads[lane]);
+	}
 }
 
 static void
@@ -176,6 +185,10 @@ shutdown_cb(uv_async_t *handle) {
 		/* Free the signal handlers */
 		isc_signal_destroy(&loopmgr->sigterm);
 		isc_signal_destroy(&loopmgr->sigint);
+	}
+
+	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
+		isc__workthread_shutdown(loop->workthreads[lane]);
 	}
 
 	enum cds_wfcq_ret ret = __cds_wfcq_splice_blocking(
@@ -252,16 +265,6 @@ quiescent_cb(uv_prepare_t *handle) {
 }
 
 static void
-helper_close(isc_loop_t *loop) {
-	int r = uv_loop_close(&loop->loop);
-	UV_RUNTIME_CHECK(uv_loop_close, r);
-
-	INSIST(cds_wfcq_empty(&loop->async_jobs.head, &loop->async_jobs.tail));
-
-	isc_mem_detach(&loop->mctx);
-}
-
-static void
 loop_close(isc_loop_t *loop) {
 	int r = uv_loop_close(&loop->loop);
 	UV_RUNTIME_CHECK(uv_loop_close, r);
@@ -275,31 +278,9 @@ loop_close(isc_loop_t *loop) {
 }
 
 static void *
-helper_thread(void *arg) {
-	isc_loop_t *helper = (isc_loop_t *)arg;
-
-	int r = uv_prepare_start(&helper->quiescent, quiescent_cb);
-	UV_RUNTIME_CHECK(uv_prepare_start, r);
-
-	isc_barrier_wait(&helper->loopmgr->starting);
-
-	r = uv_run(&helper->loop, UV_RUN_DEFAULT);
-	UV_RUNTIME_CHECK(uv_run, r);
-
-	/* Invalidate the helper early */
-	helper->magic = 0;
-
-	isc_barrier_wait(&helper->loopmgr->stopping);
-
-	return NULL;
-}
-
-static void *
 loop_thread(void *arg) {
 	isc_loop_t *loop = (isc_loop_t *)arg;
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
-	isc_loop_t *helper = &loopmgr->helpers[loop->tid];
-	char name[32];
 	/* Initialize the thread_local variables*/
 
 	REQUIRE(isc__loop_local == NULL || isc__loop_local == loop);
@@ -307,13 +288,12 @@ loop_thread(void *arg) {
 
 	isc__tid_init(loop->tid);
 
-	/* Start the helper thread */
-	isc_thread_create(helper_thread, helper, &helper->thread);
-	snprintf(name, sizeof(name), "isc-helper-%04" PRIu32, loop->tid);
-	isc_thread_setname(helper->thread, name);
-
 	int r = uv_prepare_start(&loop->quiescent, quiescent_cb);
 	UV_RUNTIME_CHECK(uv_prepare_start, r);
+
+	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
+		loop->workthreads[lane] = isc__workthread_create(loop, lane);
+	}
 
 	isc_barrier_wait(&loopmgr->starting);
 
@@ -333,11 +313,11 @@ loop_thread(void *arg) {
 	/* Invalidate the loop early */
 	loop->magic = 0;
 
-	/* Shutdown the helper thread */
-	r = uv_async_send(&helper->shutdown_trigger);
-	UV_RUNTIME_CHECK(uv_async_send, r);
-
 	isc_barrier_wait(&loopmgr->stopping);
+
+	for (isc_worklane_t lane = 0; lane < ISC_WORKLANE_COUNT; lane++) {
+		isc__workthread_destroy(&loop->workthreads[lane]);
+	}
 
 	return NULL;
 }
@@ -345,17 +325,6 @@ loop_thread(void *arg) {
 /**
  * Public
  */
-
-static void
-threadpool_initialize(uint32_t workers) {
-	char buf[11];
-	int r = uv_os_getenv("UV_THREADPOOL_SIZE", buf,
-			     &(size_t){ sizeof(buf) });
-	if (r == UV_ENOENT) {
-		snprintf(buf, sizeof(buf), "%" PRIu32, workers);
-		uv_os_setenv("UV_THREADPOOL_SIZE", buf);
-	}
-}
 
 static void
 loop_destroy(isc_loop_t *loop) {
@@ -376,7 +345,6 @@ isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {
 	REQUIRE(loopmgrp != NULL && *loopmgrp == NULL);
 	REQUIRE(nloops > 0);
 
-	threadpool_initialize(nloops);
 	isc__tid_initcount(nloops);
 
 	loopmgr = isc_mem_get(mctx, sizeof(*loopmgr));
@@ -386,24 +354,19 @@ isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {
 
 	isc_mem_attach(mctx, &loopmgr->mctx);
 
-	/* We need to double the number for loops and helpers */
-	isc_barrier_init(&loopmgr->pausing, loopmgr->nloops * 2);
-	isc_barrier_init(&loopmgr->resuming, loopmgr->nloops * 2);
-	isc_barrier_init(&loopmgr->starting, loopmgr->nloops * 2);
-	isc_barrier_init(&loopmgr->stopping, loopmgr->nloops * 2);
+	/* We need to double the number for loops */
+	isc_barrier_init(&loopmgr->pausing, loopmgr->nloops);
+	isc_barrier_init(&loopmgr->resuming, loopmgr->nloops);
+	isc_barrier_init(&loopmgr->starting,
+			 loopmgr->nloops * (1 + ISC_WORKLANE_COUNT));
+	isc_barrier_init(&loopmgr->stopping,
+			 loopmgr->nloops * (1 + ISC_WORKLANE_COUNT));
 
 	loopmgr->loops = isc_mem_cget(loopmgr->mctx, loopmgr->nloops,
 				      sizeof(loopmgr->loops[0]));
 	for (size_t i = 0; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
 		loop_init(loop, loopmgr, i, "loop");
-	}
-
-	loopmgr->helpers = isc_mem_cget(loopmgr->mctx, loopmgr->nloops,
-					sizeof(loopmgr->helpers[0]));
-	for (size_t i = 0; i < loopmgr->nloops; i++) {
-		isc_loop_t *loop = &loopmgr->helpers[i];
-		loop_init(loop, loopmgr, i, "helper");
 	}
 
 	loopmgr->sigint = isc_signal_new(loopmgr, isc__loopmgr_signal, loopmgr,
@@ -526,13 +489,6 @@ isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 	}
 
 	for (size_t i = 0; i < loopmgr->nloops; i++) {
-		isc_loop_t *helper = &loopmgr->helpers[i];
-
-		int r = uv_async_send(&helper->pause_trigger);
-		UV_RUNTIME_CHECK(uv_async_send, r);
-	}
-
-	for (size_t i = 0; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
 
 		/* Skip current loop */
@@ -589,12 +545,6 @@ isc_loopmgr_destroy(isc_loopmgr_t **loopmgrp) {
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&loopmgr->running,
 						     &(bool){ true }, false));
 
-	/* Wait for all helpers to finish */
-	for (size_t i = 0; i < loopmgr->nloops; i++) {
-		isc_loop_t *helper = &loopmgr->helpers[i];
-		isc_thread_join(helper->thread, NULL);
-	}
-
 	/* First wait for all loops to finish */
 	for (size_t i = 1; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
@@ -602,13 +552,6 @@ isc_loopmgr_destroy(isc_loopmgr_t **loopmgrp) {
 	}
 
 	loopmgr->magic = 0;
-
-	for (size_t i = 0; i < loopmgr->nloops; i++) {
-		isc_loop_t *helper = &loopmgr->helpers[i];
-		helper_close(helper);
-	}
-	isc_mem_cput(loopmgr->mctx, loopmgr->helpers, loopmgr->nloops,
-		     sizeof(loopmgr->helpers[0]));
 
 	for (size_t i = 0; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
@@ -696,4 +639,22 @@ isc_loop_shuttingdown(isc_loop_t *loop) {
 	REQUIRE(loop->tid == isc_tid());
 
 	return loop->shuttingdown;
+}
+
+isc__workthread_t *
+isc__loopmgr_workthread(isc_loop_t *loop, isc_worklane_t lane) {
+	REQUIRE(VALID_LOOP(loop));
+	REQUIRE(lane < ISC_WORKLANE_COUNT);
+
+	return loop->workthreads[lane];
+}
+
+void
+isc__loopmgr_starting(isc_loop_t *loop) {
+	isc_barrier_wait(&loop->loopmgr->starting);
+}
+
+void
+isc__loopmgr_stopping(isc_loop_t *loop) {
+	isc_barrier_wait(&loop->loopmgr->stopping);
 }

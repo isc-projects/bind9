@@ -1536,7 +1536,7 @@ master_dump_callback(void *data) {
 }
 
 static void
-master_dump_done(void *data) {
+master_dump_done(void *data, isc_result_t result ISC_ATTR_UNUSED) {
 	dns_dumpctx_t *dctx = data;
 
 	isc_async_run(dctx->loop, master_dump_callback, dctx);
@@ -1795,7 +1795,8 @@ dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
 
 	dns_dumpctx_ref(dctx);
 	isc_loop_attach(loop, &dctx->loop);
-	isc_work_enqueue(isc_loop(), master_dump, master_dump_done, dctx);
+	isc_work_enqueue(isc_loop(), ISC_WORKLANE_SLOW, master_dump,
+			 master_dump_done, dctx);
 
 	*dctxp = dctx;
 
@@ -1893,7 +1894,8 @@ dns_master_dumpasync(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	dns_dumpctx_ref(dctx);
 	isc_loop_attach(loop, &dctx->loop);
-	isc_work_enqueue(isc_loop(), master_dump, master_dump_done, dctx);
+	isc_work_enqueue(isc_loop(), ISC_WORKLANE_SLOW, master_dump,
+			 master_dump_done, dctx);
 
 	*dctxp = dctx;
 

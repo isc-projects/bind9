@@ -369,12 +369,13 @@ cleanup:
 }
 
 static void
-axfr_apply_done(void *arg) {
+axfr_apply_done(void *arg, isc_result_t eresult) {
 	xfrin_work_t *work = arg;
 	REQUIRE(VALID_XFRIN_WORK(work));
 
 	dns_xfrin_t *xfr = work->xfr;
-	isc_result_t result = work->result;
+	isc_result_t result = (eresult == ISC_R_SUCCESS) ? work->result
+							 : eresult;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -417,7 +418,8 @@ axfr_commit(dns_xfrin_t *xfr) {
 		.xfr = dns_xfrin_ref(xfr),
 	};
 	xfr->diff_running = true;
-	isc_work_enqueue(xfr->loop, axfr_apply, axfr_apply_done, work);
+	isc_work_enqueue(xfr->loop, ISC_WORKLANE_SLOW, axfr_apply,
+			 axfr_apply_done, work);
 }
 
 static isc_result_t
@@ -602,14 +604,15 @@ ixfr_apply(void *arg) {
 }
 
 static void
-ixfr_apply_done(void *arg) {
+ixfr_apply_done(void *arg, isc_result_t eresult) {
 	xfrin_work_t *work = arg;
 	REQUIRE(VALID_XFRIN_WORK(work));
 
 	dns_xfrin_t *xfr = work->xfr;
 	REQUIRE(VALID_XFRIN(xfr));
 
-	isc_result_t result = work->result;
+	isc_result_t result = (eresult == ISC_R_SUCCESS) ? work->result
+							 : eresult;
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -621,7 +624,8 @@ ixfr_apply_done(void *arg) {
 	if (!xfr->retry_axfr &&
 	    !cds_wfcq_empty(&xfr->diff_head, &xfr->diff_tail))
 	{
-		isc_work_enqueue(xfr->loop, ixfr_apply, ixfr_apply_done, work);
+		isc_work_enqueue(xfr->loop, ISC_WORKLANE_SLOW, ixfr_apply,
+				 ixfr_apply_done, work);
 		return;
 	}
 
@@ -701,7 +705,8 @@ ixfr_commit(dns_xfrin_t *xfr) {
 			.xfr = dns_xfrin_ref(xfr),
 		};
 		xfr->diff_running = true;
-		isc_work_enqueue(xfr->loop, ixfr_apply, ixfr_apply_done, work);
+		isc_work_enqueue(xfr->loop, ISC_WORKLANE_SLOW, ixfr_apply,
+				 ixfr_apply_done, work);
 	}
 
 cleanup:

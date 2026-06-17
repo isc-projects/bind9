@@ -24,7 +24,7 @@ typedef struct isc_queue {
 					      sizeof(struct __cds_wfcq_head)];
 	struct cds_wfcq_tail   tail;
 	uint8_t		       __padding_tail[ISC_OS_CACHELINE_SIZE -
-					      sizeof(struct __cds_wfcq_head)];
+					      sizeof(struct cds_wfcq_tail)];
 } isc_queue_t;
 
 typedef struct cds_wfcq_node isc_queue_node_t;

@@ -18,7 +18,6 @@
 #include <isc/atomic.h>
 #include <isc/base32.h>
 #include <isc/counter.h>
-#include <isc/helper.h>
 #include <isc/job.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -134,7 +133,7 @@ validate_async_done(dns_validator_t *val, isc_result_t result);
 static isc_result_t
 validate_async_run(dns_validator_t *val, isc_job_cb cb);
 static isc_result_t
-validate_helper_run(dns_validator_t *val, isc_job_cb cb);
+validate_work_enqueue(dns_validator_t *val, isc_job_cb cb);
 
 static void
 validate_dnskey(void *arg);
@@ -501,8 +500,8 @@ fetch_callback_dnskey(void *arg) {
 		if (eresult == ISC_R_SUCCESS &&
 		    rdataset->trust >= dns_trust_secure)
 		{
-			result = validate_helper_run(val,
-						     resume_answer_with_key);
+			result = validate_work_enqueue(val,
+						       resume_answer_with_key);
 		} else {
 			result = validate_async_run(val, resume_answer);
 		}
@@ -678,8 +677,8 @@ validator_callback_dnskey(void *arg) {
 		 * Only extract the dst key if the keyset is secure.
 		 */
 		if (val->frdataset.trust >= dns_trust_secure) {
-			result = validate_helper_run(val,
-						     resume_answer_with_key);
+			result = validate_work_enqueue(val,
+						       resume_answer_with_key);
 		} else {
 			result = validate_async_run(val, resume_answer);
 		}
@@ -1292,7 +1291,8 @@ seek_dnskey(dns_validator_t *val) {
 				dns_rdataset_disassociate(&val->fsigrdataset);
 			}
 
-			return validate_helper_run(val, resume_answer_with_key);
+			return validate_work_enqueue(val,
+						     resume_answer_with_key);
 		}
 		break;
 
@@ -1766,7 +1766,7 @@ validate_answer_signing_key_done(void *arg) {
 		val->result = ISC_R_CANCELED;
 	} else if (val->key != NULL) {
 		/* Process with next key if we selected one */
-		(void)validate_helper_run(val, validate_answer_signing_key);
+		(void)validate_work_enqueue(val, validate_answer_signing_key);
 		return;
 	}
 
@@ -1834,7 +1834,7 @@ validate_answer_process(void *arg) {
 		goto next_key;
 	}
 
-	(void)validate_helper_run(val, validate_answer_signing_key);
+	(void)validate_work_enqueue(val, validate_answer_signing_key);
 	return;
 
 next_key:
@@ -1958,10 +1958,15 @@ validate_async_run(dns_validator_t *val, isc_job_cb cb) {
 	return DNS_R_WAIT;
 }
 
+static void
+null_done(void *arg ISC_ATTR_UNUSED, isc_result_t result ISC_ATTR_UNUSED) {
+	/* no-op for now */
+}
+
 static isc_result_t
-validate_helper_run(dns_validator_t *val, isc_job_cb cb) {
+validate_work_enqueue(dns_validator_t *val, isc_job_cb cb) {
 	val->attributes |= VALATTR_OFFLOADED;
-	isc_helper_run(val->loop, cb, val);
+	isc_work_enqueue(val->loop, ISC_WORKLANE_FAST, cb, null_done, val);
 	return DNS_R_WAIT;
 }
 
@@ -2249,7 +2254,7 @@ validate_dnskey_dsset_next_done(void *arg) {
 		break;
 	default:
 		/* Continue validation until we have success or no more data */
-		(void)validate_helper_run(val, validate_dnskey_dsset_next);
+		(void)validate_work_enqueue(val, validate_dnskey_dsset_next);
 		return;
 	}
 
@@ -2276,8 +2281,8 @@ validate_dnskey_dsset_first(dns_validator_t *val) {
 		/* continue async run */
 		result = validate_dnskey_dsset(val);
 		if (result != ISC_R_SUCCESS) {
-			(void)validate_helper_run(val,
-						  validate_dnskey_dsset_next);
+			(void)validate_work_enqueue(val,
+						    validate_dnskey_dsset_next);
 			return;
 		}
 	}
