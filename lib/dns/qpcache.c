@@ -538,7 +538,7 @@ clean_cache_headers(dns_slabtop_t *top) {
 	cds_list_for_each_entry_safe_from(header, header_next, &top->headers,
 					  headers_link) {
 		cds_list_del(&header->headers_link);
-		dns_slabheader_destroy(&header);
+		dns_slabheader_detach(&header);
 	}
 }
 
@@ -574,7 +574,7 @@ clean_cache_node(qpcache_t *qpdb, qpcnode_t *node) {
 		    (STALE(header) && !KEEPSTALE(qpdb)))
 		{
 			cds_list_del(&header->headers_link);
-			dns_slabheader_destroy(&header);
+			dns_slabheader_detach(&header);
 		}
 
 		/*
@@ -977,6 +977,8 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	if (rdataset == NULL) {
 		return;
 	}
+
+	dns_slabheader_ref(header);
 
 	qpcnode_acquire(qpdb, node, nlocktype, tlocktype DNS__DB_FLARG_PASS);
 
@@ -2867,7 +2869,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		update_rrsetstats(qpdb->rrsetstats, newheader->typepair,
 				  newheader->attributes, true);
 	} else {
-		dns_slabheader_destroy(&newheader);
+		dns_slabheader_detach(&newheader);
 	}
 
 	NODE_UNLOCK(nlock, &nlocktype);
@@ -2884,7 +2886,7 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	return result;
 cleanup:
-	dns_slabheader_destroy(&newheader);
+	dns_slabheader_detach(&newheader);
 	return result;
 }
 
@@ -2925,7 +2927,7 @@ qpcache_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 	result = add(qpdb, qpnode, newheader, DNS_DBADD_FORCE, NULL, 0,
 		     nlocktype, isc_rwlocktype_none DNS__DB_FLARG_PASS);
 	if (result != ISC_R_SUCCESS) {
-		dns_slabheader_destroy(&newheader);
+		dns_slabheader_detach(&newheader);
 	}
 	NODE_UNLOCK(nlock, &nlocktype);
 
@@ -3516,7 +3518,7 @@ qpcnode_destroy(qpcnode_t *qpnode) {
 					     headers_link)
 		{
 			cds_list_del(&header->headers_link);
-			dns_slabheader_destroy(&header);
+			dns_slabheader_detach(&header);
 		}
 
 		if (ISC_SIEVE_LINKED(top, link)) {

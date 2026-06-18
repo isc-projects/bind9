@@ -41,6 +41,8 @@
  *** Imports
  ***/
 
+/* Add -DDNS_SLABHEADER_TRACE=1 to CFLAGS for detailed reference tracing */
+
 #include <stdalign.h>
 #include <stdbool.h>
 
@@ -89,6 +91,8 @@ struct dns_slabtop {
 struct dns_slabheader {
 	_Atomic(uint16_t)    attributes;
 	_Atomic(dns_trust_t) trust;
+
+	isc_refcount_t references;
 
 	/*%
 	 * Locked by the owning node's lock.
@@ -140,6 +144,20 @@ struct dns_slabheader {
 	alignas(sizeof(void *)) unsigned char raw[];
 };
 
+#if DNS_SLABHEADER_TRACE
+#define dns_slabheader_ref(ptr) \
+	dns_slabheader__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_slabheader_unref(ptr) \
+	dns_slabheader__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_slabheader_attach(ptr, ptrp) \
+	dns_slabheader__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_slabheader_detach(ptrp) \
+	dns_slabheader__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_slabheader);
+#else
+ISC_REFCOUNT_DECL(dns_slabheader);
+#endif
+
 enum {
 	DNS_SLABHEADERATTR_NONEXISTENT = 1 << 0,
 	DNS_SLABHEADERATTR_STALE = 1 << 1,
@@ -172,9 +190,14 @@ extern dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods;
  *** Functions
  ***/
 
+#define dns_rdataslab_fromrdataset(rdataset, mctx, region, limit)            \
+	dns_rdataslab__fromrdataset(rdataset, mctx, region, limit, __func__, \
+				    __FILE__, __LINE__)
 isc_result_t
-dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, uint32_t limit);
+dns_rdataslab__fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			    isc_region_t *region, uint32_t limit,
+			    const char *func, const char *file,
+			    const unsigned int line);
 /*%<
  * Allocate space for a slab to hold the data in rdataset, and copy the
  * data into it.  The resulting slab will be returned in 'region'.
@@ -248,24 +271,24 @@ dns_rdataslab_equalx(dns_slabheader_t *header1, dns_slabheader_t *header2,
  *\li	true if the slabs are equal, #false otherwise.
  */
 
+#define dns_slabheader_reset(header, node) \
+	dns_slabheader__reset(header, node, __func__, __FILE__, __LINE__)
 void
-dns_slabheader_reset(dns_slabheader_t *h, dns_dbnode_t *node);
+dns_slabheader__reset(dns_slabheader_t *h, dns_dbnode_t *node, const char *func,
+		      const char *file, const unsigned int line);
 /*%<
  * Reset an rdataslab header 'h' so it can be used to store data in
  * database node 'node'.
  */
 
+#define dns_slabheader_new(mctx, node) \
+	dns_slabheader__new(mctx, node, __func__, __FILE__, __LINE__)
 dns_slabheader_t *
-dns_slabheader_new(isc_mem_t *mctx, dns_dbnode_t *node);
+dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
+		    const char *file, const unsigned int line);
 /*%<
  * Allocate memory for an rdataslab header and initialize it for use
  * in database node 'node'.
- */
-
-void
-dns_slabheader_destroy(dns_slabheader_t **headerp);
-/*%<
- * Free all memory associated with '*headerp'.
  */
 
 void

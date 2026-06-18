@@ -134,7 +134,8 @@ compare_rdata(const void *p1, const void *p2) {
 
 static unsigned char *
 newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-	uint16_t nitems, size_t size) {
+	uint16_t nitems, size_t size, const char *func, const char *file,
+	const unsigned int line) {
 	dns_slabheader_t *header = isc_mem_get(mctx, size);
 
 	*header = (dns_slabheader_t){
@@ -142,7 +143,19 @@ newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		.trust = rdataset->trust,
 		.dirtylink = ISC_LINK_INITIALIZER,
 		.nitems = nitems,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), header,
+		header->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
 
 	region->base = (unsigned char *)header;
 	region->length = size;
@@ -152,7 +165,8 @@ newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 
 static isc_result_t
 makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-	 uint32_t maxrrperset) {
+	 uint32_t maxrrperset, const char *func, const char *file,
+	 const unsigned int line) {
 	/*
 	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
@@ -178,8 +192,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		dns_slabheader_t *header = rdataset_getheader(rdataset);
 		buflen = dns_rdataslab_size(header);
 
-		rawbuf = newslab(rdataset, mctx, region, header->nitems,
-				 buflen);
+		rawbuf = newslab(rdataset, mctx, region, header->nitems, buflen,
+				 func, file, line);
 
 		INSIST(headerlen <= buflen);
 		memmove(rawbuf, (unsigned char *)header + headerlen,
@@ -196,7 +210,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
 		}
-		rawbuf = newslab(rdataset, mctx, region, 0, buflen);
+		rawbuf = newslab(rdataset, mctx, region, 0, buflen, func, file,
+				 line);
 		return ISC_R_SUCCESS;
 	}
 
@@ -308,7 +323,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = newslab(rdataset, mctx, region, nitems, buflen);
+	rawbuf = newslab(rdataset, mctx, region, nitems, buflen, func, file,
+			 line);
 
 	for (i = 0; i < nalloc; i++) {
 		if (rdata[i].data == &removed) {
@@ -344,15 +360,18 @@ free_rdatas:
 }
 
 isc_result_t
-dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, uint32_t maxrrperset) {
+dns_rdataslab__fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			    isc_region_t *region, uint32_t maxrrperset,
+			    const char *func, const char *file,
+			    const unsigned int line) {
 	if (rdataset->type == dns_rdatatype_none &&
 	    rdataset->covers == dns_rdatatype_none)
 	{
 		return DNS_R_DISALLOWED;
 	}
 
-	isc_result_t result = makeslab(rdataset, mctx, region, maxrrperset);
+	isc_result_t result = makeslab(rdataset, mctx, region, maxrrperset,
+				       func, file, line);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -496,37 +515,60 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 }
 
 void
-dns_slabheader_reset(dns_slabheader_t *h, dns_dbnode_t *node) {
+dns_slabheader__reset(dns_slabheader_t *h, dns_dbnode_t *node, const char *func,
+		      const char *file, const unsigned int line) {
 	h->node = node;
 
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
+	isc_refcount_init(&h->references, 1);
 
 	ISC_LINK_INIT(h, dirtylink);
 
 	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of dns_slabheader_t needs to be "
 		      "16-bit int type exactly.");
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), h, h->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
 }
 
 dns_slabheader_t *
-dns_slabheader_new(isc_mem_t *mctx, dns_dbnode_t *node) {
+dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
+		    const char *file, const unsigned int line) {
 	dns_slabheader_t *h = NULL;
 
 	h = isc_mem_get(mctx, sizeof(*h));
 	*h = (dns_slabheader_t){
+		.headers_link = CDS_LIST_HEAD_INIT(h->headers_link),
 		.node = node,
 		.dirtylink = ISC_LINK_INITIALIZER,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), h, h->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
+
 	return h;
 }
 
-void
-dns_slabheader_destroy(dns_slabheader_t **headerp) {
+static void
+slabheader_destroy(dns_slabheader_t *header) {
 	unsigned int size;
-	dns_slabheader_t *header = *headerp;
-
-	*headerp = NULL;
 
 	isc_mem_t *mctx = header->node->mctx;
 	dns_db_deletedata(header->node, header);
@@ -567,12 +609,20 @@ dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proofp) {
 	isc_mem_put(mctx, proof, sizeof(*proof));
 }
 
+#if DNS_SLABHEADER_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_slabheader, slabheader_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_slabheader, slabheader_destroy);
+#endif
+
 /* Fixed RRSet helper macros */
 
 static void
 rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_slabheader_t *header = rdataset_getheader(rdataset);
 	dns_dbnode_t *node = header->node;
+
+	dns_slabheader_detach(&header);
 
 	dns__db_detachnode(&node DNS__DB_FLARG_PASS);
 }
@@ -665,6 +715,8 @@ rdataset_clone(const dns_rdataset_t *source,
 
 	target->slab.iter_pos = NULL;
 	target->slab.iter_count = 0;
+
+	dns_slabheader_ref(header);
 }
 
 static unsigned int
