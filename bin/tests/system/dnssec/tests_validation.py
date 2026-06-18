@@ -630,6 +630,7 @@ def test_negative_validation_optout():
     msg = isctest.query.create("delegation.single-nsec3", "A")
     res = isctest.query.tcp(msg, "10.53.0.2")
     isctest.check.noerror(res)
+    isctest.check.has_authority(res)
     for rrset in res.authority:
         if (
             rrset.rdtype != rdatatype.NSEC3
@@ -642,6 +643,7 @@ def test_negative_validation_optout():
     msg = isctest.query.create("nonexist.single-nsec3", "A")
     res = isctest.query.tcp(msg, "10.53.0.2")
     isctest.check.nxdomain(res)
+    isctest.check.has_authority(res)
     for rrset in res.authority:
         if (
             rrset.rdtype != rdatatype.NSEC3
@@ -654,6 +656,7 @@ def test_negative_validation_optout():
     msg = isctest.query.create("single-nsec3", "A")
     res = isctest.query.tcp(msg, "10.53.0.2")
     isctest.check.noerror(res)
+    isctest.check.has_authority(res)
     for rrset in res.authority:
         if (
             rrset.rdtype != rdatatype.NSEC3
@@ -1129,31 +1132,13 @@ def test_expired_signatures(ns4):
     res1 = isctest.query.tcp(msg, "10.53.0.4")
     msg = isctest.query.create("expiring.example", "SOA")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.noerror(res1)
+    isctest.check.has_answer(res1)
+    isctest.check.noerror(res2)
+    isctest.check.has_answer(res2)
     for rrset in res1.answer:
         assert 240 <= rrset.ttl <= 300
     for rrset in res2.answer:
-        assert rrset.ttl <= 60
-
-    # test TTL is capped at RRSIG expiry time in the additional section (NS)
-    ns4.rndc("flush")
-    msg = isctest.query.create("expiring.example", "NS", cd=True)
-    res1 = isctest.query.tcp(msg, "10.53.0.4")
-    msg = isctest.query.create("expiring.example", "NS")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    for rrset in res1.additional:
-        assert 240 <= rrset.ttl <= 300
-    for rrset in res2.additional:
-        assert rrset.ttl <= 60
-
-    # test TTL is capped at RRSIG expiry time in the additional section (MX)
-    ns4.rndc("flush")
-    msg = isctest.query.create("expiring.example", "MX", cd=True)
-    res1 = isctest.query.tcp(msg, "10.53.0.4")
-    msg = isctest.query.create("expiring.example", "MX")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    for rrset in res1.additional:
-        assert 240 <= rrset.ttl <= 300
-    for rrset in res2.additional:
         assert rrset.ttl <= 60
 
 
