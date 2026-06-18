@@ -841,7 +841,7 @@ dns__zone_freedbargs(dns_zone_t *zone);
  */
 
 void
-dns__zone_settimer(dns_zone_t *zone, isc_time_t *now);
+dns__zone_settimer(dns_zone_t *zone, isc_time_t now);
 /*%<
  *	Sets zone timer to 'now' time.
  *

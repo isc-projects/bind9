@@ -1378,7 +1378,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 			}
 			zone->refreshtime = now;
 			if (zone->loop != NULL) {
-				dns__zone_settimer(zone, &now);
+				dns__zone_settimer(zone, now);
 			}
 			result = ISC_R_SUCCESS;
 			goto cleanup;
@@ -3020,7 +3020,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 			now = isc_time_now();
 			zone->nsec3chaintime = now;
 			if (zone->loop != NULL) {
-				dns__zone_settimer(zone, &now);
+				dns__zone_settimer(zone, now);
 			}
 		}
 	}
@@ -3334,7 +3334,7 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 
 	isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "next key refresh: %s", timebuf);
-	dns__zone_settimer(zone, &timenow);
+	dns__zone_settimer(zone, timenow);
 }
 
 /*
@@ -4013,6 +4013,22 @@ zone_unchanged(dns_db_t *db1, dns_db_t *db2, isc_mem_t *mctx) {
 	return answer;
 }
 
+/*
+ * Compare times treating epoch as "unset".
+ */
+static inline bool
+time_greater_equal(isc_time_t a, isc_time_t b) {
+	return !isc_time_isepoch(&b) && isc_time_compare(&a, &b) >= 0;
+}
+
+static inline isc_time_t
+time_min(isc_time_t a, isc_time_t b) {
+	if (isc_time_isepoch(&b)) {
+		return a;
+	}
+	return isc_time_isepoch(&a) || isc_time_compare(&b, &a) < 0 ? b : a;
+}
+
 static void
 process_zone_setnsec3param(dns_zone_t *zone) {
 	ISC_LIST_FOREACH(zone->setnsec3param_queue, npe, link) {
@@ -4537,7 +4553,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			}
 		}
 
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, now);
 	}
 
 	/*
@@ -4601,7 +4617,7 @@ cleanup:
 		/* Mark the zone for immediate refresh. */
 		zone->refreshtime = now;
 		if (zone->loop != NULL) {
-			dns__zone_settimer(zone, &now);
+			dns__zone_settimer(zone, now);
 		}
 		result = ISC_R_SUCCESS;
 	} else if (zone->type == dns_zone_primary ||
@@ -4639,7 +4655,7 @@ done:
 		 * zone_maintenance was called.
 		 */
 		if (zone->secure->loop != NULL) {
-			dns__zone_settimer(zone->secure, &now);
+			dns__zone_settimer(zone->secure, now);
 		}
 	}
 
@@ -9048,7 +9064,7 @@ keyfetch_cancel(dns_zonefetch_t *fetch) {
 		timenow = isc_time_now();
 		DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
 		zone->refreshkeytime = timethen;
-		dns__zone_settimer(zone, &timenow);
+		dns__zone_settimer(zone, timenow);
 
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 		dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
@@ -10057,8 +10073,7 @@ zone_maintenance(dns_zone_t *zone) {
 			UNLOCK_ZONE(zone);
 			break;
 		}
-		rekey = (!isc_time_isepoch(&zone->refreshkeytime) &&
-			 isc_time_compare(&now, &zone->refreshkeytime) >= 0);
+		rekey = time_greater_equal(now, zone->refreshkeytime);
 		UNLOCK_ZONE(zone);
 		if (rekey) {
 			zone_rekey(zone);
@@ -10083,14 +10098,10 @@ zone_maintenance(dns_zone_t *zone) {
 			UNLOCK_ZONE(zone);
 			break;
 		}
-		sign = !isc_time_isepoch(&zone->signingtime) &&
-		       isc_time_compare(&now, &zone->signingtime) >= 0;
-		resign = !isc_time_isepoch(&zone->resigntime) &&
-			 isc_time_compare(&now, &zone->resigntime) >= 0;
-		chain = !isc_time_isepoch(&zone->nsec3chaintime) &&
-			isc_time_compare(&now, &zone->nsec3chaintime) >= 0;
-		warn_expire = !isc_time_isepoch(&zone->keywarntime) &&
-			      isc_time_compare(&now, &zone->keywarntime) >= 0;
+		sign = time_greater_equal(now, zone->signingtime);
+		resign = time_greater_equal(now, zone->resigntime);
+		chain = time_greater_equal(now, zone->nsec3chaintime);
+		warn_expire = time_greater_equal(now, zone->keywarntime);
 		UNLOCK_ZONE(zone);
 
 		if (sign) {
@@ -10114,7 +10125,7 @@ zone_maintenance(dns_zone_t *zone) {
 		break;
 	}
 	LOCK_ZONE(zone);
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, now);
 	UNLOCK_ZONE(zone);
 }
 
@@ -10162,9 +10173,7 @@ again:
 		if (result == ISC_R_SUCCESS) {
 			dns__zone_set_resigntime(zone);
 			if (zone->loop != NULL) {
-				isc_time_t now;
-				now = isc_time_now();
-				dns__zone_settimer(zone, &now);
+				dns__zone_settimer(zone, isc_time_now());
 			}
 		}
 	}
@@ -10489,7 +10498,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 		zone->dumptime = dumptime;
 	}
 	if (zone->loop != NULL) {
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, now);
 	}
 }
 
@@ -10895,8 +10904,6 @@ zone_unload(dns_zone_t *zone) {
 
 void
 dns_zone_notify(dns_zone_t *zone, bool nodefer) {
-	isc_time_t now;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -10915,8 +10922,7 @@ dns_zone_notify(dns_zone_t *zone, bool nodefer) {
 		}
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYNODEFER);
 	}
-	now = isc_time_now();
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, isc_time_now());
 	UNLOCK_ZONE(zone);
 }
 
@@ -11292,7 +11298,7 @@ stub_finish_zone_update(dns_stub_t *stub, isc_time_t now) {
 		zone_needdump(zone, 0);
 	}
 
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, now);
 }
 
 /*
@@ -11930,7 +11936,7 @@ next_primary:
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (exiting || dns_remote_done(&zone->primaries)) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, now);
 		goto free_stub;
 	}
 	queue_soa_query(zone);
@@ -12450,7 +12456,7 @@ next_primary:
 			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 			zone->refreshtime = now;
 		}
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, now);
 		goto detach;
 	}
 
@@ -12467,7 +12473,7 @@ exiting:
 	 */
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	zone->refreshtime = now;
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, now);
 
 	dns_request_destroy(&zone->request);
 	goto detach;
@@ -13209,7 +13215,7 @@ static void
 zone__settimer(void *arg) {
 	zone_settimer_t *data = arg;
 	dns_zone_t *zone = data->zone;
-	isc_time_t *now = &data->now;
+	isc_time_t now = data->now;
 	isc_time_t next;
 	bool free_needed = false;
 
@@ -13238,52 +13244,18 @@ zone__settimer(void *arg) {
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING))
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0)
-			{
-				next = zone->dumptime;
-			}
+			next = time_min(next, zone->dumptime);
 		}
 		if (zone->type == dns_zone_redirect) {
 			break;
 		}
-		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING) &&
-		    !isc_time_isepoch(&zone->refreshkeytime))
-		{
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->refreshkeytime, &next) < 0)
-			{
-				next = zone->refreshkeytime;
-			}
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING)) {
+			next = time_min(next, zone->refreshkeytime);
 		}
-		if (!isc_time_isepoch(&zone->resigntime)) {
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->resigntime, &next) < 0)
-			{
-				next = zone->resigntime;
-			}
-		}
-		if (!isc_time_isepoch(&zone->keywarntime)) {
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->keywarntime, &next) < 0)
-			{
-				next = zone->keywarntime;
-			}
-		}
-		if (!isc_time_isepoch(&zone->signingtime)) {
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->signingtime, &next) < 0)
-			{
-				next = zone->signingtime;
-			}
-		}
-		if (!isc_time_isepoch(&zone->nsec3chaintime)) {
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->nsec3chaintime, &next) < 0)
-			{
-				next = zone->nsec3chaintime;
-			}
-		}
+		next = time_min(next, zone->resigntime);
+		next = time_min(next, zone->keywarntime);
+		next = time_min(next, zone->signingtime);
+		next = time_min(next, zone->nsec3chaintime);
 		break;
 
 	case dns_zone_secondary:
@@ -13299,31 +13271,18 @@ zone__settimer(void *arg) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOPRIMARIES) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING) &&
-		    !isc_time_isepoch(&zone->refreshtime) &&
-		    (isc_time_isepoch(&next) ||
-		     isc_time_compare(&zone->refreshtime, &next) < 0))
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
 		{
-			next = zone->refreshtime;
+			next = time_min(next, zone->refreshtime);
 		}
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-		    !isc_time_isepoch(&zone->expiretime))
-		{
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->expiretime, &next) < 0)
-			{
-				next = zone->expiretime;
-			}
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+			next = time_min(next, zone->expiretime);
 		}
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING))
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0)
-			{
-				next = zone->dumptime;
-			}
+			next = time_min(next, zone->dumptime);
 		}
 		break;
 
@@ -13332,20 +13291,10 @@ zone__settimer(void *arg) {
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING))
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
-			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0)
-			{
-				next = zone->dumptime;
-			}
+			next = time_min(next, zone->dumptime);
 		}
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING)) {
-			if (isc_time_isepoch(&next) ||
-			    (!isc_time_isepoch(&zone->refreshkeytime) &&
-			     isc_time_compare(&zone->refreshkeytime, &next) <
-				     0))
-			{
-				next = zone->refreshkeytime;
-			}
+			next = time_min(next, zone->refreshkeytime);
 		}
 		break;
 
@@ -13356,7 +13305,7 @@ zone__settimer(void *arg) {
 	if (isc_time_isepoch(&next)) {
 		zone_timer_stop(zone);
 	} else {
-		zone_timer_set(zone, &next, now);
+		zone_timer_set(zone, &next, &now);
 	}
 
 free:
@@ -13370,7 +13319,7 @@ free:
 }
 
 void
-dns__zone_settimer(dns_zone_t *zone, isc_time_t *now) {
+dns__zone_settimer(dns_zone_t *zone, isc_time_t now) {
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		return;
 	}
@@ -13378,7 +13327,7 @@ dns__zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	zone_settimer_t *arg = isc_mem_get(zone->mctx, sizeof(*arg));
 	*arg = (zone_settimer_t){
 		.zone = zone,
-		.now = *now,
+		.now = now,
 	};
 	isc_refcount_increment0(&zone->irefs);
 	isc_async_run(zone->loop, zone__settimer, arg);
@@ -13386,8 +13335,6 @@ dns__zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 static void
 cancel_refresh(dns_zone_t *zone) {
-	isc_time_t now;
-
 	/*
 	 * 'zone' locked by caller.
 	 */
@@ -13398,8 +13345,7 @@ cancel_refresh(dns_zone_t *zone) {
 	ENTER;
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
-	now = isc_time_now();
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, isc_time_now());
 }
 
 isc_result_t
@@ -14599,7 +14545,7 @@ receive_secure_serial(void *arg) {
 	 */
 	dns__zone_set_resigntime(zone);
 	timenow = isc_time_now();
-	dns__zone_settimer(zone, &timenow);
+	dns__zone_settimer(zone, timenow);
 	UNLOCK_ZONE(zone);
 
 	dns_db_closeversion(zone->rss_db, &zone->rss_oldver, false);
@@ -14621,7 +14567,7 @@ cleanup:
 		LOCK_ZONE(zone);
 		dns__zone_set_resigntime(zone);
 		timenow = isc_time_now();
-		dns__zone_settimer(zone, &timenow);
+		dns__zone_settimer(zone, timenow);
 		UNLOCK_ZONE(zone);
 		if (result == DNS_R_UNCHANGED) {
 			level = ISC_LOG_INFO;
@@ -15596,7 +15542,7 @@ again:
 		dns__zone_stats_increment(zone, dns_zonestatscounter_xfrfail);
 		break;
 	}
-	dns__zone_settimer(zone, &now);
+	dns__zone_settimer(zone, now);
 
 	/*
 	 * We are called as the done callback of a zone
@@ -16445,7 +16391,7 @@ zone_signwithkey(dns_zone_t *zone, dst_algorithm_t algorithm, uint16_t keyid,
 		if (isc_time_isepoch(&zone->signingtime)) {
 			zone->signingtime = now;
 			if (zone->loop != NULL) {
-				dns__zone_settimer(zone, &now);
+				dns__zone_settimer(zone, now);
 			}
 		}
 	}
@@ -18969,7 +18915,7 @@ zone_rekey(dns_zone_t *zone) {
 
 		zone_needdump(zone, DNS_DUMP_DELAY);
 
-		dns__zone_settimer(zone, &timenow);
+		dns__zone_settimer(zone, timenow);
 
 		/* Remove any signatures from removed keys.  */
 		ISC_LIST_FOREACH(rmkeys, key, link) {
@@ -19140,7 +19086,7 @@ zone_rekey(dns_zone_t *zone) {
 
 		DNS_ZONE_TIME_ADD(&timenow, nexttime_seconds, &timenext);
 		zone->refreshkeytime = timenext;
-		dns__zone_settimer(zone, &timenow);
+		dns__zone_settimer(zone, timenow);
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 
 		dnssec_log(zone, ISC_LOG_DEBUG(3),
@@ -19174,7 +19120,7 @@ zone_rekey(dns_zone_t *zone) {
 			}
 		}
 
-		dns__zone_settimer(zone, &timenow);
+		dns__zone_settimer(zone, timenow);
 
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
@@ -19280,7 +19226,7 @@ dns_zone_rekey(dns_zone_t *zone, bool fullsign, bool forcekeymgr) {
 
 		now = isc_time_now();
 		zone->refreshkeytime = now;
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, now);
 
 		UNLOCK_ZONE(zone);
 	}

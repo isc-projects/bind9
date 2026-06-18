@@ -1501,16 +1501,13 @@ dns_zone_getkeyvalidityinterval(dns_zone_t *zone) {
 
 void
 dns_zone_setsigresigninginterval(dns_zone_t *zone, uint32_t interval) {
-	isc_time_t now;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 	zone->sigresigninginterval = interval;
 	dns__zone_set_resigntime(zone);
 	if (zone->loop != NULL) {
-		now = isc_time_now();
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, isc_time_now());
 	}
 	UNLOCK_ZONE(zone);
 }
