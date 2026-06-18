@@ -186,7 +186,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 			continue;
 		}
 		result = dns_dnssec_verify(name, rdataset, dstkeys[key], false,
-					   0, vctx->mctx, sigrdata, NULL);
+					   0, vctx->mctx, sigrdata, NULL, NULL);
 		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 			return true;
 		}

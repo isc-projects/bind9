@@ -653,7 +653,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 
 			result = dns_dnssec_verify(name, rdataset, ki->dst,
 						   false, 0, mctx, &sigrdata,
-						   NULL);
+						   NULL, NULL);
 
 			if (result != ISC_R_SUCCESS &&
 			    result != DNS_R_FROMWILDCARD)

@@ -10242,7 +10242,6 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	isc_result_t result;
 	dns_name_t *keyname;
 	isc_mem_t *mctx;
-	dns_rdata_t sigrr = DNS_RDATA_INIT;
 	dns_rdata_t rr = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
 	dns_rdata_dnskey_t dnskey;
@@ -10277,10 +10276,7 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&kfetch->dnskeysigset))
 	{
-		dns_fixedname_t fixed;
-		dns_fixedname_init(&fixed);
-
-		dns_rdata_reset(&sigrr);
+		dns_rdata_t sigrr = DNS_RDATA_INIT;
 		dns_rdataset_current(&kfetch->dnskeysigset, &sigrr);
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -10288,9 +10284,9 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 		if (dst_key_alg(dstkey) == sig.algorithm &&
 		    dst_key_rid(dstkey) == sig.keyid)
 		{
-			result = dns_dnssec_verify(
-				keyname, &kfetch->dnskeyset, dstkey, false, 0,
-				mctx, &sigrr, dns_fixedname_name(&fixed));
+			result = dns_dnssec_verify(keyname, &kfetch->dnskeyset,
+						   dstkey, false, 0, mctx,
+						   &sigrr, NULL, NULL);
 
 			dnssec_log(kfetch->zone, ISC_LOG_DEBUG(3),
 				   "Confirm revoked DNSKEY is self-signed: %s",
@@ -10479,7 +10475,7 @@ keyfetch_done(void *arg) {
 			}
 
 			result = dns_dnssec_verify(keyname, dnskeys, dstkey,
-						   false, 0, mctx, &sigrr,
+						   false, 0, mctx, &sigrr, NULL,
 						   NULL);
 			dst_key_free(&dstkey);
 
