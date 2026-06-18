@@ -1012,6 +1012,9 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		isc_time_t expire;
 		isc_interval_t i;
 		uint32_t flags = 0;
+		dns_name_t *qname = client->query.origqname != NULL
+					    ? client->query.origqname
+					    : client->query.qname;
 
 		if ((message->flags & DNS_MESSAGEFLAG_CD) != 0) {
 			flags = NS_FAILCACHE_CD;
@@ -1020,8 +1023,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		isc_interval_set(&i, client->view->fail_ttl, 0);
 		result = isc_time_nowplusinterval(&expire, &i);
 		if (result == ISC_R_SUCCESS) {
-			dns_badcache_add(client->view->failcache,
-					 client->query.qname,
+			dns_badcache_add(client->view->failcache, qname,
 					 client->query.qtype, flags,
 					 isc_time_seconds(&expire));
 		}
