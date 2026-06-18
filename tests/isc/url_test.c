@@ -117,11 +117,11 @@ ISC_RUN_TEST_IMPL(parse) {
 	assert_int_equal(9, up.field_data[ISC_UF_USERINFO].len);
 
 	/*
-	 * Test the maximum accepted buffer length (UINT16_MAX). A path of
-	 * exactly UINT16_MAX bytes also drives ISC_UF_PATH.len to its
-	 * uint16_t maximum without overflowing.
+	 * Test the maximum accepted buffer length (URL_MAX_LENGTH). A path of
+	 * exactly URL_MAX_LENGTH bytes also drives ISC_UF_PATH.len to its
+	 * maximum without overflowing.
 	 */
-	size_t max_len = UINT16_MAX;
+	size_t max_len = URL_MAX_LENGTH;
 	char *max_buf = isc_mem_get(mctx, max_len);
 	memset(max_buf, 'a', max_len);
 	max_buf[0] = '/';
@@ -129,14 +129,14 @@ ISC_RUN_TEST_IMPL(parse) {
 	isc_mem_put(mctx, max_buf, max_len);
 	assert_int_equal(ISC_R_SUCCESS, result);
 	assert_int_equal(0, up.field_data[ISC_UF_PATH].off);
-	assert_int_equal(UINT16_MAX, up.field_data[ISC_UF_PATH].len);
+	assert_int_equal(URL_MAX_LENGTH, up.field_data[ISC_UF_PATH].len);
 
-	/* Test a too big buffer (UINT16_MAX + 1). */
-	size_t buf_len = UINT16_MAX + 2;
+	/* Test a too big buffer (URL_MAX_LENGTH + 1). */
+	size_t buf_len = URL_MAX_LENGTH + 2;
 	char *buf = isc_mem_get(mctx, buf_len);
 	memset(buf, 'a', buf_len);
 	buf[0] = '/';
-	result = isc_url_parse(buf, UINT16_MAX + 1, false, &up);
+	result = isc_url_parse(buf, URL_MAX_LENGTH + 1, false, &up);
 	isc_mem_put(mctx, buf, buf_len);
 	assert_int_equal(ISC_R_RANGE, result);
 }

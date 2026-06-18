@@ -549,7 +549,7 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 	int found_at = 0;
 	const char *p = NULL;
 
-	if (buflen == 0 || buflen > UINT16_MAX) {
+	if (buflen == 0 || buflen > URL_MAX_LENGTH) {
 		return ISC_R_RANGE;
 	}
 
