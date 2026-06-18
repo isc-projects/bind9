@@ -133,16 +133,19 @@ enum {
 						 * possible. */
 	DNS_FETCHOPT_QMINFETCH = 1 << 16,	/*%< Qmin fetch */
 	DNS_FETCHOPT_WANTZONEVERSION = 1 << 17, /*%< Request ZONEVERSION */
-	DNS_FETCHOPT_TRYCD = 1 << 18,		/*%< Send the first query
-						 * to a forwader with
-						 * CD=0, but retry with CD=1
-						 * if it returns SERVFAIL.
-						 */
-	DNS_FETCHOPT_PRIMING = 1 << 19,		/*%< Root priming fetch.
-						 * Copies the '.' NS answer
-						 * and root-server glue from
-						 * the response into
-						 * view->rootdb. */
+
+	/*
+	 * Send the first query to a forwarder with CD=0 (TRYNOCD), but retry
+	 * with CD=1 if it returns SERVFAIL (TRYCD).
+	 */
+	DNS_FETCHOPT_TRYNOCD = 1 << 18,
+	DNS_FETCHOPT_TRYCD = 1 << 19,
+
+	DNS_FETCHOPT_PRIMING = 1 << 20, /*%< Root priming fetch.
+					 * Copies the '.' NS answer
+					 * and root-server glue from
+					 * the response into
+					 * view->rootdb. */
 
 	/*% EDNS version bits: */
 	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,

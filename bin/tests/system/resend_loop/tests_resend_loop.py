@@ -83,3 +83,39 @@ def test_resend_loop_badcookie(ns4):
 
     prohibited_log = "query failed (timed out) for test.example/IN/A"
     assert prohibited_log not in ns4.log
+
+
+def test_resend_loop_forward(ns1):
+    sending_packet = Re("sending packet from 10.53.0.1#[0-9]+ to 10.53.0.3#[0-9]+")
+    received_packet = Re("received packet from 10.53.0.3#[0-9]+ to 10.53.0.1#[0-9]+")
+
+    # Make sure the server is done with priming and ./DNSKEY refresh (RFC5011)
+    msg = dns.message.make_query(".", "NS")
+    isctest.query.udp(msg, ns1.ip)
+    query_count_start = len(ns1.log.grep(sending_packet))
+
+    log_sequence = [
+        sending_packet,
+        "flags: rd; QUESTION: 1",
+        received_packet,
+        "opcode: QUERY, status: SERVFAIL",
+        "flags: qr rd; QUESTION: 1",
+        sending_packet,
+        "flags: rd cd; QUESTION: 1",
+        received_packet,
+        "opcode: QUERY, status: SERVFAIL",
+        "flags: qr rd; QUESTION: 1",
+    ]
+
+    msg = dns.message.make_query("test.com.", "A")
+    with ns1.watch_log_from_here() as watcher:
+        res = isctest.query.udp(msg, ns1.ip)
+        watcher.wait_for_sequence(log_sequence)
+
+    isctest.check.servfail(res)
+
+    query_count_end = len(ns1.log.grep(sending_packet))
+    assert query_count_end - query_count_start == 2
+
+    prohibited_log = "query failed (timed out) for test.com/IN/A"
+    assert prohibited_log not in ns1.log
