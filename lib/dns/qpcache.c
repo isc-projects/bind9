@@ -1052,6 +1052,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->ttl = 0;
 	}
 
+	rdataset->slab.node = (dns_dbnode_t *)node;
 	rdataset->slab.raw = header->raw;
 	rdataset->slab.iter_pos = NULL;
 	rdataset->slab.iter_count = 0;
@@ -2702,10 +2703,12 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (r1.base != NULL) {
-			isc_mem_put(mctx, r1.base, r1.length);
+			dns_slabheader_t *header = (dns_slabheader_t *)r1.base;
+			dns_slabheader_detach(&header);
 		}
 		if (r2.base != NULL) {
-			isc_mem_put(mctx, r2.base, r2.length);
+			dns_slabheader_t *header = (dns_slabheader_t *)r2.base;
+			dns_slabheader_detach(&header);
 		}
 	}
 	dns_rdataset_disassociate(&neg);
@@ -2743,10 +2746,12 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (r1.base != NULL) {
-			isc_mem_put(mctx, r1.base, r1.length);
+			dns_slabheader_t *header = (dns_slabheader_t *)r1.base;
+			dns_slabheader_detach(&header);
 		}
 		if (r2.base != NULL) {
-			isc_mem_put(mctx, r2.base, r2.length);
+			dns_slabheader_t *header = (dns_slabheader_t *)r2.base;
+			dns_slabheader_detach(&header);
 		}
 	}
 	dns_rdataset_disassociate(&neg);
