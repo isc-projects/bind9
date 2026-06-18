@@ -1646,7 +1646,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 * for details - because we might need NS or NSEC
 			 * records.
 			 */
-			if (missing_answer(found, options)) {
+			if (missing_answer(found, options) || STALE(found)) {
 				continue;
 			}
 
@@ -1686,7 +1686,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			}
 		}
 
-		if (!missing_answer(found, options)) {
+		if (!missing_answer(found, options) && !STALE(found)) {
 			break;
 		}
 	}
