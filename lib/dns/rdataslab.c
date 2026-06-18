@@ -572,12 +572,17 @@ static void
 slabheader_destroy(dns_slabheader_t *header) {
 	unsigned int size;
 
-	dns_db_deletedata(header->node, header);
-
 	if (EXISTS(header)) {
 		size = dns_rdataslab_size(header);
 	} else {
 		size = sizeof(*header);
+	}
+
+	if (header->noqname != NULL) {
+		dns_slabheader_freeproof(header->mctx, &header->noqname);
+	}
+	if (header->closest != NULL) {
+		dns_slabheader_freeproof(header->mctx, &header->closest);
 	}
 
 	isc_mem_putanddetach(&header->mctx, header, size);

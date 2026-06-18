@@ -265,14 +265,11 @@ qpcnode_attachnode(dns_dbnode_t *source, dns_dbnode_t **targetp DNS__DB_FLARG);
 static void
 qpcnode_detachnode(dns_dbnode_t **nodep DNS__DB_FLARG);
 static void
-qpcnode_deletedata(dns_dbnode_t *node, void *data);
-static void
 qpcnode_expiredata(dns_dbnode_t *node, void *data);
 
 static dns_dbnode_methods_t qpcnode_methods = (dns_dbnode_methods_t){
 	.attachnode = qpcnode_attachnode,
 	.detachnode = qpcnode_detachnode,
-	.deletedata = qpcnode_deletedata,
 	.expiredata = qpcnode_expiredata,
 };
 
@@ -528,6 +525,9 @@ qpcache_hit(qpcache_t *qpdb ISC_ATTR_UNUSED, dns_slabheader_t *header) {
  */
 
 static void
+header_cleanup(dns_dbnode_t *node ISC_ATTR_UNUSED, void *data);
+
+static void
 clean_cache_headers(dns_slabtop_t *top) {
 	dns_slabheader_t *parent = first_header(top);
 	if (parent == NULL) {
@@ -537,7 +537,7 @@ clean_cache_headers(dns_slabtop_t *top) {
 	dns_slabheader_t *header = next_header(parent), *header_next = NULL;
 	cds_list_for_each_entry_safe_from(header, header_next, &top->headers,
 					  headers_link) {
-		cds_list_del(&header->headers_link);
+		header_cleanup(header->node, header);
 		dns_slabheader_detach(&header);
 	}
 }
@@ -573,7 +573,7 @@ clean_cache_node(qpcache_t *qpdb, qpcnode_t *node) {
 		if (!EXISTS(header) || ANCIENT(header) ||
 		    (STALE(header) && !KEEPSTALE(qpdb)))
 		{
-			cds_list_del(&header->headers_link);
+			header_cleanup(header->node, header);
 			dns_slabheader_detach(&header);
 		}
 
@@ -2819,11 +2819,11 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_OPTOUT);
 	}
 	if (rdataset->attributes.noqname) {
-		CHECK(addnoqname(qpnode->mctx, newheader, qpdb->maxrrperset,
+		CHECK(addnoqname(newheader->mctx, newheader, qpdb->maxrrperset,
 				 rdataset));
 	}
 	if (rdataset->attributes.closest) {
-		CHECK(addclosest(qpnode->mctx, newheader, qpdb->maxrrperset,
+		CHECK(addclosest(newheader->mctx, newheader, qpdb->maxrrperset,
 				 rdataset));
 	}
 
@@ -3453,9 +3453,11 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 }
 
 static void
-qpcnode_deletedata(dns_dbnode_t *node ISC_ATTR_UNUSED, void *data) {
+header_cleanup(dns_dbnode_t *node ISC_ATTR_UNUSED, void *data) {
 	dns_slabheader_t *header = data;
 	qpcache_t *qpdb = HEADERNODE(header)->qpdb;
+
+	cds_list_del(&header->headers_link);
 
 	if (ISC_LINK_LINKED(header, dirtylink)) {
 		ISC_LIST_UNLINK(HEADERNODE(header)->dirty, header, dirtylink);
@@ -3466,13 +3468,6 @@ qpcnode_deletedata(dns_dbnode_t *node ISC_ATTR_UNUSED, void *data) {
 	 */
 	update_rrsetstats(qpdb->rrsetstats, header->typepair,
 			  atomic_load_acquire(&header->attributes), false);
-
-	if (header->noqname != NULL) {
-		dns_slabheader_freeproof(qpdb->common.mctx, &header->noqname);
-	}
-	if (header->closest != NULL) {
-		dns_slabheader_freeproof(qpdb->common.mctx, &header->closest);
-	}
 }
 
 static void
@@ -3522,7 +3517,7 @@ qpcnode_destroy(qpcnode_t *qpnode) {
 		cds_list_for_each_entry_safe(header, header_next, &top->headers,
 					     headers_link)
 		{
-			cds_list_del(&header->headers_link);
+			header_cleanup(header->node, header);
 			dns_slabheader_detach(&header);
 		}
 

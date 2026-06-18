@@ -1071,14 +1071,6 @@ dns_db_expiredata(dns_dbnode_t *node, void *data) {
 }
 
 void
-dns_db_deletedata(dns_dbnode_t *node, void *data) {
-	REQUIRE(node != NULL && node->methods != NULL);
-	if (node->methods->deletedata != NULL) {
-		(node->methods->deletedata)(node, data);
-	}
-}
-
-void
 dns_db_setmaxrrperset(dns_db_t *db, uint32_t value) {
 	REQUIRE(DNS_DB_VALID(db));
 

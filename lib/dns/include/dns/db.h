@@ -80,7 +80,6 @@ typedef struct dns_dbnode_methods {
 			   dns_dbnode_t **targetp DNS__DB_FLARG);
 	void (*detachnode)(dns_dbnode_t **targetp DNS__DB_FLARG);
 
-	void (*deletedata)(dns_dbnode_t *node, void *data);
 	void (*expiredata)(dns_dbnode_t *node, void *data);
 } dns_dbnode_methods_t;
 
@@ -1770,14 +1769,6 @@ dns_db_expiredata(dns_dbnode_t *node, void *data);
 /*%<
  * Tell the database 'db' to mark a block of data 'data' stored at
  * node 'node' as expired.
- */
-
-void
-dns_db_deletedata(dns_dbnode_t *node, void *data);
-/*%<
- * Tell the database to prepare to delete the block of data 'data'
- * stored at node 'node. This may include, for example, removing the
- * data from an LRU list or a heap.
  */
 
 void
