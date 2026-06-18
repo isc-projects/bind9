@@ -97,17 +97,27 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 
 static void
 slabheader_proof_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG);
+static isc_result_t
+slabheader_proof_first(dns_rdataset_t *rdataset);
+static isc_result_t
+slabheader_proof_next(dns_rdataset_t *rdataset);
+static void
+slabheader_proof_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void
 slabheader_proof_clone(const dns_rdataset_t *source,
 		       dns_rdataset_t *target DNS__DB_FLARG);
+static unsigned int
+slabheader_proof_count(dns_rdataset_t *rdataset);
+static dns_slabheader_t *
+slabheader_proof_getheader(const dns_rdataset_t *rdataset);
 
 dns_rdatasetmethods_t dns_rdataslab_proof_rdatasetmethods = {
 	.disassociate = slabheader_proof_disassociate,
-	.first = rdataset_first,
-	.next = rdataset_next,
-	.current = rdataset_current,
+	.first = slabheader_proof_first,
+	.next = slabheader_proof_next,
+	.current = slabheader_proof_current,
 	.clone = slabheader_proof_clone,
-	.count = rdataset_count,
+	.count = slabheader_proof_count,
 	.getnoqname = NULL,
 	.getclosest = NULL,
 	.settrust = NULL,
@@ -689,8 +699,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.type = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.node = node,
-		.slab.raw = noqname->neg,
+		.proof.node = node,
+		.proof.raw = noqname->neg,
 		.link = nsec->link,
 		.attributes = nsec->attributes,
 		.magic = nsec->magic,
@@ -705,8 +715,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.covers = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.node = node,
-		.slab.raw = noqname->negsig,
+		.proof.node = node,
+		.proof.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
@@ -743,8 +753,8 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.type = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.node = node,
-		.slab.raw = closest->neg,
+		.proof.node = node,
+		.proof.raw = closest->neg,
 		.link = nsec->link,
 		.attributes = nsec->attributes,
 		.magic = nsec->magic,
@@ -759,8 +769,8 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.covers = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.node = node,
-		.slab.raw = closest->negsig,
+		.proof.node = node,
+		.proof.raw = closest->negsig,
 		.link = nsecsig->link,
 		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
@@ -832,26 +842,112 @@ rdataset_getheader(const dns_rdataset_t *rdataset) {
 
 static void
 slabheader_proof_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_dbnode_t *node = rdataset->slab.node;
+	dns_dbnode_t *node = rdataset->proof.node;
 
 	dns__db_detachnode(&node DNS__DB_FLARG_PASS);
+}
+
+static isc_result_t
+slabheader_proof_first(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->proof.raw;
+	uint16_t count = slabheader_proof_count(rdataset);
+
+	if (count == 0) {
+		rdataset->proof.iter_pos = NULL;
+		rdataset->proof.iter_count = 0;
+		return ISC_R_NOMORE;
+	}
+
+	/*
+	 * iter_count is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before
+	 * storing it.
+	 *
+	 * 'raw' points to the first record.
+	 */
+	rdataset->proof.iter_pos = raw;
+	rdataset->proof.iter_count = count - 1;
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+slabheader_proof_next(dns_rdataset_t *rdataset) {
+	uint16_t count = rdataset->proof.iter_count;
+	if (count == 0) {
+		rdataset->proof.iter_pos = NULL;
+		return ISC_R_NOMORE;
+	}
+	rdataset->proof.iter_count = count - 1;
+
+	/*
+	 * Skip forward one record (length + 4) or one offset (4).
+	 */
+	unsigned char *raw = rdataset->proof.iter_pos;
+	uint16_t length = peek_uint16(raw);
+	raw += length;
+	rdataset->proof.iter_pos = raw + sizeof(uint16_t);
+
+	return ISC_R_SUCCESS;
+}
+
+static void
+slabheader_proof_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	unsigned char *raw = NULL;
+	unsigned int length;
+	isc_region_t r;
+	unsigned int flags = 0;
+
+	raw = rdataset->proof.iter_pos;
+	REQUIRE(raw != NULL);
+
+	/*
+	 * Find the start of the record if not already in iter_pos
+	 * then skip the length and order fields.
+	 */
+	length = get_uint16(raw);
+
+	if (rdataset->type == dns_rdatatype_rrsig) {
+		if (*raw & DNS_RDATASLAB_OFFLINE) {
+			flags |= DNS_RDATA_OFFLINE;
+		}
+		length--;
+		raw++;
+	}
+	r.length = length;
+	r.base = raw;
+	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+	rdata->flags |= flags;
 }
 
 static void
 slabheader_proof_clone(const dns_rdataset_t *source,
 		       dns_rdataset_t *target DNS__DB_FLARG) {
 	INSIST(!ISC_LINK_LINKED(target, link));
-	INSIST(target->slab.node == NULL);
+	INSIST(target->proof.node == NULL);
 
 	*target = *source;
 
 	ISC_LINK_INIT(target, link);
-	target->slab.node = NULL;
-	dns__db_attachnode(source->slab.node,
-			   &target->slab.node DNS__DB_FLARG_PASS);
+	target->proof.node = NULL;
+	dns__db_attachnode(source->proof.node,
+			   &target->proof.node DNS__DB_FLARG_PASS);
 
-	target->slab.iter_pos = NULL;
-	target->slab.iter_count = 0;
+	target->proof.iter_pos = NULL;
+	target->proof.iter_count = 0;
+}
+
+static unsigned int
+slabheader_proof_count(dns_rdataset_t *rdataset) {
+	dns_slabheader_t *header = slabheader_proof_getheader(rdataset);
+
+	return header->nitems;
+}
+
+static dns_slabheader_t *
+slabheader_proof_getheader(const dns_rdataset_t *rdataset) {
+	uint8_t *rawbuf = rdataset->proof.raw;
+	return (dns_slabheader_t *)(rawbuf - offsetof(dns_slabheader_t, raw));
 }
 
 dns_slabtop_t *

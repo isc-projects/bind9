@@ -1050,7 +1050,6 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->ttl = 0;
 	}
 
-	rdataset->slab.node = NULL;
 	rdataset->slab.raw = header->raw;
 	rdataset->slab.iter_pos = NULL;
 	rdataset->slab.iter_count = 0;
