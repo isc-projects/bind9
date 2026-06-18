@@ -1,0 +1,4 @@
+{% set flagv4 = flagv4 | default("") %}
+{% set flagv6 = flagv6 | default("") %}
+
+-m record -c named.conf -d 99 -D cache_delegns-ns2 -g -T maxcachesize=2097152 @flagv4@ @flagv6@
