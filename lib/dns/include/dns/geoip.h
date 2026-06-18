@@ -65,7 +65,6 @@ typedef enum {
 	dns_geoip_city_regionname,
 	dns_geoip_city_name,
 	dns_geoip_city_postalcode,
-	dns_geoip_city_metrocode,
 	dns_geoip_city_areacode,
 	dns_geoip_city_continentcode,
 	dns_geoip_city_continent,

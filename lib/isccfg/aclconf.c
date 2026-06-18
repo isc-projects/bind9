@@ -315,7 +315,6 @@ get_subtype(const cfg_obj_t *obj, dns_geoip_subtype_t subtype,
 	 */
 	case dns_geoip_city_name:
 	case dns_geoip_city_postalcode:
-	case dns_geoip_city_metrocode:
 	case dns_geoip_city_areacode:
 	case dns_geoip_city_timezonecode:
 		if (strcasecmp(dbname, "city") != 0) {
@@ -396,7 +395,6 @@ geoip_can_answer(dns_aclelement_t *elt, cfg_aclconfctx_t *ctx) {
 	case dns_geoip_city_regionname:
 	case dns_geoip_city_name:
 	case dns_geoip_city_postalcode:
-	case dns_geoip_city_metrocode:
 	case dns_geoip_city_areacode:
 	case dns_geoip_city_continentcode:
 	case dns_geoip_city_continent:
@@ -528,11 +526,6 @@ parse_geoip_element(const cfg_obj_t *obj, cfg_aclconfctx_t *ctx,
 				    "geoiop postal code (%s) too long", search);
 			return ISC_R_FAILURE;
 		}
-	} else if (strcasecmp(stype, "metro") == 0 ||
-		   strcasecmp(stype, "metrocode") == 0)
-	{
-		subtype = dns_geoip_city_metrocode;
-		de.geoip_elem.as_int = atoi(search);
 	} else if (strcasecmp(stype, "tz") == 0 ||
 		   strcasecmp(stype, "timezone") == 0)
 	{
