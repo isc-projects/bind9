@@ -192,7 +192,6 @@ struct dns_rdataset {
 		 * comments in rdataslab.c for details.)
 		 */
 		struct {
-			struct dns_db	       *db;
 			dns_dbnode_t	       *node;
 			unsigned char	       *raw;
 			unsigned char	       *iter_pos;
