@@ -106,11 +106,6 @@ struct dns_slabheader {
 	dns_slabheader_proof_t *closest;
 
 	/*%
-	 * Used for cleaning.
-	 */
-	ISC_LINK(dns_slabheader_t) dirtylink;
-
-	/*%
 	 * Points to the top slabtop structure for the type.
 	 */
 	dns_slabtop_t *top;
