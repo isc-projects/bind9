@@ -120,6 +120,155 @@ cleanup_all_deadnodes(dns_db_t *db) {
 	qpcache_unref(qpdb);
 }
 
+/*
+ * Add to cache DB 'db' an rdataset of type 'rtype' at 'name', with the single
+ * rdata parsed from the text 'rdatastr'. The rdataset is given TTL 'ttl'
+ * relative to 'now', so passing a 'now' in the past makes the entry expired
+ * (and, with serve-stale enabled, stale).
+ */
+static void
+servestale_addrdataset(dns_db_t *db, const dns_name_t *name, isc_stdtime_t now,
+		       dns_rdatatype_t rtype, const char *rdatastr,
+		       dns_ttl_t ttl, dns_trust_t trust) {
+	isc_result_t result;
+	dns_rdata_t rdata;
+	dns_dbnode_t *node = NULL;
+	dns_rdatalist_t rdatalist;
+	dns_rdataset_t rdataset;
+	unsigned char rdatabuf[1024];
+
+	dns_rdata_init(&rdata);
+	result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in, rtype,
+					  rdatabuf, sizeof(rdatabuf), rdatastr,
+					  false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_rdatalist_init(&rdatalist);
+	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.type = rtype;
+	rdatalist.ttl = ttl;
+	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&rdataset);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
+	rdataset.trust = trust;
+
+	result = dns_db_findnode(db, name, true, &node);
+	assert_true(result == ISC_R_SUCCESS || result == DNS_R_CNAME);
+	assert_non_null(node);
+
+	result = dns_db_addrdataset(db, node, NULL, now, &rdataset, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_db_detachnode(&node);
+}
+
+/*
+ * Create a cache DB with serve-stale enabled and bind 'name' to a freshly
+ * initialized name pointing into 'fname'.
+ */
+static dns_db_t *
+servestale_setup(isc_mem_t *mctx, dns_fixedname_t *fname, dns_name_t **namep) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+
+	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
+			       &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/* Keep expired entries for a day as a last-resort fallback. */
+	dns_db_setservestalettl(db, 86400);
+
+	dns_test_namefromstring("example.com.", fname);
+	*namep = dns_fixedname_name(fname);
+
+	return db;
+}
+
+/*
+ * Regression test for the find loop accepting a stale CNAME as a final answer
+ * and stopping early even though a fresh record of the requested type exists
+ * at the same node.
+ *
+ * A stale CNAME that expired two hours ago (but is still inside the stale
+ * window) is added first and a fresh non-priority type is (HINFO) added last
+ * last, so the stale CNAME sits at the head of the node's type list and is
+ * visited first by the find loop. With serve-stale enabled, the search must
+ * skip the stale CNAME and return the fresh HINFO rather than the stale CNAME.
+ */
+ISC_LOOP_TEST_IMPL(servestale_fresh_over_stale_cname) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	isc_mem_t *mctx = NULL;
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_fixedname_t fname, ffound;
+	dns_name_t *name = NULL, *foundname = NULL;
+	dns_rdataset_t rdataset;
+
+	isc_mem_create("test", &mctx);
+	db = servestale_setup(mctx, &fname, &name);
+
+	servestale_addrdataset(db, name, now - 7200, dns_rdatatype_cname,
+			       "target.example.com.", 3600, dns_trust_answer);
+	servestale_addrdataset(db, name, now, dns_rdatatype_hinfo,
+			       "CRAY-1 NEXUS", 3600, dns_trust_answer);
+
+	foundname = dns_fixedname_initname(&ffound);
+	dns_rdataset_init(&rdataset);
+	result = dns_db_find(db, name, NULL, dns_rdatatype_hinfo,
+			     DNS_DBFIND_STALEOK, now, NULL, foundname,
+			     &rdataset, NULL);
+
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdataset.type, dns_rdatatype_hinfo);
+	assert_false(rdataset.attributes.stale);
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detach(&db);
+	isc_mem_detach(&mctx);
+	isc_loopmgr_shutdown();
+}
+
+/*
+ * Same regression, but for a stale record of the requested type masking a
+ * fresh CNAME. A fresh CNAME is added first and a stale A is added last; the
+ * stale A is visited first and must not short-circuit the search. The fresh
+ * CNAME has to win, returning DNS_R_CNAME instead of the stale A.
+ */
+ISC_LOOP_TEST_IMPL(servestale_fresh_cname_over_stale_type) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	isc_mem_t *mctx = NULL;
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_fixedname_t fname, ffound;
+	dns_name_t *name = NULL, *foundname = NULL;
+	dns_rdataset_t rdataset;
+
+	isc_mem_create("test", &mctx);
+	db = servestale_setup(mctx, &fname, &name);
+
+	servestale_addrdataset(db, name, now, dns_rdatatype_cname,
+			       "target.example.com.", 3600, dns_trust_answer);
+	servestale_addrdataset(db, name, now - 7200, dns_rdatatype_a,
+			       "10.53.0.1", 3600, dns_trust_answer);
+
+	foundname = dns_fixedname_initname(&ffound);
+	dns_rdataset_init(&rdataset);
+	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+			     DNS_DBFIND_STALEOK, now, NULL, foundname,
+			     &rdataset, NULL);
+
+	assert_int_equal(result, DNS_R_CNAME);
+	assert_int_equal(rdataset.type, dns_rdatatype_cname);
+	assert_false(rdataset.attributes.stale);
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detach(&db);
+	isc_mem_detach(&mctx);
+	isc_loopmgr_shutdown();
+}
+
 ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
 	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
@@ -226,6 +375,10 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(overmempurge_bigrdata, setup_managers, teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(overmempurge_longname, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(servestale_fresh_over_stale_cname, setup_managers,
+		      teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(servestale_fresh_cname_over_stale_type, setup_managers,
+		      teardown_managers)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
