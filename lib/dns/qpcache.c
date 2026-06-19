@@ -438,8 +438,6 @@ expire_lru_headers(qpcache_t *qpdb, uint32_t idx, size_t requested,
 
 		dns_slabheader_t *related = header->related;
 
-		ISC_SIEVE_UNLINK(qpdb->buckets[idx].sieve, header, lrulink);
-
 		expired += expireheader(header, nlocktypep, tlocktypep,
 					dns_expire_lru DNS__DB_FLARG_PASS);
 
@@ -491,9 +489,6 @@ qpcache_hit(qpcache_t *qpdb ISC_ATTR_UNUSED, dns_slabheader_t *header) {
 /*
  * DB Routines
  */
-
-static void
-header_cleanup(qpcnode_t *node, dns_slabheader_t *header);
 
 /*
  * tree_lock(write) must be held.
@@ -732,9 +727,6 @@ update_rrsetstats(dns_stats_t *stats, const dns_typepair_t typepair,
 	if (STALE(header)) {
 		statattributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
 	}
-	if (ANCIENT(header)) {
-		statattributes |= DNS_RDATASTATSTYPE_ATTR_ANCIENT;
-	}
 
 	type = DNS_RDATASTATSTYPE_VALUE(base, statattributes);
 	if (increment) {
@@ -777,14 +769,30 @@ setttl(dns_slabheader_t *header, isc_stdtime_t newts) {
 }
 
 static void
-mark_ancient(qpcnode_t *node, dns_slabheader_t *header) {
-	if (ANCIENT(header)) {
+header_delete(qpcnode_t *node, dns_slabheader_t *header) {
+	/* The slabheader has already been removed from the node headers */
+	if (cds_list_empty(&header->headers_link)) {
 		return;
 	}
 
-	setttl(header, 0);
-	mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	header_cleanup(node, header);
+	qpcache_t *qpdb = node->qpdb;
+
+	cds_list_del_init(&header->headers_link);
+
+	/*
+	 * This place is the only place where we actually need header->typepair.
+	 */
+	update_rrsetstats(qpdb->rrsetstats, header->typepair,
+			  atomic_load_acquire(&header->attributes), false);
+
+	ISC_SIEVE_UNLINK(qpdb->buckets[node->locknum].sieve, header, lrulink);
+
+	if (header->related != NULL) {
+		INSIST(header->related->related == header);
+		header->related->related = NULL;
+		header->related = NULL;
+	}
+
 	dns_slabheader_detach(&header);
 }
 
@@ -797,7 +805,7 @@ expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
 	size_t expired = rdataset_size(header);
 	qpcnode_t *node = HEADERNODE(header);
 
-	mark_ancient(node, header);
+	header_delete(node, header);
 
 	if (isc_refcount_current(&node->erefs) == 0) {
 		qpcache_t *qpdb = node->qpdb;
@@ -861,7 +869,6 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	     isc_rwlocktype_t tlocktype,
 	     dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	bool stale = STALE(header);
-	bool ancient = ANCIENT(header);
 
 	/*
 	 * Caller must be holding the node reader lock.
@@ -882,7 +889,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	INSIST(rdataset->methods == NULL); /* We must be disassociated. */
 
 	/*
-	 * Mark header stale or ancient if the RRset is no longer active.
+	 * Mark header stale if the RRset is no longer active.
 	 */
 	if (!ACTIVE(header, now)) {
 		dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
@@ -895,12 +902,6 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 
 		if (!ZEROTTL(header) && KEEPSTALE(qpdb) && stale_ttl > now) {
 			stale = true;
-		} else {
-			/*
-			 * We are not keeping stale, or it is outside the
-			 * stale window. Mark ancient, i.e. ready for cleanup.
-			 */
-			ancient = true;
 		}
 	}
 
@@ -932,7 +933,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->attributes.prefetch = true;
 	}
 
-	if (stale && !ancient) {
+	if (stale) {
 		dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
 		if (stale_ttl > now) {
 			rdataset->ttl = stale_ttl - now;
@@ -945,6 +946,11 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->attributes.stale = true;
 		rdataset->expire = header->expire;
 	} else if (!ACTIVE(header, now)) {
+		/*
+		 * The entry is expired but still present in the cache (it has
+		 * not yet been removed); flag it so that, e.g., a cache dump
+		 * including expired entries can mark it.
+		 */
 		rdataset->attributes.ancient = true;
 		rdataset->ttl = 0;
 	}
@@ -1086,7 +1092,7 @@ check_stale_header(dns_slabheader_t *header, qpc_search_t *search) {
 static bool
 invalid_header(dns_slabheader_t *header, qpc_search_t *search) {
 	return header == NULL || check_stale_header(header, search) ||
-	       !EXISTS(header) || ANCIENT(header);
+	       !EXISTS(header);
 }
 
 /*
@@ -1131,7 +1137,7 @@ related_headers(dns_slabheader_t *header, dns_slabheader_t *sigheader,
 			return false;
 		}
 
-		REQUIRE(EXISTS(sigheader) && !ANCIENT(sigheader));
+		REQUIRE(EXISTS(sigheader));
 		if (sigheader->typepair == typepair) {
 			*foundp = sigheader;
 			*foundsigp = NULL;
@@ -1143,7 +1149,7 @@ related_headers(dns_slabheader_t *header, dns_slabheader_t *sigheader,
 			return false;
 		}
 
-		REQUIRE(EXISTS(header) && !ANCIENT(header));
+		REQUIRE(EXISTS(header));
 		REQUIRE(!NEGATIVE(header) || sigheader == NULL);
 
 		if (header->typepair == typepair) {
@@ -1508,7 +1514,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 		/*
 		 * We now know that there is at least one active
-		 * non-stale rdataset at this node.
+		 * rdataset at this node.
 		 */
 		empty_node = false;
 
@@ -1862,7 +1868,7 @@ qpcnode_expiredata(dns_dbnode_t *node, void *data) {
 
 	isc_rwlock_t *nlock = &qpdb->buckets[qpnode->locknum].lock;
 	NODE_WRLOCK(nlock, &nlocktype);
-	if (!ANCIENT(header)) {
+	if (!cds_list_empty(&header->headers_link)) {
 		dns_slabheader_t *related = header->related;
 
 		(void)expireheader(header, &nlocktype, &tlocktype,
@@ -2240,7 +2246,7 @@ check_ncache_block(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *header,
 		 * bind to it and leave the cache unchanged.
 		 */
 		if (trust >= header->trust) {
-			mark_ancient(qpnode, header);
+			header_delete(qpnode, header);
 			return DNS_R_CONTINUE;
 		} else {
 			qpcache_hit(qpdb, header);
@@ -2293,23 +2299,23 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 				 * covers all types (NXDOMAIN,
 				 * NODATA(QTYPE=ANY)).
 				 *
-				 * Make all other data ancient so that the only
+				 * Delete all other data so that the only
 				 * rdataset that can be found at this node is
 				 * the negative cache entry.
 				 */
-				mark_ancient(qpnode, header);
+				header_delete(qpnode, header);
 				continue;
 			} else if (rdtype == dns_rdatatype_rrsig) {
 				/*
 				 * We're adding a proof that a signature doesn't
 				 * exist.
 				 *
-				 * Mark all existing signatures as ancient.
+				 * Delete all existing signatures.
 				 */
 				if (DNS_TYPEPAIR_TYPE(header->typepair) ==
 				    dns_rdatatype_rrsig)
 				{
-					mark_ancient(qpnode, header);
+					header_delete(qpnode, header);
 					continue;
 				}
 			}
@@ -2337,7 +2343,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 		}
 
 		if (check_stale_header(header, &search)) {
-			mark_ancient(qpnode, header);
+			header_delete(qpnode, header);
 			continue;
 		}
 
@@ -2515,7 +2521,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 		}
 
 		INSIST(oldheader->related == related);
-		mark_ancient(qpnode, oldheader);
+		header_delete(qpnode, oldheader);
 
 	} else if (!EXISTS(newheader)) {
 		/*
@@ -2560,21 +2566,21 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 		if (evictheader != NULL) {
 			INSIST(evictheader->related != newheader);
 			if (evictheader->related != NULL) {
-				mark_ancient(qpnode, evictheader->related);
+				header_delete(qpnode, evictheader->related);
 			}
-			mark_ancient(qpnode, evictheader);
+			header_delete(qpnode, evictheader);
 		}
 	}
 
 	/*
 	 * We've added a proof that a rdtype doesn't exist.
 	 *
-	 * Mark the related rrsig in the cache as ancient.
+	 * Delete the related rrsig in the cache.
 	 */
 	if (EXISTS(newheader) && NEGATIVE(newheader) &&
 	    !dns_rdatatype_issig(rdtype) && related != NULL)
 	{
-		mark_ancient(qpnode, related);
+		header_delete(qpnode, related);
 	}
 
 	return ISC_R_SUCCESS;
@@ -3285,30 +3291,6 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 }
 
 static void
-header_cleanup(qpcnode_t *node, dns_slabheader_t *header) {
-	qpcache_t *qpdb = node->qpdb;
-
-	cds_list_del_init(&header->headers_link);
-
-	/*
-	 * This place is the only place where we actually need header->typepair.
-	 */
-	update_rrsetstats(qpdb->rrsetstats, header->typepair,
-			  atomic_load_acquire(&header->attributes), false);
-
-	if (ISC_SIEVE_LINKED(header, lrulink)) {
-		ISC_SIEVE_UNLINK(qpdb->buckets[node->locknum].sieve, header,
-				 lrulink);
-	}
-
-	if (header->related != NULL) {
-		INSIST(header->related->related == header);
-		header->related->related = NULL;
-		header->related = NULL;
-	}
-}
-
-static void
 setmaxrrperset(dns_db_t *db, uint32_t value) {
 	qpcache_t *qpdb = (qpcache_t *)db;
 
@@ -3352,8 +3334,7 @@ qpcnode_destroy(qpcnode_t *qpnode) {
 	cds_list_for_each_entry_safe(header, header_next, &qpnode->headers,
 				     headers_link)
 	{
-		header_cleanup(qpnode, header);
-		dns_slabheader_detach(&header);
+		header_delete(qpnode, header);
 	}
 
 	dns_name_free(&qpnode->name, qpnode->mctx);

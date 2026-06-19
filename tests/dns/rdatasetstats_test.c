@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/lib.h>
+#include <isc/stats.h>
 #include <isc/util.h>
 
 #include <dns/lib.h>
@@ -32,231 +33,130 @@
 
 #include <tests/dns.h>
 
-static void
-set_typestats(dns_stats_t *stats, dns_rdatatype_t type) {
-	dns_rdatastatstype_t which;
-	unsigned int attributes;
-
-	attributes = 0;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_increment(stats, which);
-
-	attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_increment(stats, which);
-}
-
-static void
-set_nxdomainstats(dns_stats_t *stats) {
-	dns_rdatastatstype_t which;
-	unsigned int attributes;
-
-	attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
-	which = DNS_RDATASTATSTYPE_VALUE(0, attributes);
-	dns_rdatasetstats_increment(stats, which);
-}
-
-static void
-mark_stale(dns_stats_t *stats, dns_rdatatype_t type, int from, int to) {
-	dns_rdatastatstype_t which;
-	unsigned int attributes;
-
-	attributes = from;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_decrement(stats, which);
-
-	attributes |= to;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_increment(stats, which);
-
-	attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET | from;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_decrement(stats, which);
-
-	attributes |= to;
-	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
-	dns_rdatasetstats_increment(stats, which);
-}
-
-static void
-mark_nxdomain_stale(dns_stats_t *stats, int from, int to) {
-	dns_rdatastatstype_t which;
-	unsigned int attributes;
-
-	attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN | from;
-	which = DNS_RDATASTATSTYPE_VALUE(0, attributes);
-	dns_rdatasetstats_decrement(stats, which);
-
-	attributes |= to;
-	which = DNS_RDATASTATSTYPE_VALUE(0, attributes);
-	dns_rdatasetstats_increment(stats, which);
-}
-
-#define ATTRIBUTE_SET(y) ((attributes & (y)) != 0)
-static void
-verify_active_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
-	unsigned int attributes;
-#if debug
-	unsigned int type;
-#endif /* if debug */
-
-	UNUSED(which);
-	UNUSED(arg);
-
-	attributes = DNS_RDATASTATSTYPE_ATTR(which);
-#if debug
-	type = DNS_RDATASTATSTYPE_BASE(which);
-
-	fprintf(stderr, "%s%s%s%s%s/%u, %u\n",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) ? "O" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXRRSET) ? "!" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned int)value);
-#endif /* if debug */
-	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) == 0 &&
-	    (attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
-	{
-		assert_int_equal(value, 1);
-	} else {
-		assert_int_equal(value, 0);
-	}
-}
-
-static void
-verify_stale_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
-	unsigned int attributes;
-#if debug
-	unsigned int type;
-#endif /* if debug */
-
-	UNUSED(which);
-	UNUSED(arg);
-
-	attributes = DNS_RDATASTATSTYPE_ATTR(which);
-#if debug
-	type = DNS_RDATASTATSTYPE_BASE(which);
-
-	fprintf(stderr, "%s%s%s%s%s/%u, %u\n",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) ? "O" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXRRSET) ? "!" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned int)value);
-#endif /* if debug */
-	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
-		assert_int_equal(value, 1);
-	} else {
-		assert_int_equal(value, 0);
-	}
-}
-
-static void
-verify_ancient_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
-	unsigned int attributes;
-#if debug
-	unsigned int type;
-#endif /* if debug */
-
-	UNUSED(which);
-	UNUSED(arg);
-
-	attributes = DNS_RDATASTATSTYPE_ATTR(which);
-#if debug
-	type = DNS_RDATASTATSTYPE_BASE(which);
-
-	fprintf(stderr, "%s%s%s%s%s/%u, %u\n",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) ? "O" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXRRSET) ? "!" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
-		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned int)value);
-#endif /* if debug */
-	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
-		assert_int_equal(value, 1);
-	} else {
-		assert_int_equal(value, 0);
-	}
-}
 /*
- * Individual unit tests
+ * Each rdataset statistics counter is keyed on an RRtype plus a few
+ * attribute bits.  The interesting combinations are the cross product of
+ *
+ *   - positive RRset / NXRRSET (NODATA) / NXDOMAIN, and
+ *   - active / stale,
+ *
+ * and the property under test is that every combination maps to its own
+ * counter (no aliasing) and round-trips through dns_rdatasetstats_dump().
+ *
+ * The helpers below drive the counters from the active to the stale state;
+ * the verify callback then dumps *every* counter (ISC_STATSDUMP_VERBOSE) and
+ * asserts that exactly the counters in the expected state hold 1 and all
+ * others hold 0.  An aliasing bug shows up as a counter holding 2 (two
+ * states folded onto one slot) or 0 (a state that landed on the wrong slot).
  */
 
+/* A type that does not fit in 8 bits and folds onto the 'other' counter. */
+#define OTHERTYPE ((dns_rdatatype_t)1000)
+
+static void
+incr(dns_stats_t *stats, dns_rdatatype_t type, unsigned int attr) {
+	dns_rdatasetstats_increment(stats,
+				    DNS_RDATASTATSTYPE_VALUE(type, attr));
+}
+
+static void
+decr(dns_stats_t *stats, dns_rdatatype_t type, unsigned int attr) {
+	dns_rdatasetstats_decrement(stats,
+				    DNS_RDATASTATSTYPE_VALUE(type, attr));
+}
+
+/* Set the active positive and active NXRRSET counters for 'type'. */
+static void
+set_active(dns_stats_t *stats, dns_rdatatype_t type) {
+	incr(stats, type, 0);
+	incr(stats, type, DNS_RDATASTATSTYPE_ATTR_NXRRSET);
+}
+
+/* Set the active NXDOMAIN counter. */
+static void
+set_active_nxdomain(dns_stats_t *stats) {
+	incr(stats, 0, DNS_RDATASTATSTYPE_ATTR_NXDOMAIN);
+}
+
+/* Move the positive and NXRRSET counters for 'type' from active to stale. */
+static void
+mark_stale(dns_stats_t *stats, dns_rdatatype_t type) {
+	unsigned int nx = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
+	unsigned int stale = DNS_RDATASTATSTYPE_ATTR_STALE;
+
+	decr(stats, type, 0);
+	incr(stats, type, stale);
+	decr(stats, type, nx);
+	incr(stats, type, nx | stale);
+}
+
+/* Move the NXDOMAIN counter from active to stale. */
+static void
+mark_stale_nxdomain(dns_stats_t *stats) {
+	unsigned int nxd = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
+	unsigned int stale = DNS_RDATASTATSTYPE_ATTR_STALE;
+
+	decr(stats, 0, nxd);
+	incr(stats, 0, nxd | stale);
+}
+
 /*
- * Test that rdatasetstats counters are properly set when moving from
- * active -> stale -> ancient.
+ * Assert that a counter holds 1 exactly when its staleness matches the
+ * expected state passed via 'arg' (0 for active, DNS_RDATASTATSTYPE_ATTR_STALE
+ * for stale), and 0 otherwise.
  */
 static void
-rdatasetstats(void **state ISC_ATTR_UNUSED, bool servestale) {
-	unsigned int i;
-	unsigned int from = 0;
+verify_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
+	unsigned int attributes = DNS_RDATASTATSTYPE_ATTR(which);
+	unsigned int expected = *(unsigned int *)arg;
+
+	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == expected) {
+		assert_int_equal(value, 1);
+	} else {
+		assert_int_equal(value, 0);
+	}
+}
+
+/*
+ * Populate every counter active, verify, transition all to stale, verify.
+ */
+ISC_RUN_TEST_IMPL(active_stale) {
+	unsigned int active = 0;
+	unsigned int stale = DNS_RDATASTATSTYPE_ATTR_STALE;
 	dns_stats_t *stats = NULL;
+
+	UNUSED(state);
 
 	dns_rdatasetstats_create(isc_g_mctx, &stats);
 
-	/* First 255 types. */
-	for (i = 1; i <= 255; i++) {
-		set_typestats(stats, (dns_rdatatype_t)i);
-	}
-	/* Specials */
-	set_typestats(stats, (dns_rdatatype_t)1000);
-	set_nxdomainstats(stats);
-
-	/* Check that all active counters are set to appropriately. */
-	dns_rdatasetstats_dump(stats, verify_active_counters, NULL, 1);
-
-	if (servestale) {
-		/* Mark stale */
-		for (i = 1; i <= 255; i++) {
-			mark_stale(stats, (dns_rdatatype_t)i, 0,
-				   DNS_RDATASTATSTYPE_ATTR_STALE);
-		}
-		mark_stale(stats, (dns_rdatatype_t)1000, 0,
-			   DNS_RDATASTATSTYPE_ATTR_STALE);
-		mark_nxdomain_stale(stats, 0, DNS_RDATASTATSTYPE_ATTR_STALE);
-
-		/* Check that all counters are set to appropriately. */
-		dns_rdatasetstats_dump(stats, verify_stale_counters, NULL, 1);
-
-		/* Set correct staleness state */
-		from = DNS_RDATASTATSTYPE_ATTR_STALE;
-	}
-
-	/* Mark ancient */
-	for (i = 1; i <= 255; i++) {
-		mark_stale(stats, (dns_rdatatype_t)i, from,
-			   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
-	}
-	mark_stale(stats, (dns_rdatatype_t)1000, from,
-		   DNS_RDATASTATSTYPE_ATTR_ANCIENT);
-	mark_nxdomain_stale(stats, from, DNS_RDATASTATSTYPE_ATTR_ANCIENT);
-
 	/*
-	 * Check that all counters are set to appropriately.
+	 * The first 255 RRtypes, a type that folds onto the 'other' counter,
+	 * and an NXDOMAIN.  Setting 'other' (type 0) matters: the verify pass
+	 * checks every slot, so each active slot must be populated.
 	 */
-	dns_rdatasetstats_dump(stats, verify_ancient_counters, NULL, 1);
+	for (unsigned int i = 1; i <= 255; i++) {
+		set_active(stats, (dns_rdatatype_t)i);
+	}
+	set_active(stats, OTHERTYPE);
+	set_active_nxdomain(stats);
+
+	dns_rdatasetstats_dump(stats, verify_counters, &active,
+			       ISC_STATSDUMP_VERBOSE);
+
+	for (unsigned int i = 1; i <= 255; i++) {
+		mark_stale(stats, (dns_rdatatype_t)i);
+	}
+	mark_stale(stats, OTHERTYPE);
+	mark_stale_nxdomain(stats);
+
+	dns_rdatasetstats_dump(stats, verify_counters, &stale,
+			       ISC_STATSDUMP_VERBOSE);
 
 	dns_stats_detach(&stats);
 }
 
-/*
- * Test that rdatasetstats counters are properly set when moving from
- * active -> stale -> ancient.
- */
-ISC_RUN_TEST_IMPL(active_stale_ancient) { rdatasetstats(state, true); }
-
-/*
- * Test that rdatasetstats counters are properly set when moving from
- * active -> ancient.
- */
-ISC_RUN_TEST_IMPL(active_ancient) { rdatasetstats(state, false); }
-
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY(active_stale_ancient)
-ISC_TEST_ENTRY(active_ancient)
+ISC_TEST_ENTRY(active_stale)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

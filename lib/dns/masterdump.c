@@ -71,7 +71,7 @@ struct dns_master_style {
 
 /*% Does the rdataset 'r' contain a stale answer? */
 #define STALE(r) (((r)->attributes.stale))
-/*% Does the rdataset 'r' contain an expired answer? */
+/*% Is the rdataset 'r' expired and awaiting cleanup? */
 #define ANCIENT(r) (((r)->attributes.ancient))
 
 /*%
