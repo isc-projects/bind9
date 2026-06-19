@@ -25,11 +25,17 @@ zone "." {
 	file "../../_common/root.hint";
 };
 
+zone "f025.test" {
+	type static-stub;
+	server-addresses { 10.53.0.1; };
+};
+
 zone "f055.test" {
 	type static-stub;
 	server-addresses { 10.53.0.1; };
 };
 
 trust-anchors {
+	f025.test. static-key 257 3 13 "@ZONE_DNSKEY@";
 	f055.test. static-key 257 3 13 "@ZONE_DNSKEY@";
 };
