@@ -66,27 +66,9 @@ struct dns_slabheader_proof {
 	dns_rdatatype_t type;
 };
 
-#define DNS_SLABTOP_FOREACH(pos, head)                 \
-	dns_slabtop_t *pos = NULL, *pos##_next = NULL; \
-	cds_list_for_each_entry_safe(pos, pos##_next, head, types_link)
-
-#define DNS_SLABTOP_FOREACH_FROM(pos, head, first)      \
-	dns_slabtop_t *pos = first, *pos##_next = NULL; \
-	cds_list_for_each_entry_safe_from(pos, pos##_next, head, types_link)
-
-typedef struct dns_slabtop dns_slabtop_t;
-struct dns_slabtop {
-	struct cds_list_head types_link;
-	struct cds_list_head headers;
-
-	dns_slabtop_t *related;
-
-	dns_typepair_t typepair;
-
-	/*% Used for SIEVE-LRU (cache) */
-	bool visited;
-	ISC_LINK(struct dns_slabtop) link;
-};
+#define DNS_SLABHEADER_FOREACH(pos, head)                 \
+	dns_slabheader_t *pos = NULL, *pos##_next = NULL; \
+	cds_list_for_each_entry_safe(pos, pos##_next, head, headers_link)
 
 struct dns_slabheader {
 	_Atomic(uint16_t)    attributes;
@@ -105,14 +87,8 @@ struct dns_slabheader {
 	dns_slabheader_proof_t *noqname;
 	dns_slabheader_proof_t *closest;
 
-	/*%
-	 * Points to the top slabtop structure for the type.
-	 */
-	dns_slabtop_t *top;
+	dns_slabheader_t *related;
 
-	/*%
-	 * Link to the other versions of this rdataset.
-	 */
 	struct cds_list_head headers_link;
 
 	/*%
@@ -131,6 +107,10 @@ struct dns_slabheader {
 	_Atomic(isc_stdtime_t) last_refresh_fail_ts;
 
 	uint16_t nitems;
+
+	/*% Used for SIEVE-LRU (cache) */
+	bool visited;
+	ISC_LINK(struct dns_slabheader) lrulink;
 
 	/*%
 	 * Flexible member indicates the address of the raw data
@@ -292,17 +272,4 @@ void
 dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof);
 /*%<
  * Free all memory associated with a nonexistence proof.
- */
-
-dns_slabtop_t *
-dns_slabtop_new(isc_mem_t *mctx, dns_typepair_t typepair);
-/*%<
- * Allocate memory for an rdataslab top and initialize it for use
- * with 'typepair' type and covers pair.
- */
-
-void
-dns_slabtop_destroy(isc_mem_t *mctx, dns_slabtop_t **topp);
-/*%<
- * Free all memory associated with '*slabtopp'.
  */

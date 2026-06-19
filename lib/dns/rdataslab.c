@@ -144,6 +144,7 @@ newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		.nitems = nitems,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.mctx = isc_mem_ref(mctx),
+		.lrulink = ISC_LINK_INITIALIZER,
 	};
 
 #if DNS_SLABHEADER_TRACE
@@ -549,6 +550,7 @@ dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
 		.node = node,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.mctx = isc_mem_ref(mctx),
+		.lrulink = ISC_LINK_INITIALIZER,
 	};
 
 #if DNS_SLABHEADER_TRACE
@@ -999,25 +1001,4 @@ static dns_slabheader_t *
 slabheader_proof_getheader(const dns_rdataset_t *rdataset) {
 	uint8_t *rawbuf = rdataset->proof.raw;
 	return (dns_slabheader_t *)(rawbuf - offsetof(dns_slabheader_t, raw));
-}
-
-dns_slabtop_t *
-dns_slabtop_new(isc_mem_t *mctx, dns_typepair_t typepair) {
-	dns_slabtop_t *top = isc_mem_get(mctx, sizeof(*top));
-	*top = (dns_slabtop_t){
-		.types_link = CDS_LIST_HEAD_INIT(top->types_link),
-		.headers = CDS_LIST_HEAD_INIT(top->headers),
-		.typepair = typepair,
-		.link = ISC_LINK_INITIALIZER,
-	};
-
-	return top;
-}
-
-void
-dns_slabtop_destroy(isc_mem_t *mctx, dns_slabtop_t **topp) {
-	REQUIRE(topp != NULL && *topp != NULL);
-	dns_slabtop_t *top = *topp;
-	*topp = NULL;
-	isc_mem_put(mctx, top, sizeof(*top));
 }
