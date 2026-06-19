@@ -1832,6 +1832,17 @@ add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	return DNS_R_UNCHANGED;
 }
 
+static bool
+contains_digest(dns_kasp_digestlist_t *digests, unsigned int digesttype) {
+	ISC_LIST_FOREACH(*digests, alg, link) {
+		if (digesttype == alg->digest) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static isc_result_t
 delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	   dns_rdataset_t *cds, unsigned int digesttype, dns_diff_t *diff,
@@ -1921,20 +1932,21 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 			}
 		}
 
-		if (syncdelete(key->key, now)) {
+		if (dns_rdataset_isassociated(cds)) {
 			char keystr[DST_KEY_FORMATSIZE];
 			dst_key_format(key->key, keystr, sizeof(keystr));
 
-			if (dns_rdataset_isassociated(cds)) {
-				/* Delete all possible CDS records */
-				for (dns_dsdigest_t digest = DNS_DSDIGEST_SHA1;
-				     digest < DNS_DSDIGEST_TOTAL; digest++)
+			/* Delete all possible CDS records */
+			for (dns_dsdigest_t digest = DNS_DSDIGEST_SHA1;
+			     digest < DNS_DSDIGEST_TOTAL; digest++)
+			{
+				if (syncdelete(key->key, now) ||
+				    !contains_digest(digests, digest))
 				{
 					result = delete_cds(
 						key, &cdnskeyrdata,
 						(const char *)keystr, cds,
 						digest, diff, mctx);
-
 					switch (result) {
 					case ISC_R_SUCCESS:
 						changed = true;
@@ -1954,19 +1966,24 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 					}
 				}
 			}
+		}
 
-			if (dns_rdataset_isassociated(cdnskey)) {
-				if (exists(cdnskey, &cdnskeyrdata)) {
-					isc_log_write(DNS_LOGCATEGORY_GENERAL,
-						      DNS_LOGMODULE_DNSSEC,
-						      ISC_LOG_INFO,
-						      "CDNSKEY for key %s is "
-						      "now deleted",
-						      keystr);
-					delrdata(&cdnskeyrdata, diff, origin,
-						 cdnskey->ttl, mctx);
-					changed = true;
-				}
+		if (dns_rdataset_isassociated(cdnskey) &&
+		    exists(cdnskey, &cdnskeyrdata))
+		{
+			if (syncdelete(key->key, now) || !gencdnskey) {
+				char keystr[DST_KEY_FORMATSIZE];
+				dst_key_format(key->key, keystr,
+					       sizeof(keystr));
+
+				isc_log_write(
+					DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+					"CDNSKEY for key %s is now deleted",
+					keystr);
+				delrdata(&cdnskeyrdata, diff, origin,
+					 cdnskey->ttl, mctx);
+				changed = true;
 			}
 		}
 	}
