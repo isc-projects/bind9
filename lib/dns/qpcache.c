@@ -1084,7 +1084,7 @@ check_stale_header(dns_slabheader_t *header, qpc_search_t *search) {
 }
 
 static bool
-check_header(dns_slabheader_t *header, qpc_search_t *search) {
+invalid_header(dns_slabheader_t *header, qpc_search_t *search) {
 	return header == NULL || check_stale_header(header, search) ||
 	       !EXISTS(header) || ANCIENT(header);
 }
@@ -1157,20 +1157,42 @@ related_headers(dns_slabheader_t *header, dns_slabheader_t *sigheader,
 }
 
 static void
+store_headers(dns_slabheader_t *tmp, dns_slabheader_t **headerp,
+	      dns_slabheader_t **sigheaderp, qpc_search_t *search) {
+	dns_slabheader_t *header = NULL, *sigheader = NULL;
+	if (DNS_TYPEPAIR_TYPE(tmp->typepair) == dns_rdatatype_rrsig) {
+		header = tmp->related;
+		sigheader = tmp;
+	} else {
+		header = tmp;
+		sigheader = tmp->related;
+	}
+
+	if (invalid_header(header, search)) {
+		return;
+	}
+
+	*headerp = header;
+
+	if (invalid_header(sigheader, search)) {
+		return;
+	}
+	*sigheaderp = sigheader;
+}
+
+static void
 find_headers(qpcnode_t *node, qpc_search_t *search, dns_rdatatype_t type,
 	     dns_slabheader_t **foundp, dns_slabheader_t **foundsigp) {
 	DNS_SLABHEADER_FOREACH(tmp, &node->headers) {
 		dns_slabheader_t *header = NULL, *sigheader = NULL;
-		dns_slabheader_t *related = tmp->related;
 
 		if (tmp->typepair == dns_typepair_any) {
 			INSIST(tmp->related == NULL);
 			INSIST(NEGATIVE(tmp));
-			if (check_header(tmp, search)) {
+			if (invalid_header(tmp, search)) {
 				/*
 				 * NEGATIVE(ANY), but it is no longer valid.
 				 */
-				tmp = NULL;
 				continue;
 			}
 			*foundp = NULL;
@@ -1178,27 +1200,14 @@ find_headers(qpcnode_t *node, qpc_search_t *search, dns_rdatatype_t type,
 			return;
 		}
 
-		if (tmp->typepair == DNS_TYPEPAIR(type)) {
-			header = tmp;
-			if (related != NULL) {
-				sigheader = related;
-			}
-		} else if (tmp->typepair == DNS_SIGTYPEPAIR(type)) {
-			sigheader = tmp;
-			if (related != NULL) {
-				header = related;
-			}
-		} else {
+		if (tmp->typepair != DNS_TYPEPAIR(type) &&
+		    tmp->typepair != DNS_SIGTYPEPAIR(type))
+		{
 			/* Not our type; continue with next slabtop */
 			continue;
 		}
 
-		if (check_header(header, search)) {
-			header = NULL;
-		}
-		if (check_header(sigheader, search)) {
-			sigheader = NULL;
-		}
+		store_headers(tmp, &header, &sigheader, search);
 
 		/*
 		 * This function only sets positive headers.
@@ -1490,25 +1499,8 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	DNS_SLABHEADER_FOREACH(tmp, &node->headers) {
 		dns_slabheader_t *header = NULL, *sigheader = NULL;
-		if (DNS_TYPEPAIR_TYPE(tmp->typepair) == dns_rdatatype_rrsig) {
-			sigheader = tmp;
-			if (tmp->related != NULL) {
-				header = tmp->related;
-			}
-		} else {
-			header = tmp;
-			if (tmp->related != NULL) {
-				sigheader = tmp->related;
-			}
-		}
 
-		if (check_header(header, &search)) {
-			header = NULL;
-		}
-
-		if (check_header(sigheader, &search)) {
-			sigheader = NULL;
-		}
+		store_headers(tmp, &header, &sigheader, &search);
 
 		if (header == NULL && sigheader == NULL) {
 			continue;
@@ -1762,25 +1754,7 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			continue;
 		}
 
-		if (DNS_TYPEPAIR_TYPE(tmp->typepair) == dns_rdatatype_rrsig) {
-			sigheader = tmp;
-			if (tmp->related != NULL) {
-				header = tmp->related;
-			}
-		} else {
-			header = tmp;
-			if (tmp->related != NULL) {
-				sigheader = tmp->related;
-			}
-		}
-
-		if (check_header(header, &search)) {
-			header = NULL;
-		}
-
-		if (check_header(sigheader, &search)) {
-			sigheader = NULL;
-		}
+		store_headers(tmp, &header, &sigheader, &search);
 
 		(void)related_headers(header, sigheader, typepair, &found,
 				      &foundsig);
