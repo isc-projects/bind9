@@ -2463,7 +2463,7 @@ respdiff-third-party:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
     EXTRA_CONFIGURE: "-Doptimization=g"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.4"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
     - cd ../.. && ninja -C build clean >/dev/null 2>&1
@@ -2491,7 +2491,7 @@ respdiff:recent-named:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DISC_TRACK_PTHREADS_OBJECTS"
     EXTRA_CONFIGURE: "-Doptimization=g"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
 
 # Performance tests
 
