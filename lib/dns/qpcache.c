@@ -411,8 +411,7 @@ cleanup_deadnodes_cb(void *arg);
  */
 
 static size_t
-expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
-	     isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG);
+header_delete(qpcnode_t *node, dns_slabheader_t *header);
 
 static size_t
 rdataset_size(dns_slabheader_t *header) {
@@ -424,8 +423,29 @@ rdataset_size(dns_slabheader_t *header) {
 }
 
 static void
-expire_lru_headers(qpcache_t *qpdb, uint32_t idx, size_t requested,
-		   isc_rwlocktype_t *nlocktypep,
+flush_node(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
+	   isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG);
+
+static size_t
+expire_header(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
+	      isc_rwlocktype_t *nlocktypep,
+	      isc_rwlocktype_t *tlocktypep DNS__DB_FLARG) {
+	size_t expired = 0;
+
+	if (header->related != NULL) {
+		expired += header_delete(node, header->related);
+	}
+	expired += header_delete(node, header);
+
+	flush_node(qpdb, node, nlocktypep, tlocktypep,
+		   dns_expire_lru DNS__DB_FLARG_PASS);
+
+	return expired;
+}
+
+static void
+expire_lru_headers(qpcache_t *qpdb, dns_slabheader_t *newheader, uint32_t idx,
+		   size_t requested, isc_rwlocktype_t *nlocktypep,
 		   isc_rwlocktype_t *tlocktypep DNS__DB_FLARG) {
 	size_t expired = 0;
 
@@ -436,16 +456,15 @@ expire_lru_headers(qpcache_t *qpdb, uint32_t idx, size_t requested,
 			return;
 		}
 
-		dns_slabheader_t *related = header->related;
-
-		expired += expireheader(header, nlocktypep, tlocktypep,
-					dns_expire_lru DNS__DB_FLARG_PASS);
-
-		if (related != NULL) {
-			expired +=
-				expireheader(related, nlocktypep, tlocktypep,
-					     dns_expire_lru DNS__DB_FLARG_PASS);
+		/* newheader is protected from removal */
+		if (header == newheader || header->related == newheader) {
+			return;
 		}
+
+		qpcnode_t *node = HEADERNODE(header);
+
+		expired += expire_header(qpdb, node, header, nlocktypep,
+					 tlocktypep DNS__DB_FLARG_PASS);
 
 	} while (expired < requested);
 }
@@ -471,7 +490,7 @@ qpcache_miss(qpcache_t *qpdb, dns_slabheader_t *newheader,
 			     dns_name_size(&HEADERNODE(newheader)->name)) +
 			rdataset_size(newheader) + QP_SAFETY_MARGIN;
 
-		expire_lru_headers(qpdb, idx, purgesize, nlocktypep,
+		expire_lru_headers(qpdb, newheader, idx, purgesize, nlocktypep,
 				   tlocktypep DNS__DB_FLARG_PASS);
 	}
 
@@ -768,13 +787,14 @@ setttl(dns_slabheader_t *header, isc_stdtime_t newts) {
 	header->expire = newts;
 }
 
-static void
+static size_t
 header_delete(qpcnode_t *node, dns_slabheader_t *header) {
 	/* The slabheader has already been removed from the node headers */
 	if (cds_list_empty(&header->headers_link)) {
-		return;
+		return 0;
 	}
 
+	size_t expired = rdataset_size(header);
 	qpcache_t *qpdb = node->qpdb;
 
 	cds_list_del_init(&header->headers_link);
@@ -789,52 +809,47 @@ header_delete(qpcnode_t *node, dns_slabheader_t *header) {
 
 	if (header->related != NULL) {
 		INSIST(header->related->related == header);
-		header->related->related = NULL;
-		header->related = NULL;
+		dns_slabheader_detach(&header->related->related);
+		dns_slabheader_detach(&header->related);
 	}
 
 	dns_slabheader_detach(&header);
+
+	return expired;
 }
 
 /*
  * Caller must hold the node (write) lock.
  */
-static size_t
-expireheader(dns_slabheader_t *header, isc_rwlocktype_t *nlocktypep,
-	     isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG) {
-	size_t expired = rdataset_size(header);
-	qpcnode_t *node = HEADERNODE(header);
 
-	header_delete(node, header);
-
-	if (isc_refcount_current(&node->erefs) == 0) {
-		qpcache_t *qpdb = node->qpdb;
-
-		/*
-		 * If no one else is using the node, we can clean it up now.
-		 * We first need to gain a new reference to the node to meet a
-		 * requirement of qpcnode_release().
-		 */
-		qpcnode_acquire(qpdb, node, *nlocktypep,
-				*tlocktypep DNS__DB_FLARG_PASS);
-		qpcnode_release(qpdb, node, nlocktypep,
-				tlocktypep DNS__DB_FLARG_PASS);
-
-		if (qpdb->cachestats == NULL) {
-			return expired;
-		}
-
-		switch (reason) {
-		case dns_expire_lru:
-			isc_stats_increment(qpdb->cachestats,
-					    dns_cachestatscounter_deletelru);
-			break;
-		default:
-			break;
-		}
+static void
+flush_node(qpcache_t *qpdb, qpcnode_t *node, isc_rwlocktype_t *nlocktypep,
+	   isc_rwlocktype_t *tlocktypep, dns_expire_t reason DNS__DB_FLARG) {
+	if (isc_refcount_current(&node->erefs) != 0) {
+		return;
 	}
 
-	return expired;
+	/*
+	 * If no one else is using the node, we can clean it up now.
+	 * We first need to gain a new reference to the node to meet a
+	 * requirement of qpcnode_release().
+	 */
+	qpcnode_acquire(qpdb, node, *nlocktypep,
+			*tlocktypep DNS__DB_FLARG_PASS);
+	qpcnode_release(qpdb, node, nlocktypep, tlocktypep DNS__DB_FLARG_PASS);
+
+	if (qpdb->cachestats == NULL) {
+		return;
+	}
+
+	switch (reason) {
+	case dns_expire_lru:
+		isc_stats_increment(qpdb->cachestats,
+				    dns_cachestatscounter_deletelru);
+		break;
+	default:
+		break;
+	}
 }
 
 static void
@@ -1868,16 +1883,8 @@ qpcnode_expiredata(dns_dbnode_t *node, void *data) {
 
 	isc_rwlock_t *nlock = &qpdb->buckets[qpnode->locknum].lock;
 	NODE_WRLOCK(nlock, &nlocktype);
-	if (!cds_list_empty(&header->headers_link)) {
-		dns_slabheader_t *related = header->related;
-
-		(void)expireheader(header, &nlocktype, &tlocktype,
-				   dns_expire_flush DNS__DB_FILELINE);
-		if (related != NULL) {
-			(void)expireheader(related, &nlocktype, &tlocktype,
-					   dns_expire_flush DNS__DB_FILELINE);
-		}
-	}
+	(void)expire_header(qpdb, qpnode, header, &nlocktype,
+			    &tlocktype DNS__DB_FILELINE);
 	NODE_UNLOCK(nlock, &nlocktype);
 	INSIST(tlocktype == isc_rwlocktype_none);
 }
@@ -2550,12 +2557,11 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 
 	if (related != NULL) {
 		INSIST(related->related == NULL);
-		related->related = newheader;
-		newheader->related = related;
+		/* protect the related from LRU eviction */
+		qpcache_hit(qpdb, related);
+		related->related = dns_slabheader_ref(newheader);
+		newheader->related = dns_slabheader_ref(related);
 	}
-
-	qpcache_miss(qpdb, newheader, &nlocktype,
-		     &tlocktype DNS__DB_FLARG_PASS);
 
 	bindrdataset(qpdb, qpnode, newheader, now, nlocktype, tlocktype,
 		     addedrdataset DNS__DB_FLARG_PASS);
@@ -2571,6 +2577,9 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 			header_delete(qpnode, evictheader);
 		}
 	}
+
+	qpcache_miss(qpdb, newheader, &nlocktype,
+		     &tlocktype DNS__DB_FLARG_PASS);
 
 	/*
 	 * We've added a proof that a rdtype doesn't exist.
