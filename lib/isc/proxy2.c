@@ -22,7 +22,7 @@ enum isc_proxy2_states {
 
 static inline void
 isc__proxy2_handler_init_direct(isc_proxy2_handler_t *restrict handler,
-				const uint16_t max_size,
+				const size_t max_size,
 				const isc_region_t *restrict data,
 				isc_proxy2_handler_cb_t cb, void *cbarg) {
 	*handler = (isc_proxy2_handler_t){ .result = ISC_R_UNSET,
@@ -40,11 +40,12 @@ isc__proxy2_handler_init_direct(isc_proxy2_handler_t *restrict handler,
 
 void
 isc_proxy2_handler_init(isc_proxy2_handler_t *restrict handler, isc_mem_t *mctx,
-			const uint16_t max_size, isc_proxy2_handler_cb_t cb,
+			const size_t max_size, isc_proxy2_handler_cb_t cb,
 			void *cbarg) {
 	REQUIRE(handler != NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(max_size == 0 || max_size >= ISC_PROXY2_HEADER_SIZE);
+	REQUIRE(max_size == 0 || (max_size >= ISC_PROXY2_HEADER_SIZE &&
+				  max_size <= ISC_PROXY2_MAX_SIZE));
 	REQUIRE(cb != NULL);
 
 	isc__proxy2_handler_init_direct(handler, max_size, NULL, cb, cbarg);
@@ -85,7 +86,7 @@ isc_proxy2_handler_clear(isc_proxy2_handler_t *restrict handler) {
 }
 
 isc_proxy2_handler_t *
-isc_proxy2_handler_new(isc_mem_t *mctx, const uint16_t max_size,
+isc_proxy2_handler_new(isc_mem_t *mctx, const size_t max_size,
 		       isc_proxy2_handler_cb_t cb, void *cbarg) {
 	isc_proxy2_handler_t *newhandler;
 
@@ -249,7 +250,7 @@ isc__proxy2_handler_handle_header(isc_proxy2_handler_t *restrict handler) {
 	len = isc_buffer_getuint16(&handler->hdrbuf);
 
 	if (handler->max_size > 0 &&
-	    (len + ISC_PROXY2_HEADER_SIZE) > handler->max_size)
+	    ((size_t)len + ISC_PROXY2_HEADER_SIZE) > handler->max_size)
 	{
 		goto error_range;
 	}

@@ -293,7 +293,7 @@ struct isc_proxy2_handler {
 	int	 state;	      /*!< Current state machine state */
 	uint16_t expect_data; /*!< How much data do we need to switch to the
 				 next state */
-	uint16_t max_size; /*!< Max PROXYv2 header size including its payload */
+	size_t max_size; /*!< Max PROXYv2 header size including its payload */
 
 	isc_proxy2_handler_cb_t cb;    /*!< Data processing callback. */
 	void		       *cbarg; /*!< Callback argument. */
@@ -304,9 +304,9 @@ struct isc_proxy2_handler {
 				status value. */
 	isc_mem_t *mctx;
 
-	uint16_t header_size;	/*!< Total PROXYv2 header size (including the
-				   payload. */
-	uint16_t tlv_data_size; /*!< The size of TLVs payload size */
+	size_t header_size;   /*!< Total PROXYv2 header size (including the
+				 payload. */
+	size_t tlv_data_size; /*!< The size of TLVs payload size */
 
 	isc_proxy2_command_t	cmd; /*!< The decoded PROXYv2 command */
 	isc_proxy2_addrfamily_t proxy_addr_family; /*!< The decoded PROXYv2
@@ -322,7 +322,7 @@ struct isc_proxy2_handler {
 
 void
 isc_proxy2_handler_init(isc_proxy2_handler_t *restrict handler, isc_mem_t *mctx,
-			const uint16_t max_size, isc_proxy2_handler_cb_t cb,
+			const size_t max_size, isc_proxy2_handler_cb_t cb,
 			void *cbarg);
 /*!<
  * \brief Initialise the given 'isc_proxy2_handler_t' object, attach
@@ -338,7 +338,8 @@ isc_proxy2_handler_init(isc_proxy2_handler_t *restrict handler, isc_mem_t *mctx,
  * Requires:
  *\li	'handler' is not NULL;
  *\li	'mctx' is not NULL;
- *\li	'max_size' is >= `ISC_PROXY2_HEADER_SIZE` or is 0;
+ *\li	'max_size' is >= `ISC_PROXY2_HEADER_SIZE` &&
+ *      is <= `ISC_PROXY2_MAX_SIZE`, or is 0;
  *\li	'cb' is not NULL.
  */
 
@@ -365,7 +366,7 @@ isc_proxy2_handler_clear(isc_proxy2_handler_t *restrict handler);
  */
 
 isc_proxy2_handler_t *
-isc_proxy2_handler_new(isc_mem_t *mctx, const uint16_t max_size,
+isc_proxy2_handler_new(isc_mem_t *mctx, const size_t max_size,
 		       isc_proxy2_handler_cb_t cb, void *cbarg);
 /*!<
  * \brief Allocate and initialise a new 'isc_proxy2_handler_t'
@@ -381,7 +382,8 @@ isc_proxy2_handler_new(isc_mem_t *mctx, const uint16_t max_size,
  *
  * Requires:
  *\li	'mctx' is not NULL;
- *\li	'max_size' is >= `ISC_PROXY2_HEADER_SIZE` or is 0;
+ *\li	'max_size' is >= `ISC_PROXY2_HEADER_SIZE` &&
+ *       is <= `ISC_PROXY2_MAX_SIZE`, or is 0;
  *\li	'cb' is not NULL.
  */
 
