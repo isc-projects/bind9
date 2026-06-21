@@ -56,15 +56,6 @@
  */
 size_t dns_dispatch_tcppipelining = 256;
 
-/*
- * Idle timeout (in milliseconds) for a reused outgoing TCP connection.  While a
- * dispatch has no outstanding responses we keep a read pending so a
- * peer-initiated close is noticed promptly; this bounds how long such an idle
- * connection is kept open for reuse.  Can be overridden via
- * 'named -T tcpidletimeout=N'.
- */
-unsigned int dns_dispatch_tcp_idle_timeout = 5000;
-
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
 
 struct dns_dispatchmgr {
@@ -74,6 +65,8 @@ struct dns_dispatchmgr {
 	isc_mem_t *mctx;
 	dns_acl_t *blackhole;
 	isc_stats_t *stats;
+
+	unsigned int reuse_timeout;
 
 	uint32_t nloops;
 
@@ -770,7 +763,7 @@ tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
 
 static void
 tcp_startrecv_idle(dns_dispatch_t *disp) {
-	REQUIRE(dns_dispatch_tcp_idle_timeout > 0);
+	REQUIRE(disp->mgr->reuse_timeout > 0);
 
 	/*
 	 * No outstanding responses, but the connection is still up and
@@ -780,7 +773,7 @@ tcp_startrecv_idle(dns_dispatch_t *disp) {
 	 * out again as a dead reused connection.
 	 */
 	isc_nmhandle_cleartimeout(disp->handle);
-	isc_nmhandle_settimeout(disp->handle, dns_dispatch_tcp_idle_timeout);
+	isc_nmhandle_settimeout(disp->handle, disp->mgr->reuse_timeout);
 	if (!disp->reading) {
 		dispatch_log(disp, ISC_LOG_DEBUG(90), "keeping idle read on %p",
 			     disp->handle);
@@ -947,7 +940,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	 */
 	if (ISC_LIST_EMPTY(disp->active) &&
 	    disp->state == DNS_DISPATCHSTATE_CONNECTED &&
-	    dns_dispatch_tcp_idle_timeout > 0)
+	    disp->mgr->reuse_timeout > 0)
 	{
 		tcp_startrecv_idle(disp);
 	}
@@ -1096,6 +1089,13 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 			      isc_portset_t *v6portset) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	return setavailports(mgr, v4portset, v6portset);
+}
+
+void
+dns_dispatchmgr_setreusetimeout(dns_dispatchmgr_t *mgr,
+				unsigned int reuse_timeout) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	mgr->reuse_timeout = reuse_timeout;
 }
 
 static void
@@ -1799,7 +1799,7 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 			 * dispatch is already shutting down, leave it alone so
 			 * it can be torn down.
 			 */
-			if (dns_dispatch_tcp_idle_timeout > 0) {
+			if (disp->mgr->reuse_timeout > 0) {
 				tcp_startrecv_idle(disp);
 			} else if (disp->reading) {
 				dispentry_log(resp, ISC_LOG_DEBUG(90),

@@ -308,6 +308,7 @@ options {
 	tcp-listen-queue <integer>;
 	tcp-primaries-timeout <integer>;
 	tcp-receive-buffer <integer>;
+	tcp-reuse-timeout <integer>;
 	tcp-send-buffer <integer>;
 	tkey-gssapi-keytab <quoted_string>;
 	tls-port <integer>;

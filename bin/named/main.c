@@ -127,7 +127,6 @@ extern unsigned int dns_zone_mkey_month;
 extern unsigned int dns_adb_entrywindow;
 extern unsigned int dns_adb_cachemin;
 extern size_t dns_dispatch_tcppipelining;
-extern unsigned int dns_dispatch_tcp_idle_timeout;
 
 static bool want_stats = false;
 static char absolute_conffile[PATH_MAX];
@@ -748,8 +747,6 @@ parse_T_opt(char *option) {
 					      "least 1");
 		}
 		dns_dispatch_tcppipelining = pipelining;
-	} else if (!strncmp(option, "tcpidletimeout=", 15)) {
-		dns_dispatch_tcp_idle_timeout = atoi(option + 15);
 	} else {
 		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
