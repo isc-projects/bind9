@@ -178,6 +178,7 @@
 #define MAX_KEEPALIVE_TIMEOUT  UINT32_C(UINT16_MAX * 100)
 #define MIN_ADVERTISED_TIMEOUT UINT32_C(0) /* No minimum */
 #define MAX_ADVERTISED_TIMEOUT UINT32_C(UINT16_MAX * 100)
+#define MAX_REUSE_TIMEOUT      UINT32_C(120000) /* 2 minutes */
 
 /*%
  * Check an operation for failure.  Assumes that the function
@@ -8426,7 +8427,7 @@ load_configuration(const char *filename, named_server_t *server,
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	uint32_t softquota = 0;
 	uint32_t max;
-	uint64_t initial, idle, keepalive, advertised;
+	uint64_t initial, idle, keepalive, advertised, reuse;
 	bool loadbalancesockets;
 	bool exclusive = true;
 	dns_aclenv_t *env =
@@ -8767,6 +8768,20 @@ load_configuration(const char *filename, named_server_t *server,
 
 	isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 			   advertised);
+
+	obj = NULL;
+	result = named_config_get(maps, "tcp-reuse-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	reuse = cfg_obj_asuint32(obj) * 100;
+	if (reuse > MAX_REUSE_TIMEOUT) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+			    "tcp-reuse-timeout value is out of range: "
+			    "lowering to %" PRIu32,
+			    MAX_REUSE_TIMEOUT / 100);
+		reuse = MAX_REUSE_TIMEOUT;
+	}
+
+	dns_dispatchmgr_setreusetimeout(named_g_dispatchmgr, reuse);
 
 #define CAP_IF_NOT_ZERO(v, min, max) \
 	if (v > 0 && v < min) {      \

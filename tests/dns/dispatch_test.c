@@ -1018,6 +1018,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_reuse_after_close) {
 					&test->dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	dns_dispatchmgr_setreusetimeout(test->dispatchmgr, 5000);
+
 	result = dns_dispatch_createtcp(
 		test->dispatchmgr, &tcp_connect_addr, &tcp_server_addr, NULL,
 		DNS_DISPATCHTYPE_RESOLVER, 0, &test->dispatch);

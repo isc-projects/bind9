@@ -124,7 +124,6 @@ extern unsigned int dns_adb_entrywindow;
 extern unsigned int dns_adb_cachemin;
 extern size_t dns_dispatch_tcppipelining;
 extern size_t dns_adb_addrslimit;
-extern unsigned int dns_dispatch_tcp_idle_timeout;
 
 static bool want_stats = false;
 static char program_name[NAME_MAX] = "named";
@@ -826,8 +825,6 @@ parse_T_opt(char *option) {
 					      "least 1");
 		}
 		dns_adb_addrslimit = adb_addrslimit;
-	} else if (!strncmp(option, "tcpidletimeout=", 15)) {
-		dns_dispatch_tcp_idle_timeout = atoi(option + 15);
 	} else {
 		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
