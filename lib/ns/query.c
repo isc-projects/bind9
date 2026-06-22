@@ -9811,7 +9811,7 @@ cleanup:
 }
 
 /*
- * Handle CNAME responses.
+ * Handle CNAME responses of a query which its type is _not_ CNAME.
  */
 static isc_result_t
 query_cname(query_ctx_t *qctx) {
@@ -9825,6 +9825,8 @@ query_cname(query_ctx_t *qctx) {
 	CCTRACE(ISC_LOG_DEBUG(3), "query_cname");
 
 	CALL_HOOK(NS_QUERY_CNAME_BEGIN, qctx);
+
+	REQUIRE(qctx->result != DNS_R_CNAME);
 
 	result = query_zerottl_refetch(qctx);
 	if (result != ISC_R_COMPLETE) {
@@ -9913,7 +9915,7 @@ cleanup:
 }
 
 /*
- * Handle DNAME responses.
+ * Handle DNAME responses of a query which its type is _not_ DNAME.
  */
 static isc_result_t
 query_dname(query_ctx_t *qctx) {
@@ -9932,6 +9934,8 @@ query_dname(query_ctx_t *qctx) {
 	CCTRACE(ISC_LOG_DEBUG(3), "query_dname");
 
 	CALL_HOOK(NS_QUERY_DNAME_BEGIN, qctx);
+
+	REQUIRE(qctx->result != DNS_R_DNAME);
 
 	/*
 	 * Compare the current qname to the found name.  We need
