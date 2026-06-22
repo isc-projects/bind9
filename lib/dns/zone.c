@@ -497,6 +497,7 @@ struct dns_zone {
 	dns_db_t *rss_db;
 	dns_zone_t *rss_raw;
 	struct rss *rss;
+	struct rss *rss_next;
 	dns_update_state_t *rss_state;
 
 	isc_stats_t *gluecachestats;
@@ -1278,6 +1279,10 @@ zone_free(dns_zone_t *zone) {
 		ISC_LIST_UNLINK(zone->newincludes, include, link);
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
+	}
+
+	if (zone->rss_state != NULL) {
+		dns_update_state_clear(&zone->rss_state, true);
 	}
 	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
@@ -16435,7 +16440,6 @@ struct rss {
 	dns_zone_t *zone;
 	dns_db_t *db;
 	uint32_t serial;
-	ISC_LINK(struct rss) link;
 };
 
 static void
@@ -17044,18 +17048,49 @@ receive_secure_serial(void *arg) {
 
 	LOCK_ZONE(zone);
 
-	/*
-	 * The receive_secure_serial() is loop-serialized for the zone.  Make
-	 * sure there's no processing currently running.
-	 */
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
+		/*
+		 * If this is a callback for a new secure serial that was
+		 * never processed and the zone is shutting down, then just
+		 * free 'rss_next' and return.
+		 */
+		if (rss == zone->rss_next) {
+			isc_mem_put(zone->mctx, rss, sizeof(*rss));
+			zone->rss_next = NULL;
+			UNLOCK_ZONE(zone);
+			dns_zone_idetach(&zone);
+			return;
+		}
 
-	INSIST(zone->rss == NULL || zone->rss == rss);
-
-	if (zone->rss != NULL) {
-		INSIST(zone->rss == rss);
+		/* Otherwise, this is an ongoing processing, do the cleanup. */
 		UNLOCK_ZONE(zone);
+		CHECK(ISC_R_SHUTTINGDOWN);
+	}
+
+	/*
+	 * The receive_secure_serial() is loop-serialized for the zone, but it
+	 * is possible for new serial to arrive before the old processing is
+	 * completed, because the old call could have been rescheduled if
+	 * dns_update_signaturesinc() below returned DNS_R_CONTINUE.
+	 */
+	if (zone->rss != NULL) {
+		/* There is an existing processing */
+		UNLOCK_ZONE(zone);
+		if (zone->rss != rss) {
+			/*
+			 * A new 'rss' is sandwiched between a previous call
+			 * with the old 'zone->rss' and a future scheduled
+			 * call with the old 'zone->rss'. Reschedule the new
+			 * 'rss' so the old one can be completed first.
+			 */
+			isc_async_run(zone->loop, receive_secure_serial, rss);
+			return;
+		}
 	} else {
-		zone->rss = rss;
+		/* New arrival */
+		INSIST(rss == zone->rss_next);
+		zone->rss = MOVE_OWNERSHIP(zone->rss_next);
+
 		dns_diff_init(zone->mctx, &zone->rss_diff);
 
 		/*
@@ -17171,6 +17206,7 @@ receive_secure_serial(void *arg) {
 		&log, zone, zone->rss_db, zone->rss_oldver, zone->rss_newver,
 		&zone->rss_diff, zone->sigvalidityinterval, &zone->rss_state);
 	if (result == DNS_R_CONTINUE) {
+		/* Signing quantum reached, reschedule the next chunk. */
 		if (rjournal != NULL) {
 			dns_journal_destroy(&rjournal);
 		}
@@ -17232,7 +17268,7 @@ cleanup:
 	if (zone->rss_raw != NULL) {
 		dns_zone_detach(&zone->rss_raw);
 	}
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != ISC_R_SHUTTINGDOWN) {
 		LOCK_ZONE(zone);
 		set_resigntime(zone);
 		timenow = isc_time_now();
@@ -17275,15 +17311,24 @@ static isc_result_t
 zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
 	struct rss *rss = NULL;
 
-	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
-	*rss = (struct rss){
-		.serial = serial,
-		.link = ISC_LINK_INITIALIZER,
-	};
-
 	INSIST(LOCKED_ZONE(zone->secure));
-	zone_iattach(zone->secure, &rss->zone);
-	isc_async_run(zone->secure->loop, receive_secure_serial, rss);
+
+	if (zone->secure->rss_next != NULL) {
+		/*
+		 * New version came earlier than the previous one had a
+		 * chance to be processed, just update the serial.
+		 */
+		zone->secure->rss_next->serial = serial;
+	} else {
+		rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
+		*rss = (struct rss){
+			.serial = serial,
+		};
+		zone_iattach(zone->secure, &rss->zone);
+
+		zone->secure->rss_next = rss;
+		isc_async_run(zone->secure->loop, receive_secure_serial, rss);
+	}
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SENDSECURE);
 	return ISC_R_SUCCESS;
@@ -17743,7 +17788,7 @@ zone_send_securedb(dns_zone_t *zone, dns_db_t *db) {
 	struct rss *rss = NULL;
 
 	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
-	*rss = (struct rss){ .link = ISC_LINK_INITIALIZER };
+	*rss = (struct rss){ 0 };
 
 	INSIST(LOCKED_ZONE(zone->secure));
 	zone_iattach(zone->secure, &rss->zone);
