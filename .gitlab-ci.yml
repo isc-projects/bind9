@@ -2245,6 +2245,8 @@ assign-milestones:
 
 .rpm-build-job-common: &rpm_build_job_common
   <<: *manual_release_job_qa
+  # prevent Git push races between pipelines started for different tags
+  resource_group: "rpm-build-${SERVICE}"
   after_script:
     - git -C bind/ remote get-url origin | sed "s|\.git$|/-/commit/$(cat commit.txt)|"
     - git -C bind/ show --color "$(cat commit.txt)" | sed "s|^$| |"
