@@ -305,12 +305,10 @@ copy_list(cfg_obj_t *to, const cfg_obj_t *from) {
 
 static void
 copy_tuple(cfg_obj_t *to, const cfg_obj_t *from) {
-	const cfg_tuplefielddef_t *fields = from->type->of;
 	size_t size = 0;
 
-	fields = from->type->of;
-	for (const cfg_tuplefielddef_t *field = fields; field->name != NULL;
-	     field++)
+	for (const cfg_tuplefielddef_t *field = from->type->of;
+	     field->name != NULL; field++)
 	{
 		size++;
 	}
