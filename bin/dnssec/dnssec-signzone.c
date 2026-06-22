@@ -1545,6 +1545,10 @@ assignwork(void *arg) {
 			dns_db_detachnode(&node);
 			goto next;
 		}
+		if (!dns_name_issubdomain(name, gorigin)) {
+			dns_db_detachnode(&node);
+			goto next;
+		}
 		/*
 		 * Sort the zone data from the glue and out-of-zone data.
 		 * For NSEC zones nodes with zone data have NSEC records.

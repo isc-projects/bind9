@@ -23,14 +23,16 @@
 static isc_result_t
 fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_token_t token;
-	unsigned char alg, c;
+	unsigned char alg, labels;
 	long i;
 	dns_rdatatype_t covered;
-	char *e;
+	char *e = NULL;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
 	unsigned int used;
+	dns_fixedname_t fixed;
+	dns_name_t *signer = dns_fixedname_initname(&fixed);
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -72,8 +74,8 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (token.value.as_ulong > 0xffU) {
 		RETTOK(ISC_R_RANGE);
 	}
-	c = (unsigned char)token.value.as_ulong;
-	RETERR(mem_tobuffer(target, &c, 1));
+	labels = (unsigned char)token.value.as_ulong;
+	RETERR(mem_tobuffer(target, &labels, 1));
 
 	/*
 	 * Original ttl.
@@ -148,7 +150,16 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (origin == NULL) {
 		origin = dns_rootname;
 	}
-	RETTOK(dns_name_wirefromtext(&buffer, origin, options, target));
+	RETTOK(dns_name_fromtext(signer, &buffer, origin, options));
+
+	/*
+	 * (RRSIG labels doesn't include the root label, so add one
+	 * to normalize it before checking against the signer.)
+	 */
+	if ((labels + 1) < dns_name_countlabels(signer)) {
+		RETTOK(ISC_R_RANGE);
+	}
+	RETERR(mem_tobuffer(target, signer->ndata, signer->length));
 
 	/*
 	 * Sig.
@@ -295,6 +306,7 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
 	unsigned char algorithm;
+	unsigned char labels;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -318,6 +330,7 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	}
 
 	algorithm = sr.base[2];
+	labels = sr.base[3];
 
 	isc_buffer_forward(source, 18);
 	RETERR(mem_tobuffer(target, sr.base, 18));
@@ -327,6 +340,14 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	 */
 	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
+
+	/*
+	 * (RRSIG labels doesn't include the root label, so add one
+	 * to normalize it before checking against the signer.)
+	 */
+	if ((labels + 1) < dns_name_countlabels(&name)) {
+		RETERR(DNS_R_FORMERR);
+	}
 
 	/*
 	 * Sig.
