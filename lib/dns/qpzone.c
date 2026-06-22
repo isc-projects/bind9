@@ -2534,7 +2534,6 @@ getsigningtime(dns_db_t *db, isc_stdtime_t *resign, dns_name_t *foundname,
 		UNLOCK(&qpdb->heap->lock);
 		return ISC_R_NOTFOUND;
 	}
-	header = elem->header;
 	nlock = qpzone_get_lock(elem->node);
 	UNLOCK(&qpdb->heap->lock);
 
@@ -4036,7 +4035,7 @@ qpzone_detachnode(dns_dbnode_t **nodep DNS__DB_FLARG) {
 
 static unsigned int
 nodecount(dns_db_t *db) {
-	qpzonedb_t *qpdb = qpdb = (qpzonedb_t *)db;
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	dns_qp_memusage_t mu;
 
 	REQUIRE(VALID_QPZONE(qpdb));

@@ -883,7 +883,6 @@ cfg_kasp_builtinconfig(isc_mem_t *mctx, const char *name,
 	if (result != ISC_R_NOTFOUND) {
 		return result;
 	}
-	result = ISC_R_SUCCESS;
 
 	/* No kasp with configured name was found in list, create new one. */
 	INSIST(kasp == NULL);
