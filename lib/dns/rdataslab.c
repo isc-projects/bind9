@@ -211,8 +211,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
 		}
-		(void *)newslab(rdataset, mctx, region, 0, buflen, func, file,
-				line);
+		(void)newslab(rdataset, mctx, region, 0, buflen, func, file,
+			      line);
 		return ISC_R_SUCCESS;
 	}
 
