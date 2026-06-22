@@ -192,13 +192,28 @@ struct dns_rdataset {
 		 * comments in rdataslab.c for details.)
 		 */
 		struct {
-			struct dns_db	       *db;
 			dns_dbnode_t	       *node;
 			unsigned char	       *raw;
 			unsigned char	       *iter_pos;
 			unsigned int		iter_count;
 			dns_slabheader_proof_t *noqname, *closest;
 		} slab;
+
+		/*
+		 * A slab rdataset provides access to an rdataslab. In
+		 * a QP database, 'raw' will generally point to the
+		 * memory immediately following a slabheader. (There
+		 * is an exception in the case of rdatasets returned by
+		 * the `getnoqname` and `getclosest` methods; see
+		 * comments in rdataslab.c for details.)
+		 */
+		struct {
+			dns_dbnode_t	 *node;
+			dns_slabheader_t *header;
+			unsigned char	 *raw;
+			unsigned char	 *iter_pos;
+			unsigned int	  iter_count;
+		} proof;
 
 		/*
 		 * A vec rdataset provides access to an rdatavec. In

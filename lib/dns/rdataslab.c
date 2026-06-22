@@ -95,6 +95,37 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.getownercase = rdataset_getownercase,
 };
 
+static void
+slabheader_proof_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG);
+static isc_result_t
+slabheader_proof_first(dns_rdataset_t *rdataset);
+static isc_result_t
+slabheader_proof_next(dns_rdataset_t *rdataset);
+static void
+slabheader_proof_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void
+slabheader_proof_clone(const dns_rdataset_t *source,
+		       dns_rdataset_t *target DNS__DB_FLARG);
+static unsigned int
+slabheader_proof_count(dns_rdataset_t *rdataset);
+static dns_slabheader_t *
+slabheader_proof_getheader(const dns_rdataset_t *rdataset);
+
+dns_rdatasetmethods_t dns_rdataslab_proof_rdatasetmethods = {
+	.disassociate = slabheader_proof_disassociate,
+	.first = slabheader_proof_first,
+	.next = slabheader_proof_next,
+	.current = slabheader_proof_current,
+	.clone = slabheader_proof_clone,
+	.count = slabheader_proof_count,
+	.getnoqname = NULL,
+	.getclosest = NULL,
+	.settrust = NULL,
+	.expire = NULL,
+	.clearprefetch = NULL,
+	.getownercase = NULL,
+};
+
 /*% Note: the "const void *" are just to make qsort happy.  */
 static int
 compare_rdata(const void *p1, const void *p2) {
@@ -103,15 +134,29 @@ compare_rdata(const void *p1, const void *p2) {
 
 static unsigned char *
 newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-	uint16_t nitems, size_t size) {
+	uint16_t nitems, size_t size, const char *func, const char *file,
+	const unsigned int line) {
 	dns_slabheader_t *header = isc_mem_get(mctx, size);
 
 	*header = (dns_slabheader_t){
 		.headers_link = CDS_LIST_HEAD_INIT(header->headers_link),
 		.trust = rdataset->trust,
-		.dirtylink = ISC_LINK_INITIALIZER,
 		.nitems = nitems,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.mctx = isc_mem_ref(mctx),
+		.lrulink = ISC_LINK_INITIALIZER,
 	};
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), header,
+		header->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
 
 	region->base = (unsigned char *)header;
 	region->length = size;
@@ -121,7 +166,8 @@ newslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 
 static isc_result_t
 makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-	 uint32_t maxrrperset) {
+	 uint32_t maxrrperset, const char *func, const char *file,
+	 const unsigned int line) {
 	/*
 	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
@@ -147,8 +193,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		dns_slabheader_t *header = rdataset_getheader(rdataset);
 		buflen = dns_rdataslab_size(header);
 
-		rawbuf = newslab(rdataset, mctx, region, header->nitems,
-				 buflen);
+		rawbuf = newslab(rdataset, mctx, region, header->nitems, buflen,
+				 func, file, line);
 
 		INSIST(headerlen <= buflen);
 		memmove(rawbuf, (unsigned char *)header + headerlen,
@@ -165,7 +211,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
 		}
-		rawbuf = newslab(rdataset, mctx, region, 0, buflen);
+		rawbuf = newslab(rdataset, mctx, region, 0, buflen, func, file,
+				 line);
 		return ISC_R_SUCCESS;
 	}
 
@@ -277,7 +324,8 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = newslab(rdataset, mctx, region, nitems, buflen);
+	rawbuf = newslab(rdataset, mctx, region, nitems, buflen, func, file,
+			 line);
 
 	for (i = 0; i < nalloc; i++) {
 		if (rdata[i].data == &removed) {
@@ -313,15 +361,18 @@ free_rdatas:
 }
 
 isc_result_t
-dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, uint32_t maxrrperset) {
+dns_rdataslab__fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
+			    isc_region_t *region, uint32_t maxrrperset,
+			    const char *func, const char *file,
+			    const unsigned int line) {
 	if (rdataset->type == dns_rdatatype_none &&
 	    rdataset->covers == dns_rdatatype_none)
 	{
 		return DNS_R_DISALLOWED;
 	}
 
-	isc_result_t result = makeslab(rdataset, mctx, region, maxrrperset);
+	isc_result_t result = makeslab(rdataset, mctx, region, maxrrperset,
+				       func, file, line);
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
@@ -465,40 +516,59 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 }
 
 void
-dns_slabheader_reset(dns_slabheader_t *h, dns_dbnode_t *node) {
+dns_slabheader__reset(dns_slabheader_t *h, dns_dbnode_t *node, const char *func,
+		      const char *file, const unsigned int line) {
 	h->node = node;
 
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
-
-	ISC_LINK_INIT(h, dirtylink);
+	isc_refcount_init(&h->references, 1);
 
 	STATIC_ASSERT(sizeof(h->attributes) == 2,
 		      "The .attributes field of dns_slabheader_t needs to be "
 		      "16-bit int type exactly.");
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), h, h->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
 }
 
 dns_slabheader_t *
-dns_slabheader_new(isc_mem_t *mctx, dns_dbnode_t *node) {
+dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
+		    const char *file, const unsigned int line) {
 	dns_slabheader_t *h = NULL;
 
 	h = isc_mem_get(mctx, sizeof(*h));
 	*h = (dns_slabheader_t){
+		.headers_link = CDS_LIST_HEAD_INIT(h->headers_link),
 		.node = node,
-		.dirtylink = ISC_LINK_INITIALIZER,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.mctx = isc_mem_ref(mctx),
+		.lrulink = ISC_LINK_INITIALIZER,
 	};
+
+#if DNS_SLABHEADER_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), h, h->references);
+#else
+	UNUSED(func);
+	UNUSED(file);
+	UNUSED(line);
+#endif
+
 	return h;
 }
 
-void
-dns_slabheader_destroy(dns_slabheader_t **headerp) {
+static void
+slabheader_destroy(dns_slabheader_t *header) {
 	unsigned int size;
-	dns_slabheader_t *header = *headerp;
-
-	*headerp = NULL;
-
-	isc_mem_t *mctx = header->node->mctx;
-	dns_db_deletedata(header->node, header);
 
 	if (EXISTS(header)) {
 		size = dns_rdataslab_size(header);
@@ -506,13 +576,18 @@ dns_slabheader_destroy(dns_slabheader_t **headerp) {
 		size = sizeof(*header);
 	}
 
-	isc_mem_put(mctx, header, size);
+	if (header->noqname != NULL) {
+		dns_slabheader_freeproof(header->mctx, &header->noqname);
+	}
+	if (header->closest != NULL) {
+		dns_slabheader_freeproof(header->mctx, &header->closest);
+	}
+
+	isc_mem_putanddetach(&header->mctx, header, size);
 }
 
 void
 dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proofp) {
-	unsigned int buflen;
-	uint8_t *rawbuf;
 	dns_slabheader_proof_t *proof = *proofp;
 	*proofp = NULL;
 
@@ -520,29 +595,35 @@ dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proofp) {
 		dns_name_free(&proof->name, mctx);
 	}
 	if (proof->neg != NULL) {
-		rawbuf = proof->neg;
-		rawbuf -= sizeof(dns_slabheader_t);
-		buflen = dns_rdataslab_size((dns_slabheader_t *)rawbuf);
-
-		isc_mem_put(mctx, rawbuf, buflen);
+		dns_slabheader_t *header =
+			(dns_slabheader_t *)((uint8_t *)proof->neg -
+					     sizeof(dns_slabheader_t));
+		dns_slabheader_detach(&header);
 	}
 	if (proof->negsig != NULL) {
-		rawbuf = proof->negsig;
-		rawbuf -= sizeof(dns_slabheader_t);
-		buflen = dns_rdataslab_size((dns_slabheader_t *)rawbuf);
-
-		isc_mem_put(mctx, rawbuf, buflen);
+		dns_slabheader_t *header =
+			(dns_slabheader_t *)((uint8_t *)proof->negsig -
+					     sizeof(dns_slabheader_t));
+		dns_slabheader_detach(&header);
 	}
 	isc_mem_put(mctx, proof, sizeof(*proof));
 }
+
+#if DNS_SLABHEADER_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_slabheader, slabheader_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_slabheader, slabheader_destroy);
+#endif
 
 /* Fixed RRSet helper macros */
 
 static void
 rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_dbnode_t *node = rdataset->slab.node;
+	dns_slabheader_t *header = rdataset_getheader(rdataset);
 
-	dns__db_detachnode(&node DNS__DB_FLARG_PASS);
+	dns_slabheader_detach(&header);
+
+	dns__db_detachnode(&rdataset->slab.node DNS__DB_FLARG_PASS);
 }
 
 static isc_result_t
@@ -622,16 +703,20 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 static void
 rdataset_clone(const dns_rdataset_t *source,
 	       dns_rdataset_t *target DNS__DB_FLARG) {
-	dns_dbnode_t *node = source->slab.node;
-	dns_dbnode_t *cloned_node = NULL;
+	dns_slabheader_t *header = rdataset_getheader(source);
 
-	dns__db_attachnode(node, &cloned_node DNS__DB_FLARG_PASS);
+	INSIST(target->slab.node == NULL);
 	INSIST(!ISC_LINK_LINKED(target, link));
 	*target = *source;
 	ISC_LINK_INIT(target, link);
+	target->slab.node = NULL;
+	dns__db_attachnode(source->slab.node,
+			   &target->slab.node DNS__DB_FLARG_PASS);
 
 	target->slab.iter_pos = NULL;
 	target->slab.iter_count = 0;
+
+	dns_slabheader_ref(header);
 }
 
 static unsigned int
@@ -645,8 +730,8 @@ static isc_result_t
 rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsec,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->slab.db;
 	dns_dbnode_t *node = rdataset->slab.node;
+	dns_slabheader_t *header = rdataset_getheader(rdataset);
 	const dns_slabheader_proof_t *noqname = rdataset->slab.noqname;
 
 	/*
@@ -659,38 +744,36 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	 * getownercase methods from affecting the case of NSEC/NSEC3
 	 * owner names.
 	 */
-	dns__db_attachnode(node, &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
 	*nsec = (dns_rdataset_t){
-		.methods = &dns_rdataslab_rdatasetmethods,
-		.rdclass = db->rdclass,
+		.methods = &dns_rdataslab_proof_rdatasetmethods,
+		.rdclass = rdataset->rdclass,
 		.type = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = noqname->neg,
+		.proof.header = dns_slabheader_ref(header),
+		.proof.raw = noqname->neg,
 		.link = nsec->link,
 		.attributes = nsec->attributes,
 		.magic = nsec->magic,
 	};
 	nsec->attributes.keepcase = true;
+	dns__db_attachnode(node, &nsec->proof.node DNS__DB_FLARG_PASS);
 
-	dns__db_attachnode(node, &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
 	*nsecsig = (dns_rdataset_t){
-		.methods = &dns_rdataslab_rdatasetmethods,
-		.rdclass = db->rdclass,
+		.methods = &dns_rdataslab_proof_rdatasetmethods,
+		.rdclass = rdataset->rdclass,
 		.type = dns_rdatatype_rrsig,
 		.covers = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = noqname->negsig,
+		.proof.header = dns_slabheader_ref(header),
+		.proof.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
 	};
 	nsecsig->attributes.keepcase = true;
+	dns__db_attachnode(node, &nsecsig->proof.node DNS__DB_FLARG_PASS);
 
 	dns_name_clone(&noqname->name, name);
 
@@ -701,8 +784,8 @@ static isc_result_t
 rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsec,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->slab.db;
 	dns_dbnode_t *node = rdataset->slab.node;
+	dns_slabheader_t *header = rdataset_getheader(rdataset);
 	const dns_slabheader_proof_t *closest = rdataset->slab.closest;
 
 	/*
@@ -715,38 +798,36 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	 * getownercase methods from affecting the case of NSEC/NSEC3
 	 * owner names.
 	 */
-	dns__db_attachnode(node, &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
 	*nsec = (dns_rdataset_t){
-		.methods = &dns_rdataslab_rdatasetmethods,
-		.rdclass = db->rdclass,
+		.methods = &dns_rdataslab_proof_rdatasetmethods,
+		.rdclass = rdataset->rdclass,
 		.type = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = closest->neg,
+		.proof.header = dns_slabheader_ref(header),
+		.proof.raw = closest->neg,
 		.link = nsec->link,
 		.attributes = nsec->attributes,
 		.magic = nsec->magic,
 	};
 	nsec->attributes.keepcase = true;
+	dns__db_attachnode(node, &nsec->proof.node DNS__DB_FLARG_PASS);
 
-	dns__db_attachnode(node, &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
 	*nsecsig = (dns_rdataset_t){
-		.methods = &dns_rdataslab_rdatasetmethods,
-		.rdclass = db->rdclass,
+		.methods = &dns_rdataslab_proof_rdatasetmethods,
+		.rdclass = rdataset->rdclass,
 		.type = dns_rdatatype_rrsig,
 		.covers = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = closest->negsig,
+		.proof.header = dns_slabheader_ref(header),
+		.proof.raw = closest->negsig,
 		.link = nsecsig->link,
 		.attributes = nsecsig->attributes,
 		.magic = nsecsig->magic,
 	};
 	nsecsig->attributes.keepcase = true;
+	dns__db_attachnode(node, &nsecsig->proof.node DNS__DB_FLARG_PASS);
 
 	dns_name_clone(&closest->name, name);
 
@@ -765,7 +846,7 @@ static void
 rdataset_expire(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_slabheader_t *header = rdataset_getheader(rdataset);
 
-	dns_db_expiredata(header->node, header);
+	dns_db_expiredata(rdataset->slab.node, header);
 }
 
 static void
@@ -809,23 +890,115 @@ rdataset_getheader(const dns_rdataset_t *rdataset) {
 	return (dns_slabheader_t *)(rawbuf - offsetof(dns_slabheader_t, raw));
 }
 
-dns_slabtop_t *
-dns_slabtop_new(isc_mem_t *mctx, dns_typepair_t typepair) {
-	dns_slabtop_t *top = isc_mem_get(mctx, sizeof(*top));
-	*top = (dns_slabtop_t){
-		.types_link = CDS_LIST_HEAD_INIT(top->types_link),
-		.headers = CDS_LIST_HEAD_INIT(top->headers),
-		.typepair = typepair,
-		.link = ISC_LINK_INITIALIZER,
-	};
+/* Fixed Proof helper macros */
 
-	return top;
+static void
+slabheader_proof_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
+	dns_slabheader_detach(&rdataset->proof.header);
+	dns__db_detachnode(&rdataset->proof.node DNS__DB_FLARG_PASS);
 }
 
-void
-dns_slabtop_destroy(isc_mem_t *mctx, dns_slabtop_t **topp) {
-	REQUIRE(topp != NULL && *topp != NULL);
-	dns_slabtop_t *top = *topp;
-	*topp = NULL;
-	isc_mem_put(mctx, top, sizeof(*top));
+static isc_result_t
+slabheader_proof_first(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->proof.raw;
+	uint16_t count = slabheader_proof_count(rdataset);
+
+	if (count == 0) {
+		rdataset->proof.iter_pos = NULL;
+		rdataset->proof.iter_count = 0;
+		return ISC_R_NOMORE;
+	}
+
+	/*
+	 * iter_count is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before
+	 * storing it.
+	 *
+	 * 'raw' points to the first record.
+	 */
+	rdataset->proof.iter_pos = raw;
+	rdataset->proof.iter_count = count - 1;
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+slabheader_proof_next(dns_rdataset_t *rdataset) {
+	uint16_t count = rdataset->proof.iter_count;
+	if (count == 0) {
+		rdataset->proof.iter_pos = NULL;
+		return ISC_R_NOMORE;
+	}
+	rdataset->proof.iter_count = count - 1;
+
+	/*
+	 * Skip forward one record (length + 4) or one offset (4).
+	 */
+	unsigned char *raw = rdataset->proof.iter_pos;
+	uint16_t length = peek_uint16(raw);
+	raw += length;
+	rdataset->proof.iter_pos = raw + sizeof(uint16_t);
+
+	return ISC_R_SUCCESS;
+}
+
+static void
+slabheader_proof_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	unsigned char *raw = NULL;
+	unsigned int length;
+	isc_region_t r;
+	unsigned int flags = 0;
+
+	raw = rdataset->proof.iter_pos;
+	REQUIRE(raw != NULL);
+
+	/*
+	 * Find the start of the record if not already in iter_pos
+	 * then skip the length and order fields.
+	 */
+	length = get_uint16(raw);
+
+	if (rdataset->type == dns_rdatatype_rrsig) {
+		if (*raw & DNS_RDATASLAB_OFFLINE) {
+			flags |= DNS_RDATA_OFFLINE;
+		}
+		length--;
+		raw++;
+	}
+	r.length = length;
+	r.base = raw;
+	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+	rdata->flags |= flags;
+}
+
+static void
+slabheader_proof_clone(const dns_rdataset_t *source,
+		       dns_rdataset_t *target DNS__DB_FLARG) {
+	INSIST(!ISC_LINK_LINKED(target, link));
+	INSIST(target->proof.node == NULL);
+	INSIST(target->proof.header == NULL);
+
+	*target = *source;
+
+	ISC_LINK_INIT(target, link);
+	target->proof.node = NULL;
+	dns__db_attachnode(source->proof.node,
+			   &target->proof.node DNS__DB_FLARG_PASS);
+	dns_slabheader_ref(target->proof.header);
+
+	target->proof.iter_pos = NULL;
+	target->proof.iter_count = 0;
+}
+
+static unsigned int
+slabheader_proof_count(dns_rdataset_t *rdataset) {
+	dns_slabheader_t *header = slabheader_proof_getheader(rdataset);
+
+	return header->nitems;
+}
+
+static dns_slabheader_t *
+slabheader_proof_getheader(const dns_rdataset_t *rdataset) {
+	uint8_t *rawbuf = rdataset->proof.raw;
+	return (dns_slabheader_t *)(rawbuf - offsetof(dns_slabheader_t, raw));
 }

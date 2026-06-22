@@ -270,7 +270,7 @@ check_manytypes() (
     exit 1
   fi
 
-  if [ -n "${neq_ttl}" ] && grep -q "^$exname.[[:space:]]*${neq_ttl}[[:space:]]*IN[[:space:]]*$type" "dig.out.$i.$type.test$n"; then
+  if [ -n "${neq_ttl}" ] && grep -q "^$exname.[[:space:]]*${neq_ttl}[[:space:]]*IN[[:space:]]*$extype" "dig.out.$i.$type.test$n"; then
     exit 1
   fi
 
@@ -337,17 +337,20 @@ if [ $status -ne 0 ]; then exit 1; fi
 
 n=$((n + 1))
 ret=0
-echo_i "checking that NXDOMAIN names over the max-types-per-name limit don't get cached ($n)"
+echo_i "checking that NXDOMAIN names over the max-types-per-name limit get cached ($n)"
 
-# Query for 10 NXDOMAIN types
+# The cache already holds 10 positive types (TYPE65280-TYPE65289), filling
+# the per-name limit. Querying 10 NXDOMAIN types now exceeds the limit, but
+# the freshly fetched entry is always cached - it evicts an older type
+# rather than being dropped itself.
 for ntype in $(seq 65270 65279); do
-  check_manytypes 1 manytypes.big "TYPE${ntype}" NOERROR big SOA 0 || ret=1
+  check_manytypes 1 manytypes.big "TYPE${ntype}" NOERROR big SOA 120 || ret=1
 done
 # Wait at least 1 second
 sleep 1
-# Query for 10 NXDOMAIN types again - these should not be cached
+# Query for 10 NXDOMAIN types again - these should now be cached
 for ntype in $(seq 65270 65279); do
-  check_manytypes 2 manytypes.big "TYPE${ntype}" NOERROR big SOA 0 || ret=1
+  check_manytypes 2 manytypes.big "TYPE${ntype}" NOERROR big SOA "" 120 || ret=1
 done
 
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

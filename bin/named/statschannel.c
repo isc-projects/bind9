@@ -1139,7 +1139,6 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	const char *typestr;
 	bool nxrrset = false;
 	bool stale = false;
-	bool ancient = false;
 #ifdef HAVE_LIBXML2
 	void *writer;
 	int xmlrc;
@@ -1165,13 +1164,12 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 
 	nxrrset = rdatastatstype_attr(type, DNS_RDATASTATSTYPE_ATTR_NXRRSET);
 	stale = rdatastatstype_attr(type, DNS_RDATASTATSTYPE_ATTR_STALE);
-	ancient = rdatastatstype_attr(type, DNS_RDATASTATSTYPE_ATTR_ANCIENT);
 
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" PRIu64 " %s%s%s%s\n", val, ancient ? "~" : "",
-			stale ? "#" : "", nxrrset ? "!" : "", typestr);
+		fprintf(fp, "%20" PRIu64 " %s%s%s\n", val, stale ? "#" : "",
+			nxrrset ? "!" : "", typestr);
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -1180,8 +1178,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "rrset"));
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "name"));
 		TRY0(xmlTextWriterWriteFormatString(
-			writer, "%s%s%s%s", ancient ? "~" : "",
-			stale ? "#" : "", nxrrset ? "!" : "", typestr));
+			writer, "%s%s%s", stale ? "#" : "", nxrrset ? "!" : "",
+			typestr));
 		TRY0(xmlTextWriterEndElement(writer)); /* name */
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
@@ -1194,8 +1192,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	case isc_statsformat_json:
 #ifdef HAVE_JSON_C
 		zoneobj = (json_object *)dumparg->arg;
-		snprintf(buf, sizeof(buf), "%s%s%s%s", ancient ? "~" : "",
-			 stale ? "#" : "", nxrrset ? "!" : "", typestr);
+		snprintf(buf, sizeof(buf), "%s%s%s", stale ? "#" : "",
+			 nxrrset ? "!" : "", typestr);
 		obj = json_object_new_int64(val);
 		if (obj == NULL) {
 			return;
