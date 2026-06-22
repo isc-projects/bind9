@@ -41,6 +41,16 @@ zone "nestedwild.test" {
 };
 
 /*
+ * GL #6170: querying an empty non-terminal in this NSEC3-signed zone, which
+ * also has a wildcard, used to abort named when served from RBTDB.
+ */
+zone "entwild.test" {
+        type primary;
+        file "entwild.db.signed";
+        check-names ignore;
+};
+
+/*
  * The contents of nsec3 and private.nsec3 are specially chosen to
  * have separate NSEC3 records for the "no qname proof" and the
  * "closest encloser proof".
