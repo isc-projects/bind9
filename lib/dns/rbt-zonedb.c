@@ -429,7 +429,7 @@ wildcard_blocked(rbtdb_search_t *search, const dns_name_t *qname,
 	/* Now reset the chain and look for a successor with data. */
 	chain = search->chain;
 	result = dns_rbtnodechain_next(&chain, NULL, NULL);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		check_next = step(search, &chain, FORWARD, next);
 	}
 
