@@ -685,10 +685,10 @@ fctx_minimize_qname(fetchctx_t *fctx);
 static void
 fctx_destroy(fetchctx_t *fctx);
 static isc_result_t
-ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-		  dns_ttl_t maxttl, bool optout, bool secure,
-		  dns_rdataset_t *ardataset, isc_result_t *eresultp);
+ncache_adderesult(fetchctx_t *fctx, dns_message_t *message, dns_dbnode_t *node,
+		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
+		  bool optout, bool secure, dns_rdataset_t *ardataset,
+		  isc_result_t *eresultp);
 static void
 validated(void *arg);
 static void
@@ -5334,6 +5334,46 @@ evict_cname_other(fetchctx_t *fctx, dns_dbnode_t *node) {
 }
 
 /*
+ * After a (non-error) negative-cache add, 'rdataset' is bound to whatever
+ * rdataset the cache authoritatively holds for the queried name and type.
+ * Map that to the result code the fetch should report:
+ *
+ *   - A negative cache entry (the one we just added, or a pre-existing one):
+ *     DNS_R_NCACHENXDOMAIN or DNS_R_NCACHENXRRSET, depending on NXDOMAIN vs
+ *     NODATA.
+ *
+ *   - A positive rdataset that was already cached at higher trust, which
+ *     caused our negative entry to be discarded (e.g. a CNAME or DNAME cached
+ *     by a concurrent query): ISC_R_SUCCESS, because that cached positive
+ *     answer is what gets returned.  Note the specific case for CNAME and
+ *     DNAME *if* the query type is not the same as the rdataset type. There
+ *     is a chain to follow *only* if the query type doesn't ask for the CNAME
+ *     or the DNAME.
+ */
+static isc_result_t
+fctx_setresult(fetchctx_t *fctx, dns_rdataset_t *rdataset) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (NEGATIVE(rdataset)) {
+		result = NXDOMAIN(rdataset) ? DNS_R_NCACHENXDOMAIN
+					    : DNS_R_NCACHENXRRSET;
+	} else if (result == ISC_R_SUCCESS && rdataset->type != fctx->type) {
+		switch (rdataset->type) {
+		case dns_rdatatype_cname:
+			result = DNS_R_CNAME;
+			break;
+		case dns_rdatatype_dname:
+			result = DNS_R_DNAME;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return result;
+}
+
+/*
  * The validator has finished.
  */
 static void
@@ -5578,8 +5618,7 @@ validated(void *arg) {
 			ttl = 0;
 		}
 
-		result = ncache_adderesult(message, fctx->cache, node, covers,
-					   now, fctx->res->view->minncachettl,
+		result = ncache_adderesult(fctx, message, node, covers, now,
 					   ttl, val->optout, val->secure,
 					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS) {
@@ -5825,23 +5864,7 @@ answer_response:
 		 */
 		INSIST(hresp->rdataset != NULL);
 		if (dns_rdataset_isassociated(hresp->rdataset)) {
-			if (NEGATIVE(hresp->rdataset)) {
-				INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
-				       eresult == DNS_R_NCACHENXRRSET);
-			} else if (eresult == ISC_R_SUCCESS &&
-				   hresp->rdataset->type != fctx->type)
-			{
-				switch (hresp->rdataset->type) {
-				case dns_rdatatype_cname:
-					eresult = DNS_R_CNAME;
-					break;
-				case dns_rdatatype_dname:
-					eresult = DNS_R_DNAME;
-					break;
-				default:
-					break;
-				}
-			}
+			eresult = fctx_setresult(fctx, hresp->rdataset);
 		}
 
 		hresp->result = eresult;
@@ -6519,24 +6542,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			 * resp->result.
 			 */
 			if (dns_rdataset_isassociated(resp->rdataset)) {
-				if (NEGATIVE(resp->rdataset)) {
-					INSIST(eresult ==
-						       DNS_R_NCACHENXDOMAIN ||
-					       eresult == DNS_R_NCACHENXRRSET);
-				} else if (eresult == ISC_R_SUCCESS &&
-					   resp->rdataset->type != fctx->type)
-				{
-					switch (resp->rdataset->type) {
-					case dns_rdatatype_cname:
-						eresult = DNS_R_CNAME;
-						break;
-					case dns_rdatatype_dname:
-						eresult = DNS_R_DNAME;
-						break;
-					default:
-						break;
-					}
-				}
+				eresult = fctx_setresult(fctx, resp->rdataset);
 			}
 			resp->result = eresult;
 			if (adbp != NULL && *adbp != NULL) {
@@ -6605,12 +6611,14 @@ cache_message(fetchctx_t *fctx, dns_message_t *message,
  * eresult.
  */
 static isc_result_t
-ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
-		  dns_ttl_t maxttl, bool optout, bool secure,
-		  dns_rdataset_t *ardataset, isc_result_t *eresultp) {
+ncache_adderesult(fetchctx_t *fctx, dns_message_t *message, dns_dbnode_t *node,
+		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
+		  bool optout, bool secure, dns_rdataset_t *ardataset,
+		  isc_result_t *eresultp) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
+	dns_db_t *cache = fctx->cache;
+	dns_ttl_t minttl = fctx->res->view->minncachettl;
 
 	if (ardataset == NULL) {
 		dns_rdataset_init(&rdataset);
@@ -6646,37 +6654,13 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
-		 * If the cache now contains a negative entry and we
-		 * care about whether it is DNS_R_NCACHENXDOMAIN or
-		 * DNS_R_NCACHENXRRSET then extract it.
+		 * The cache settled successfully (DNS_R_UNCHANGED means our
+		 * negative entry was discarded in favour of existing
+		 * higher-trust data).  Either way 'ardataset' is now bound to
+		 * the rdataset the cache holds for this name and type; derive
+		 * the result code from it.
 		 */
-		if (NEGATIVE(ardataset)) {
-			/*
-			 * The cache data is a negative cache entry.
-			 */
-			if (NXDOMAIN(ardataset)) {
-				*eresultp = DNS_R_NCACHENXDOMAIN;
-			} else {
-				*eresultp = DNS_R_NCACHENXRRSET;
-			}
-		} else {
-			/*
-			 * The attempt to add a negative cache entry
-			 * was rejected.  Set *eresultp to reflect
-			 * the type of the dataset being returned.
-			 */
-			switch (ardataset->type) {
-			case dns_rdatatype_cname:
-				*eresultp = DNS_R_CNAME;
-				break;
-			case dns_rdatatype_dname:
-				*eresultp = DNS_R_DNAME;
-				break;
-			default:
-				*eresultp = ISC_R_SUCCESS;
-				break;
-			}
-		}
+		*eresultp = fctx_setresult(fctx, ardataset);
 		result = ISC_R_SUCCESS;
 	}
 	if (ardataset == &rdataset && dns_rdataset_isassociated(ardataset)) {
@@ -6820,8 +6804,7 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 		ttl = 0;
 	}
 
-	result = ncache_adderesult(message, fctx->cache, node, covers, now,
-				   fctx->res->view->minncachettl, ttl, false,
+	result = ncache_adderesult(fctx, message, node, covers, now, ttl, false,
 				   false, ardataset, &eresult);
 	if (result != ISC_R_SUCCESS) {
 		goto unlock;
