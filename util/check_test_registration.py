@@ -17,12 +17,17 @@ import sys
 test_dir = sys.argv[1]
 registered = sys.argv[2:]
 
+missing = []
 for path in sorted(glob.glob(os.path.join(test_dir, "*_test.c"))):
     name = os.path.basename(path).removesuffix("_test.c")
     if name not in registered:
+        missing.append((os.path.basename(path), name))
+
+if missing:
+    for filename, name in missing:
         print(
-            f"Unit test file {os.path.basename(path)} is not registered"
+            f"Unit test file {filename} is not registered"
             f" (add '{name}' to the list)",
             file=sys.stderr,
         )
-        sys.exit(1)
+    sys.exit(1)
