@@ -2777,14 +2777,20 @@ merged-metadata:
     - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
     - if ! git push --force-with-lease -o ci.variable="AUTOREBASED=1" origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
-    - if [ "${CI_JOB_STATUS}" = "success" ] || [ "${CI_PIPELINE_SOURCE}" = "merge_request_event" ]; then exit 0; fi
+    - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
     - |
       REASON_DETAILS=""
       if git rebase --abort; then
           # Rebase failed; try applying recent commits from the base branch on top of the branch being rebased to determine which one introduces conflicts
           git rebase --rebase-merges "${CI_COMMIT_SHA}" "${BASE_COMMIT}" || true
           CONFLICT_COMMIT="$(git rev-parse REBASE_HEAD)"
-          CONFLICT_COMMIT_AUTHOR="$(git log --max-count=1 --pretty="@%al" "${CONFLICT_COMMIT}")"
+          CONFLICT_COMMIT_AUTHOR_LOGIN="$(git log --max-count=1 --pretty="%al" "${CONFLICT_COMMIT}")"
+          CONFLICT_COMMIT_AUTHOR_USERNAME="$(curl -m 5 -s "https://gitlab.isc.org/isc-projects/bind9-qa/-/raw/main/releng/users.json" | jq -r ".${CONFLICT_COMMIT_AUTHOR_LOGIN}" || :)"
+          if [ -n "${CONFLICT_COMMIT_AUTHOR_USERNAME}" ] && [ "${CONFLICT_COMMIT_AUTHOR_USERNAME}" != "null" ]; then
+            CONFLICT_COMMIT_AUTHOR="@**${CONFLICT_COMMIT_AUTHOR_USERNAME}**"
+          else
+            CONFLICT_COMMIT_AUTHOR="\`${CONFLICT_COMMIT_AUTHOR_LOGIN}\`"
+          fi
           CONFLICT_COMMIT_MERGE="$(git log --reverse --merges --pretty="%H" "${CONFLICT_COMMIT}..${BASE_COMMIT}" | head -1)"
           read -r CONFLICT_COMMIT_MERGE_REQUEST_PROJECT CONFLICT_COMMIT_MERGE_REQUEST_ID < <(git log --max-count=1 "${CONFLICT_COMMIT_MERGE}" | sed -n -E 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
           REASON="merge conflict introduced by a change in the base branch"
@@ -2806,23 +2812,9 @@ merged-metadata:
       MSG="${MSG}\n**Job**: ${CI_JOB_URL}"
       MSG="${MSG}\n**Reason**: ${REASON}"
       MSG="${MSG}${REASON_DETAILS}"
-      echo "$MSG" > message.txt
+      echo -e "$MSG" > message.txt
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-team --topic 'Autorebase errors'
-
-autorebase-merge-request:
-  <<: *autorebase
-  stage: quick-checks
-  resource_group: null
-  before_script:
-    - git fetch --depth="${GIT_DEPTH}" origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
-    - export BASE_PROJECT="isc-private/bind9"
-    - export BASE_COMMIT="$(git rev-parse "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}")"
-    - export REWRITE_CHERRY_PICKS_FROM="security-main"
-  rules:
-    - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^security-(bind-9\.[0-9]+)$/'
-      when: manual
-      allow_failure: true
 
 autorebase-trigger-security:
   <<: *autorebase_common
