@@ -4139,87 +4139,6 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	return true;
 }
 
-static unsigned char inaddr10[] = "\00210\007IN-ADDR\004ARPA";
-
-static unsigned char inaddr16172[] = "\00216\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr17172[] = "\00217\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr18172[] = "\00218\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr19172[] = "\00219\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr20172[] = "\00220\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr21172[] = "\00221\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr22172[] = "\00222\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr23172[] = "\00223\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr24172[] = "\00224\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr25172[] = "\00225\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr26172[] = "\00226\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr27172[] = "\00227\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr28172[] = "\00228\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr29172[] = "\00229\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr30172[] = "\00230\003172\007IN-ADDR\004ARPA";
-static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
-
-static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
-
-static dns_name_t rfc1918names[] = {
-	DNS_NAME_INITABSOLUTE(inaddr10),    DNS_NAME_INITABSOLUTE(inaddr16172),
-	DNS_NAME_INITABSOLUTE(inaddr17172), DNS_NAME_INITABSOLUTE(inaddr18172),
-	DNS_NAME_INITABSOLUTE(inaddr19172), DNS_NAME_INITABSOLUTE(inaddr20172),
-	DNS_NAME_INITABSOLUTE(inaddr21172), DNS_NAME_INITABSOLUTE(inaddr22172),
-	DNS_NAME_INITABSOLUTE(inaddr23172), DNS_NAME_INITABSOLUTE(inaddr24172),
-	DNS_NAME_INITABSOLUTE(inaddr25172), DNS_NAME_INITABSOLUTE(inaddr26172),
-	DNS_NAME_INITABSOLUTE(inaddr27172), DNS_NAME_INITABSOLUTE(inaddr28172),
-	DNS_NAME_INITABSOLUTE(inaddr29172), DNS_NAME_INITABSOLUTE(inaddr30172),
-	DNS_NAME_INITABSOLUTE(inaddr31172), DNS_NAME_INITABSOLUTE(inaddr168192)
-};
-
-static unsigned char prisoner_data[] = "\010prisoner\004iana\003org";
-static unsigned char hostmaster_data[] = "\012hostmaster\014root-"
-					 "servers\003org";
-
-static dns_name_t const prisoner = DNS_NAME_INITABSOLUTE(prisoner_data);
-static dns_name_t const hostmaster = DNS_NAME_INITABSOLUTE(hostmaster_data);
-
-static void
-warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
-	unsigned int i;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_soa_t soa;
-	dns_rdataset_t found;
-	isc_result_t result;
-
-	for (i = 0; i < (sizeof(rfc1918names) / sizeof(*rfc1918names)); i++) {
-		if (dns_name_issubdomain(fname, &rfc1918names[i])) {
-			dns_rdataset_init(&found);
-			result = dns_ncache_getrdataset(
-				rdataset, &rfc1918names[i], dns_rdatatype_soa,
-				&found);
-			if (result != ISC_R_SUCCESS) {
-				return;
-			}
-
-			result = dns_rdataset_first(&found);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			dns_rdataset_current(&found, &rdata);
-			result = dns_rdata_tostruct(&rdata, &soa, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			if (dns_name_equal(&soa.origin, &prisoner) &&
-			    dns_name_equal(&soa.contact, &hostmaster))
-			{
-				char buf[DNS_NAME_FORMATSIZE];
-				dns_name_format(fname, buf, sizeof(buf));
-				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_WARNING,
-					      "RFC 1918 response from "
-					      "Internet for %s",
-					      buf);
-			}
-			dns_rdataset_disassociate(&found);
-			return;
-		}
-	}
-}
-
 static void
 query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		       dns_dbversion_t *version, ns_client_t *client,
@@ -9698,14 +9617,6 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 		 * to update the rcode now.)
 		 */
 		qctx->client->message->rcode = dns_rcode_nxdomain;
-
-		/* Look for RFC 1918 leakage from Internet. */
-		if (qctx->qtype == dns_rdatatype_ptr &&
-		    qctx->client->message->rdclass == dns_rdataclass_in &&
-		    dns_name_countlabels(qctx->fname) == 7)
-		{
-			warn_rfc1918(qctx->client, qctx->fname, qctx->rdataset);
-		}
 	}
 
 	if (!qctx->is_zone && qctx->client->query.recursionok) {
