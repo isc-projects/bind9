@@ -2694,7 +2694,7 @@ merged-metadata:
       MSG="${MSG}\n**Job**: ${CI_JOB_URL}"
       MSG="${MSG}\n**Reason**: ${REASON}"
       MSG="${MSG}${REASON_DETAILS}"
-      echo "$MSG" > message.txt
+      echo -e "$MSG" > message.txt
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-team --topic 'Autorebase errors'
 
