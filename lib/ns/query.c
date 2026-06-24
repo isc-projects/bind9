@@ -384,7 +384,7 @@ fetch_callback(void *arg);
 
 static void
 recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
-		const dns_name_t *qname, const dns_name_t *qdomain);
+		const dns_name_t *qname);
 
 static isc_result_t
 query_resume(query_ctx_t *qctx);
@@ -834,7 +834,7 @@ query_reset(ns_client_t *client, bool everything) {
 	client->query.isreferral = false;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = UINT32_MAX;
-	recparam_update(&client->query.recparam, 0, NULL, NULL);
+	recparam_update(&client->query.recparam, 0, NULL);
 	client->query.root_key_sentinel_keyid = 0;
 	client->query.root_key_sentinel_is_ta = false;
 	client->query.root_key_sentinel_not_ta = false;
@@ -5909,13 +5909,11 @@ fetch_callback(void *arg) {
  */
 static bool
 recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
-	       const dns_name_t *qname, const dns_name_t *qdomain) {
+	       const dns_name_t *qname) {
 	REQUIRE(param != NULL);
 
 	return param->qtype == qtype && param->qname != NULL && qname != NULL &&
-	       param->qdomain != NULL && qdomain != NULL &&
-	       dns_name_equal(param->qname, qname) &&
-	       dns_name_equal(param->qdomain, qdomain);
+	       dns_name_equal(param->qname, qname);
 }
 
 /*%
@@ -5924,7 +5922,7 @@ recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
  */
 static void
 recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
-		const dns_name_t *qname, const dns_name_t *qdomain) {
+		const dns_name_t *qname) {
 	REQUIRE(param != NULL);
 
 	param->qtype = qtype;
@@ -5934,13 +5932,6 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 	} else {
 		param->qname = dns_fixedname_initname(&param->fqname);
 		dns_name_copy(qname, param->qname);
-	}
-
-	if (qdomain == NULL) {
-		param->qdomain = NULL;
-	} else {
-		param->qdomain = dns_fixedname_initname(&param->fqdomain);
-		dns_name_copy(qdomain, param->qdomain);
 	}
 }
 
@@ -6022,13 +6013,13 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	 * Check recursion parameters from the previous query to see if they
 	 * match.  If not, update recursion parameters and proceed.
 	 */
-	if (recparam_match(&client->query.recparam, qtype, qname, NULL)) {
+	if (recparam_match(&client->query.recparam, qtype, qname)) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 			      ISC_LOG_INFO, "recursion loop detected");
 		return ISC_R_FAILURE;
 	}
 
-	recparam_update(&client->query.recparam, qtype, qname, NULL);
+	recparam_update(&client->query.recparam, qtype, qname);
 
 	if (!resuming) {
 		inc_stats(client, ns_statscounter_recursion);
