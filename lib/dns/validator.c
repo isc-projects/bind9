@@ -846,6 +846,8 @@ validator_callback_nsec(void *arg) {
 		    rdataset->trust == dns_trust_secure &&
 		    (NEEDNODATA(val) || NEEDNOQNAME(val)) &&
 		    !FOUNDNODATA(val) && !FOUNDNOQNAME(val) &&
+		    dns_name_issubdomain(val->name,
+					 &subvalidator->siginfo->signer) &&
 		    dns_nsec_noexistnodata(val->type, val->name,
 					   subvalidator->name, rdataset,
 					   &exists, &data, wild, validator_log,
