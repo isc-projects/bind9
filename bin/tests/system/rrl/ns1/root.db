@@ -1,8 +1,7 @@
 $TTL	120
-@		SOA	ns. hostmaster.ns. ( 1 3600 1200 604800 60 )
-@		NS	ns.
-ns.		A	10.53.0.1
-.		A	10.53.0.1
+@		SOA	ns1. hostmaster.ns1. ( 1 3600 1200 604800 60 )
+@		NS	ns1.
+ns1.		A	10.53.0.1
 
 ; limit responses from here
 tld2.		NS	ns.tld2.
