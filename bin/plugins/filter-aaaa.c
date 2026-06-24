@@ -741,7 +741,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 */
 			result = ns_query_recurse(qctx->client, dns_rdatatype_a,
 						  qctx->client->query.qname,
-						  NULL, NULL, qctx->resuming);
+						  qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_AAAA_RECURSING;
 				qctx->client->query.recursing = true;

@@ -270,7 +270,7 @@ ns_query_done(query_ctx_t *qctx);
 
 isc_result_t
 ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
-		 dns_name_t *qdomain, dns_delegset_t *delegset, bool resuming);
+		 bool resuming);
 /*%<
  * Prepare client for recursion, then create a resolver fetch, with
  * the event callback set to fetch_callback(). Afterward we terminate

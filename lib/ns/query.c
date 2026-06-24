@@ -2939,7 +2939,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		{
 			dns_name_copy(name, st->r_name);
 			result = ns_query_recurse(client, type, st->r_name,
-						  NULL, NULL, resuming);
+						  resuming);
 			if (result == ISC_R_SUCCESS) {
 				st->state |= DNS_RPZ_RECURSING;
 				result = DNS_R_DELEGATION;
@@ -4660,7 +4660,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		 */
 		if (!redirected) {
 			result = ns_query_recurse(client, qtype, redirectname,
-						  NULL, NULL, true);
+						  true);
 			if (result == ISC_R_SUCCESS) {
 				client->query.recursing = true;
 				client->query.is_redirect = true;
@@ -6011,7 +6011,7 @@ release_recursionquota(ns_client_t *client) {
 
 isc_result_t
 ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
-		 dns_name_t *qdomain, dns_delegset_t *delegset, bool resuming) {
+		 bool resuming) {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_sockaddr_t *peeraddr = NULL;
@@ -6022,13 +6022,13 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	 * Check recursion parameters from the previous query to see if they
 	 * match.  If not, update recursion parameters and proceed.
 	 */
-	if (recparam_match(&client->query.recparam, qtype, qname, qdomain)) {
+	if (recparam_match(&client->query.recparam, qtype, qname, NULL)) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 			      ISC_LOG_INFO, "recursion loop detected");
 		return ISC_R_FAILURE;
 	}
 
-	recparam_update(&client->query.recparam, qtype, qname, qdomain);
+	recparam_update(&client->query.recparam, qtype, qname, NULL);
 
 	if (!resuming) {
 		inc_stats(client, ns_statscounter_recursion);
@@ -6061,9 +6061,9 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			    &HANDLE_RECTYPE_NORMAL(client));
 	maybe_init_fetch_counter(client);
 	result = dns_resolver_createfetch(
-		client->inner.view->resolver, qname, qtype, qdomain, delegset,
-		NULL, peeraddr, client->message->id, client->query.fetchoptions,
-		0, NULL, client->query.qc, NULL, client->manager->loop,
+		client->inner.view->resolver, qname, qtype, NULL, NULL, NULL,
+		peeraddr, client->message->id, client->query.fetchoptions, 0,
+		NULL, client->query.qc, NULL, client->manager->loop,
 		fetch_callback, client, &client->edectx, rdataset, sigrdataset,
 		&FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
@@ -8420,7 +8420,6 @@ query_cache_delegation(query_ctx_t *qctx) {
 static isc_result_t
 query_delegation_recurse(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
-	dns_name_t *qname = qctx->client->query.qname;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_delegation_recurse");
 
@@ -8442,30 +8441,13 @@ query_delegation_recurse(query_ctx_t *qctx) {
 
 	INSIST(!qctx->client->query.is_redirect);
 
-	if (dns_rdatatype_atparent(qctx->type)) {
-		/*
-		 * Parent is authoritative for this RDATA type (i.e. DS).
-		 */
-		result = ns_query_recurse(qctx->client, qctx->qtype, qname,
-					  NULL, NULL, qctx->resuming);
-	} else if (qctx->dns64) {
-		/*
-		 * Look up an A record so we can synthesize DNS64.
-		 */
-		result = ns_query_recurse(qctx->client, dns_rdatatype_a, qname,
-					  NULL, NULL, qctx->resuming);
-	} else {
-		/*
-		 * Any other recursion. If qctx->fname/qctx->rdataset are
-		 * valid/associated, it  means we found a delegation from a
-		 * local zone. But we can safely ignore them, as the resolver
-		 * will find this out by itself internally. This is useful only
-		 * in the case recursion is not available, so it can be returned
-		 * as referral.
-		 */
-		result = ns_query_recurse(qctx->client, qctx->qtype, qname,
-					  NULL, NULL, qctx->resuming);
-	}
+	/*
+	 * If DNS64 is used, look up for an A record so we can synthesize
+	 * DNS64.
+	 */
+	dns_rdatatype_t qtype = qctx->dns64 ? dns_rdatatype_a : qctx->qtype;
+	result = ns_query_recurse(qctx->client, qtype,
+				  qctx->client->query.qname, qctx->resuming);
 
 	if (result == ISC_R_SUCCESS) {
 		qctx->client->query.recursing = true;
@@ -9825,8 +9807,7 @@ query_zerottl_refetch(query_ctx_t *qctx) {
 	INSIST(!qctx->client->query.is_redirect);
 
 	result = ns_query_recurse(qctx->client, qctx->qtype,
-				  qctx->client->query.qname, NULL, NULL,
-				  qctx->resuming);
+				  qctx->client->query.qname, qctx->resuming);
 	if (result == ISC_R_SUCCESS) {
 		CALL_HOOK(NS_QUERY_ZEROTTL_RECURSE, qctx);
 		qctx->client->query.recursing = true;
