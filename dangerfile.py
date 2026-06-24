@@ -147,7 +147,7 @@ if is_backport:
             "Please also set exactly one version label (*v9.x*)."
         )
     else:
-        mr_title_version = f"[{version_labels[0].replace('.', '_').replace(' (EoL)', '')}]"
+        mr_title_version = f"[{version_labels[0].replace('v9.', '9.').replace(' (EoL)', '')}]"
         if mr_title_version not in danger.gitlab.mr.title:
             fail(
                 "Backport MRs must have their target branch in the "
