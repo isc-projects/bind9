@@ -2432,7 +2432,7 @@ do_next_command(char *cmdline) {
 static uint16_t
 get_next_command(void) {
 	uint16_t result = STATUS_QUIT;
-	char cmdlinebuf[MAXCMD];
+	char cmdlinebuf[MAXCMD] = { 0 };
 	char *cmdline = NULL, *ptr = NULL;
 
 	if (interactive) {
