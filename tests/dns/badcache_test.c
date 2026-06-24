@@ -55,7 +55,7 @@ ISC_LOOP_TEST_IMPL(basic) {
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now + 60);
 
 	flags = 0;
@@ -83,7 +83,7 @@ ISC_LOOP_TEST_IMPL(expire) {
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now + 60);
 	dns_badcache_add(bc, name, dns_rdatatype_a, flags, now + 60);
 
@@ -135,7 +135,7 @@ ISC_LOOP_TEST_IMPL(print) {
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 	dns_badcache_add(bc, name, dns_rdatatype_a, flags, expire);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, expire);
 
@@ -208,7 +208,7 @@ ISC_LOOP_TEST_IMPL(flush) {
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now + 60);
 
 	result = dns_badcache_find(bc, name, dns_rdatatype_aaaa, &flags, now);
@@ -232,8 +232,7 @@ ISC_LOOP_TEST_IMPL(flushname) {
 	isc_result_t result;
 	uint32_t flags = BADCACHE_TEST_FLAG;
 
-	bc = dns_badcache_new(mctx, loopmgr);
-
+	bc = dns_badcache_new(mctx);
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now + 60);
 	result = dns_badcache_find(bc, name, dns_rdatatype_aaaa, &flags, now);
@@ -278,7 +277,7 @@ ISC_LOOP_TEST_IMPL(flushtree) {
 	isc_result_t result;
 	uint32_t flags = BADCACHE_TEST_FLAG;
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now + 60);
@@ -327,7 +326,7 @@ ISC_LOOP_TEST_IMPL(purge) {
 	isc_result_t result;
 	uint32_t flags = BADCACHE_TEST_FLAG;
 
-	bc = dns_badcache_new(mctx, loopmgr);
+	bc = dns_badcache_new(mctx);
 
 	dns_name_fromstring(name, "example.com.", NULL, 0, NULL);
 	dns_badcache_add(bc, name, dns_rdatatype_aaaa, flags, now);
