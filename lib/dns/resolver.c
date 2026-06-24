@@ -5480,6 +5480,23 @@ has_000_label(dns_rdataset_t *nsecset) {
 	return false;
 }
 
+/*
+ * After a (non-error) negative-cache add, 'rdataset' is bound to whatever
+ * rdataset the cache authoritatively holds for the queried name and type.
+ * Map that to the result code the fetch should report:
+ *
+ *   - A negative cache entry (the one we just added, or a pre-existing one):
+ *     DNS_R_NCACHENXDOMAIN or DNS_R_NCACHENXRRSET, depending on NXDOMAIN vs
+ *     NODATA.
+ *
+ *   - A positive rdataset that was already cached at higher trust, which
+ *     caused our negative entry to be discarded (e.g. a CNAME or DNAME cached
+ *     by a concurrent query): ISC_R_SUCCESS, because that cached positive
+ *     answer is what gets returned.  Note the specific case for CNAME and
+ *     DNAME *if* the query type is not the same as the rdataset type. There
+ *     is a chain to follow *only* if the query type doesn't ask for the CNAME
+ *     or the DNAME.
+ */
 static void
 fctx_setresult(fetchctx_t *fctx) {
 	isc_result_t result = ISC_R_SUCCESS;
