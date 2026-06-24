@@ -7892,11 +7892,6 @@ resquery_response_continue(void *arg, isc_result_t result) {
 
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("signature check failed", result);
-		if (result == DNS_R_UNEXPECTEDTSIG ||
-		    result == DNS_R_EXPECTEDTSIG)
-		{
-			rctx->nextitem = true;
-		}
 		rctx_done(rctx, result);
 		goto cleanup;
 	}
