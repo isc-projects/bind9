@@ -2665,7 +2665,7 @@ merged-metadata:
     - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
     - if ! git push --force-with-lease -o ci.variable="AUTOREBASED=1" origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
-    - if [ "${CI_JOB_STATUS}" = "success" ] || [ "${CI_PIPELINE_SOURCE}" = "merge_request_event" ]; then exit 0; fi
+    - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
     - |
       REASON_DETAILS=""
       if git rebase --abort; then
@@ -2697,19 +2697,6 @@ merged-metadata:
       echo "$MSG" > message.txt
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-team --topic 'Autorebase errors'
-
-autorebase-merge-request:
-  <<: *autorebase
-  stage: quick-checks
-  resource_group: null
-  before_script:
-    - git fetch --depth="${GIT_DEPTH}" origin "${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}" "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
-    - export BASE_PROJECT="isc-private/bind9"
-    - export BASE_COMMIT="$(git rev-parse "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}")"
-  rules:
-    - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^security-(bind-9\.[0-9]+)$/'
-      when: manual
-      allow_failure: true
 
 autorebase-trigger-security:
   <<: *autorebase_common
