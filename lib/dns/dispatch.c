@@ -66,6 +66,8 @@ struct dns_dispatchmgr {
 	dns_acl_t *blackhole;
 	isc_stats_t *stats;
 
+	unsigned int reuse_timeout;
+
 	uint32_t nloops;
 
 	struct cds_lfht **tcps;
@@ -740,6 +742,11 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 		tcp_recv_add(resps, resp, result);
 	}
 	disp->state = DNS_DISPATCHSTATE_CANCELED;
+
+	/* Close now so the socket doesn't linger in CLOSE-WAIT. */
+	if (disp->handle != NULL) {
+		isc_nmhandle_close(disp->handle);
+	}
 }
 
 static void
@@ -751,6 +758,26 @@ tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
 			      isc_result_totext(resp->result));
 		resp->response(resp->result, region, resp->arg);
 		dns_dispentry_detach(&resp); /* DISPENTRY009 */
+	}
+}
+
+static void
+tcp_startrecv_idle(dns_dispatch_t *disp) {
+	REQUIRE(disp->mgr->reuse_timeout > 0);
+
+	/*
+	 * No outstanding responses, but the connection is still up and
+	 * reusable.  Keep a read pending (bounded by the idle timeout)
+	 * so that a peer-initiated close is detected promptly;
+	 * otherwise the socket would linger in CLOSE-WAIT and be handed
+	 * out again as a dead reused connection.
+	 */
+	isc_nmhandle_cleartimeout(disp->handle);
+	isc_nmhandle_settimeout(disp->handle, disp->mgr->reuse_timeout);
+	if (!disp->reading) {
+		dispatch_log(disp, ISC_LOG_DEBUG(90), "keeping idle read on %p",
+			     disp->handle);
+		tcp_startrecv(disp, NULL);
 	}
 }
 
@@ -768,7 +795,7 @@ tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
  *	restart.
  */
 static void
-tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
+tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	 void *arg) {
 	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
 	dns_dispentry_t *resp = NULL;
@@ -777,6 +804,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 	isc_time_t now;
 	int timeout = 0;
+	isc_result_t result = eresult;
 
 	REQUIRE(VALID_DISPATCH(disp));
 
@@ -786,7 +814,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 
 	dispatch_log(disp, ISC_LOG_DEBUG(90),
 		     "TCP read:%s:requests %" PRIuFAST32,
-		     isc_result_totext(result), disp->requests);
+		     isc_result_totext(eresult), disp->requests);
 
 	peer = isc_nmhandle_peeraddr(handle);
 
@@ -794,7 +822,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	/*
 	 * Phase 1: Process timeout and success.
 	 */
-	switch (result) {
+	switch (eresult) {
 	case ISC_R_TIMEDOUT:
 		/*
 		 * Time out the oldest response in the active queue.
@@ -819,7 +847,13 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	 */
 
 	if (result == ISC_R_NOTFOUND) {
-		if (disp->timedout > 0) {
+		if (eresult == ISC_R_TIMEDOUT) {
+			/*
+			 * An idle keep-alive read timed out with no outstanding
+			 * responses.
+			 */
+			result = ISC_R_CANCELED;
+		} else if (disp->timedout > 0) {
 			/* There was active query that timed-out before */
 			disp->timedout--;
 		} else {
@@ -857,15 +891,16 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	case ISC_R_TIMEDOUT:
 	case ISC_R_NOTFOUND:
 		break;
-
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_EOF:
 	case ISC_R_CONNECTIONRESET:
-		isc_sockaddr_format(&peer, buf, sizeof(buf));
-		dispatch_log(disp, ISC_LOG_DEBUG(90),
-			     "shutting down TCP: %s: %s", buf,
-			     isc_result_totext(result));
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(90))) {
+			isc_sockaddr_format(&peer, buf, sizeof(buf));
+			dispatch_log(disp, ISC_LOG_DEBUG(90),
+				     "shutting down TCP: %s: %s", buf,
+				     isc_result_totext(result));
+		}
 		tcp_recv_shutdown(disp, &resps, result);
 		break;
 	default:
@@ -899,6 +934,16 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	 * Phase 6: Process all scheduled callbacks.
 	 */
 	tcp_recv_processall(&resps, region);
+
+	/*
+	 * Phase 7: Restart reading on idle connections.
+	 */
+	if (ISC_LIST_EMPTY(disp->active) &&
+	    disp->state == DNS_DISPATCHSTATE_CONNECTED &&
+	    disp->mgr->reuse_timeout > 0)
+	{
+		tcp_startrecv_idle(disp);
+	}
 
 	dns_dispatch_detach(&disp); /* DISPATCH002 */
 }
@@ -1044,6 +1089,13 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 			      isc_portset_t *v6portset) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	return setavailports(mgr, v4portset, v6portset);
+}
+
+void
+dns_dispatchmgr_setreusetimeout(dns_dispatchmgr_t *mgr,
+				unsigned int reuse_timeout) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	mgr->reuse_timeout = reuse_timeout;
 }
 
 static void
@@ -1732,43 +1784,29 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 
 		INSIST(!ISC_LINK_LINKED(resp, alink));
 
-		if (ISC_LIST_EMPTY(disp->active)) {
+		if (ISC_LIST_EMPTY(disp->active) &&
+		    disp->state == DNS_DISPATCHSTATE_CONNECTED)
+		{
 			INSIST(disp->handle != NULL);
 
-#if DISPATCH_TCP_KEEPALIVE
 			/*
-			 * This is an experimental code that keeps the TCP
-			 * connection open for 1 second before it is finally
-			 * closed.  By keeping the TCP connection open, it can
-			 * be reused by dns_request that uses
-			 * dns_dispatch_gettcp() to join existing TCP
-			 * connections.
-			 *
-			 * It is disabled for now, because it changes the
-			 * behaviour, but I am keeping the code here for future
-			 * reference when we improve the dns_dispatch to reuse
-			 * the TCP connections also in the resolver.
-			 *
-			 * The TCP connection reuse should be seamless and not
-			 * require any extra handling on the client side though.
+			 * This was the last outstanding response on a still
+			 * connected dispatch.  Keep the connection open with a
+			 * read pending (bounded by the idle timeout) so that it
+			 * can be reused by a subsequent query and so that a
+			 * peer-initiated close is noticed promptly instead of
+			 * leaving the socket stuck in CLOSE-WAIT.  If the
+			 * dispatch is already shutting down, leave it alone so
+			 * it can be torn down.
 			 */
-			isc_nmhandle_cleartimeout(disp->handle);
-			isc_nmhandle_settimeout(disp->handle, 1000);
-
-			if (!disp->reading) {
-				dispentry_log(resp, ISC_LOG_DEBUG(90),
-					      "final 1 second timeout on %p",
-					      disp->handle);
-				tcp_startrecv(disp, NULL);
-			}
-#else
-			if (disp->reading) {
+			if (disp->mgr->reuse_timeout > 0) {
+				tcp_startrecv_idle(disp);
+			} else if (disp->reading) {
 				dispentry_log(resp, ISC_LOG_DEBUG(90),
 					      "canceling read on %p",
 					      disp->handle);
 				isc_nm_cancelread(disp->handle);
 			}
-#endif
 		}
 		break;
 
@@ -1845,6 +1883,10 @@ static void
 tcp_startrecv(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(disp->socktype == isc_socktype_tcp);
+
+	if (disp->reading) {
+		return;
+	}
 
 	dns_dispatch_ref(disp); /* DISPATCH002 */
 	if (resp != NULL) {
@@ -2102,13 +2144,19 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      "already connected; attaching");
 		resp->reading = true;
 
+		/*
+		 * Replace any idle timeout with this query's timeout.  The
+		 * connection may have been kept reading while idle (with the
+		 * idle timeout applied), so update the handle timeout even when
+		 * a read is already pending.
+		 */
+		isc_nmhandle_cleartimeout(disp->handle);
+		if (resp->timeout != 0) {
+			isc_nmhandle_settimeout(disp->handle, resp->timeout);
+		}
+
 		if (!disp->reading) {
 			/* Restart the reading */
-			isc_nmhandle_cleartimeout(disp->handle);
-			if (resp->timeout != 0) {
-				isc_nmhandle_settimeout(disp->handle,
-							resp->timeout);
-			}
 			tcp_startrecv(disp, resp);
 		}
 

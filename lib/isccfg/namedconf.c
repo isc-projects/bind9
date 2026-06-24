@@ -1591,6 +1591,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "tcp-listen-queue", &cfg_type_uint32, 0, NULL },
 	{ "tcp-primaries-timeout", &cfg_type_uint32, 0, NULL },
 	{ "tcp-receive-buffer", &cfg_type_uint32, 0, NULL },
+	{ "tcp-reuse-timeout", &cfg_type_uint32, 0, NULL },
 	{ "tcp-send-buffer", &cfg_type_uint32, 0, NULL },
 	{ "tkey-dhkey", NULL, CFG_CLAUSEFLAG_ANCIENT, NULL },
 	{ "tkey-domain", &cfg_type_qstring, CFG_CLAUSEFLAG_ANCIENT, NULL },

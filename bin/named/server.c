@@ -169,6 +169,7 @@
 #define MAX_ADVERTISED_TIMEOUT UINT32_C(UINT16_MAX * 100)
 #define MIN_PRIMARIES_TIMEOUT  UINT32_C(2500)	/* 2.5 seconds */
 #define MAX_PRIMARIES_TIMEOUT  UINT32_C(120000) /* 2 minutes */
+#define MAX_REUSE_TIMEOUT      UINT32_C(120000) /* 2 minutes */
 
 /*%
  * Check an operation for failure.  Assumes that the function
@@ -7723,7 +7724,7 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	uint32_t softquota = 0;
 	uint32_t max;
-	uint64_t initial, idle, keepalive, advertised, primaries;
+	uint64_t initial, idle, keepalive, advertised, primaries, reuse;
 	bool loadbalancesockets;
 	bool exclusive = false;
 	dns_aclenv_t *env =
@@ -8000,11 +8001,25 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 		primaries = MIN_PRIMARIES_TIMEOUT;
 	}
 
+	obj = NULL;
+	result = named_config_get(maps, "tcp-reuse-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	reuse = cfg_obj_asuint32(obj) * 100;
+	if (reuse > MAX_REUSE_TIMEOUT) {
+		cfg_obj_log(obj, ISC_LOG_WARNING,
+			    "tcp-reuse-timeout value is out of range: "
+			    "lowering to %" PRIu32,
+			    MAX_REUSE_TIMEOUT / 100);
+		reuse = MAX_REUSE_TIMEOUT;
+	}
+
 	isc_nm_setinitialtimeout(initial);
 	isc_nm_setprimariestimeout(primaries);
 	isc_nm_setidletimeout(idle);
 	isc_nm_setkeepalivetimeout(keepalive);
 	isc_nm_setadvertisedtimeout(advertised);
+
+	dns_dispatchmgr_setreusetimeout(named_g_dispatchmgr, reuse);
 
 #define CAP_IF_NOT_ZERO(v, min, max) \
 	if (v > 0 && v < min) {      \
