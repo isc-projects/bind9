@@ -13,6 +13,8 @@ information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator
 
+import asyncio
+
 from dns import name, rcode, rdataclass, rdatatype, rrset
 
 from isctest.asyncserver import (
@@ -22,6 +24,38 @@ from isctest.asyncserver import (
     QueryContext,
     StaticResponseHandler,
 )
+
+# The attack relies on the resolver caching the positive CNAME/DNAME answer
+# *before* it processes the negative answer for the same name.  The negative
+# answer must therefore be held back until the positive one has been sent, but
+# released again while the negative fetch is still waiting for it.
+#
+# Releasing it at a fixed wall-clock delay (the original approach) is racy: the
+# delay must be larger than the time it takes the resolver to cache the
+# positive answer, yet smaller than the resolver's per-query timeout.  Under
+# load -- most notably ThreadSanitizer, which slows down `named` but not this
+# (wall-clock) server -- those bounds can be violated in either direction,
+# making the test either time out (#5946 CI failures) or, worse, silently stop
+# exercising the bug.
+#
+# Instead, gate the negative answer on an event set right after the positive
+# answer is sent.  Both queries traverse the same delegation, so any latency in
+# reaching this server shifts the positive send and the negative fetch's
+# deadline together and cancels out; only the small settle below has to fit
+# inside the per-query timeout.
+#
+# _SETTLE must be longer than the few milliseconds the resolver needs to cache
+# the positive answer, and shorter than MINIMUM_QUERY_TIMEOUT (301 ms in
+# lib/dns/resolver.c) so the in-flight negative fetch has not given up yet.
+_SETTLE = 0.1
+
+_dname_positive_sent = asyncio.Event()
+_cname_positive_sent = asyncio.Event()
+
+
+async def _hold_until_positive_cached(positive_sent: asyncio.Event) -> None:
+    await positive_sent.wait()
+    await asyncio.sleep(_SETTLE)
 
 
 def build_rrset(
@@ -50,7 +84,13 @@ class DelayedDnameNegHandler(QnameQtypeHandler, StaticResponseHandler):
             "ns.test. op.ns.test. 2081509183 86400 3600 3600000 300",
         )
     ]
-    delay = 1
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        await _hold_until_positive_cached(_dname_positive_sent)
+        async for response in super().get_responses(qctx):
+            yield response
 
 
 class DnamePosHandler(QnameQtypeHandler, StaticResponseHandler):
@@ -60,6 +100,13 @@ class DnamePosHandler(QnameQtypeHandler, StaticResponseHandler):
         build_rrset("foo.test.", rdatatype.DNAME, "bar.test."),
         build_rrset("a.foo.test.", rdatatype.CNAME, "a.bar.test."),
     ]
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        async for response in super().get_responses(qctx):
+            yield response
+        _dname_positive_sent.set()
 
 
 class CnameHandler(QnameQtypeHandler):
@@ -77,13 +124,16 @@ class CnameHandler(QnameQtypeHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
         if qctx.qtype == rdatatype.CNAME:
+            await _hold_until_positive_cached(_cname_positive_sent)
+            qctx.prepare_new_response(with_zone_data=False)
             qctx.response.authority.extend(self.authority)
-            yield DnsResponseSend(qctx.response, authoritative=True, delay=1)
+            yield DnsResponseSend(qctx.response, authoritative=True)
         else:
+            qctx.prepare_new_response(with_zone_data=False)
             qctx.response.answer.extend(self.answer)
             yield DnsResponseSend(qctx.response, authoritative=True)
+            _cname_positive_sent.set()
 
 
 def main() -> None:
