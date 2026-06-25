@@ -11,6 +11,7 @@
 
 from os import environ
 from re import compile as Re
+from re import escape
 from socket import AF_INET, SOCK_DGRAM, socket
 
 import isctest
@@ -37,18 +38,9 @@ def run_attack(ns, name1, type1, name2, type2):
 
     # The second query comes back immediately, the resolver caches the DNAME.
     # The first query comes back shortly after, once ans2 has released the
-    # negative answer, and should not crash the server.
+    # negative answer, and should not crash the server.  Wait for the negative
+    # SOA for this specific name (not just any foo.test. one) so the test cannot
+    # pass on an unrelated record.
+    soa = Re(rf"(?<![\w.]){escape(name1)}.*IN\s+SOA\s+ns\.test\.\s+op\.ns\.test\.")
     with ns.watch_log_from_start(timeout=15) as watcher:
-        watcher.wait_for_sequence(
-            [
-                Re(r"foo\.test\..*IN\s+SOA\s+ns\.test\.\s+op\.ns\.test\."),
-            ]
-        )
-
-
-def test_dname_negcache(ns3):
-    run_attack(ns3, "foo.test.", "DNAME", "a.foo.test.", "A")
-
-
-def test_cname_negcache(ns3):
-    run_attack(ns3, "cname.foo.test.", "CNAME", "cname.foo.test.", "A")
+        watcher.wait_for_sequence([soa])
