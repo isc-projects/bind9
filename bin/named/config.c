@@ -122,6 +122,7 @@ options {\n\
 	tcp-keepalive-timeout 300;\n\
 	tcp-listen-queue 10;\n\
 	tcp-receive-buffer 0;\n\
+	tcp-reuse-timeout 50;\n\
 	tcp-send-buffer 0;\n\
 #	tkey-gssapi-credential <none>\n\
 	transfer-message-size 20480;\n\
