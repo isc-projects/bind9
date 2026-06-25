@@ -21,21 +21,22 @@ def run_attack(ns, name1, type1, name2, type2):
     port = int(isctest.vars.ALL["PORT"])
 
     with socket(AF_INET, SOCK_DGRAM) as sock:
-        # The order the request does out doesn't matter. What is important is
-        # the first query starts recursion before the second query returns the
-        # answer, and the second query returns the answer before the first
-        # query returns the answer. (So, when the NOERROR/NODATA cames back
-        # from the first query, the cache is queried and we get the positive
-        # response cached from the second query attached to the fresp rdataset
-        # of the response of the first query.)
-        # Therefore, the logic is really baked into ans2, which has a 3 seconds
-        # delay to answer the first query.
+        # The order the requests go out doesn't matter. What is important is
+        # that the first query starts recursion before the second query returns
+        # the answer, and the second query returns the answer before the first
+        # query returns the answer. (So, when the NOERROR/NODATA comes back from
+        # the first query, the cache is queried and we get the positive response
+        # cached from the second query attached to the fresp rdataset of the
+        # response of the first query.)
+        # That ordering is enforced by ans2, which holds back the negative
+        # answer to the first query until it has answered the second one (see
+        # ans2/ans.py); the resolver must not crash while reconciling them.
         sock.sendto(msg1.to_wire(), (ns.ip, port))
         sock.sendto(msg2.to_wire(), (ns.ip, port))
 
-    # The second query come back immediately, the resolver caches the DNAME.
-    # The first query  come back after 3s (because of intentional ans2 latency
-    # on foo.test./DNAME answer) and should not crash the server.
+    # The second query comes back immediately, the resolver caches the DNAME.
+    # The first query comes back shortly after, once ans2 has released the
+    # negative answer, and should not crash the server.
     with ns.watch_log_from_start(timeout=15) as watcher:
         watcher.wait_for_sequence(
             [
