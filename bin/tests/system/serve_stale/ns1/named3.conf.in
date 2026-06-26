@@ -18,7 +18,7 @@ options {
 	allow-transfer { any; };
 	recursion yes;
 	dnssec-validation no;
-	max-stale-ttl 20;
+	max-stale-ttl 8;
 	stale-answer-ttl 3;
 	stale-answer-enable yes;
 	stale-cache-enable yes;
