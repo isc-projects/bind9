@@ -44,6 +44,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/refcount.h>
 
 #include <dns/types.h>
 
