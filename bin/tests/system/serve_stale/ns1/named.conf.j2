@@ -29,6 +29,10 @@ options {
 {% if stale_refresh_time is not none %}
 	stale-refresh-time @stale_refresh_time@;
 {% endif %}
+	# The auth is local; with the default 'off' client-timeout the test
+	# blocks on the full resolver-query-timeout whenever it forces a
+	# resolver failure, so cap it low to keep those waits short.
+	resolver-query-timeout 2000;
 	servfail-ttl 0;
 };
 
