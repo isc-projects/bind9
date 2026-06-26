@@ -755,7 +755,7 @@ n=$((n + 1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status >rndc.out.test$n 2>&1 || ret=1
-grep '_default: stale cache enabled; stale answers disabled (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
+grep '_default: stale cache enabled; stale answers disabled (stale-answer-ttl=3 max-stale-ttl=8 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -774,7 +774,7 @@ n=$((n + 1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status >rndc.out.test$n 2>&1 || ret=1
-grep '_default: stale cache enabled; stale answers enabled (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
+grep '_default: stale cache enabled; stale answers enabled (stale-answer-ttl=3 max-stale-ttl=8 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -1013,7 +1013,7 @@ n=$((n + 1))
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status >rndc.out.test$n 2>&1 || ret=1
-grep '_default: stale cache enabled; stale answers enabled (stale-answer-ttl=3 max-stale-ttl=20 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
+grep '_default: stale cache enabled; stale answers enabled (stale-answer-ttl=3 max-stale-ttl=8 stale-refresh-time=30)' rndc.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
