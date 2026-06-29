@@ -191,6 +191,7 @@ start_udp_child(isc_sockaddr_t *iface, isc_nmsocket_t *sock, uv_os_sock_t fd,
 	if (isc__netmgr->load_balance_sockets) {
 		csock->fd = isc__nm_udp_lb_socket(iface->type.sa.sa_family);
 	} else {
+		INSIST(fd >= 0);
 		csock->fd = dup(fd);
 	}
 	INSIST(csock->fd >= 0);
