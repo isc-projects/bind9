@@ -941,7 +941,7 @@ static isc_result_t
 find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 	       dst_key_t **keys, unsigned int *nkeys) {
 	dns_dnsseckeylist_t keylist;
-	dns_dnsseckey_t *k = NULL;
+	dns_dnsseckey_t *k = NULL, *n = NULL;
 	unsigned int count = 0;
 	isc_result_t result;
 	isc_stdtime_t now = isc_stdtime_now();
@@ -967,24 +967,24 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 	}
 
 	/* Add new 'dnskeys' to 'keys' */
-	while ((k = ISC_LIST_HEAD(keylist)) != NULL) {
-		if (count >= maxkeys) {
-			result = ISC_R_NOSPACE;
-			goto next;
+	ISC_LIST_FOREACH_SAFE(keylist, k, link, n) {
+		if (count < maxkeys) {
+			/* Detect inactive keys */
+			if (!dns_dnssec_keyactive(k->key, now)) {
+				dst_key_setinactive(k->key, true);
+			}
+
+			keys[count] = k->key;
+			k->key = NULL;
+			count++;
 		}
 
-		/* Detect inactive keys */
-		if (!dns_dnssec_keyactive(k->key, now)) {
-			dst_key_setinactive(k->key, true);
-		}
-
-		keys[count] = k->key;
-		k->key = NULL;
-		count++;
-
-	next:
 		ISC_LIST_UNLINK(keylist, k, link);
 		dns_dnsseckey_destroy(mctx, &k);
+	}
+
+	if (count >= maxkeys) {
+		result = ISC_R_NOSPACE;
 	}
 
 	*nkeys = count;
