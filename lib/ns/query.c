@@ -3003,6 +3003,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		CTRACE(ISC_LOG_ERROR, "rpz_ready() failed");
 		return DNS_R_SERVFAIL;
 	}
+	INSIST(*rdatasetp != NULL);
 	*versionp = NULL;
 	result = rpz_getdb(client, p_name, rpz_type, zonep, dbp, versionp);
 	if (result != ISC_R_SUCCESS) {
