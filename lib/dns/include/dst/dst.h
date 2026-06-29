@@ -226,10 +226,13 @@ dst_algorithm_fromprivateoid(isc_buffer_t *buffer);
  */
 
 dst_algorithm_t
-dst_algorithm_fromprivatedns(isc_buffer_t *buf);
+dst_algorithm_fromprivatedns(isc_buffer_t *buffer);
 /*
  * Extract the dst algorithm identifier that matches
  * the DNS name found at the start of 'buffer'.
+ *
+ * The active region needs to be set on 'buffer' as
+ * dns_name_fromwire is called.
  */
 
 bool

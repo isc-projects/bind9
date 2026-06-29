@@ -2099,6 +2099,7 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 
 	if (alg == DNS_KEYALG_PRIVATEDNS) {
 		isc_buffer_t b = *source;
+		isc_buffer_setactive(&b, isc_buffer_remaininglength(&b));
 		alg = dst_algorithm_fromprivatedns(&b);
 		if (alg == 0) {
 			return DST_R_UNSUPPORTEDALG;
