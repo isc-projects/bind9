@@ -2172,6 +2172,7 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 	CTRACE(ISC_LOG_DEBUG(3), "query_addrrset");
 
 	REQUIRE(name != NULL);
+	REQUIRE(rdataset != NULL);
 
 	if (sigrdatasetp != NULL) {
 		sigrdataset = *sigrdatasetp;
