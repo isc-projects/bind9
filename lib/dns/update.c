@@ -932,24 +932,23 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 
 	/* Add new 'dnskeys' to 'keys' */
 	ISC_LIST_FOREACH(keylist, k, link) {
-		if (count >= maxkeys) {
-			ISC_LIST_UNLINK(keylist, k, link);
-			dns_dnsseckey_destroy(mctx, &k);
-			result = ISC_R_NOSPACE;
-			break;
-		}
+		if (count < maxkeys) {
+			/* Detect inactive keys */
+			if (!dns_dnssec_keyactive(k->key, now)) {
+				dst_key_setinactive(k->key, true);
+			}
 
-		/* Detect inactive keys */
-		if (!dns_dnssec_keyactive(k->key, now)) {
-			dst_key_setinactive(k->key, true);
+			keys[count] = k->key;
+			k->key = NULL;
+			count++;
 		}
-
-		keys[count] = k->key;
-		k->key = NULL;
-		count++;
 
 		ISC_LIST_UNLINK(keylist, k, link);
 		dns_dnsseckey_destroy(mctx, &k);
+	}
+
+	if (count >= maxkeys) {
+		result = ISC_R_NOSPACE;
 	}
 
 	*nkeys = count;
