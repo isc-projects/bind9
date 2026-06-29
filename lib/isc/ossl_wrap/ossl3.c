@@ -730,8 +730,6 @@ isc_ossl_wrap_load_rsa_public_from_components(isc_ossl_wrap_rsa_components_t *c,
 	OSSL_PARAM *params = NULL;
 	isc_result_t result;
 
-	result = ISC_R_SUCCESS;
-
 	REQUIRE(pkeyp != NULL && *pkeyp == NULL);
 	REQUIRE(c != NULL && c->n != NULL && c->e != NULL);
 

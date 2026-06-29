@@ -610,7 +610,6 @@ plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
 	*instp = inst;
 
 	isc_mem_attach(mctx, &inst->mctx);
-	result = ISC_R_SUCCESS;
 	result = synthrecord_parseconfig(inst, parameters, cfg, cfgfile,
 					 cfgline, aclctx, ctx->origin);
 
