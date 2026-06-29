@@ -465,6 +465,7 @@ start_tcp_child(isc_sockaddr_t *iface, isc_nmsocket_t *sock, uv_os_sock_t fd,
 		UNUSED(fd);
 		csock->fd = isc__nm_tcp_lb_socket(iface->type.sa.sa_family);
 	} else {
+		REQUIRE(fd >= 0);
 		csock->fd = dup(fd);
 	}
 	REQUIRE(csock->fd >= 0);
