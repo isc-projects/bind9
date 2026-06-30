@@ -273,13 +273,12 @@ env = environment(
 )
 
 # Meson defines these variables in unit tests when not set
-test_env = environment(
-    {
-        'ASAN_OPTIONS': asan_options,
-        'TSAN_OPTIONS': tsan_options,
-        'UBSAN_OPTIONS': ubsan_options,
-    },
-)
+test_env_vars = {
+    'ASAN_OPTIONS': asan_options,
+    'TSAN_OPTIONS': tsan_options,
+    'UBSAN_OPTIONS': ubsan_options,
+}
+test_env = environment(test_env_vars)
 
 ### Configuration
 config = configuration_data()
@@ -461,7 +460,7 @@ if cpu_family in ['arm', 'aarch64']
         instruction_test.format('yield'),
         name: 'usage of yield instruction',
     )
-        config.set('HAVE_SPARC_PAUSE', 1)
+        config.set('HAVE_ARM_YIELD', 1)
     endif
 elif cpu_family in ['sparc', 'sparc64']
     if cc.compiles(
@@ -726,7 +725,7 @@ endif
 # not add it automatically - we need to add it explicitly in such case.
 
 if urcu_dep[1].version().version_compare('<0.13.0')
-    urcu_dep += cc.find_library('liburcu-common')
+    urcu_dep += cc.find_library('urcu-common')
 endif
 
 foreach h : [
@@ -956,7 +955,7 @@ dtrace_header = generator(
     arguments: ['-s', '@INPUT@', '-h', '-o', '@OUTPUT@'],
 )
 
-# Acutally, dtrace probes are still built with macOS.
+# Actually, dtrace probes are still built with macOS.
 # macOS flavored dtrace doesn't recognize the -G option and
 # only uses headers.
 #
@@ -964,8 +963,7 @@ dtrace_header = generator(
 # to be able to disable it. You can just not use the probes.
 config.set(
     'HAVE_DTRACE',
-    dtrace.full_path() != dtrace_shim
-    and build_machine.system() != 'darwin',
+    dtrace.full_path() != dtrace_shim and host_machine.system() != 'darwin',
 )
 cc.has_header('sys/sdt.h', required: tracing_opt)
 assert(
@@ -1993,8 +1991,8 @@ if doc_opt.allowed()
 
         rst_epilog = f'''.. |rndc_conf| replace:: ``@sysconfdir@/rndc.conf``
 .. |rndc_key| replace:: ``@sysconfdir@/rndc.key``
-.. |named_conf| replace:: ``@sysconfdir@/named.key``
-.. |named_pid| replace:: ``@runstatedir@/named.key``
+.. |named_conf| replace:: ``@sysconfdir@/named.conf``
+.. |named_pid| replace:: ``@runstatedir@/named.pid``
 .. |session_key| replace:: ``@runstatedir@/session.key``
 '''
 

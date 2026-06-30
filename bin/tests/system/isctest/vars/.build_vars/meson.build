@@ -47,7 +47,7 @@ foreach name, prog : {
 endforeach
 
 # Run a script to copy required files to the source directory in order to make
-# pytest work and find the compiled files. This is executed on every incovation
+# pytest work and find the compiled files. This is executed on every invocation
 # of the compile command, so the latest build is always used for system tests.
 custom_target(
     'system-test-init',

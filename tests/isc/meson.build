@@ -100,16 +100,21 @@ foreach unit : isc_test
 
     suites = ['isc', 'cmocka']
     timeout = 300
+    unit_env = test_env
     if unit in flaky_isc_test
         suites += 'flaky'
-        # Pass FLAKY and TIMEOUT to the test wrapper so it can retry appropriately
-        test_env.set('FLAKY', '1')
-        test_env.set('TIMEOUT', timeout.to_string())
+        # Pass FLAKY and TIMEOUT to the test wrapper so it can retry
+        # appropriately.  Build a fresh environment instead of mutating the
+        # shared test_env, which meson stores by reference and would otherwise
+        # leak these variables into every other test.
+        unit_env = environment(
+            test_env_vars + {'FLAKY': '1', 'TIMEOUT': timeout.to_string()},
+        )
     endif
     test(
         unit,
         test_bin,
-        env: test_env,
+        env: unit_env,
         suite: suites,
         timeout: timeout,
         workdir: meson.current_source_dir(),

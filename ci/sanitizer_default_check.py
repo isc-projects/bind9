@@ -56,7 +56,7 @@ with (build / "meson-info" / "intro-targets.json").open() as f:
                 ["nm", target["filename"][0]],
                 stdin=None,
                 stdout=subprocess.PIPE,
-                timeout=1,
+                timeout=60,
                 check=True,
                 shell=False,
             )

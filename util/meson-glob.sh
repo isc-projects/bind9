@@ -28,8 +28,9 @@ done
 
 echo "files("
 
-pushd ${dir:-.} >/dev/null
-for file in ./*.${extension:-c}; do
+shopt -s nullglob
+pushd "${dir:-.}" >/dev/null
+for file in ./*."${extension:-c}"; do
   echo "    '${file:2}',"
 done
 popd >/dev/null
