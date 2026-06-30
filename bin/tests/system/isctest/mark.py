@@ -44,6 +44,36 @@ def is_dnsrps_available():
     return True
 
 
+def _perl_module_available(module: str) -> bool:
+    perl = os.environ.get("PERL", "perl")
+    try:
+        subprocess.run(
+            [perl, f"-M{module}", "-e", ""],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+    return True
+
+
+requires_net_dns = pytest.mark.skipif(
+    not _perl_module_available("Net::DNS"),
+    reason="Perl Net::DNS module is required",
+)
+
+requires_net_dns_nameserver = pytest.mark.skipif(
+    not _perl_module_available("Net::DNS::Nameserver"),
+    reason="Perl Net::DNS::Nameserver module is required",
+)
+
+requires_time_hires = pytest.mark.skipif(
+    not _perl_module_available("Time::HiRes"),
+    reason="Perl Time::HiRes module is required",
+)
+
+
 def is_host_freebsd(*_):
     return platform.system() == "FreeBSD"
 
