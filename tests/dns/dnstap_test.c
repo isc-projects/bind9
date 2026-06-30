@@ -30,6 +30,7 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/lib.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -39,6 +40,7 @@
 #include <dns/view.h>
 
 #include <tests/dns.h>
+#include <tests/isc.h>
 
 #define TAPFILE TESTS_DIR "/testdata/dnstap/dnstap.file"
 #define TAPSOCK TESTS_DIR "/testdata/dnstap/dnstap.sock"
@@ -367,11 +369,67 @@ ISC_LOOP_TEST_IMPL(dns_dt_totext) {
 	isc_loopmgr_shutdown();
 }
 
+static void
+correct_dnstap_parse(const char *path) {
+	isc_result_t result;
+	dns_dtdata_t *dt = NULL;
+	isc_region_t src;
+	uint8_t buf[640];
+	size_t len;
+	FILE *f;
+
+	f = fopen(path, "r");
+	assert_non_null(f);
+	len = fread(buf, 1, sizeof(buf), f);
+	assert_uint_in_range(len, 1, sizeof(buf) - 1);
+	fclose(f);
+
+	src = (isc_region_t){ buf, len };
+	result = dns_dt_parse(isc_g_mctx, &src, &dt);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_dtdata_free(&dt);
+}
+
+static void
+invalid_dnstap_parse(const char *path) {
+	isc_result_t result;
+	dns_dtdata_t *dt = NULL;
+	isc_region_t src;
+	uint8_t buf[640];
+	size_t len;
+	FILE *f;
+
+	f = fopen(path, "r");
+	assert_non_null(f);
+	len = fread(buf, 1, sizeof(buf), f);
+	assert_uint_in_range(len, 1, sizeof(buf) - 1);
+	fclose(f);
+
+	src = (isc_region_t){ buf, len };
+	result = dns_dt_parse(isc_g_mctx, &src, &dt);
+	assert_int_equal(result, DNS_R_BADDNSTAP);
+}
+
+ISC_RUN_TEST_IMPL(dns_dt_parse) {
+	correct_dnstap_parse(
+		TESTS_DIR "/testdata/dnstap/correct_response_nanosec.dnstap");
+	correct_dnstap_parse(TESTS_DIR
+			     "/testdata/dnstap/correct_query_nanosec.dnstap");
+	invalid_dnstap_parse(
+		TESTS_DIR "/testdata/dnstap/response_time_nanosec_big.dnstap");
+	invalid_dnstap_parse(TESTS_DIR
+			     "/testdata/dnstap/query_time_nanosec_big.dnstap");
+
+	invalid_dnstap_parse(TESTS_DIR
+			     "/testdata/dnstap/invalid_message_type.dnstap");
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(dns_dt_create, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(dns_dt_send, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(dns_dt_totext, setup, teardown)
+ISC_TEST_ENTRY(dns_dt_parse)
 
 ISC_TEST_LIST_END
 

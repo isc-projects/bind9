@@ -1114,11 +1114,19 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	/* Timestamp */
 	if (d->query) {
 		if (m->has_query_time_sec && m->has_query_time_nsec) {
+			if (m->query_time_nsec >= NS_PER_SEC) {
+				CLEANUP(DNS_R_BADDNSTAP);
+			}
+
 			isc_time_set(&d->qtime, m->query_time_sec,
 				     m->query_time_nsec);
 		}
 	} else {
 		if (m->has_response_time_sec && m->has_response_time_nsec) {
+			if (m->response_time_nsec >= NS_PER_SEC) {
+				CLEANUP(DNS_R_BADDNSTAP);
+			}
+
 			isc_time_set(&d->rtime, m->response_time_sec,
 				     m->response_time_nsec);
 		}
