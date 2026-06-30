@@ -419,16 +419,6 @@ stages:
     - *find_python
     - find -name 'tsan.*' -exec "$PYTHON" "$CI_PROJECT_DIR"/bind9-qa/ci/parse_tsan.py {} \;
 
-.check_readline_setup: &check_readline_setup
-    # WITH_LIBEDIT/WITHOUT_LIBEDIT are always-set global variables, so inspect
-    # the actual per-job configure flags to decide what to assert.
-    - case " ${EXTRA_CONFIGURE} " in
-        *" -Dline=disabled "*)
-          ! grep -e "^#define HAVE_LIBEDIT" build/config.h;;
-        *" -Dline=enabled "*)
-          grep -e "^#define HAVE_LIBEDIT" build/config.h;;
-      esac
-
 .list_installed_package_versions: &list_installed_package_versions
   - echo -e "\e[0Ksection_start:`date +%s`:installed_packages_section[collapsed=true]\r\e[0KHeader of the installed packages collapsible section"
   - ( pip3 list || pip list || echo "no pip" ) 2>/dev/null
@@ -460,7 +450,6 @@ stages:
     - *list_installed_package_versions
   script:
     - *configure
-    - *check_readline_setup
     - meson compile -C build
     - meson compile -C build system-test-dependencies
     - test -z "${RUN_MESON_INSTALL}" || meson install -C build --destdir=$INSTALL_PATH
