@@ -62,6 +62,16 @@ ISC_RUN_TEST_IMPL(algorithm_fromdata) {
 		/* An unsupported private dns algorithm */
 		FROMDATA(DNS_KEYALG_PRIVATEDNS, 0, 0x04, 't', 'e', 's', 't',
 			 0x00),
+#ifdef TEST_PRIVATEDNS
+		FROMDATA(DNS_KEYALG_PRIVATEDNS, DST_ALG_RSASHA256PRIVATEDNS,
+			 0x09, 'r', 's', 'a', 's', 'h', 'a', '2', '5', '6',
+			 0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e', 0x03, 'o',
+			 'r', 'g', 0x00),
+		FROMDATA(DNS_KEYALG_PRIVATEDNS, DST_ALG_RSASHA512PRIVATEDNS,
+			 0x09, 'r', 's', 'a', 's', 'h', 'a', '5', '1', '2',
+			 0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e', 0x03, 'o',
+			 'r', 'g', 0x00),
+#endif
 
 		/* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
 		FROMDATA(DNS_KEYALG_PRIVATEOID, DST_ALG_RSASHA256PRIVATEOID,
@@ -83,6 +93,10 @@ ISC_RUN_TEST_IMPL(algorithm_fromdata) {
 		alg = dst_algorithm_fromdata(fromdata[i].secalg,
 					     fromdata[i].data, fromdata[i].len);
 		assert_int_equal(alg, fromdata[i].dstalg);
+		if (alg != 0) {
+			assert_int_equal(dst_algorithm_tosecalg(alg),
+					 fromdata[i].secalg);
+		}
 	}
 }
 

@@ -359,6 +359,7 @@ if developer_mode
     config.set('ISC_SOCKET_DETAILS', 1)
     config.set('ISC_STATS_CHECKUNDERFLOW', 1)
     config.set('DNS_TYPEPAIR_CHECK', 1)
+    config.set('TEST_PRIVATEDNS', 1)
 endif
 
 # mandatory builtins
