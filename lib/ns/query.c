@@ -382,10 +382,6 @@ query_lookup(query_ctx_t *qctx);
 static void
 fetch_callback(void *arg);
 
-static void
-recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
-		const dns_name_t *qname);
-
 static isc_result_t
 query_resume(query_ctx_t *qctx);
 
@@ -834,7 +830,6 @@ query_reset(ns_client_t *client, bool everything) {
 	client->query.isreferral = false;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = UINT32_MAX;
-	recparam_update(&client->query.recparam, 0, NULL);
 	client->query.root_key_sentinel_keyid = 0;
 	client->query.root_key_sentinel_is_ta = false;
 	client->query.root_key_sentinel_not_ta = false;
@@ -5903,38 +5898,6 @@ fetch_callback(void *arg) {
 	dns_resolver_destroyfetch(&fetch);
 }
 
-/*%
- * Check whether the recursion parameters in 'param' match the current query's
- * recursion parameters provided in 'qtype', 'qname', and 'qdomain'.
- */
-static bool
-recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
-	       const dns_name_t *qname) {
-	REQUIRE(param != NULL);
-
-	return param->qtype == qtype && param->qname != NULL && qname != NULL &&
-	       dns_name_equal(param->qname, qname);
-}
-
-/*%
- * Update 'param' with current query's recursion parameters provided in
- * 'qtype', 'qname', and 'qdomain'.
- */
-static void
-recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
-		const dns_name_t *qname) {
-	REQUIRE(param != NULL);
-
-	param->qtype = qtype;
-
-	if (qname == NULL) {
-		param->qname = NULL;
-	} else {
-		param->qname = dns_fixedname_initname(&param->fqname);
-		dns_name_copy(qname, param->qname);
-	}
-}
-
 static void
 recursionquota_log(ns_client_t *client, atomic_uint_fast32_t *last_log_time,
 		   const char *format, isc_quota_t *quota) {
@@ -6008,18 +5971,6 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	isc_sockaddr_t *peeraddr = NULL;
 
 	CTRACE(ISC_LOG_DEBUG(3), "ns_query_recurse");
-
-	/*
-	 * Check recursion parameters from the previous query to see if they
-	 * match.  If not, update recursion parameters and proceed.
-	 */
-	if (recparam_match(&client->query.recparam, qtype, qname)) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-			      ISC_LOG_INFO, "recursion loop detected");
-		return ISC_R_FAILURE;
-	}
-
-	recparam_update(&client->query.recparam, qtype, qname);
 
 	if (!resuming) {
 		inc_stats(client, ns_statscounter_recursion);

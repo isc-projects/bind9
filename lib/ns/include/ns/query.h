@@ -93,17 +93,6 @@ typedef enum {
 #define FETCH_RECTYPE_HOOK(client) \
 	((client)->query.recursions[RECTYPE_HOOK].fetch)
 
-/*%
- * nameserver recursion parameters, to uniquely identify a recursion
- * query; this is used to detect a recursion loop
- */
-typedef struct ns_query_recparam {
-	dns_rdatatype_t qtype;
-	dns_name_t     *qname;
-	dns_fixedname_t fqname;
-	dns_fixedname_t fqdomain;
-} ns_query_recparam_t;
-
 /*% nameserver query structure */
 struct ns_query {
 	union {
@@ -173,8 +162,6 @@ struct ns_query {
 		isc_nmhandle_t *handle;
 		dns_fetch_t    *fetch;
 	} recursions[RECTYPE_COUNT];
-
-	ns_query_recparam_t recparam;
 
 	dns_keytag_t root_key_sentinel_keyid;
 	bool	     root_key_sentinel_is_ta;
