@@ -689,6 +689,9 @@ misc:
     - sh util/check-gitignore.sh
     - sh util/check-trailing-whitespace.sh
     - bash util/unused-headers.sh
+    # Check that every rdata source file is registered for header generation
+    - meson setup build
+    - bash util/check-rdata-registration.sh build
     # Check dangling symlinks in the repository
     - if find . -xtype l | grep .; then exit 1; fi
     - muon-meson analyze -Werror
