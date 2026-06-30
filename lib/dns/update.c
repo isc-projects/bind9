@@ -1334,6 +1334,23 @@ struct dns_update_state {
 	} state;
 };
 
+static void
+dns_update_state_clear_contents(dns_update_state_t *state) {
+	REQUIRE(DNS_STATE_VALID(state));
+
+	dns_diff_clear(&state->sig_diff);
+	dns_diff_clear(&state->nsec_diff);
+	dns_diff_clear(&state->nsec_mindiff);
+
+	dns_diff_clear(&state->affected);
+	dns_diff_clear(&state->diffnames);
+	dns_diff_clear(&state->work);
+
+	for (size_t i = 0; i < state->nkeys; i++) {
+		dst_key_free(&state->zone_keys[i]);
+	}
+}
+
 static uint32_t
 dns__jitter_expire(dns_zone_t *zone) {
 	/* Spread out signatures over time */
@@ -2007,35 +2024,31 @@ cleanup:
 		dns_db_detachnode(&node);
 	}
 
-	dns_update_state_clear(&state, state != &mystate);
+	if (state == &mystate) {
+		dns_update_state_clear_contents(state);
+	} else {
+		dns_update_state_t *state_to_clear = state;
+		dns_update_state_clear(&state_to_clear);
+	}
 	SET_IF_NOT_NULL(statep, NULL);
 
 	return result;
 }
 
 void
-dns_update_state_clear(dns_update_state_t **statep, bool destroy) {
-	REQUIRE(DNS_STATE_VALID(*statep));
+dns_update_state_clear(dns_update_state_t **statep) {
+	dns_update_state_t *state = NULL;
 
-	dns_update_state_t *state = *statep;
-
-	dns_diff_clear(&state->sig_diff);
-	dns_diff_clear(&state->nsec_diff);
-	dns_diff_clear(&state->nsec_mindiff);
-
-	dns_diff_clear(&state->affected);
-	dns_diff_clear(&state->diffnames);
-	dns_diff_clear(&state->work);
-
-	for (size_t i = 0; i < state->nkeys; i++) {
-		dst_key_free(&state->zone_keys[i]);
+	if (statep == NULL || *statep == NULL) {
+		return;
 	}
 
-	if (destroy) {
-		*statep = NULL;
-		state->magic = 0;
-		isc_mem_putanddetach(&state->mctx, state, sizeof(*state));
-	}
+	state = *statep;
+	dns_update_state_clear_contents(state);
+
+	*statep = NULL;
+	state->magic = 0;
+	isc_mem_putanddetach(&state->mctx, state, sizeof(*state));
 }
 
 static isc_stdtime_t

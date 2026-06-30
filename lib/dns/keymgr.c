@@ -2424,12 +2424,6 @@ cleanup:
 		}
 	}
 
-	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
-		char namebuf[DNS_NAME_FORMATSIZE];
-		dns_name_format(origin, namebuf, sizeof(namebuf));
-		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_DNSSEC,
-			      ISC_LOG_DEBUG(3), "keymgr: %s done", namebuf);
-	}
 	return result;
 }
 

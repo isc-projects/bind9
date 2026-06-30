@@ -225,11 +225,8 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-		isc_time_t now;
-
 		LOCK_ZONE(zone);
-		now = isc_time_now();
-		dns__zone_settimer(zone, &now);
+		dns__zone_settimer(zone, isc_time_now());
 		UNLOCK_ZONE(zone);
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);

@@ -1084,13 +1084,13 @@ status=$((status + ret))
 # processed.  As waiting for a fixed amount of time is suboptimal and there is
 # no single message that would signify both a successful modification and an
 # error in a race-free manner, instead wait until either notifies are sent
-# (which means the secure zone was modified) or a receive_secure_serial() error
-# is logged (which means the zone was not modified and will not be modified any
-# further in response to the relevant raw zone update).
+# (which means the secure zone was modified) or an inline_sync error is logged
+# (which means the zone was not modified and will not be modified any further in
+# response to the relevant raw zone update).
 wait_until_raw_zone_update_is_processed() {
   zone="$1"
   for i in 1 2 3 4 5 6 7 8 9 10; do
-    if nextpart ns3/named.run | grep -E "zone ${zone}.*(sending notifies|receive_secure_serial)" >/dev/null; then
+    if nextpart ns3/named.run | grep -E "zone ${zone}.*(sending notifies|inline_sync)" >/dev/null; then
       return
     fi
     sleep 1
@@ -1273,11 +1273,11 @@ stop_server --use-rndc --halt --port ${CONTROLPORT} ns3 || ret=1
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 start_server --noclean --restart --port ${PORT} ns3 || ret=1
 # At this point, the raw zone journal will not have a source serial set.  Upon
-# server startup, receive_secure_serial() will rectify that, update SOA, resign
-# it, and schedule its future resign.  This will cause "rndc zonestatus" to
-# return delayedkeys/SOA as the next node to resign, so we restart the server
-# once again; with the raw zone journal now having a source serial set,
-# receive_secure_serial() should refrain from introducing any zone changes.
+# server startup, inline_sync_run() will rectify that, update SOA, resign it,
+# and schedule its future resign.  This will cause "rndc zonestatus" to return
+# delayedkeys/SOA as the next node to resign, so we restart the server once
+# again; with the raw zone journal now having a source serial set,
+# inline_sync_run() should refrain from introducing any zone changes.
 stop_server --use-rndc --halt --port ${CONTROLPORT} ns3 || ret=1
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 nextpart ns3/named.run >/dev/null

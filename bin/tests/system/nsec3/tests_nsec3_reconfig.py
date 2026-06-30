@@ -29,6 +29,7 @@ pytestmark = NSEC3_MARK
 # include the following zones when rendering named configs
 ZONES = {
     "nsec3-to-nsec.kasp",
+    "nsec3-to-nsec-altalg.kasp",
     "nsec-to-nsec3.kasp",
     "nsec3.kasp",
     "nsec3-dynamic.kasp",
@@ -52,6 +53,18 @@ if os.environ["RSASHA1_SUPPORTED"] == "1":
     )
 
 
+def _algorithm_from_env(prefix):
+    return Algorithm(
+        os.environ[f"{prefix}_ALGORITHM"],
+        int(os.environ[f"{prefix}_ALGORITHM_NUMBER"]),
+        int(os.environ[f"{prefix}_ALGORITHM_DST_NUMBER"]),
+        int(os.environ[f"{prefix}_BITS"]),
+    )
+
+
+ALTERNATIVE = _algorithm_from_env("ALTERNATIVE")
+
+
 def bootstrap():
     return {
         "zones": ZONES,
@@ -73,6 +86,10 @@ def after_servers_start(ns3, templates):
     if os.getenv(with_rsasha1) == "1":
         zone = "rsasha1-to-nsec3-wait.kasp"
         isctest.kasp.check_dnssec_verify(ns3, zone)
+
+    # Ensure the old NSEC3 chain and default-algorithm signatures are fully
+    # established before the NSEC plus algorithm rollover begins.
+    isctest.kasp.check_dnssec_verify(ns3, "nsec3-to-nsec-altalg.kasp")
 
     # Reconfigure.
     data = {
@@ -144,6 +161,18 @@ def after_servers_start(ns3, templates):
                 ],
             },
             id="nsec3-to-nsec.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "nsec3-to-nsec-altalg.kasp",
+                "policy": "nsec-altalg",
+                "key-properties": [
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent",
+                    f"csk 0 {ALTERNATIVE.number} {ALTERNATIVE.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+                ],
+            },
+            id="nsec3-to-nsec-altalg.kasp",
+            marks=isctest.mark.with_algorithm(ALTERNATIVE.name),
         ),
     ],
 )

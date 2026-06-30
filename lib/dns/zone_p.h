@@ -155,7 +155,6 @@ typedef enum {
 	DNS_ZONEFLG_THAW = 1U << 24,
 	DNS_ZONEFLG_LOADPENDING = 1U << 25, /*%< Loading scheduled */
 	DNS_ZONEFLG_NODELAY = 1U << 26,
-	DNS_ZONEFLG_SENDSECURE = 1U << 27,
 	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 1U << 28, /*%< need to send out
 						   * notify due to the zone
 						   * just being loaded for
@@ -187,6 +186,31 @@ typedef ISC_LIST(dns_signing_t) dns_signinglist_t;
 typedef struct dns_nsec3chain dns_nsec3chain_t;
 typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
 typedef struct dns_include dns_include_t;
+
+/*
+ * Pending inline-signing sync request for the secure zone.  Active incremental
+ * signing continuation state is owned separately by zone_inline_sync_t.
+ */
+typedef enum inline_sync_phase {
+	inline_sync_idle = 0,	     /*%< No inline sync request is queued. */
+	inline_sync_incremental = 1, /*%< Incremental sync is queued. */
+	inline_sync_full = 2,	     /*%< Full rebuild is queued. */
+} inline_sync_phase_t;
+
+/*
+ * In-flight inline-signing sync transaction.  Pointed to by zone->iss; NULL
+ * means no sync is running.
+ */
+typedef struct zone_inline_sync {
+	isc_mem_t *mctx;
+	dns_zone_t *raw;
+	dns_db_t *db;
+	dns_dbversion_t *oldver;
+	dns_dbversion_t *newver;
+	dns_diff_t diff;
+	dns_update_state_t *state;
+	uint32_t end;
+} zone_inline_sync_t;
 
 /*%
  * Hold checkds state.
@@ -498,9 +522,9 @@ struct dns_zone {
 	dns_signinglist_t signing;
 	dns_nsec3chainlist_t nsec3chain;
 	/*%
-	 * List of outstanding NSEC3PARAM change requests.
+	 * Ordered DB-mutating requests processed by zone maintenance.
 	 */
-	ISC_LIST(struct np3) setnsec3param_queue;
+	ISC_LIST(struct zone_maintenance_request) maintenance_queue;
 	/*%
 	 * Signing / re-signing quantum stopping parameters.
 	 */
@@ -576,14 +600,8 @@ struct dns_zone {
 	/*
 	 * Inline zone signing state.
 	 */
-	dns_diff_t rss_diff;
-	dns_dbversion_t *rss_newver;
-	dns_dbversion_t *rss_oldver;
-	dns_db_t *rss_db;
-	dns_zone_t *rss_raw;
-	struct rss *rss;
-	struct rss *rss_next;
-	dns_update_state_t *rss_state;
+	inline_sync_phase_t inline_sync_phase;
+	zone_inline_sync_t *iss;
 
 	isc_stats_t *gluecachestats;
 
@@ -841,7 +859,7 @@ dns__zone_freedbargs(dns_zone_t *zone);
  */
 
 void
-dns__zone_settimer(dns_zone_t *zone, isc_time_t *now);
+dns__zone_settimer(dns_zone_t *zone, isc_time_t now);
 /*%<
  *	Sets zone timer to 'now' time.
  *

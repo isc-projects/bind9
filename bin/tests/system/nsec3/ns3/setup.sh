@@ -30,11 +30,16 @@ for zn in nsec-to-nsec3 nsec3 nsec3-other nsec3-change nsec3-to-nsec \
   setup "${zn}.kasp"
 done
 
-if [ $RSASHA1_SUPPORTED = 1 ]; then
-  longago="now-1y"
-  keytimes="-P ${longago} -A ${longago} -P sync ${longago}"
-  O="omnipresent"
+longago="now-1y"
+keytimes="-P ${longago} -A ${longago} -P sync ${longago}"
+O="omnipresent"
 
+setup "nsec3-to-nsec-altalg.kasp"
+CSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $keytimes $zone 2>keygen.out.$zone)
+$SETTIME -s -g $O -k $O $longago -r $O $longago -z $O $longago -d $O $longago "$CSK" >settime.out.$zone 2>&1
+cat $CSK.key >>$zonefile
+
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   for zn in nsec3-to-rsasha1 nsec3-to-rsasha1-ds; do
     setup "${zn}.kasp"
     CSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $keytimes $zone 2>keygen.out.$zone)
