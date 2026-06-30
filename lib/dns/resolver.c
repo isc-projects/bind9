@@ -11191,25 +11191,13 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 	 * Look up the DST algorithm identifier for private-OID
 	 * and private-DNS keys.
 	 */
-	if (alg == DST_ALG_PRIVATEDNS && private != NULL) {
-		isc_buffer_t b;
-		isc_buffer_init(&b, private, len);
-		isc_buffer_add(&b, len);
-		alg = dst_algorithm_fromprivatedns(&b);
+	if (private != NULL) {
+		alg = dst_algorithm_fromdata(alg, private, len);
 		if (alg == 0) {
 			return false;
 		}
 	}
 
-	if (alg == DST_ALG_PRIVATEOID && private != NULL) {
-		isc_buffer_t b;
-		isc_buffer_init(&b, private, len);
-		isc_buffer_add(&b, len);
-		alg = dst_algorithm_fromprivateoid(&b);
-		if (alg == 0) {
-			return false;
-		}
-	}
 	if (dns_nametree_covered(resolver->algorithms, name, NULL, alg)) {
 		return false;
 	}
