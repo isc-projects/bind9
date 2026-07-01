@@ -1546,6 +1546,7 @@ assignwork(void *arg) {
 			goto next;
 		}
 		if (!dns_name_issubdomain(name, gorigin)) {
+			dumpnode(name, node);
 			dns_db_detachnode(&node);
 			goto next;
 		}
