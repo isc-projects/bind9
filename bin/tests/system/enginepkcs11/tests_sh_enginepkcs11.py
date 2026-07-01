@@ -52,6 +52,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
 
 pytestmark = [
     isctest.mark.with_pkcs11_provider,
+    isctest.mark.softhsm2_environment,
     EXTRA_ARTIFACTS,
 ]
 
