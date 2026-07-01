@@ -1425,7 +1425,7 @@ dst_key_setinactive(dst_key_t *key, bool inactive) {
 isc_result_t
 dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 		    dst_key_t **keyp) {
-	u_char rdatabuf[DST_KEY_MAXSIZE];
+	uint8_t rdatabuf[DST_KEY_MAXSIZE];
 	isc_buffer_t b;
 	dns_fixedname_t name;
 	isc_lex_t *lex = NULL;

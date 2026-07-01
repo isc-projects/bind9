@@ -1242,7 +1242,7 @@ sign(ksr_ctx_t *ksr) {
 			isc_buffer_t *newbuf = NULL;
 			dns_rdata_t *rdata = NULL;
 			isc_region_t r;
-			u_char rdatabuf[DST_KEY_MAXSIZE];
+			uint8_t rdatabuf[DST_KEY_MAXSIZE];
 
 			if (rdatalist == NULL) {
 				fatal("bad KSR file %s(%lu): DNSKEY record "
