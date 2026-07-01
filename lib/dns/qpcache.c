@@ -235,7 +235,6 @@ typedef struct {
 	unsigned int options;
 	dns_qpchain_t chain;
 	dns_qpiter_t iter;
-	bool need_cleanup;
 	qpcnode_t *zonecut;
 	dns_slabheader_t *zonecut_header;
 	dns_slabheader_t *zonecut_sigheader;
@@ -1015,34 +1014,24 @@ bindrdatasets(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *found,
 static isc_result_t
 setup_delegation(qpc_search_t *search, dns_dbnode_t **nodep,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+		 isc_rwlocktype_t nlocktype,
 		 isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
-	dns_typepair_t typepair;
-	qpcnode_t *node = NULL;
-
 	REQUIRE(search != NULL);
 	REQUIRE(search->zonecut != NULL);
 	REQUIRE(search->zonecut_header != NULL);
+	REQUIRE(nlocktype == isc_rwlocktype_none);
 
-	/*
-	 * The caller MUST NOT be holding any node locks.
-	 */
-
-	node = search->zonecut;
-	typepair = search->zonecut_header->typepair;
+	qpcnode_t *node = search->zonecut;
+	dns_typepair_t typepair = search->zonecut_header->typepair;
+	isc_rwlock_t *nlock = NULL;
 
 	if (nodep != NULL) {
-		/*
-		 * Note that we don't have to increment the node's reference
-		 * count here because we're going to use the reference we
-		 * already have in the search block.
-		 */
+		qpcnode_acquire(search->qpdb, node, nlocktype,
+				tlocktype DNS__DB_FLARG_PASS);
 		*nodep = (dns_dbnode_t *)node;
-		search->need_cleanup = false;
 	}
 	if (rdataset != NULL) {
-		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		isc_rwlock_t *nlock =
-			&search->qpdb->buckets[node->locknum].lock;
+		nlock = &search->qpdb->buckets[node->locknum].lock;
 		NODE_RDLOCK(nlock, &nlocktype);
 		bindrdatasets(search->qpdb, node, search->zonecut_header,
 			      search->zonecut_sigheader, search->now, nlocktype,
@@ -1272,15 +1261,18 @@ check_dname(qpcnode_t *node, void *arg DNS__DB_FLARG) {
 			      (search->options & DNS_DBFIND_PENDINGOK) != 0))
 	{
 		/*
-		 * We increment the reference count on node to ensure that
-		 * search->zonecut_header will still be valid later.
+		 * We increment the reference count on the node to keep it
+		 * alive, and we attach to the DNAME header (and its signature)
+		 * so that they stay valid after the node lock is released.
 		 */
 		qpcnode_acquire(search->qpdb, node, nlocktype,
 				isc_rwlocktype_none DNS__DB_FLARG_PASS);
 		search->zonecut = node;
-		search->zonecut_header = found;
-		search->zonecut_sigheader = foundsig;
-		search->need_cleanup = true;
+		search->zonecut_header = dns_slabheader_ref(found);
+		if (foundsig != NULL) {
+			search->zonecut_sigheader =
+				dns_slabheader_ref(foundsig);
+		}
 		result = DNS_R_PARTIALMATCH;
 	} else {
 		result = DNS_R_CONTINUE;
@@ -1403,11 +1395,33 @@ qpc_search_init(qpc_search_t *search, qpcache_t *db, unsigned int options,
 	 * qpch->in - Init by dns_qp_lookup
 	 * qpiter - Init by dns_qp_lookup
 	 */
-	search->need_cleanup = false;
 	search->now = now ? now : isc_stdtime_now();
 	search->zonecut = NULL;
 	search->zonecut_header = NULL;
 	search->zonecut_sigheader = NULL;
+}
+
+static void
+qpc_search_deinit(qpc_search_t *search DNS__DB_FLARG) {
+	if (search->zonecut != NULL) {
+		qpcnode_t *node = search->zonecut;
+		isc_rwlock_t *nlock =
+			&search->qpdb->buckets[node->locknum].lock;
+		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+		isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
+
+		NODE_RDLOCK(nlock, &nlocktype);
+		qpcnode_release(search->qpdb, node, &nlocktype,
+				&tlocktype DNS__DB_FLARG_PASS);
+		NODE_UNLOCK(nlock, &nlocktype);
+	}
+
+	if (search->zonecut_sigheader != NULL) {
+		dns_slabheader_detach(&search->zonecut_sigheader);
+	}
+	if (search->zonecut_header != NULL) {
+		dns_slabheader_detach(&search->zonecut_header);
+	}
 }
 
 static isc_result_t
@@ -1502,7 +1516,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		}
 		if (search.zonecut != NULL) {
 			result = setup_delegation(&search, nodep, rdataset,
-						  sigrdataset,
+						  sigrdataset, nlocktype,
 						  tlocktype DNS__DB_FLARG_PASS);
 			goto tree_exit;
 		} else {
@@ -1723,21 +1737,7 @@ node_exit:
 tree_exit:
 	TREE_UNLOCK(&search.qpdb->tree_lock, &tlocktype);
 
-	/*
-	 * If we found a zonecut but aren't going to use it, we have to
-	 * let go of it.
-	 */
-	if (search.need_cleanup) {
-		node = search.zonecut;
-		INSIST(node != NULL);
-		nlock = &search.qpdb->buckets[node->locknum].lock;
-
-		NODE_RDLOCK(nlock, &nlocktype);
-		qpcnode_release(search.qpdb, node, &nlocktype,
-				&tlocktype DNS__DB_FLARG_PASS);
-		NODE_UNLOCK(nlock, &nlocktype);
-		INSIST(tlocktype == isc_rwlocktype_none);
-	}
+	qpc_search_deinit(&search DNS__DB_FLARG_PASS);
 
 	update_cachestats(search.qpdb, result);
 	return result;
