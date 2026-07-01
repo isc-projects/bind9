@@ -1721,6 +1721,27 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking that we can sign a zone with out-of-zone records and dnssec-only ($n)"
+ret=0
+zone=example
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
+(
+  cd signer || exit 1
+  cat example.db.in "$key1.key" "$key2.key" >example.db || exit 1
+  $SIGNER -o example -f example.db example.db >/dev/null || exit 1
+  # add an out-of-zone record that will be emitted by -D
+  echo "out-of-zone. 0 NSEC example. A" >>example.db || exit 1
+  $SIGNER -o example -f dnssec-records.$n -DP -Z nonsecify example.db >/dev/null || exit 1
+  grep "^out-of-zone\.[[:blank:]]*0[[:blank:]]*IN[[:blank:]]NSEC[[:blank:]]*example\. A" dnssec-records.$n >/dev/null || exit 1
+  # but it shouldn't be signed
+  grep "^out-of-zone\.[[:blank:]]*0[[:blank:]]*IN[[:blank:]]RRSIG[[:blank:]]*NSEC " dnssec-records.$n >/dev/null && exit 1
+  exit 0
+) || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
 zone=example
