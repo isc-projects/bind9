@@ -51,6 +51,7 @@
 #include <isc/job.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
+#include <isc/work.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
@@ -125,6 +126,8 @@ struct dns_validator {
 	/* Internal validator state */
 	atomic_bool	   canceling;
 	unsigned int	   attributes;
+	isc_work_t	  *offloaded_work;
+	isc_job_cb	   offloaded_cb;
 	dns_fetch_t	  *fetch;
 	dns_validator_t	  *subvalidator;
 	dns_validator_t	  *parent;
