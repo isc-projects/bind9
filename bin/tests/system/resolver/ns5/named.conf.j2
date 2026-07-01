@@ -16,6 +16,11 @@ options {
 	request-nsid yes;
 	request-zoneversion yes;
 	minimal-any no;
+
+	// "checking that removal of a delegation is honoured"
+	// test has a delegation with a TTL of 5 seconds, so let's
+	// min a min below it.
+	min-delegation-ttl 3;
 };
 
 // Don't break tests which depend on ans10 by requesting

@@ -4199,6 +4199,18 @@ Tuning
    exceed 90 seconds and is truncated to 90 seconds if set to a greater
    value.
 
+.. namedconf:statement:: min-delegation-ttl
+   :tags: server
+   :short: Configure the minimum time (in seconds) that the server caches delegations.
+
+   This sets the minimum time for which the server caches nameserver names and
+   glues for a delegation, in seconds. For convenience, TTL-style time-unit
+   suffixes may be used to specify the value. It also accepts ISO 8601 duration
+   formats.
+
+   Setting a value of ``0`` disable the minimum check TTL for delegations. The
+   default :any:`min-delegation-ttl` is ``60`` seconds.
+
 .. namedconf:statement:: max-delegation-servers
    :tags: server
    :short: Configure the maximum number of nameservers considered for a delegation
@@ -4258,6 +4270,18 @@ Tuning
    The default :any:`max-cache-ttl` is 604800 (one week). A value of zero may cause
    all queries to return SERVFAIL, because of lost caches of intermediate RRsets
    (such as NS and glue AAAA/A records) in the resolution process.
+
+.. namedconf:statement:: max-delegation-ttl
+   :tags: server
+   :short: Configure the maximum time (in seconds) that the server caches delegations.
+
+   This sets the maximum time for which the server caches nameserver names and
+   glues for a delegation, in seconds. For convenience, TTL-style time-unit
+   suffixes may be used to specify the value. It also accepts ISO 8601 duration
+   formats.
+
+   Setting a value of ``0`` disable the maximum TTL check for delegations. The
+   default :any:`max-delegation-ttl` is ``0``.
 
 .. namedconf:statement:: max-stale-ttl
    :tags: server

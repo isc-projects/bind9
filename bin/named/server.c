@@ -3680,6 +3680,51 @@ configure_max_cache_size(dns_view_t *view, const cfg_obj_t *maps[4]) {
 	}
 }
 
+static isc_result_t
+configure_view_delegdb(const cfg_obj_t **maps, dns_view_t *pview,
+		       dns_view_t *view, size_t cachesz) {
+	isc_result_t result;
+	const cfg_obj_t *obj;
+	uint32_t minttl, maxttl;
+
+	/*
+	 * The deleg DB cache is preserved if reconfiguring/reloading the
+	 * server.
+	 */
+	if (pview != NULL) {
+		dns_delegdb_attach(pview->deleg, &view->deleg);
+	} else {
+		dns_delegdb_create(&view->deleg);
+	}
+
+	obj = NULL;
+	result = named_config_get(maps, "min-delegation-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	minttl = cfg_obj_asduration(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "max-delegation-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	maxttl = cfg_obj_asduration(obj);
+
+	if (minttl != 0 && maxttl != 0 && minttl >= maxttl) {
+		isc_log_write(
+			NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
+			ISC_LOG_ERROR,
+			"When 'min-delegation-ttl' and 'max-delegation-ttl' "
+			"are both positive, 'min-delegation-ttl' must be "
+			"strictly less than 'max-delegation-ttl'");
+		result = ISC_R_RANGE;
+	} else {
+		dns_delegdb_config_t config = { .dbsize = cachesz,
+						.minttl = minttl,
+						.maxttl = maxttl };
+		dns_delegdb_setconfig(view->deleg, &config);
+	}
+
+	return result;
+}
+
 static const char *const response_synonyms[] = { "response", NULL };
 
 /*
@@ -4321,24 +4366,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 				      dispatch4, dispatch6));
 
 	/*
-	 * The deleg DB cache is preserved if reconfiguring/reloading the
-	 * server.
+	 * Configure delegdb and detatch the previous viw which isn't needed
+	 * afterwards.
 	 */
-	if (pview != NULL) {
-		dns_delegdb_attach(pview->deleg, &view->deleg);
-	} else {
-		dns_delegdb_create(&view->deleg);
-	}
-	dns_delegdb_setconfig(
-		view->deleg,
-		&(dns_delegdb_config_t){ .dbsize = cache_size_slice });
-
-	/*
-	 * The previous view isn't needed anymore.
-	 */
+	result = configure_view_delegdb(maps, pview, view, cache_size_slice);
 	if (pview != NULL) {
 		dns_view_detach(&pview);
 	}
+	CHECK(result);
 
 	if (resstats == NULL) {
 		isc_stats_create(mctx, &resstats, dns_resstatscounter_max);

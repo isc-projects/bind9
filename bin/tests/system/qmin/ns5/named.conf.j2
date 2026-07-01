@@ -15,6 +15,10 @@ options {
 	dnssec-validation no;
 	disable-empty-zone 10.in-addr.arpa;
 	fetches-per-zone 40;
+
+	// Some domains in this tests have TTL of 2, so let's pick
+	// a value below it.
+	min-delegation-ttl 1;
 };
 
 key rndc_key {

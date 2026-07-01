@@ -267,10 +267,9 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
  * NOTE: Caller needs to hold a RCU read critical section.
  */
 static isc_result_t
-dns__deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr,
-		  const dns_name_t *name, isc_stdtime_t optnow,
-		  unsigned int options, dns_name_t *zonecut,
-		  dns_name_t *deepestzonecut, dns_delegset_t **delegsetp) {
+deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
+	     isc_stdtime_t optnow, unsigned int options, dns_name_t *zonecut,
+	     dns_name_t *deepestzonecut, dns_delegset_t **delegsetp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	delegdb_node_t *node = NULL;
 	isc_stdtime_t now = optnow > 0 ? optnow : isc_stdtime_now();
@@ -345,8 +344,8 @@ dns_delegdb_lookup(dns_delegdb_t *delegdb, const dns_name_t *name,
 	LIBDNS_DELEGDB_LOOKUP_START(delegdb, namebuf);
 
 	dns_qpmulti_query(delegdb->qplru->nodes, &qpr);
-	result = dns__deleg_lookup(delegdb, &qpr, name, now, options, zonecut,
-				   deepestzonecut, delegsetp);
+	result = deleg_lookup(delegdb, &qpr, name, now, options, zonecut,
+			      deepestzonecut, delegsetp);
 	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
 
 	LIBDNS_DELEGDB_LOOKUP_DONE(delegdb, namebuf, result);
@@ -516,27 +515,46 @@ delegset_size(dns_delegset_t *delegset) {
 	return sz;
 }
 
+static dns_ttl_t
+normalize_ttl(dns_delegdb_t *delegdb, dns_ttl_t ttl) {
+	dns_ttl_t minttl = delegdb->config.minttl;
+	dns_ttl_t maxttl = delegdb->config.maxttl;
+
+	if (minttl > 0 && ttl < minttl) {
+		return minttl;
+	}
+
+	if (maxttl > 0 && ttl > maxttl) {
+		return maxttl;
+	}
+
+	/*
+	 * Even if the min ttl is disabled, it doesn't make sense to add an
+	 * already expired delegation. So give it at least one second.
+	 */
+	return ttl == 0 ? 1 : ttl;
+}
+
 static size_t
-delegdb_node_prepare(qplru_t *qplru, isc_stdtime_t now, dns_ttl_t ttl,
+delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 		     const dns_name_t *zonecut, dns_delegset_t *delegset,
 		     delegdb_node_t **nodep) {
-	if (ttl == 0) {
-		ttl = 1;
-	}
+	ttl = normalize_ttl(delegdb, ttl);
 	delegset->expires = ttl + now;
 
 	isc_region_t zonecut_r = { 0 };
 	dns_name_toregion(zonecut, &zonecut_r);
 
-	delegdb_node_t *node = isc_mem_get(qplru->mctx,
+	delegdb_node_t *node = isc_mem_get(delegdb->qplru->mctx,
 					   sizeof(*node) + zonecut_r.length);
 	*node = (delegdb_node_t){
+
 		.magic = DELEGDB_NODE_MAGIC,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.link = ISC_LINK_INITIALIZER,
 		.deadlink = ISC_LINK_INITIALIZER,
 		.zonecut = DNS_NAME_INITEMPTY,
-		.qplru = qplru_ref(qplru),
+		.qplru = qplru_ref(delegdb->qplru),
 	};
 	dns_delegset_attach(delegset, &node->delegset);
 
@@ -598,8 +616,8 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	 * clean up expired/least recently used delegation, then allocate and
 	 * initialize a new node.
 	 */
-	size_t requested = delegdb_node_prepare(delegdb->qplru, now, ttl,
-						zonecut, delegset, &node) +
+	size_t requested = delegdb_node_prepare(delegdb, now, ttl, zonecut,
+						delegset, &node) +
 			   delegset_size(delegset);
 
 	/*

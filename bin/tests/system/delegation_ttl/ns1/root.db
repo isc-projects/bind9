@@ -1,0 +1,19 @@
+$TTL 300
+. 			IN SOA	owner.root-servers.nil. a.root.servers.nil. (
+				2010   	; serial
+				600         	; refresh
+				600         	; retry
+				1200    	; expire
+				600       	; minimum
+				)
+.			NS	a.root-servers.nil.
+a.root-servers.nil.	A	10.53.0.1
+
+tld-10.		10	NS	ns.tld-10.
+ns.tld-10.	10	A	10.53.0.10
+
+tld-50.	 	50	NS	ns.tld-50.
+ns.tld-50. 	50	A 	10.53.0.50
+
+tld-100.	100	NS	ns.tld-100.
+ns.tld-100.	100	A	10.53.0.100
