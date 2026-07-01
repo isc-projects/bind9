@@ -2357,6 +2357,7 @@ respdiff:recent-named:
   variables:
     EXTRA_SETUP_FILES: "--native-file ci/respdiff.ini"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
+  allow_failure: true  # remove once B!12357 is part of a public release
 
 # Performance tests
 
