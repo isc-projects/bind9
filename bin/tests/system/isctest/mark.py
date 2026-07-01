@@ -150,6 +150,11 @@ softhsm2_environment = pytest.mark.skipif(
     reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
 )
 
+with_pkcs11_provider = pytest.mark.skipif(
+    os.path.basename(os.getenv("OPENSSL_CONF") or "") != "openssl-provider.cnf",
+    reason="pkcs11-provider not enabled",
+)
+
 
 def have_ipv6():
     sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
