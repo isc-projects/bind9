@@ -28,13 +28,19 @@ import dns.rrset
 import pytest
 
 import isctest
+import isctest.mark
 
-pytestmark = pytest.mark.extra_artifacts(
+EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "ns1/K*",
         "ns1/example.nil.db",
     ]
 )
+
+pytestmark = [
+    isctest.mark.with_gssapi,
+    EXTRA_ARTIFACTS,
+]
 
 
 class CraftedTKEYQuery:
