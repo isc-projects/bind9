@@ -52,11 +52,9 @@ ISC_RUN_TEST_IMPL(dns_acl_isinsecure) {
 
 	UNUSED(state);
 
-	result = dns_acl_any(isc_g_mctx, &any);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_acl_any(isc_g_mctx, &any);
 
-	result = dns_acl_none(isc_g_mctx, &none);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_acl_none(isc_g_mctx, &none);
 
 	dns_acl_create(isc_g_mctx, 1, &notnone);
 

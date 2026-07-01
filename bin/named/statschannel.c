@@ -3843,12 +3843,11 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 
 	allow = cfg_tuple_get(listen_params, "allow");
 	if (allow != NULL && cfg_obj_islist(allow)) {
-		result = cfg_acl_fromconfig(allow, config, aclctx,
-					    listener->mctx, 0, &new_acl);
+		CHECK(cfg_acl_fromconfig(allow, config, aclctx, listener->mctx,
+					 0, &new_acl));
 	} else {
-		result = dns_acl_any(listener->mctx, &new_acl);
+		dns_acl_any(listener->mctx, &new_acl);
 	}
-	CHECK(result);
 
 	dns_acl_attach(new_acl, &listener->acl);
 	dns_acl_detach(&new_acl);
@@ -3973,7 +3972,8 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 		result = cfg_acl_fromconfig(allow, config, aclctx,
 					    listener->mctx, 0, &new_acl);
 	} else {
-		result = dns_acl_any(listener->mctx, &new_acl);
+		dns_acl_any(listener->mctx, &new_acl);
+		result = ISC_R_SUCCESS;
 	}
 
 	if (result == ISC_R_SUCCESS) {

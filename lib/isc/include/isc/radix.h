@@ -17,48 +17,39 @@
 #include <string.h>
 
 #include <isc/magic.h>
-#include <isc/mutex.h>
 #include <isc/net.h>
-#include <isc/refcount.h>
+#include <isc/netaddr.h>
 #include <isc/types.h>
 
-#define NETADDR_TO_PREFIX_T(na, pt, bits)                                \
-	do {                                                             \
-		const void *p = na;                                      \
-		memset(&(pt), 0, sizeof(pt));                            \
-		if (p != NULL) {                                         \
-			(pt).family = (na)->family;                      \
-			(pt).bitlen = (bits);                            \
-			if ((pt).family == AF_INET6) {                   \
-				memmove(&(pt).add.sin6, &(na)->type.in6, \
-					((bits) + 7) / 8);               \
-			} else                                           \
-				memmove(&(pt).add.sin, &(na)->type.in,   \
-					((bits) + 7) / 8);               \
-		} else {                                                 \
-			(pt).family = AF_UNSPEC;                         \
-			(pt).bitlen = 0;                                 \
-		}                                                        \
-		isc_refcount_init(&(pt).refcount, 0);                    \
-	} while (0)
-
 typedef struct isc_prefix {
-	isc_mem_t   *mctx;
-	unsigned int family;   /* AF_INET | AF_INET6, or AF_UNSPEC for
-				* "any" */
-	unsigned int   bitlen; /* 0 for "any" */
-	isc_refcount_t refcount;
+	sa_family_t family; /* AF_INET | AF_INET6 (0 means no prefix) */
+	uint8_t	    bitlen; /* prefix length in bits (max 128) */
 	union {
 		struct in_addr	sin;
 		struct in6_addr sin6;
 	} add;
 } isc_prefix_t;
 
-typedef void (*isc_radix_destroyfunc_t)(void *);
-typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
+static inline void
+isc_prefix_from_netaddr(isc_prefix_t *pfx, const isc_netaddr_t *na,
+			uint8_t bitlen) {
+	*pfx = (isc_prefix_t){ .family = na->family, .bitlen = bitlen };
+	if (na->family == AF_INET6) {
+		memmove(&pfx->add.sin6, &na->type.in6, (bitlen + 7) / 8);
+	} else {
+		memmove(&pfx->add.sin, &na->type.in, (bitlen + 7) / 8);
+	}
+}
 
-#define isc_prefix_tochar(prefix)  ((char *)&(prefix)->add.sin)
-#define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
+#define isc_prefix_touint8(prefix) ((uint8_t *)&(prefix)->add.sin)
+
+/*
+ * Test whether bit 'n' (0 = MSB) is set in the byte array 'addr'.
+ */
+static inline bool
+isc_prefix_bit_isset(const uint8_t *addr, unsigned int n) {
+	return (addr[n / 8] & (1 << (7 - n % 8))) != 0;
+}
 
 /*
  * We need "first match" when we search the radix tree to preserve
@@ -85,31 +76,33 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 #define ISC_RADIX_FAMILY(p) (((p)->family == AF_INET6) ? RADIX_V6 : RADIX_V4)
 
+typedef enum {
+	RADIX_UNSET = 0, /* no entry for this address family */
+	RADIX_ALLOW,	 /* positive match (allow) */
+	RADIX_DENY,	 /* negative match (deny) */
+} isc_radix_match_t;
+
 typedef struct isc_radix_node {
-	isc_mem_t	      *mctx;
-	uint32_t	       bit;    /* bit length of the prefix */
-	isc_prefix_t	      *prefix; /* who we are in radix tree */
-	struct isc_radix_node *l, *r;  /* left and right children */
-	struct isc_radix_node *parent; /* may be used */
-	void		      *data[RADIX_FAMILIES]; /* pointers to IPv4
-						      * and IPV6 data */
-	int node_num[RADIX_FAMILIES];		     /* which node
-						      * this was in
-						      * the tree,
-						      * or -1 for glue
-						      * nodes */
+	struct isc_radix_node *left, *right; /* children */
+	struct isc_radix_node *parent;
+	isc_prefix_t	       prefix;	  /* family==0 for glue nodes */
+	int32_t node_num[RADIX_FAMILIES]; /* insertion order, -1 = glue */
+	isc_radix_match_t match[RADIX_FAMILIES];
+	uint8_t		  bit; /* bit position in the key */
 } isc_radix_node_t;
+
+typedef void (*isc_radix_foreachfunc_t)(isc_radix_node_t *node, void *arg);
 
 #define RADIX_TREE_MAGIC    ISC_MAGIC('R', 'd', 'x', 'T')
 #define RADIX_TREE_VALID(a) ISC_MAGIC_VALID(a, RADIX_TREE_MAGIC)
 
 typedef struct isc_radix_tree {
 	unsigned int	  magic;
+	uint8_t		  maxbits;
 	isc_mem_t	 *mctx;
 	isc_radix_node_t *head;
-	uint32_t	  maxbits;	   /* for IP, 32 bit addresses */
-	int		  num_active_node; /* for debugging purposes */
-	int		  num_added_node;  /* total number of nodes */
+	int32_t		  num_active_node; /* for debugging purposes */
+	int32_t		  num_added_node;  /* total number of nodes */
 } isc_radix_tree_t;
 
 isc_result_t
@@ -129,7 +122,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	ISC_R_SUCCESS
  */
 
-isc_result_t
+void
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix);
 /*%<
@@ -141,9 +134,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	'target' is not NULL and "*target" is NULL.
  * \li	'prefix' to be valid or 'source' to be non NULL and contain
  *	a valid prefix.
- *
- * Returns:
- * \li	ISC_R_SUCCESS
  */
 
 void
@@ -157,7 +147,7 @@ isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node);
  */
 
 void
-isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
+isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, uint8_t maxbits);
 /*%<
  * Create a radix tree with a maximum depth of 'maxbits';
  *
@@ -168,49 +158,23 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
  */
 
 void
-isc_radix_destroy(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
+isc_radix_destroy(isc_radix_tree_t *radix);
 /*%<
- * Destroy a radix tree optionally calling 'func' to clean up node data.
+ * Destroy a radix tree.
  *
  * Requires:
  * \li	'radix' to be valid.
  */
 
 void
-isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
+isc_radix_foreach(isc_radix_tree_t *radix, isc_radix_foreachfunc_t func,
+		  void *arg);
 /*%<
- * Walk a radix tree calling 'func' to process node data.
+ * Walk a radix tree calling 'func' for each node that has a prefix.
  *
  * Requires:
  * \li	'radix' to be valid.
  * \li	'func' to point to a function.
  */
 
-#define RADIX_MAXBITS  128
-#define RADIX_NBIT(x)  (0x80 >> ((x) & 0x7f))
-#define RADIX_NBYTE(x) ((x) >> 3)
-
-#define RADIX_WALK(Xhead, Xnode)                              \
-	do {                                                  \
-		isc_radix_node_t  *Xstack[RADIX_MAXBITS + 1]; \
-		isc_radix_node_t **Xsp = Xstack;              \
-		isc_radix_node_t  *Xrn = (Xhead);             \
-		while ((Xnode = Xrn)) {                       \
-			if (Xnode->prefix)
-
-#define RADIX_WALK_END                       \
-	if (Xrn->l) {                        \
-		if (Xrn->r) {                \
-			*Xsp++ = Xrn->r;     \
-		}                            \
-		Xrn = Xrn->l;                \
-	} else if (Xrn->r) {                 \
-		Xrn = Xrn->r;                \
-	} else if (Xsp != Xstack) {          \
-		Xrn = *(--Xsp);              \
-	} else {                             \
-		Xrn = (isc_radix_node_t *)0; \
-	}                                    \
-	}                                    \
-	}                                    \
-	while (0)
+#define RADIX_MAXBITS 128

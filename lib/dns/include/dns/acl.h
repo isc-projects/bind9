@@ -76,7 +76,7 @@ struct dns_aclelement {
 	dns_geoip_elem_t geoip_elem;
 #endif /* HAVE_GEOIP2 */
 	dns_acl_t *nestedacl;
-	int	   node_num;
+	int32_t	   node_num;
 };
 
 #define dns_acl_node_count(acl) acl->iptable->radix->num_added_node
@@ -125,13 +125,13 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
  * length is 0.
  */
 
-isc_result_t
+void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches everything.
  */
 
-isc_result_t
+void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches nothing.

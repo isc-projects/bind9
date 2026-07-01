@@ -840,8 +840,8 @@ setup_locals(isc_interface_t *interface, dns_acl_t *localhost,
 
 	/* First add localhost address */
 	prefixlen = (netaddr->family == AF_INET) ? 32 : 128;
-	RETERR(dns_iptable_addprefix(localhost->iptable, netaddr, prefixlen,
-				     true));
+	dns_iptable_addprefix(localhost->iptable, netaddr, prefixlen,
+			      RADIX_ALLOW);
 
 	/* Then add localnets prefix */
 	result = isc_netaddr_masktoprefixlen(&interface->netmask, &prefixlen);
@@ -870,8 +870,8 @@ setup_locals(isc_interface_t *interface, dns_acl_t *localhost,
 		return ISC_R_SUCCESS;
 	}
 
-	RETERR(dns_iptable_addprefix(localnets->iptable, netaddr, prefixlen,
-				     true));
+	dns_iptable_addprefix(localnets->iptable, netaddr, prefixlen,
+			      RADIX_ALLOW);
 
 	return ISC_R_SUCCESS;
 }

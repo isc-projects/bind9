@@ -3528,9 +3528,8 @@ cleanup:
 }
 #endif /* HAVE_DNSTAP */
 
-static isc_result_t
+static void
 create_mapped_acl(void) {
-	isc_result_t result;
 	dns_acl_t *acl = NULL;
 	struct in6_addr in6 = IN6ADDR_V4MAPPED_INIT;
 	isc_netaddr_t addr;
@@ -3538,13 +3537,8 @@ create_mapped_acl(void) {
 	isc_netaddr_fromin6(&addr, &in6);
 
 	dns_acl_create(isc_g_mctx, 1, &acl);
-
-	result = dns_iptable_addprefix(acl->iptable, &addr, 96, true);
-	if (result == ISC_R_SUCCESS) {
-		dns_acl_attach(acl, &named_g_mapped);
-	}
-	dns_acl_detach(&acl);
-	return result;
+	dns_iptable_addprefix(acl->iptable, &addr, 96, RADIX_ALLOW);
+	named_g_mapped = acl;
 }
 
 isc_result_t
@@ -4033,7 +4027,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 							 mctx, 0, &excluded));
 			} else {
 				if (named_g_mapped == NULL) {
-					CHECK(create_mapped_acl());
+					create_mapped_acl();
 				}
 				dns_acl_attach(named_g_mapped, &excluded);
 			}
@@ -6410,7 +6404,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
-	CHECK(dns_acl_none(mctx, &none));
+	dns_acl_none(mctx, &none);
 	dns_zone_setqueryacl(zone, none);
 	dns_zone_setqueryonacl(zone, none);
 	dns_acl_detach(&none);

@@ -45,17 +45,17 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
  * Create a new IP table and the underlying radix structure
  */
 
-isc_result_t
+void
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      uint16_t bitlen, bool pos);
+		      uint16_t bitlen, isc_radix_match_t match);
 /*
- * Add an IP prefix to an existing IP table
+ * Add an IP prefix to an existing IP table.
  */
 
-isc_result_t
-dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos);
+void
+dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool negate);
 /*
- * Merge one IP table into another one.
+ * Merge one IP table into another one, optionally negating allow entries.
  */
 
 #if DNS_IPTABLE_TRACE
