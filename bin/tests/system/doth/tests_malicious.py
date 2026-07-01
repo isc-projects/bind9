@@ -18,6 +18,12 @@ from h2.settings import SettingCodes
 
 import dns.message
 
+import isctest.mark
+
+pytestmark = [
+    isctest.mark.with_libnghttp2,
+]
+
 
 def test_settings_frame_flood(ns1, named_httpsport):
     msg = dns.message.make_query(".", "SOA")
