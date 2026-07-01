@@ -127,6 +127,11 @@ without_tsan = pytest.mark.skipif(
     os.getenv("FEATURE_TSAN") == "1", reason="incompatible with ThreadSanitizer (TSAN)"
 )
 
+with_cpu_affinity = pytest.mark.skipif(
+    not (shutil.which("cpuset") or shutil.which("numactl") or shutil.which("taskset")),
+    reason="cpuset, numactl, or taskset is required",
+)
+
 softhsm2_environment = pytest.mark.skipif(
     not (
         os.getenv("SOFTHSM2_CONF")
