@@ -65,15 +65,15 @@ typedef atomic_uint_fast64_t hg_bucket_t;
 typedef atomic_ptr(hg_bucket_t) hg_chunk_t;
 
 struct isc_histo {
-	uint magic;
-	uint sigbits;
+	unsigned int magic;
+	unsigned int sigbits;
 	isc_mem_t *mctx;
 	hg_chunk_t chunk[CHUNKS];
 };
 
 struct isc_histomulti {
-	uint magic;
-	uint size;
+	unsigned int magic;
+	unsigned int size;
 	isc_refcount_t references;
 	isc_histo_t *hg[];
 };
@@ -81,7 +81,7 @@ struct isc_histomulti {
 /**********************************************************************/
 
 void
-isc_histo_create(isc_mem_t *mctx, uint sigbits, isc_histo_t **hgp) {
+isc_histo_create(isc_mem_t *mctx, unsigned int sigbits, isc_histo_t **hgp) {
 	REQUIRE(sigbits >= ISC_HISTO_MINBITS);
 	REQUIRE(sigbits <= ISC_HISTO_MAXBITS);
 	REQUIRE(hgp != NULL);
@@ -105,7 +105,7 @@ isc_histo_destroy(isc_histo_t **hgp) {
 	isc_histo_t *hg = *hgp;
 	*hgp = NULL;
 
-	for (uint c = 0; c < CHUNKS; c++) {
+	for (size_t c = 0; c < CHUNKS; c++) {
 		if (hg->chunk[c] != NULL) {
 			isc_mem_cput(hg->mctx, hg->chunk[c], CHUNKSIZE(hg),
 				     sizeof(hg_bucket_t));
@@ -116,7 +116,7 @@ isc_histo_destroy(isc_histo_t **hgp) {
 
 /**********************************************************************/
 
-uint
+unsigned int
 isc_histo_sigbits(isc_histo_t *hg) {
 	REQUIRE(HISTO_VALID(hg));
 	return hg->sigbits;
@@ -126,15 +126,15 @@ isc_histo_sigbits(isc_histo_t *hg) {
  * use precomputed logs and builtins to avoid linking with libm
  */
 
-uint
-isc_histo_bits_to_digits(uint bits) {
+unsigned int
+isc_histo_bits_to_digits(unsigned int bits) {
 	REQUIRE(bits >= ISC_HISTO_MINBITS);
 	REQUIRE(bits <= ISC_HISTO_MAXBITS);
 	return floor(1.0 - (1.0 - bits) * LN_2 / LN_10);
 }
 
-uint
-isc_histo_digits_to_bits(uint digits) {
+unsigned int
+isc_histo_digits_to_bits(unsigned int digits) {
 	REQUIRE(digits >= ISC_HISTO_MINDIGITS);
 	REQUIRE(digits <= ISC_HISTO_MAXDIGITS);
 	return ceil(1.0 - (1.0 - digits) * LN_10 / LN_2);
@@ -178,15 +178,15 @@ isc_histo_digits_to_bits(uint digits) {
  *
  * This function is in the `isc_histo_inc()` fast path.
  */
-static inline uint
+static inline unsigned int
 value_to_key(const isc_histo_t *hg, uint64_t value) {
 	/* ensure that denormal numbers are all in chunk zero */
 	uint64_t chunked = value | CHUNKSIZE(hg);
 	int clz = stdc_leading_zeros(chunked);
 	/* actually 1 less than the exponent except for denormals */
-	uint exponent = 63 - hg->sigbits - clz;
+	unsigned int exponent = 63 - hg->sigbits - clz;
 	/* mantissa has leading bit set except for denormals */
-	uint mantissa = value >> exponent;
+	unsigned int mantissa = value >> exponent;
 	/* leading bit of mantissa adds one to exponent */
 	return (exponent << hg->sigbits) + mantissa;
 }
@@ -198,7 +198,7 @@ value_to_key(const isc_histo_t *hg, uint64_t value) {
  * We must not cause undefined behaviour by hitting integer limits,
  * which is a risk when we aim to cover the entire range of `uint64_t`.
  *
- * The maximum value in the last bucket is UINT64_MAX, which
+ * The maximum value in the last bucket is UNSIGNED INT64_MAX, which
  * `key_to_maxval()` gets by deliberately subtracting `0 - 1`,
  * undeflowing a `uint64_t`. That is OK when unsigned.
  *
@@ -213,26 +213,26 @@ value_to_key(const isc_histo_t *hg, uint64_t value) {
  */
 
 static inline uint64_t
-key_to_minval(const isc_histo_t *hg, uint key) {
-	uint chunksize = CHUNKSIZE(hg);
-	uint exponent = (key / chunksize) - 1;
+key_to_minval(const isc_histo_t *hg, unsigned int key) {
+	unsigned int chunksize = CHUNKSIZE(hg);
+	unsigned int exponent = (key / chunksize) - 1;
 	uint64_t mantissa = (key % chunksize) + chunksize;
 	return key < chunksize ? key : mantissa << exponent;
 }
 
 static inline uint64_t
-key_to_maxval(const isc_histo_t *hg, uint key) {
+key_to_maxval(const isc_histo_t *hg, unsigned int key) {
 	return key_to_minval(hg, key + 1) - 1;
 }
 
 /**********************************************************************/
 
 static hg_bucket_t *
-key_to_new_bucket(isc_histo_t *hg, uint key) {
+key_to_new_bucket(isc_histo_t *hg, unsigned int key) {
 	/* slow path */
-	uint chunksize = CHUNKSIZE(hg);
-	uint chunk = key / chunksize;
-	uint bucket = key % chunksize;
+	unsigned int chunksize = CHUNKSIZE(hg);
+	unsigned int chunk = key / chunksize;
+	unsigned int bucket = key % chunksize;
 	hg_bucket_t *old_cp = NULL;
 	hg_bucket_t *new_cp = isc_mem_cget(hg->mctx, CHUNKSIZE(hg),
 					   sizeof(hg_bucket_t));
@@ -248,16 +248,16 @@ key_to_new_bucket(isc_histo_t *hg, uint key) {
 }
 
 static hg_bucket_t *
-get_chunk(const isc_histo_t *hg, uint chunk) {
+get_chunk(const isc_histo_t *hg, unsigned int chunk) {
 	return atomic_load_acquire(&hg->chunk[chunk]);
 }
 
 static inline hg_bucket_t *
-key_to_bucket(const isc_histo_t *hg, uint key) {
+key_to_bucket(const isc_histo_t *hg, unsigned int key) {
 	/* fast path */
-	uint chunksize = CHUNKSIZE(hg);
-	uint chunk = key / chunksize;
-	uint bucket = key % chunksize;
+	unsigned int chunksize = CHUNKSIZE(hg);
+	unsigned int chunk = key / chunksize;
+	unsigned int bucket = key % chunksize;
 	hg_bucket_t *cp = get_chunk(hg, chunk);
 	return cp == NULL ? NULL : &cp[bucket];
 }
@@ -268,12 +268,12 @@ bucket_count(const hg_bucket_t *bp) {
 }
 
 static inline uint64_t
-get_key_count(const isc_histo_t *hg, uint key) {
+get_key_count(const isc_histo_t *hg, unsigned int key) {
 	return bucket_count(key_to_bucket(hg, key));
 }
 
 static inline void
-add_key_count(isc_histo_t *hg, uint key, uint64_t inc) {
+add_key_count(isc_histo_t *hg, unsigned int key, uint64_t inc) {
 	/* fast path */
 	if (inc > 0) {
 		hg_bucket_t *bp = key_to_bucket(hg, key);
@@ -299,10 +299,10 @@ void
 isc_histo_put(isc_histo_t *hg, uint64_t min, uint64_t max, uint64_t count) {
 	REQUIRE(HISTO_VALID(hg));
 
-	uint kmin = value_to_key(hg, min);
-	uint kmax = value_to_key(hg, max);
+	unsigned int kmin = value_to_key(hg, min);
+	unsigned int kmax = value_to_key(hg, max);
 
-	for (uint key = kmin; key <= kmax; key++) {
+	for (unsigned int key = kmin; key <= kmax; key++) {
 		uint64_t mid = ISC_MIN(max, key_to_maxval(hg, key));
 		double in_bucket = mid - min + 1;
 		double remaining = max - min + 1;
@@ -314,8 +314,8 @@ isc_histo_put(isc_histo_t *hg, uint64_t min, uint64_t max, uint64_t count) {
 }
 
 isc_result_t
-isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
-	      uint64_t *countp) {
+isc_histo_get(const isc_histo_t *hg, unsigned int key, uint64_t *minp,
+	      uint64_t *maxp, uint64_t *countp) {
 	REQUIRE(HISTO_VALID(hg));
 
 	if (key < BUCKETS(hg)) {
@@ -329,13 +329,13 @@ isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
 }
 
 void
-isc_histo_next(const isc_histo_t *hg, uint *keyp) {
+isc_histo_next(const isc_histo_t *hg, unsigned int *keyp) {
 	REQUIRE(HISTO_VALID(hg));
 	REQUIRE(keyp != NULL);
 
-	uint chunksize = CHUNKSIZE(hg);
-	uint buckets = BUCKETS(hg);
-	uint key = *keyp;
+	unsigned int chunksize = CHUNKSIZE(hg);
+	unsigned int buckets = BUCKETS(hg);
+	unsigned int key = *keyp;
 
 	key++;
 	while (key < buckets && key % chunksize == 0 &&
@@ -358,7 +358,7 @@ isc_histo_merge(isc_histo_t **targetp, const isc_histo_t *source) {
 	}
 
 	uint64_t min, max, count;
-	for (uint key = 0;
+	for (unsigned int key = 0;
 	     isc_histo_get(source, key, &min, &max, &count) == ISC_R_SUCCESS;
 	     isc_histo_next(source, &key))
 	{
@@ -369,11 +369,12 @@ isc_histo_merge(isc_histo_t **targetp, const isc_histo_t *source) {
 /**********************************************************************/
 
 void
-isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp) {
+isc_histomulti_create(isc_mem_t *mctx, unsigned int sigbits,
+		      isc_histomulti_t **hmp) {
 	REQUIRE(hmp != NULL);
 	REQUIRE(*hmp == NULL);
 
-	uint size = isc_tid_count();
+	unsigned int size = isc_tid_count();
 	INSIST(size > 0);
 
 	isc_histomulti_t *hm = isc_mem_cget(mctx, 1,
@@ -383,7 +384,7 @@ isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp) {
 		.size = size,
 	};
 
-	for (uint i = 0; i < hm->size; i++) {
+	for (unsigned int i = 0; i < hm->size; i++) {
 		isc_histo_create(mctx, sigbits, &hm->hg[i]);
 	}
 
@@ -398,7 +399,7 @@ isc__histomulti_destroy(isc_histomulti_t *hm) {
 
 	isc_mem_t *mctx = hm->hg[0]->mctx;
 
-	for (uint i = 0; i < hm->size; i++) {
+	for (unsigned int i = 0; i < hm->size; i++) {
 		isc_histo_destroy(&hm->hg[i]);
 	}
 
@@ -411,7 +412,7 @@ void
 isc_histomulti_merge(isc_histo_t **hgp, const isc_histomulti_t *hm) {
 	REQUIRE(HISTOMULTI_VALID(hm));
 
-	for (uint i = 0; i < hm->size; i++) {
+	for (unsigned int i = 0; i < hm->size; i++) {
 		isc_histo_merge(hgp, hm->hg[i]);
 	}
 }
@@ -450,7 +451,7 @@ isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1,
 	double sigma = 0.0;
 
 	uint64_t min, max, count;
-	for (uint key = 0;
+	for (unsigned int key = 0;
 	     isc_histo_get(hg, key, &min, &max, &count) == ISC_R_SUCCESS;
 	     isc_histo_next(hg, &key))
 	{
@@ -474,7 +475,8 @@ isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1,
  *
  * `outrange` should be `((1 << n) - 1)` for some `n`; when `n` is larger
  * than 53, `outrange` can get rounded up to a power of 2, so we clamp the
- * result to keep within bounds (extra important when `max == UINT64_MAX`)
+ * result to keep within bounds (extra important when `max == UNSIGNED
+ * INT64_MAX`)
  */
 static inline uint64_t
 lerp(uint64_t min, uint64_t max, uint64_t lo, uint64_t in, uint64_t hi) {
@@ -494,8 +496,8 @@ inside(uint64_t lo, uint64_t in, uint64_t hi) {
 }
 
 isc_result_t
-isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
-		    uint64_t *value) {
+isc_histo_quantiles(const isc_histo_t *hg, unsigned int size,
+		    const double *fraction, uint64_t *value) {
 	hg_bucket_t *chunk[CHUNKS];
 	uint64_t total[CHUNKS];
 	uint64_t rank[ISC_HISTO_MAXQUANTILES];
@@ -505,8 +507,8 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 	REQUIRE(fraction != NULL);
 	REQUIRE(value != NULL);
 
-	const uint maxchunk = MAXCHUNK(hg);
-	const uint chunksize = CHUNKSIZE(hg);
+	const unsigned int maxchunk = MAXCHUNK(hg);
+	const unsigned int chunksize = CHUNKSIZE(hg);
 
 	/*
 	 * Find out which chunks exist and what their totals are. We take a
@@ -515,11 +517,11 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 	 * likely to be in the CPU cache when we scan from high to low.
 	 */
 	uint64_t population = 0;
-	for (uint c = 0; c < maxchunk; c++) {
+	for (unsigned int c = 0; c < maxchunk; c++) {
 		chunk[c] = get_chunk(hg, c);
 		total[c] = 0;
 		if (chunk[c] != NULL) {
-			for (uint b = chunksize; b-- > 0;) {
+			for (unsigned int b = chunksize; b-- > 0;) {
 				total[c] += bucket_count(&chunk[c][b]);
 			}
 			population += total[c];
@@ -530,7 +532,7 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 	 * Now we know the population, we can convert fractions to ranks.
 	 * Also ensure they are within bounds and in decreasing order.
 	 */
-	for (uint i = 0; i < size; i++) {
+	for (unsigned int i = 0; i < size; i++) {
 		REQUIRE(0.0 <= fraction[i] && fraction[i] <= 1.0);
 		REQUIRE(i == 0 || fraction[i - 1] > fraction[i]);
 		rank[i] = round(fraction[i] * population);
@@ -541,9 +543,9 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 	 * each chunk's ranks. Each time we match `rank[i]`, move on to the
 	 * next rank and continue the scan from the same place.
 	 */
-	uint i = 0;
+	unsigned int i = 0;
 	uint64_t chunk_lo = population;
-	for (uint c = maxchunk; c-- > 0;) {
+	for (unsigned int c = maxchunk; c-- > 0;) {
 		uint64_t chunk_hi = chunk_lo;
 		chunk_lo = chunk_hi - total[c];
 
@@ -553,7 +555,7 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 		 * if the current rank is not in the chunk.
 		 */
 		uint64_t bucket_lo = chunk_hi;
-		for (uint b = chunksize;
+		for (unsigned int b = chunksize;
 		     b-- > 0 && inside(chunk_lo, rank[i], chunk_hi);)
 		{
 			uint64_t bucket_hi = bucket_lo;
@@ -563,7 +565,7 @@ isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
 			 * Convert all ranks that fall in this bucket.
 			 */
 			while (inside(bucket_lo, rank[i], bucket_hi)) {
-				uint key = chunksize * c + b;
+				unsigned int key = chunksize * c + b;
 				value[i] = lerp(key_to_minval(hg, key),
 						key_to_maxval(hg, key),
 						bucket_lo, rank[i], bucket_hi);

@@ -111,7 +111,7 @@ isc_histo_destroy(isc_histo_t **hgp);
  *\li	`*hgp` is NULL
  */
 
-uint
+unsigned int
 isc_histo_sigbits(isc_histo_t *hg);
 /*%<
  * Get the histogram's `sigbits` setting
@@ -120,8 +120,8 @@ isc_histo_sigbits(isc_histo_t *hg);
  *\li	`hg` is a pointer to a valid histogram
  */
 
-uint
-isc_histo_bits_to_digits(uint bits);
+unsigned int
+isc_histo_bits_to_digits(unsigned int bits);
 /*%<
  * Convert binary significant figures to decimal significant figures,
  * rounding down, i.e. get the decimal precision you can expect from a
@@ -132,8 +132,8 @@ isc_histo_bits_to_digits(uint bits);
  *\li	`bits <= ISC_HISTO_MAXBITS`
  */
 
-uint
-isc_histo_digits_to_bits(uint digits);
+unsigned int
+isc_histo_digits_to_bits(unsigned int digits);
 /*%<
  * Convert decimal significant figures to binary significant figures,
  * rounding up, i.e. get the number of significant bits required to
@@ -181,8 +181,8 @@ isc_histo_put(isc_histo_t *hg, uint64_t min, uint64_t max, uint64_t count);
  */
 
 isc_result_t
-isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
-	      uint64_t *countp);
+isc_histo_get(const isc_histo_t *hg, unsigned int key, uint64_t *minp,
+	      uint64_t *maxp, uint64_t *countp);
 /*%<
  * Export information about a bucket.
  *
@@ -212,7 +212,7 @@ isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
  */
 
 void
-isc_histo_next(const isc_histo_t *hg, uint *keyp);
+isc_histo_next(const isc_histo_t *hg, unsigned int *keyp);
 /*%<
  * Skip to the next key, omitting chunks of unallocated buckets.
  *
@@ -223,7 +223,7 @@ isc_histo_next(const isc_histo_t *hg, uint *keyp);
  * Example:
  *
  *	uint64_t min, max, count;
- *	for (uint key = 0;
+ *	for (unsigned int key = 0;
  *	     isc_histo_get(hg, key, &min, &max, &count) == ISC_R_SUCCESS;
  *	     isc_histo_next(hg, &key))
  *	{
@@ -259,7 +259,8 @@ isc_histo_merge(isc_histo_t **targetp, const isc_histo_t *source);
 /**********************************************************************/
 
 void
-isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp);
+isc_histomulti_create(isc_mem_t *mctx, unsigned int sigbits,
+		      isc_histomulti_t **hmp);
 /*%<
  * Create a multithreaded sharded histogram.
  *
@@ -351,8 +352,8 @@ isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1, double *pm2);
  */
 
 isc_result_t
-isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
-		    uint64_t *value);
+isc_histo_quantiles(const isc_histo_t *hg, unsigned int size,
+		    const double *fraction, uint64_t *value);
 /*%<
  * The quantile function (aka inverse cumulative distribution function)
  * of the histogram. What value is greater than the given fraction of
