@@ -127,6 +127,11 @@ with_gssapi = pytest.mark.skipif(
     os.getenv("FEATURE_GSSAPI") != "1", reason="GSS-API support disabled in the build"
 )
 
+with_libxml2_or_json_c = pytest.mark.skipif(
+    os.getenv("FEATURE_LIBXML2") != "1" and os.getenv("FEATURE_JSON_C") != "1",
+    reason="libxml2 or json-c support is required",
+)
+
 with_fips_dh = pytest.mark.skipif(
     os.getenv("FEATURE_FIPS_DH") != "1", reason="FIPS mode Diffie-Hellman is required"
 )
