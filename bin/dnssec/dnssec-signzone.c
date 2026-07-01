@@ -1643,6 +1643,11 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			dns_db_detachnode(gdb, &node);
 			goto next;
 		}
+		if (!dns_name_issubdomain(name, gorigin)) {
+			dumpnode(name, node);
+			dns_db_detachnode(gdb, &node);
+			goto next;
+		}
 		/*
 		 * Sort the zone data from the glue and out-of-zone data.
 		 * For NSEC zones nodes with zone data have NSEC records.
