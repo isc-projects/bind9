@@ -124,6 +124,10 @@ with_geoip2 = pytest.mark.skipif(
     os.getenv("FEATURE_GEOIP2") != "1", reason="GeoIP2 support disabled in the build"
 )
 
+without_tsan = pytest.mark.skipif(
+    os.getenv("FEATURE_TSAN") == "1", reason="incompatible with ThreadSanitizer (TSAN)"
+)
+
 dnsrps_enabled = pytest.mark.skipif(
     not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
