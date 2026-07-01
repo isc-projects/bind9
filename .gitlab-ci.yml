@@ -40,8 +40,6 @@ variables:
   WITHOUT_LIBEDIT: "-Dline=disabled"
   WITH_LIBEDIT: "-Dline=enabled"
 
-  STRESS_CONFIGURE_FLAGS: "-Doptimization=g -Dcmocka=disabled"
-
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
   # In multithreaded unit tests, abort on the first failure
