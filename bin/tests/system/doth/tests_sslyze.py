@@ -18,13 +18,19 @@ import subprocess
 import pytest
 
 import isctest
+import isctest.mark
 
-pytestmark = pytest.mark.extra_artifacts(
+EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "sslyze.log.*",
         "ns*/example*.db",
     ]
 )
+
+pytestmark = [
+    isctest.mark.with_libnghttp2,
+    EXTRA_ARTIFACTS,
+]
 
 
 def is_pid_alive(pid):

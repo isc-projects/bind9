@@ -24,13 +24,19 @@ import dns.rdatatype
 import pytest
 
 import isctest
+import isctest.mark
 
-pytestmark = pytest.mark.extra_artifacts(
+EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "gnutls-cli.*",
         "ns*/example*.db",
     ]
 )
+
+pytestmark = [
+    isctest.mark.with_libnghttp2,
+    EXTRA_ARTIFACTS,
+]
 
 
 def test_gnutls_cli_query(gnutls_cli_executable, named_tlsport):
