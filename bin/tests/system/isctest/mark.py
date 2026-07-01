@@ -127,6 +127,10 @@ with_gssapi = pytest.mark.skipif(
     os.getenv("FEATURE_GSSAPI") != "1", reason="GSS-API support disabled in the build"
 )
 
+with_fips_dh = pytest.mark.skipif(
+    os.getenv("FEATURE_FIPS_DH") != "1", reason="FIPS mode Diffie-Hellman is required"
+)
+
 without_tsan = pytest.mark.skipif(
     os.getenv("FEATURE_TSAN") == "1", reason="incompatible with ThreadSanitizer (TSAN)"
 )

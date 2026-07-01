@@ -23,6 +23,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
 
 pytestmark = [
     isctest.mark.with_libnghttp2,
+    isctest.mark.with_fips_dh,
     EXTRA_ARTIFACTS,
 ]
 

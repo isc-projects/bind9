@@ -39,6 +39,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
 
 pytestmark = [
     isctest.mark.with_gssapi,
+    isctest.mark.with_fips_dh,
     EXTRA_ARTIFACTS,
 ]
 

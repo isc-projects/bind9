@@ -22,6 +22,7 @@ import isctest.mark
 
 pytestmark = [
     isctest.mark.with_libnghttp2,
+    isctest.mark.with_fips_dh,
 ]
 
 
