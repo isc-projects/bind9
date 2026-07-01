@@ -123,6 +123,10 @@ with_geoip2 = pytest.mark.skipif(
     os.getenv("FEATURE_GEOIP2") != "1", reason="GeoIP2 support disabled in the build"
 )
 
+with_gssapi = pytest.mark.skipif(
+    os.getenv("FEATURE_GSSAPI") != "1", reason="GSS-API support disabled in the build"
+)
+
 without_tsan = pytest.mark.skipif(
     os.getenv("FEATURE_TSAN") == "1", reason="incompatible with ThreadSanitizer (TSAN)"
 )
