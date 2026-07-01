@@ -103,9 +103,6 @@ cleanup:
 		}
 		dns_zone_detach(&raw);
 	}
-	if (acl_any != NULL) {
-		dns_acl_detach(&acl_any);
-	}
 
 	return result;
 }
