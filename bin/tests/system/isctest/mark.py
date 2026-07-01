@@ -84,6 +84,12 @@ def with_algorithm(name: str):
     return pytest.mark.skipif(os.getenv(key) != "1", reason=f"{name} is not supported")
 
 
+with_eddsa = pytest.mark.skipif(
+    os.getenv("ED25519_SUPPORTED") != "1" and os.getenv("ED448_SUPPORTED") != "1",
+    reason="EdDSA (ED25519 or ED448) is not supported",
+)
+
+
 with_developer = pytest.mark.skipif(
     os.getenv("FEATURE_DEVELOPER") != "1",
     reason="developer mode disabled in the build",
