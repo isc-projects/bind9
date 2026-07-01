@@ -7602,7 +7602,7 @@ log_zoneversion(unsigned char *version, size_t version_len, unsigned char *nsid,
 	isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 			    sizeof(addrbuf));
 	if (version[1] == 0 && version_len == 6) {
-		uint32_t serial = version[2] << 24 | version[3] << 2 |
+		uint32_t serial = version[2] << 24 | version[3] << 16 |
 				  version[4] << 8 | version[5];
 		isc_log_write(DNS_LOGCATEGORY_ZONEVERSION,
 			      DNS_LOGMODULE_RESOLVER, level,
