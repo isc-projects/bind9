@@ -9826,7 +9826,7 @@ query_cname(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_CNAME_BEGIN, qctx);
 
-	REQUIRE(qctx->result != DNS_R_CNAME);
+	REQUIRE(qctx->qtype != dns_rdatatype_cname);
 
 	result = query_zerottl_refetch(qctx);
 	if (result != ISC_R_COMPLETE) {
@@ -9914,9 +9914,6 @@ cleanup:
 	return result;
 }
 
-/*
- * Handle DNAME responses of a query which its type is _not_ DNAME.
- */
 static isc_result_t
 query_dname(query_ctx_t *qctx) {
 	dns_name_t *tname, *prefix;
@@ -9935,8 +9932,6 @@ query_dname(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_DNAME_BEGIN, qctx);
 
-	REQUIRE(qctx->result != DNS_R_DNAME);
-
 	/*
 	 * Compare the current qname to the found name.  We need
 	 * to know how many labels and bits are in common because
@@ -9944,6 +9939,11 @@ query_dname(query_ctx_t *qctx) {
 	 */
 	namereln = dns_name_fullcompare(qctx->client->query.qname, qctx->fname,
 					&order, &nlabels);
+
+	/*
+	 * Handling DNAME response is valid as soon as the qname is a subname of
+	 * the DNAME target.
+	 */
 	INSIST(namereln == dns_namereln_subdomain);
 
 	/*
