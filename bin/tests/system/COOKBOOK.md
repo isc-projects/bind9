@@ -175,12 +175,46 @@ glue, truncation, dropped queries, malformed records), add an `ansN`
 subdirectory containing an `ans.py` script based on `isctest.asyncserver`.
 The runner starts it automatically on 10.53.0.N, logging to `ans.run`.
 
-The general pattern: write a response handler class, scope it to the
-domains it owns, and install it into an `AsyncDnsServer`.  A handler
-typically subclasses `DomainHandler` — its `domains` list routes every
-query for those names and their subdomains to the handler — and implements
-`get_responses()`, an async generator that inspects the query context and
-yields response actions:
+Implementing a custom `ansN` server happens in two phases:
+
+  - define all static DNS data that the server needs to serve (if any) in `*.db`
+    files, like you would for a regular `named` instance,
+
+  - implement any non-standard behavior (modifying zone-based responses or
+    generating responses from scratch) by defining a response handler class,
+    scoping it to the QNAMEs/QTYPEs/domains it owns, and installing it into an
+    `AsyncDnsServer`.
+
+Most importantly, avoid the temptation to define all DNS responses that a given
+`ansN` server needs to serve using just dnspython APIs; zone files are much
+easier to follow for static DNS data.  Splitting up static DNS data and custom
+behavior also makes it easier to follow the idea behind each test.
+
+The most commonly subclassed handler classes are (ordered by descending
+specificity):
+
+  - `QnameQtypeHandler`
+  - `QnameHandler`
+  - `DomainHandler`
+
+These handler classes require certain properties (e.g. `qnames`, `qtypes`,
+`domains`) to be defined by their subclasses.  These properties define the set
+of queries that a given handler should be used for.  Please see
+`isctest/asyncserver.py` for up-to-date information on available handler classes
+and existing `ans.py` files for how they can be used in practice.  Consult the
+log files (`ans.run`) in case a query is not matched by its intended handler.
+
+**NOTE:** For readability (of both code and logs), defining separate handler
+classes for distinct queries is strongly preferred over using a single handler
+containing an `if`/`elif`/`else` chain.
+
+**NOTE:** If you find yourself implementing an `__init__()` method in your
+handler subclass, it often indicates that you're approaching the problem at hand
+from the wrong side; contact QA for guidance in such a case.
+
+When a query is matched to a handler, the latter is expected to yield a response
+action through its `get_responses()` method, an async generator that inspects
+the query context and decides how the server should react:
 
 ```python
 from collections.abc import AsyncGenerator
@@ -225,24 +259,75 @@ handler matches are answered from zone data — `AsyncDnsServer` loads every
 `*.db` zone file found in the `ansN` directory at startup — or with the
 server's default rcode (REFUSED unless configured otherwise).
 
-When one mock server accrues several unrelated domains — typical for a
-shared `ansN` in a multi-module family directory — keep each domain's
-handler logic in its own module next to `ans.py`, with `ans.py` reduced
-to a loader that imports and installs each handler:
+**NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
+strongly recommended instead of implementing the `get_responses()` generator
+manually; see `resolver/ans3/ans.py` for practical examples.
+
+**NOTE:** Calling `yield` does **NOT** make `get_responses()` return!  This is
+by design: `get_responses()` can yield multiple DNS messages in response to a
+single query, so that it can also handle AXFR/IXFR queries, among others.  Be
+careful not to unintentionally cause multiple DNS messages to be returned for a
+single query.  If your handler's `get_responses()` method contains multiple
+`yield` statements, it might be a sign that it needs to be refactored into
+multiple separate handlers.
+
+If multiple `ansN` instances used in a given system test need to share common
+logic, extract that logic into a `<test-name>_ans.py` module in the system test
+directory.  See the `qmin` system test for a practical example.
+
+If multiple system tests would benefit from sharing some common logic, consider
+submitting a merge request adding that logic to `isctest/asyncserver.py` itself.
+
+To the extent possible, try to keep each `ans.py` file limited in length and
+scope.  Look at existing `ans.py` files to see what is meant by that.  If the
+response generation logic required for reproducing a given bug is particularly
+complex, consider dedicating the entire `ans.py` file just to that logic instead
+of appending it to an existing one; `ansN` instances are cheap to spawn and run
+compared to regular `named` instances.  If the number of `ansN` instances used
+in a given system test is becoming unwieldy, it usually indicates the need to
+start adding/moving code to a new system test directory.
+
+In some rare cases, it may be useful to reuse a common set of `nsN` server
+instances to reproduce a whole class of related issues, triggering which relies
+on some non-standard behavior and therefore needs a custom `ansN` server to be
+implemented.  If the logic necessary for reproducing each of these issues is
+complex and the amount of those issues makes it impractical to add a separate
+`ansN` server for each issue (as recommended in the previous paragraph), it is
+acceptable to split up the test logic for each issue into separate `ans_*.py`
+modules inside a single `ansN` directory and reduce `ans.py` itself to a loader
+that imports and installs handlers defined in those separate modules:
 
 ```python
-from mytest.ans4 import broken_example
+from mytest.ans1 import ans_some_bug, ans_some_other_bug
 from isctest.asyncserver import AsyncDnsServer
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(broken_example.BrokenExampleHandler())
+    server.install_response_handler(ans_some_bug.SomeBugHandler())
+    server.install_response_handler(ans_some_other_bug.SomeOtherBugHandler())
     server.run()
 
 
 if __name__ == "__main__":
     main()
+```
+
+However, in such a case it is particularly important to ensure consistency
+between the names of all the Python files related to a given issue - otherwise,
+chaos ensues.  Furthermore, avoid using cryptic file names (e.g. numeric bug
+identifiers).  The recommended naming scheme is:
+
+```
+mytest/
+├── ans1
+│   ├── ans.py
+│   ├── ans_some_bug.py
+│   └── ans_some_other_bug.py
+├── ns2
+│   └── ...
+├── tests_some_bug.py
+└── tests_some_other_bug.py
 ```
 
 To point a resolver at the mock, delegate to it from the test's root zone
