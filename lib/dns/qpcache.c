@@ -2283,8 +2283,12 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 
 	REQUIRE(rdtype != dns_rdatatype_none);
 	if (dns_rdatatype_issig(rdtype)) {
-		/* signature must be either negative or cover something */
-		REQUIRE(NEGATIVE(newheader) || covers != dns_rdatatype_none);
+		/*
+		 * signature must be either negative or cover something
+		 * that's not a signature
+		 */
+		REQUIRE(NEGATIVE(newheader) || (covers != dns_rdatatype_none &&
+						!dns_rdatatype_issig(covers)));
 	} else {
 		/* non-signature it must cover nothing */
 		REQUIRE(covers == dns_rdatatype_none);
