@@ -17,7 +17,8 @@ import socket
 import select
 import struct
 
-import dns, dns.message
+import dns
+import dns.message
 from dns.rcode import *
 
 modes = [
@@ -109,9 +110,9 @@ hung_conns = []
 while running:
     try:
         inputready, outputready, exceptready = select.select(input, [], [])
-    except select.error as e:
+    except select.error:
         break
-    except socket.error as e:
+    except socket.error:
         break
     except KeyboardInterrupt:
         break
