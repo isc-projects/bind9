@@ -1264,7 +1264,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			covers = dns_rdata_covers(rdata);
 			/* A signature can only cover a real rdata type */
 			if (covers == dns_rdatatype_none ||
-			    dns_rdatatype_ismeta(covers))
+			    dns_rdatatype_ismeta(covers) ||
+			    dns_rdatatype_issig(covers))
 			{
 				DO_ERROR(DNS_R_FORMERR);
 			}

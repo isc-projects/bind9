@@ -10,11 +10,17 @@ file, you can obtain one at https://mozilla.org/MPL/2.0/.
 See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 
-For any query, returns a hand-crafted RRSIG whose Type-Covered field
-is selected by the leftmost label of QNAME. The label is parsed as a
-DNS type via `dns.rdatatype.from_text()`, so the resolver can be
+For any query, returns hand-crafted RRSIG records whose Type-Covered
+field is selected by the leftmost label of QNAME. The label is parsed
+as a DNS type via `dns.rdatatype.from_text()`, so the resolver can be
 probed with any meta-type by querying e.g. `any.attacker.test.`,
 `axfr.attacker.test.`, `tsig.attacker.test.`, etc.
+
+Tripping the resolver's QP-cache RRSIG-pairing assertion needs a second
+RRSIG header co-located at the owner name, so when the covered type is
+itself a signature (`rrsig.attacker.test.`) the answer also carries two
+ordinary RRSIGs (covering A and AAAA) next to the RRSIG-covers-RRSIG
+poison. A single RRSIG-covers-RRSIG record is cached harmlessly.
 """
 
 from collections.abc import AsyncGenerator
@@ -39,17 +45,23 @@ class RrsigCoversHandler(ResponseHandler):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         covers_label = qctx.qname.labels[0].decode("ascii").upper()
         covers = dns.rdatatype.from_text(covers_label)
-        rrset = dns.rrset.from_text(
-            qctx.qname,
-            3600,
-            dns.rdataclass.IN,
-            dns.rdatatype.RRSIG,
-            f"TYPE{int(covers)} 8 2 3600 20300101000000 20200101000000 "
-            "12345 attacker.test. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        )
+
+        def rrsig_covering(covered: dns.rdatatype.RdataType) -> dns.rrset.RRset:
+            return dns.rrset.from_text(
+                qctx.qname,
+                3600,
+                dns.rdataclass.IN,
+                dns.rdatatype.RRSIG,
+                f"TYPE{int(covered)} 8 2 3600 20300101000000 20200101000000 "
+                "12345 attacker.test. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            )
+
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.flags |= dns.flags.AA
-        qctx.response.answer.append(rrset)
+        if covers == dns.rdatatype.RRSIG:
+            qctx.response.answer.append(rrsig_covering(dns.rdatatype.A))
+            qctx.response.answer.append(rrsig_covering(dns.rdatatype.AAAA))
+        qctx.response.answer.append(rrsig_covering(covers))
         yield DnsResponseSend(qctx.response)
 
 
