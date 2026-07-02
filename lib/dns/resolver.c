@@ -1082,7 +1082,7 @@ rctx_dispfail(respctx_t *rctx);
 static isc_result_t
 rctx_timedout(respctx_t *rctx);
 
-static void
+static isc_result_t
 rctx_ncache(respctx_t *rctx);
 
 /*%
@@ -6528,8 +6528,32 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 	result = dns_ncache_add(message, cache, node, covers, now, minttl,
 				maxttl, optout, secure, added);
 
+	/*
+	 * We failed to add the negative cache entry and some rdataset was
+	 * returned.  If we were adding dns_rdatatype_any, this could be of a
+	 * different type than was originally requested.
+	 */
+	if (result == DNS_R_UNCHANGED) {
+		/*
+		 * We got the same negative type that we were adding, everything
+		 * is fine, continue.
+		 */
+		if (NEGATIVE(added) && added->covers == covers) {
+			result = ISC_R_SUCCESS;
+		} else {
+			dns_rdataset_disassociate(added);
+			dns_db_detachnode(&node);
+			return DNS_R_SERVFAIL;
+		}
+	}
+
 	if (added == &rdataset) {
 		dns_rdataset_cleanup(added);
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		dns_db_detachnode(&node);
+		return result;
 	}
 
 	*nodep = node;
@@ -6541,7 +6565,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
  * Cache the negatively cacheable parts of the message.  This may
  * also cause work to be queued to the DNSSEC validator.
  */
-static void
+static isc_result_t
 rctx_ncache(respctx_t *rctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	fetchctx_t *fctx = rctx->fctx;
@@ -6627,6 +6651,7 @@ done:
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("rctx_ncache complete", result);
 	}
+	return result;
 }
 
 static void
@@ -8101,7 +8126,10 @@ resquery_response_continue(void *arg, isc_result_t result) {
 	/*
 	 * Negative caching
 	 */
-	rctx_ncache(rctx);
+	isc_result_t nresult = rctx_ncache(rctx);
+	if (nresult != ISC_R_SUCCESS) {
+		result = nresult;
+	}
 
 	FCTXTRACE("resquery_response done");
 	rctx_done(rctx, result);
