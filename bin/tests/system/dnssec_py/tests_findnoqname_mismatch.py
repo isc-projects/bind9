@@ -15,10 +15,6 @@ serve it back, when the proof owner carries both NSEC and NSEC3 records in
 any wire order (#5985, #6369).
 """
 
-from pathlib import Path
-
-import json
-
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -26,7 +22,10 @@ import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
-import pytest
+
+from dnssec_py.common import DNSSEC_PY_MARK
+from isctest.template import NS4, NS9, Nameserver, zones
+from isctest.zone import PythonZoneKey, Zone
 
 import isctest
 import isctest.mark
@@ -40,18 +39,10 @@ WILDCARD_LABELS = 3
 NSEC_OWNER = f"00000000.{CHILD}"
 NSEC3_OWNER = f"{'0' * 32}.{CHILD}"
 FORGED_A = "192.0.2.217"
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
+AUTH = "10.53.0.4"
+RESOLVER = "10.53.0.9"
 
-pytestmark = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans1/ans.run",
-            "ans1/keys.json",
-        ]
-    ),
-]
+pytestmark = [isctest.mark.with_ecdsa_deterministic, DNSSEC_PY_MARK]
 
 
 def _make_key():
@@ -73,10 +64,20 @@ def _make_key():
 
 
 def bootstrap():
-    keys = {ZONE: _make_key()}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    zone_dnskey = "".join(keys[ZONE]["dnskey"].split()[3:])
-    return {"ZONE_DNSKEY": zone_dnskey}
+    # for a static stub zones, NS name is the stub and NS IP is the target
+    ans = Nameserver(NS9.name, NS9.num, NS4.ip, NS4.ip6)
+
+    zone = Zone(ZONE, ans, signed=False, zone_type="static-stub")
+    zonekey = PythonZoneKey.generate(zone)
+    zonekey.write_private_key_pem(f"ans4/{ZONE}.pem")
+    zone.keys = [zonekey]
+
+    ta = zonekey.into_ta("static-key")
+
+    return {
+        "zones": zones([zone]),
+        "trust_anchors": [ta],
+    }
 
 
 def _query(server, qname, qtype):
