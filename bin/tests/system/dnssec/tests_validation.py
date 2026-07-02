@@ -182,6 +182,19 @@ def test_positive_validation_nsec3():
     isctest.check.rr_count_eq(res2.answer, 1)
 
 
+def test_positive_validation_dname_at_apex():
+    # an apex DNAME is signed by the DNSKEY living at the DNAME owner
+    # name itself; fetching that key must not be mistaken for a
+    # non-advancing alias chain (GL #6176)
+    msg = isctest.query.create("a.dname-at-apex-nsec3.example", "A")
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.noerror(res)
+    isctest.check.adflag(res)
+    answers = {(str(rr.name), rr.rdtype) for rr in res.answer}
+    assert ("dname-at-apex-nsec3.example.", rdatatype.DNAME) in answers
+    assert ("a.example.", rdatatype.A) in answers
+
+
 def test_positive_validation_optout():
     # positive answer
     msg = isctest.query.create("a.optout.example", "A")
