@@ -954,7 +954,7 @@ rctx_dispfail(respctx_t *rctx);
 static isc_result_t
 rctx_timedout(respctx_t *rctx);
 
-static void
+static isc_result_t
 rctx_ncache(respctx_t *rctx);
 
 /*%
@@ -6624,6 +6624,26 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		result = dns_ncache_add(message, cache, node, covers, now,
 					minttl, maxttl, ardataset);
 	}
+
+	/*
+	 * DNS_R_UNCHANGED means the negative entry was rejected because
+	 * more-trusted data (e.g. DNSSEC-validated) already exists at the
+	 * name, and dns_ncache_add()/dns_ncache_addoptout() bound that
+	 * existing data into 'ardataset'.  If it is the same negative
+	 * type we were caching, continue normally below.  Otherwise it
+	 * is an unrelated RRset (possible when caching an NXDOMAIN, i.e.
+	 * covers == dns_rdatatype_any) that must not be returned to the
+	 * client, so fail with SERVFAIL instead.
+	 */
+	if (result == DNS_R_UNCHANGED) {
+		if (NEGATIVE(ardataset) && ardataset->covers == covers) {
+			result = ISC_R_SUCCESS;
+		} else {
+			dns_rdataset_disassociate(ardataset);
+			result = DNS_R_SERVFAIL;
+		}
+	}
+
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
 		 * If the cache now contains a negative entry and we
@@ -8105,7 +8125,10 @@ resquery_response_continue(void *arg, isc_result_t result) {
 	/*
 	 * Negative caching
 	 */
-	rctx_ncache(rctx);
+	isc_result_t nresult = rctx_ncache(rctx);
+	if (nresult != ISC_R_SUCCESS) {
+		result = nresult;
+	}
 
 	FCTXTRACE("resquery_response done");
 	rctx_done(rctx, result);
@@ -9412,14 +9435,14 @@ rctx_authority_negative(respctx_t *rctx) {
  * Cache the negatively cacheable parts of the message.  This may
  * also cause work to be queued to the DNSSEC validator.
  */
-static void
+static isc_result_t
 rctx_ncache(respctx_t *rctx) {
 	isc_result_t result;
 	dns_rdatatype_t covers;
 	fetchctx_t *fctx = rctx->fctx;
 
 	if (!WANTNCACHE(fctx)) {
-		return;
+		return ISC_R_SUCCESS;
 	}
 
 	/*
@@ -9441,6 +9464,8 @@ rctx_ncache(respctx_t *rctx) {
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("ncache_message complete", result);
 	}
+
+	return result;
 }
 
 /*

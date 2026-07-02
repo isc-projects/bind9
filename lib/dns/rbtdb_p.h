@@ -401,7 +401,8 @@ isc_result_t
 dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
 	       dns_slabheader_t *newheader, unsigned int options, bool loading,
-	       dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
+	       dns_rdataset_t *addedrdataset, isc_stdtime_t now,
+	       isc_rwlocktype_t nlocktype DNS__DB_FLARG);
 /*%<
  * Add a slab header 'newheader' to a node in an RBT database.
  * The caller must have the node write-locked.
