@@ -981,12 +981,18 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		}
 
 		/*
-		 * Validating a CNAME/DNAME ("chaining" rdataset): a fetch at
-		 * the alias's own name cannot advance the chain (the type we
-		 * need, e.g. DS/DNSKEY for an insecurity proof, cannot live at
-		 * an alias) and would only self-join the in-flight fetch.
+		 * Validating a chaining CNAME: a fetch at the alias's own
+		 * name cannot advance the chain (no other type can live at
+		 * a CNAME owner, so e.g. the DS/DNSKEY needed for an
+		 * insecurity proof cannot be there) and would only
+		 * self-join the in-flight fetch.  A chaining DNAME is
+		 * different: it aliases only the names below its owner, so
+		 * the owner itself may legitimately hold the DNSKEY or DS
+		 * this validation needs (e.g. a DNAME at a zone apex).
 		 */
-		if (cur->rdataset != NULL && cur->rdataset->attributes.chaining)
+		if (cur->rdataset != NULL &&
+		    cur->rdataset->attributes.chaining &&
+		    cur->rdataset->type == dns_rdatatype_cname)
 		{
 			validator_log(
 				val, ISC_LOG_DEBUG(3),
