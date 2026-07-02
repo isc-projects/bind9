@@ -12,8 +12,8 @@
 from re import compile as Re
 
 from dnssec_py.common import DNSSEC_PY_MARK
+from isctest.algorithms import Algorithm
 from isctest.template import NS2, NS3, zones
-from isctest.vars.algorithms import Algorithm
 from isctest.zone import Zone, configure_root
 
 import isctest

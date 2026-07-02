@@ -18,8 +18,8 @@ import time
 
 import pytest
 
+from isctest.algorithms import Algorithm
 from isctest.kasp import KeyTimingMetadata
-from isctest.vars.algorithms import Algorithm
 from rollover.common import TIMEDELTA
 
 import isctest
@@ -318,7 +318,7 @@ def check_rrsig_bundle(bundle_keys, bundle_lines, zone, rrtype, sigend, sigstart
     count = 0
     for key in bundle_keys:
         found = False
-        alg = key.get_metadata("Algorithm")
+        alg = key.algorithm.number
         expect = f"{zone}. {ttl} IN RRSIG {rrtype} {alg} 2 {ttl} {sigend} {sigstart} {key.tag} {zone}."
         # there must be a signature of this ksk
         for line in bundle_lines:

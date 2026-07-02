@@ -16,6 +16,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypeAlias
 
+import base64
 import shutil
 
 from cryptography.hazmat.primitives import serialization
@@ -27,12 +28,19 @@ import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
+import dns.zonefile
 
-from .kasp import Key
+from .algorithms import (
+    ALL_ALGORITHMS_BY_NUM,
+    ECDSAP256SHA256,
+    ECDSAP384SHA384,
+    ED448,
+    ED25519,
+    Algorithm,
+)
 from .log import debug
 from .run import EnvCmd
 from .template import NS1, Nameserver, TemplateEngine, TrustAnchor
-from .vars.algorithms import Algorithm
 
 KEYDIR = "keys"
 DNSKEY_TTL = 3600
@@ -50,7 +58,7 @@ class ZoneKey(ABC):
     Abstract base for a DNSSEC key attached to a Zone.
 
     Two concrete implementations exist:
-      FileZoneKey    — wraps a dnssec-keygen-managed key file pair (kasp.Key).
+      FileZoneKey    — reads a dnssec-keygen-managed key file pair.
       PythonZoneKey  — holds a Python-native (private_key, dnskey_rdata) pair
                        required for dnspython-based operations and signing.
 
@@ -61,7 +69,16 @@ class ZoneKey(ABC):
     @property
     @abstractmethod
     def dnskey(self) -> dns.rrset.RRset:
-        """The DNSKEY RRset for this key (single-record, with TTL)."""
+        """
+        The DNSKEY RRset for this key (single-record, with TTL).
+        """
+
+    @property
+    @abstractmethod
+    def private_key(self) -> PrivateKey:
+        """
+        The dnspython private-key object, for use with dns.dnssec signing.
+        """
 
     def is_ksk(self) -> bool:
         return bool(self.dnskey[0].flags & int(Flag.SEP))
@@ -107,18 +124,87 @@ class FileZoneKey(ZoneKey):
     """
     A ZoneKey backed by dnssec-keygen-managed key files.
 
-    Constructed by FileZoneKey.generate(); callers normally do not
-    instantiate this directly.  The underlying kasp.Key is accessible via
-    .key for working with timing metadata, state files, etc.
+    Reads key material directly from the .key/.private file pair.  Normally
+    constructed via FileZoneKey.generate() (or Zone.add_keys());
+    isctest.kasp.Key subclasses it to add KASP timing/state operations.
     """
 
-    def __init__(self, key: Key, zone: Zone) -> None:
-        self.key = key
+    def __init__(
+        self,
+        name: str,
+        keydir: str | Path | None = None,
+        zone: Zone | None = None,
+    ) -> None:
+        self.name = name
+        self.keydir = Path() if keydir is None else Path(keydir)
+        self.path = str(self.keydir / name)
+        self.privatefile = f"{self.path}.private"
+        self.keyfile = f"{self.path}.key"
+        self.tag = int(self.name[-5:])
         self.zone = zone
 
     @property
     def dnskey(self) -> dns.rrset.RRset:
-        return self.key.dnskey
+        with open(self.keyfile, "r", encoding="utf-8") as file:
+            rrsets = dns.zonefile.read_rrsets(
+                file.read(),
+                rdclass=None,  # read rdclass from the file
+                default_ttl=DNSKEY_TTL,  # use this TTL if not present
+            )
+        assert len(rrsets) == 1, f"{self.keyfile} has multiple RRsets"
+        dnskey_rr = rrsets[0]
+        assert len(dnskey_rr) == 1, f"{self.keyfile} has multiple RRs"
+        assert (
+            dnskey_rr.rdtype == dns.rdatatype.DNSKEY
+        ), f"DNSKEY not found in {self.keyfile}"
+        return dnskey_rr
+
+    @property
+    def private_key(self) -> PrivateKey:
+        """
+        Read the .private file and build the corresponding cryptography
+        private-key object, dispatching on the DNSKEY algorithm.
+
+        Supports the RSA, ECDSA and EdDSA families; other algorithms raise
+        NotImplementedError.
+        """
+        alg = ALL_ALGORITHMS_BY_NUM[self.dnskey[0].algorithm]
+
+        fields = {}
+        with open(self.privatefile, "r", encoding="utf-8") as file:
+            for line in file:
+                name, sep, value = line.partition(":")
+                if sep:
+                    fields[name.strip()] = value.strip()
+
+        def field(name: str) -> bytes:
+            return base64.b64decode(fields[name])
+
+        if "Modulus" in fields:  # RSA family, including the private-OID variants
+            public = rsa.RSAPublicNumbers(
+                int.from_bytes(field("PublicExponent"), "big"),
+                int.from_bytes(field("Modulus"), "big"),
+            )
+            return rsa.RSAPrivateNumbers(
+                p=int.from_bytes(field("Prime1"), "big"),
+                q=int.from_bytes(field("Prime2"), "big"),
+                d=int.from_bytes(field("PrivateExponent"), "big"),
+                dmp1=int.from_bytes(field("Exponent1"), "big"),
+                dmq1=int.from_bytes(field("Exponent2"), "big"),
+                iqmp=int.from_bytes(field("Coefficient"), "big"),
+                public_numbers=public,
+            ).private_key()
+
+        secret = field("PrivateKey")
+        if alg == ECDSAP256SHA256:
+            return ec.derive_private_key(int.from_bytes(secret, "big"), ec.SECP256R1())
+        if alg == ECDSAP384SHA384:
+            return ec.derive_private_key(int.from_bytes(secret, "big"), ec.SECP384R1())
+        if alg == ED25519:
+            return ed25519.Ed25519PrivateKey.from_private_bytes(secret)
+        if alg == ED448:
+            return ed448.Ed448PrivateKey.from_private_bytes(secret)
+        raise NotImplementedError(f"dnskey algorithm {alg.name} not implemented")
 
     def write_dsset(
         self,
@@ -134,6 +220,7 @@ class FileZoneKey(ZoneKey):
         PythonZoneKey KSKs (PythonZoneKey appends to the same file);
         Zone.copy_dssets enforces this.
         """
+        assert self.zone is not None, "write_dsset requires a zone-attached key"
         src = Path(self.zone.ns.name) / f"dsset-{self.zone.name}."
         shutil.copy(src, Path(target_dir))
         debug(f"{self.zone.name}: dsset copied to {target_dir}")
@@ -160,7 +247,7 @@ class FileZoneKey(ZoneKey):
             "KEYGEN", f"-q -a {alg.number} -b {alg.bits} -K {KEYDIR} -L {DNSKEY_TTL}"
         )
         key_name = keygen(f"{params} {zone.name}", cwd=zone.ns.name).out.strip()
-        return FileZoneKey(Key(key_name, keydir=keydir), zone=zone)
+        return FileZoneKey(key_name, keydir=keydir, zone=zone)
 
 
 class PythonZoneKey(ZoneKey):
@@ -192,9 +279,13 @@ class PythonZoneKey(ZoneKey):
         ttl: int = DNSKEY_TTL,
     ) -> None:
         self.zone = zone
-        self.private_key = private_key
+        self._private_key = private_key
         self._dnskey_rdata = dnskey_rdata
         self.ttl = ttl
+
+    @property
+    def private_key(self) -> PrivateKey:
+        return self._private_key
 
     @property
     def dnskey(self) -> dns.rrset.RRset:

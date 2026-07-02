@@ -17,7 +17,7 @@ import dns.rdataclass
 import dns.rdatatype
 import pytest
 
-from isctest.vars.algorithms import Algorithm
+from isctest.algorithms import Algorithm
 from nsec3.common import NSEC3_MARK, check_nsec3_case
 
 import isctest
