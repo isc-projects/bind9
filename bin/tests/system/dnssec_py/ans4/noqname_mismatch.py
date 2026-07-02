@@ -10,29 +10,25 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import base64
-import json
 
 from cryptography.hazmat.primitives import serialization
+from dns.rdtypes.dnskeybase import Flag
 
 import dns.dnssec
 import dns.flags
 import dns.message
 import dns.name
+import dns.rcode
 import dns.rdata
 import dns.rdataclass
-import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
 
 TTL = 300
 ZONE = "f217.test."
+PEM_PATH = Path(f"{ZONE}.pem")
 CHILD = f"evil.{ZONE}"
 ATTACK = f"www.{CHILD}"
 NSEC_OWNER = f"00000000.{CHILD}"
@@ -52,23 +48,20 @@ def name(text: str) -> dns.name.Name:
 
 
 def load_key() -> Key:
-    path = Path(__file__).resolve().parent / "keys.json"
-    with path.open(encoding="utf-8") as keys_file:
-        raw_key = json.load(keys_file)[ZONE]
-
     private_key = serialization.load_pem_private_key(
-        raw_key["private_pem"].encode("ascii"),
-        password=None,
+        PEM_PATH.read_bytes(), password=None
     )
-    dnskey = dns.rdata.from_text(
-        dns.rdataclass.IN, dns.rdatatype.DNSKEY, raw_key["dnskey"]
+
+    dnskey = dns.dnssec.make_dnskey(
+        private_key.public_key(),
+        dns.dnssec.Algorithm.ECDSAP256SHA256,
+        flags=Flag.ZONE | Flag.SEP,
     )
+
     return Key(name(ZONE), private_key, dnskey)
 
 
-def rrset(
-    owner: str, rdtype: dns.rdatatype.RdataType, *rdatas: str
-) -> dns.rrset.RRset:
+def rrset(owner: str, rdtype: dns.rdatatype.RdataType, *rdatas: str) -> dns.rrset.RRset:
     return dns.rrset.from_text(owner, TTL, dns.rdataclass.IN, rdtype, *rdatas)
 
 
@@ -162,9 +155,14 @@ def add_attack_answer(response: dns.message.Message) -> None:
     response.authority.append(nsec3)
 
 
-class RuntimeCheckHandler(ResponseHandler):
-    def __init__(self, key: Key) -> None:
-        self.key = key
+class RuntimeCheckHandler(DomainHandler):
+    """Serve attacker.rrsig-labels-signer. with crafted wildcard RRSIG."""
+
+    domains = [ZONE]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.key = load_key()
         self.zone = name(ZONE)
         self.child = name(CHILD)
         self.attack = name(ATTACK)
@@ -197,13 +195,3 @@ class RuntimeCheckHandler(ResponseHandler):
             add_signed(qctx.response.authority, soa_rrset(ZONE), self.key)
 
         yield DnsResponseSend(qctx.response, authoritative=True)
-
-
-def main() -> None:
-    server = AsyncDnsServer(default_aa=True)
-    server.install_response_handlers(RuntimeCheckHandler(load_key()))
-    server.run()
-
-
-if __name__ == "__main__":
-    main()
