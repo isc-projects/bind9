@@ -16,10 +16,11 @@ import signal
 import socket
 import select
 from datetime import datetime, timedelta
-import time
-import functools
 
-import dns, dns.message, dns.query, dns.flags
+import dns
+import dns.message
+import dns.query
+import dns.flags
 from dns.rdatatype import *
 from dns.rdataclass import *
 from dns.rcode import *
@@ -140,9 +141,9 @@ else:
 while running:
     try:
         inputready, outputready, exceptready = select.select(input, [], [])
-    except select.error as e:
+    except select.error:
         break
-    except socket.error as e:
+    except socket.error:
         break
     except KeyboardInterrupt:
         break
