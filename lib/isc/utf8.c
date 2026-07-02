@@ -33,9 +33,20 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 	REQUIRE(buf != NULL);
 
 	for (size_t i = 0; i < len; i++) {
+		/*
+		 * ASCII character range (first row).
+		 */
 		if (buf[i] <= 0x7f) {
 			continue;
 		}
+
+		/*
+		 * 0x80 -> 1000 0000
+		 * 0xC0 -> 1100 0000
+		 * 0xE0 -> 1110 0000
+		 *
+		 * Is unicode character is encoded using 2 bytes (second row).
+		 */
 		if ((i + 1) < len && (buf[i] & 0xe0) == 0xc0 &&
 		    (buf[i + 1] & 0xc0) == 0x80)
 		{
@@ -47,6 +58,15 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			}
 			continue;
 		}
+
+		/*
+		 * 0x80 -> 1000 0000
+		 * 0xC0 -> 1100 0000
+		 * 0xE0 -> 1110 0000
+		 * 0xF0 -> 1111 0000
+		 *
+		 * Is unicode character is encoded within 3 bytes (third row).
+		 */
 		if ((i + 2) < len && (buf[i] & 0xf0) == 0xe0 &&
 		    (buf[i + 1] & 0xc0) == 0x80 && (buf[i + 2] & 0xc0) == 0x80)
 		{
@@ -57,8 +77,26 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			if (w < 0x0800) {
 				return false;
 			}
+
+			/*
+			 * Unicode range 0xD800..0xDFFF is reserved (UTF16
+			 * surrogates)
+			 */
+			if (w >= 0xD800 && w <= 0xDFFF) {
+				return false;
+			}
 			continue;
 		}
+
+		/*
+		 * 0x80 -> 1000 0000
+		 * 0xC0 -> 1100 0000
+		 * 0xE0 -> 1110 0000
+		 * 0xF0 -> 1111 0000
+		 * 0xF8 -> 1111 1000
+		 *
+		 * Is unicode character is encoded within 4 bytes (fourth row).
+		 */
 		if ((i + 3) < len && (buf[i] & 0xf8) == 0xf0 &&
 		    (buf[i + 1] & 0xc0) == 0x80 &&
 		    (buf[i + 2] & 0xc0) == 0x80 && (buf[i + 3] & 0xc0) == 0x80)
