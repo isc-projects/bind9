@@ -29,7 +29,7 @@ import dns.tsig
 import dns.zone
 
 from isctest.instance import NamedInstance
-from isctest.vars.algorithms import ALL_ALGORITHMS_BY_NUM, Algorithm
+from isctest.vars.algorithms import ALL_ALGORITHMS_BY_NUM, ECDSAP256SHA256, Algorithm
 from isctest.zone import FileZoneKey
 
 import isctest.log
@@ -213,7 +213,7 @@ class KeyProperties:
     @staticmethod
     def default(with_state=True) -> "KeyProperties":
         metadata = {
-            "Algorithm": isctest.vars.algorithms.ECDSAP256SHA256.number,
+            "Algorithm": ECDSAP256SHA256.number,
             "Length": 256,
             "Lifetime": 0,
             "KSK": "yes",
@@ -860,7 +860,7 @@ def _check_signatures(
             offline_ksk=offline_ksk, zsk_missing=zsk_missing, smooth=smooth
         )
 
-        alg = key.get_metadata("Algorithm")
+        alg = key.algorithm.number
         rtype = dns.rdatatype.to_text(covers)
 
         expect = rf"IN RRSIG {rtype} {alg} (\d) (\d+) (\d+) (\d+) {key.tag} {fqdn}"
@@ -1622,5 +1622,5 @@ def private_type_record(zone: str, key: Key, rrtype: int = 65534) -> str:
     indicating that the signing process for this key is completed.
     """
     keyid = key.tag
-    secalg = int(key.get_metadata("Algorithm"))
-    return f"{zone}. 0 IN TYPE{rrtype} \\# 5 {secalg:02x}{keyid:04x}0000"
+    wire_alg = key.algorithm.number
+    return f"{zone}. 0 IN TYPE{rrtype} \\# 5 {wire_alg:02x}{keyid:04x}0000"
