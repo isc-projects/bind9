@@ -151,6 +151,8 @@ tostruct_l64(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 	l64->pref = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	INSIST(region.length == sizeof(l64->l64));
 	memmove(l64->l64, region.base, region.length);
 	return ISC_R_SUCCESS;
 }
