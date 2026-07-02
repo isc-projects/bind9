@@ -96,7 +96,7 @@ make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 
 static void
 make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
-	   unsigned char *pbuf) {
+	   unsigned char *pbuf, size_t pbufsize) {
 	isc_result_t result;
 	dns_rdata_nsec3param_t params;
 	dns_rdata_t nsec3param = DNS_RDATA_INIT;
@@ -142,7 +142,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	dns_rdata_init(private);
 
 	dns_nsec3param_toprivate(&nsec3param, private, privatetype, pbuf,
-				 DNS_NSEC3PARAM_BUFFERSIZE + 1);
+				 pbufsize);
 }
 
 /* convert private signing records to text */
@@ -202,13 +202,13 @@ ISC_RUN_TEST_IMPL(private_nsec3_totext) {
 	UNUSED(state);
 
 	for (i = 0; i < ncases; i++) {
-		unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
+		unsigned char data[DNS_PRIVATE_BUFFERSIZE];
 		char output[BUFSIZ];
 		isc_buffer_t buf;
 
 		isc_buffer_init(&buf, output, sizeof(output));
 
-		make_nsec3(&testcases[i], &private, data);
+		make_nsec3(&testcases[i], &private, data, sizeof(data));
 		dns_private_totext(&private, &buf);
 		assert_string_equal(output, results[i]);
 	}
