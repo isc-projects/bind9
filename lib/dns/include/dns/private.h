@@ -14,6 +14,7 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
+#include <dns/nsec.h>
 #include <dns/types.h>
 #include <dns/db.h>
 
@@ -21,6 +22,12 @@
 #define DNS_PRIVATE_H
 
 ISC_LANG_BEGINDECLS
+
+/*
+ * The private record has one extra byte, containing a 0, in front of
+ * an NSEC3PARAM record.
+ */
+#define DNS_PRIVATE_BUFFERSIZE (DNS_NSEC3PARAM_BUFFERSIZE + 1)
 
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
