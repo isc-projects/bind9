@@ -222,7 +222,11 @@ class FileZoneKey(ZoneKey):
         """
         assert self.zone is not None, "write_dsset requires a zone-attached key"
         src = Path(self.zone.ns.name) / f"dsset-{self.zone.name}."
-        shutil.copy(src, Path(target_dir))
+        dst = Path(target_dir) / src.name
+        if src.resolve() == dst.resolve():
+            debug(f"{self.zone.name}: dsset already in {target_dir}")
+            return
+        shutil.copy(src, dst)
         debug(f"{self.zone.name}: dsset copied to {target_dir}")
 
     @staticmethod
