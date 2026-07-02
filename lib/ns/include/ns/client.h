@@ -166,13 +166,47 @@ struct ns_client {
 	unsigned int magic;
 	struct ns_client_inner {
 		ns_clientstate_t state;
-		bool		 async;
-		unsigned int	 attributes;
-		dns_view_t	*view;
-		dns_dispatch_t	*dispatch;
-		isc_nmhandle_t	*handle;       /* Permanent pointer to handle */
-		isc_nmhandle_t	*sendhandle;   /* Waiting for send callback */
-		isc_nmhandle_t	*reqhandle;    /* Waiting for request callback
+		union {
+			uint8_t attrs[4];
+			struct {
+				bool async : 1;
+				bool tcp   : 1;
+				bool ra : 1; /*%< Client gets recursive service
+					      */
+				bool pktinfo   : 1;  /*%< pktinfo is valid */
+				bool multicast : 1;  /*%< recv'd from multicast
+						      */
+				bool wantdnssec : 1; /*%< include dnssec records
+						      */
+				bool wantnsid : 1; /*%< include nameserver ID */
+				bool badcookie : 1; /*%< bad/out-of-date cookie
+						     */
+				bool wantrc : 1; /*%< include Report-Channel */
+				bool wantad : 1; /*%< want AD in response */
+				bool wantcookie : 1; /*%< return a COOKIE */
+				bool havecookie : 1; /*%< has a valid COOKIE */
+				bool wantexpire : 1; /*%< return seconds to
+							expire */
+				bool haveexpire : 1; /*%< return seconds to
+							expire */
+				bool wantopt : 1;    /*%< add opt to reply */
+				bool haveecs : 1; /*%< received an ECS option */
+				bool wantpad : 1; /*%< pad reply */
+				bool usekeepalive : 1; /*%< use TCP keepalive */
+				bool nosetfc : 1; /*%< don't set servfail cache
+						   */
+				bool needtcp	     : 1; /*%< send TC=1 */
+				bool wantzoneversion : 1; /*%< return
+							     zoneversion */
+				bool havezoneversion : 1; /*%< return
+							     zoneversion */
+			};
+		};
+		dns_view_t     *view;
+		dns_dispatch_t *dispatch;
+		isc_nmhandle_t *handle;	       /* Permanent pointer to handle */
+		isc_nmhandle_t *sendhandle;    /* Waiting for send callback */
+		isc_nmhandle_t *reqhandle;     /* Waiting for request callback
 						  (query, update, notify) */
 		isc_nmhandle_t *updatehandle;  /* Waiting for update callback */
 		isc_nmhandle_t *restarthandle; /* Waiting for restart callback
@@ -247,31 +281,13 @@ struct ns_client {
 	uint8_t		sendbuf[NS_CLIENT_SEND_BUFFER_SIZE];
 };
 
+STATIC_ASSERT(offsetof(ns_client_t, inner.attrs) +
+			      sizeof(((ns_client_t *)0)->inner.attrs) ==
+		      offsetof(ns_client_t, inner.view),
+	      "ns_query.attrs[] must cover the flags bitfield");
+
 #define NS_CLIENT_MAGIC	   ISC_MAGIC('N', 'S', 'C', 'c')
 #define NS_CLIENT_VALID(c) ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
-
-#define NS_CLIENTATTR_TCP	 0x000001
-#define NS_CLIENTATTR_RA	 0x000002 /*%< Client gets recursive service */
-#define NS_CLIENTATTR_PKTINFO	 0x000004 /*%< pktinfo is valid */
-#define NS_CLIENTATTR_MULTICAST	 0x000008 /*%< recv'd from multicast */
-#define NS_CLIENTATTR_WANTDNSSEC 0x000010 /*%< include dnssec records */
-#define NS_CLIENTATTR_WANTNSID	 0x000020 /*%< include nameserver ID */
-#define NS_CLIENTATTR_BADCOOKIE \
-	0x000040 /*%< Presented cookie is bad/out-of-date */
-#define NS_CLIENTATTR_WANTRC 0x000080 /*%< include Report-Channel */
-#define NS_CLIENTATTR_WANTAD 0x000100 /*%< want AD in response if possible */
-#define NS_CLIENTATTR_WANTCOOKIE      0x000200 /*%< return a COOKIE */
-#define NS_CLIENTATTR_HAVECOOKIE      0x000400 /*%< has a valid COOKIE */
-#define NS_CLIENTATTR_WANTEXPIRE      0x000800 /*%< return seconds to expire */
-#define NS_CLIENTATTR_HAVEEXPIRE      0x001000 /*%< return seconds to expire */
-#define NS_CLIENTATTR_WANTOPT	      0x002000 /*%< add opt to reply */
-#define NS_CLIENTATTR_HAVEECS	      0x004000 /*%< received an ECS option */
-#define NS_CLIENTATTR_WANTPAD	      0x008000 /*%< pad reply */
-#define NS_CLIENTATTR_USEKEEPALIVE    0x010000 /*%< use TCP keepalive */
-#define NS_CLIENTATTR_NOSETFC	      0x020000 /*%< don't set servfail cache */
-#define NS_CLIENTATTR_NEEDTCP	      0x040000 /*%< send TC=1 */
-#define NS_CLIENTATTR_WANTZONEVERSION 0x100000 /*%< return zoneversion */
-#define NS_CLIENTATTR_HAVEZONEVERSION 0x200000 /*%< return zoneversion */
 
 /*
  * Flag to use with the SERVFAIL cache to indicate

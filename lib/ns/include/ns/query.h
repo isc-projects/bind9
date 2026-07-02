@@ -103,7 +103,30 @@ typedef struct ns_query_recparam {
 
 /*% nameserver query structure */
 struct ns_query {
-	unsigned int	 attributes;
+	union {
+		uint8_t attrs[4];
+		struct {
+			bool recursionok     : 1;
+			bool cacheok	     : 1;
+			bool partialanswer   : 1;
+			bool namebufused     : 1;
+			bool recursing	     : 1;
+			bool queryokvalid    : 1;
+			bool queryok	     : 1;
+			bool wantrecursion   : 1;
+			bool secure	     : 1;
+			bool noauthority     : 1;
+			bool noadditional    : 1;
+			bool cacheaclokvalid : 1;
+			bool cacheaclok	     : 1;
+			bool dns64	     : 1;
+			bool dns64exclude    : 1;
+			bool rrl_checked     : 1;
+			bool is_redirect     : 1;
+			bool answered	     : 1;
+		};
+	};
+
 	unsigned int	 restarts;
 	isc_counter_t	*qc;
 	bool		 timerset;
@@ -156,24 +179,10 @@ struct ns_query {
 	bool	     root_key_sentinel_not_ta;
 };
 
-#define NS_QUERYATTR_RECURSIONOK     0x000001
-#define NS_QUERYATTR_CACHEOK	     0x000002
-#define NS_QUERYATTR_PARTIALANSWER   0x000004
-#define NS_QUERYATTR_NAMEBUFUSED     0x000008
-#define NS_QUERYATTR_RECURSING	     0x000010
-#define NS_QUERYATTR_QUERYOKVALID    0x000040
-#define NS_QUERYATTR_QUERYOK	     0x000080
-#define NS_QUERYATTR_WANTRECURSION   0x000100
-#define NS_QUERYATTR_SECURE	     0x000200
-#define NS_QUERYATTR_NOAUTHORITY     0x000400
-#define NS_QUERYATTR_NOADDITIONAL    0x000800
-#define NS_QUERYATTR_CACHEACLOKVALID 0x001000
-#define NS_QUERYATTR_CACHEACLOK	     0x002000
-#define NS_QUERYATTR_DNS64	     0x004000
-#define NS_QUERYATTR_DNS64EXCLUDE    0x008000
-#define NS_QUERYATTR_RRL_CHECKED     0x010000
-#define NS_QUERYATTR_REDIRECT	     0x020000
-#define NS_QUERYATTR_ANSWERED	     0x040000
+STATIC_ASSERT(offsetof(ns_query_t, attrs) +
+			      sizeof(((struct ns_query *)0)->attrs) ==
+		      offsetof(struct ns_query, restarts),
+	      "ns_query.attrs[] must cover the flags bitfield");
 
 typedef struct query_ctx query_ctx_t;
 

@@ -88,12 +88,6 @@ typedef struct filter_instance {
 #define FILTER_A_FILTERED  0x0002 /* A was removed from answer */
 
 /*
- * Client attribute tests.
- */
-#define WANTDNSSEC(c)  (((c)->inner.attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
-#define RECURSIONOK(c) (((c)->query.attributes & NS_QUERYATTR_RECURSIONOK) != 0)
-
-/*
  * Forward declarations of functions referenced in install_hooks().
  */
 static ns_hookresult_t
@@ -533,7 +527,7 @@ process_name(query_ctx_t *qctx, filter_a_t mode, const dns_name_t *name,
 	(void)dns_message_findtype(n, dns_rdatatype_rrsig, type, &sigrdataset);
 
 	if (rdataset != NULL &&
-	    (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||
+	    (sigrdataset == NULL || !qctx->client->inner.wantdnssec ||
 	     mode == BREAK_DNSSEC))
 	{
 		/*
@@ -683,7 +677,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 
 	if (client_state->mode != BREAK_DNSSEC &&
 	    (client_state->mode != FILTER ||
-	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
+	     (qctx->client->inner.wantdnssec && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
 		return NS_HOOK_CONTINUE;
@@ -717,7 +711,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			mark_as_rendered(qctx->rdataset, qctx->sigrdataset);
 			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			client_state->flags |= FILTER_A_FILTERED;
-		} else if (!qctx->authoritative && RECURSIONOK(qctx->client) &&
+		} else if (!qctx->authoritative &&
+			   qctx->client->query.recursionok &&
 			   (result == DNS_R_DELEGATION ||
 			    result == ISC_R_NOTFOUND))
 		{
@@ -735,8 +730,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 						  NULL, NULL, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_A_RECURSING;
-				qctx->client->query.attributes |=
-					NS_QUERYATTR_RECURSING;
+				qctx->client->query.recursing = true;
 			}
 		}
 	} else if (qctx->qtype == dns_rdatatype_aaaa &&

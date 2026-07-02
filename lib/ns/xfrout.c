@@ -907,9 +907,7 @@ got_soa:
 	/*
 	 * AXFR over UDP is not possible.
 	 */
-	if (reqtype == dns_rdatatype_axfr &&
-	    (client->inner.attributes & NS_CLIENTATTR_TCP) == 0)
-	{
+	if (reqtype == dns_rdatatype_axfr && !client->inner.tcp) {
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
 	}
 
@@ -972,7 +970,7 @@ got_soa:
 		 * IXFR over UDP (currently, we always do).
 		 */
 		if (DNS_SERIAL_GE(begin_serial, current_serial) ||
-		    (client->inner.attributes & NS_CLIENTATTR_TCP) == 0)
+		    !client->inner.tcp)
 		{
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
 			is_poll = true;
@@ -983,7 +981,7 @@ got_soa:
 		 * Outgoing IXFR may have been disabled for this peer
 		 * or globally.
 		 */
-		if ((client->inner.attributes & NS_CLIENTATTR_TCP) != 0) {
+		if (client->inner.tcp) {
 			bool provide_ixfr;
 
 			provide_ixfr = client->inner.view->provideixfr;
@@ -1116,8 +1114,7 @@ have_stream:
 	if (zone != NULL) {
 		dns_zone_getraw(zone, &raw);
 		mayberaw = (raw != NULL) ? raw : zone;
-		if ((client->inner.attributes & NS_CLIENTATTR_WANTEXPIRE) !=
-			    0 &&
+		if (client->inner.wantexpire &&
 		    (dns_zone_gettype(mayberaw) == dns_zone_secondary ||
 		     dns_zone_gettype(mayberaw) == dns_zone_mirror))
 		{
@@ -1128,8 +1125,7 @@ have_stream:
 			if (secs >= client->inner.now &&
 			    result == ISC_R_SUCCESS)
 			{
-				client->inner.attributes |=
-					NS_CLIENTATTR_HAVEEXPIRE;
+				client->inner.haveexpire = true;
 				client->inner.expire = secs - client->inner.now;
 			}
 		}
@@ -1279,8 +1275,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 
 static void
 xfrout_send(xfrout_ctx_t *xfr) {
-	const bool is_tcp =
-		((xfr->client->inner.attributes & NS_CLIENTATTR_TCP) != 0);
+	const bool is_tcp = xfr->client->inner.tcp;
 
 	if (is_tcp) {
 		isc_region_t used;
@@ -1371,7 +1366,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	isc_buffer_clear(&xfr->buf);
 	isc_buffer_clear(&xfr->txbuf);
 
-	is_tcp = ((xfr->client->inner.attributes & NS_CLIENTATTR_TCP) != 0);
+	is_tcp = xfr->client->inner.tcp;
 	if (!is_tcp) {
 		/*
 		 * In the UDP case, we put the response data directly into
@@ -1395,7 +1390,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		msg->id = xfr->id;
 		msg->rcode = dns_rcode_noerror;
 		msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
-		if ((xfr->client->inner.attributes & NS_CLIENTATTR_RA) != 0) {
+		if (xfr->client->inner.ra) {
 			msg->flags |= DNS_MESSAGEFLAG_RA;
 		}
 		CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
@@ -1408,17 +1403,13 @@ sendstream(xfrout_ctx_t *xfr) {
 		/*
 		 * Add a EDNS option to the message?
 		 */
-		if ((xfr->client->inner.attributes & NS_CLIENTATTR_WANTOPT) !=
-		    0)
-		{
+		if (xfr->client->inner.wantopt) {
 			CHECK(ns_client_addopt(xfr->client, msg));
 			/*
 			 * Add to first message only.
 			 */
-			xfr->client->inner.attributes &=
-				~NS_CLIENTATTR_WANTNSID;
-			xfr->client->inner.attributes &=
-				~NS_CLIENTATTR_HAVEEXPIRE;
+			xfr->client->inner.wantnsid = false;
+			xfr->client->inner.haveexpire = false;
 		}
 
 		/*
@@ -1671,7 +1662,7 @@ static void
 xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *)arg;
 
-	REQUIRE((xfr->client->inner.attributes & NS_CLIENTATTR_TCP) != 0);
+	REQUIRE(xfr->client->inner.tcp);
 
 	INSIST(handle == xfr->client->inner.handle);
 

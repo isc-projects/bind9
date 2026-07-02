@@ -180,12 +180,6 @@
 			goto cleanup;                                        \
 	} while (0)
 
-/*
- * Return TRUE if NS_CLIENTATTR_TCP is set in the attributes other FALSE.
- */
-#define TCPCLIENT(client) \
-	(((client)->inner.attributes & NS_CLIENTATTR_TCP) != 0)
-
 /**************************************************************************/
 
 typedef struct rr rr_t;
@@ -1649,7 +1643,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
 				     "update", dns_zone_getorigin(zone), false,
 				     false));
-	} else if (client->inner.signer == NULL && !TCPCLIENT(client)) {
+	} else if (client->inner.signer == NULL && !client->inner.tcp) {
 		CHECK(checkupdateacl(client, NULL, "update",
 				     dns_zone_getorigin(zone), false, true));
 	}
@@ -1789,7 +1783,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				ssuinfo.signer = client->inner.signer;
 				ssuinfo.addr = &netaddr;
 				ssuinfo.aclenv = env;
-				ssuinfo.tcp = TCPCLIENT(client);
+				ssuinfo.tcp = client->inner.tcp;
 				ssuinfo.key = tsigkey;
 
 				result = foreach_rr(db, ver, name, rdata.type,
@@ -1807,7 +1801,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				if (flag &&
 				    !dns_ssutable_checkrules(
 					    ssutable, client->inner.signer,
-					    name, &netaddr, TCPCLIENT(client),
+					    name, &netaddr, client->inner.tcp,
 					    env, rdata.type, target, tsigkey,
 					    NULL))
 				{
@@ -1818,7 +1812,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				const dns_ssurule_t *ssurule = NULL;
 				if (!dns_ssutable_checkrules(
 					    ssutable, client->inner.signer,
-					    name, &netaddr, TCPCLIENT(client),
+					    name, &netaddr, client->inner.tcp,
 					    env, rdata.type, target, tsigkey,
 					    &ssurule))
 				{
@@ -1831,7 +1825,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 				if (!ssu_checkall(db, ver, name, ssutable,
 						  client->inner.signer,
 						  &netaddr, env,
-						  TCPCLIENT(client), tsigkey))
+						  client->inner.tcp, tsigkey))
 				{
 					FAILC(DNS_R_REFUSED,
 					      "rejected by secure update");
