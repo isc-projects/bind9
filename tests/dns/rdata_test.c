@@ -2325,6 +2325,70 @@ ISC_RUN_TEST_IMPL(key) {
 }
 
 /*
+ * L32 tests (RFC 6742): a 16-bit Preference followed by a 32-bit Locator32.
+ * The wire form is a fixed six octets.  The struct round-trip guards against
+ * the Preference being folded back into the locator.
+ */
+ISC_RUN_TEST_IMPL(l32) {
+	text_ok_t text_ok[] = {
+		/* RFC 6742 section 4.2 examples. */
+		TEXT_VALID("10 10.1.2.0"),
+		TEXT_VALID("20 10.1.4.0"),
+		/* Preference out of range. */
+		TEXT_INVALID("65536 10.1.2.0"),
+		/* Locator32 is not a dotted quad. */
+		TEXT_INVALID("10 2001:db8::1"),
+		TEXT_SENTINEL(),
+	};
+	wire_ok_t wire_ok[] = {
+		/* Preference + 32-bit Locator32 == 6 octets. */
+		WIRE_VALID(0x00, 0x0a, 0x0a, 0x01, 0x02, 0x00),
+		/* Too short. */
+		WIRE_INVALID(0x00, 0x0a, 0x0a, 0x01, 0x02),
+		/* Too long. */
+		WIRE_INVALID(0x00, 0x0a, 0x0a, 0x01, 0x02, 0x00, 0x00),
+		WIRE_SENTINEL(),
+	};
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_l32, sizeof(dns_rdata_l32_t));
+}
+
+/*
+ * L64 tests (RFC 6742): a 16-bit Preference followed by a 64-bit Locator64.
+ * The wire form is a fixed ten octets.
+ */
+ISC_RUN_TEST_IMPL(l64) {
+	text_ok_t text_ok[] = {
+		/* RFC 6742 section 4.3 example. */
+		TEXT_VALID("10 2001:db8:1140:1000"),
+		/* Leading zeroes in a group are dropped on output. */
+		TEXT_VALID_CHANGED("20 2001:0db8:2140:2000",
+				   "20 2001:db8:2140:2000"),
+		/* Preference out of range. */
+		TEXT_INVALID("65536 2001:db8:1140:1000"),
+		/* Wrong number of groups. */
+		TEXT_INVALID("10 2001:db8:1140"),
+		TEXT_SENTINEL(),
+	};
+	wire_ok_t wire_ok[] = {
+		/* Preference + 64-bit Locator64 == 10 octets. */
+		WIRE_VALID(0x00, 0x0a, 0x20, 0x01, 0x0d, 0xb8, 0x11, 0x40, 0x10,
+			   0x00),
+		/* Too short. */
+		WIRE_INVALID(0x00, 0x0a, 0x20, 0x01, 0x0d, 0xb8, 0x11, 0x40,
+			     0x10),
+		/* Too long. */
+		WIRE_INVALID(0x00, 0x0a, 0x20, 0x01, 0x0d, 0xb8, 0x11, 0x40,
+			     0x10, 0x00, 0x00),
+		WIRE_SENTINEL(),
+	};
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_l64, sizeof(dns_rdata_l64_t));
+}
+
+/*
  * LOC tests.
  */
 ISC_RUN_TEST_IMPL(loc) {
@@ -2384,6 +2448,39 @@ ISC_RUN_TEST_IMPL(loc) {
 
 	check_rdata(text_ok, 0, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_loc, sizeof(dns_rdata_loc_t));
+}
+
+/*
+ * NID tests (RFC 6742): a 16-bit Preference followed by a 64-bit Node ID.
+ * The wire form is a fixed ten octets.
+ */
+ISC_RUN_TEST_IMPL(nid) {
+	text_ok_t text_ok[] = {
+		/* RFC 6742 section 4.1 examples. */
+		TEXT_VALID("10 14:4fff:ff20:ee64"),
+		TEXT_VALID_CHANGED("20 0015:5fff:ff21:ee65",
+				   "20 15:5fff:ff21:ee65"),
+		/* Preference out of range. */
+		TEXT_INVALID("65536 14:4fff:ff20:ee64"),
+		/* Wrong number of groups. */
+		TEXT_INVALID("10 14:4fff:ff20"),
+		TEXT_SENTINEL(),
+	};
+	wire_ok_t wire_ok[] = {
+		/* Preference + 64-bit Node ID == 10 octets. */
+		WIRE_VALID(0x00, 0x0a, 0x00, 0x14, 0x4f, 0xff, 0xff, 0x20, 0xee,
+			   0x64),
+		/* Too short. */
+		WIRE_INVALID(0x00, 0x0a, 0x00, 0x14, 0x4f, 0xff, 0xff, 0x20,
+			     0xee),
+		/* Too long. */
+		WIRE_INVALID(0x00, 0x0a, 0x00, 0x14, 0x4f, 0xff, 0xff, 0x20,
+			     0xee, 0x64, 0x00),
+		WIRE_SENTINEL(),
+	};
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_nid, sizeof(dns_rdata_nid_t));
 }
 
 /*
@@ -3451,7 +3548,10 @@ ISC_TEST_ENTRY(hip)
 ISC_TEST_ENTRY(https_svcb)
 ISC_TEST_ENTRY(isdn)
 ISC_TEST_ENTRY(key)
+ISC_TEST_ENTRY(l32)
+ISC_TEST_ENTRY(l64)
 ISC_TEST_ENTRY(loc)
+ISC_TEST_ENTRY(nid)
 ISC_TEST_ENTRY(nimloc)
 ISC_TEST_ENTRY(nsec)
 ISC_TEST_ENTRY(nsec3)
