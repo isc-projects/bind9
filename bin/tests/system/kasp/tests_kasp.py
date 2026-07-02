@@ -25,9 +25,9 @@ import dns.tsig
 import dns.update
 import pytest
 
+from isctest.algorithms import ECDSAP256SHA256, ECDSAP384SHA384, Algorithm
 from isctest.kasp import KeyProperties, KeyTimingMetadata, SettimeOptions
 from isctest.util import param
-from isctest.vars.algorithms import ECDSAP256SHA256, ECDSAP384SHA384, Algorithm
 
 import isctest
 import isctest.mark

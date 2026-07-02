@@ -11,6 +11,7 @@
 
 from datetime import timedelta
 
+from isctest.algorithms import Algorithm
 from isctest.kasp import (
     Ipub,
     Iret,
@@ -20,7 +21,6 @@ from isctest.kasp import (
 )
 from isctest.run import EnvCmd
 from isctest.template import NS3, Zone
-from isctest.vars.algorithms import Algorithm
 from rollover.setup import configure_root, configure_tld, setkeytimes
 
 import isctest
