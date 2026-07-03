@@ -11,6 +11,7 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	minimal-responses no;
+	qname-minimization off;
 };
 
 controls {
@@ -24,11 +25,17 @@ zone "." {
 	file "../../_common/root.hint";
 };
 
-zone "p025.test" {
+zone "f025.test" {
+	type static-stub;
+	server-addresses { 10.53.0.1; };
+};
+
+zone "f055.test" {
 	type static-stub;
 	server-addresses { 10.53.0.1; };
 };
 
 trust-anchors {
-	p025.test. static-key 257 3 13 "@PARENT_DNSKEY@";
+	f025.test. static-key 257 3 13 "@ZONE_DNSKEY@";
+	f055.test. static-key 257 3 13 "@ZONE_DNSKEY@";
 };

@@ -20,7 +20,7 @@ import pytest
 import isctest
 import isctest.mark
 
-PARENT = "p025.test."
+PARENT = "f025.test."
 CHILD = f"evil.{PARENT}"
 CLOSEST = f"victim2.{CHILD}"
 ATTACK = f"b.{CLOSEST}"
@@ -63,8 +63,8 @@ def _make_key(zone):
 def bootstrap():
     keys = {zone: _make_key(zone) for zone in [PARENT, CHILD]}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    parent_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
-    return {"PARENT_DNSKEY": parent_dnskey}
+    zone_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
+    return {"ZONE_DNSKEY": zone_dnskey}
 
 
 def _query(server, qname, qtype):

@@ -6,32 +6,30 @@
 
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from pathlib import Path
 
 import base64
-import json
-
-from cryptography.hazmat.primitives import serialization
 
 import dns.dnssec
 import dns.flags
 import dns.message
-import dns.name
 import dns.rcode
-import dns.rdata
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
+from dnssec_nsec3.ans1.common import (
+    Key,
+    add_signed,
+    name,
+    nsec3_hash,
+    nsec3_rrset,
+    rrset,
+    rrset_from_rdata,
+    soa_rrset,
 )
+from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
 
 TTL = 300
-PARENT = "p025.test."
+PARENT = "f025.test."
 CHILD = f"evil.{PARENT}"
 PARENT_NS = f"ns.{PARENT}"
 CHILD_NS = f"ns.{CHILD}"
@@ -43,76 +41,10 @@ FORGED_A = "6.6.6.6"
 
 
 @dataclass(frozen=True)
-class Key:
-    zone: dns.name.Name
-    private_key: object
-    dnskey: dns.rdata.Rdata
-    ds: dns.rdata.Rdata
-
-
-@dataclass(frozen=True)
 class Nsec3Entry:
     owner: str
     owner_hash: str
     types: tuple[str, ...]
-
-
-def name(text: str) -> dns.name.Name:
-    return dns.name.from_text(text)
-
-
-def load_keys() -> dict[str, Key]:
-    path = Path(__file__).resolve().parent / "keys.json"
-    with path.open(encoding="utf-8") as keys_file:
-        raw_keys = json.load(keys_file)
-
-    keys = {}
-    for zone, raw_key in raw_keys.items():
-        private_key = serialization.load_pem_private_key(
-            raw_key["private_pem"].encode("ascii"),
-            password=None,
-        )
-        dnskey = dns.rdata.from_text(
-            dns.rdataclass.IN, dns.rdatatype.DNSKEY, raw_key["dnskey"]
-        )
-        ds = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.DS, raw_key["ds"])
-        keys[zone] = Key(name(zone), private_key, dnskey, ds)
-    return keys
-
-
-def rrset(owner: str, rdtype: dns.rdatatype.RdataType, *rdatas: str) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, TTL, dns.rdataclass.IN, rdtype, *rdatas)
-
-
-def rrset_from_rdata(owner: str, rdata: dns.rdata.Rdata) -> dns.rrset.RRset:
-    return dns.rrset.from_rdata(name(owner), TTL, rdata)
-
-
-def add_signed(
-    section: list[dns.rrset.RRset], covered: dns.rrset.RRset, signer: Key
-) -> None:
-    rrsig = dns.dnssec.sign(
-        covered,
-        signer.private_key,
-        signer.zone,
-        signer.dnskey,
-        lifetime=86400,
-        verify=True,
-    )
-    section.append(covered)
-    section.append(dns.rrset.from_rdata(covered.name, covered.ttl, rrsig))
-
-
-def soa_rrset(zone: str) -> dns.rrset.RRset:
-    return rrset(
-        zone,
-        dns.rdatatype.SOA,
-        f"ns.{zone} hostmaster.{zone} 1 3600 600 86400 300",
-    )
-
-
-def nsec3_hash(owner: str) -> str:
-    return dns.dnssec.nsec3_hash(owner, salt=None, iterations=0, algorithm=1).upper()
 
 
 def base32hex_add(hash_text: str, delta: int) -> str:
@@ -120,16 +52,6 @@ def base32hex_add(hash_text: str, delta: int) -> str:
     value = int.from_bytes(raw, "big") + delta
     value %= 1 << (8 * len(raw))
     return base64.b32hexencode(value.to_bytes(len(raw), "big")).decode("ascii")
-
-
-def nsec3_rrset(
-    zone: str, owner_hash: str, next_hash: str, *types: str
-) -> dns.rrset.RRset:
-    return rrset(
-        f"{owner_hash}.{zone}",
-        dns.rdatatype.NSEC3,
-        f"1 0 0 - {next_hash} {' '.join(types)}",
-    )
 
 
 class Nsec3Chain:
@@ -143,7 +65,7 @@ class Nsec3Chain:
     def rrset_for_entry(self, entry: Nsec3Entry) -> dns.rrset.RRset:
         index = self.entries.index(entry)
         next_hash = self.entries[(index + 1) % len(self.entries)].owner_hash
-        return nsec3_rrset(self.zone, entry.owner_hash, next_hash, *entry.types)
+        return nsec3_rrset(self.zone, entry.owner_hash, next_hash, 0, *entry.types)
 
     def rrsets(self) -> list[dns.rrset.RRset]:
         return [self.rrset_for_entry(entry) for entry in self.entries]
@@ -162,6 +84,7 @@ def add_tight_parent_nsec3(section: list[dns.rrset.RRset], parent: Key) -> None:
         PARENT,
         base32hex_add(target_hash, -1),
         base32hex_add(target_hash, 1),
+        0,
         "TXT",
         "RRSIG",
     )
@@ -186,9 +109,13 @@ def add_wildcard_answer(response: dns.message.Message, owner: str, child: Key) -
     response.answer.append(wildcard_rrsig(owner, child))
 
 
-class WrongZoneNsec3Handler(ResponseHandler):
+class F025Handler(DomainHandler):
+    domains = [PARENT, CHILD]
+
     def __init__(self, keys: dict[str, Key]) -> None:
+        super().__init__()
         self.keys = keys
+
         self.parent = name(PARENT)
         self.child = name(CHILD)
         self.parent_ns = name(PARENT_NS)
@@ -201,9 +128,6 @@ class WrongZoneNsec3Handler(ResponseHandler):
                 (CHILD_NS, ("A", "RRSIG")),
             ],
         )
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(self.parent)
 
     def _add_extra_nsec3(self, response: dns.message.Message, qname: str) -> None:
         parent_key = self.keys[PARENT]
@@ -291,13 +215,3 @@ class WrongZoneNsec3Handler(ResponseHandler):
             add_signed(qctx.response.authority, soa_rrset(PARENT), parent_key)
 
         yield DnsResponseSend(qctx.response, authoritative=True)
-
-
-def main() -> None:
-    server = AsyncDnsServer(default_aa=True)
-    server.install_response_handlers(WrongZoneNsec3Handler(load_keys()))
-    server.run()
-
-
-if __name__ == "__main__":
-    main()
