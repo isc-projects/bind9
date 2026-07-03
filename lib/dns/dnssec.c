@@ -194,7 +194,7 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 			dns_name_downcase(dns_linkedname_name(&rrsig->signer),
 					  dns_fixedname_name(&fname)) ==
 			ISC_R_SUCCESS);
-		dns_name_toregion(dns_fixedname_name(&fname), &r);
+		dns_name_toregion(&fname, &r);
 	} else {
 		dns_name_toregion(&rrsig->signer, &r);
 	}
@@ -246,8 +246,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	RUNTIME_CHECK(dns_name_downcase(dst_key_name(key),
 					dns_fixedname_name(&fsigner)) ==
 		      ISC_R_SUCCESS);
-	dns_name_clone(dns_fixedname_name(&fsigner),
-		       dns_linkedname_name(&sig.signer));
+	dns_name_clone(&fsigner, dns_linkedname_name(&sig.signer));
 
 	sig.covered = set->type;
 	sig.algorithm = dst_algorithm_tosecalg(dst_key_alg(key));
@@ -293,7 +292,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_fixedname_init(&fnewname);
 	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname)) ==
 		      ISC_R_SUCCESS);
-	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+	dns_name_toregion(&fnewname, &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
@@ -526,7 +525,7 @@ again:
 			       dns_fixedname_name(&fnewname));
 	}
 
-	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+	dns_name_toregion(&fnewname, &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.

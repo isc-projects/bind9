@@ -295,7 +295,7 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 		isc_mem_put(mctx, *namep, sizeof(**namep));
 		return result;
 	}
-	dns_name_dup(dns_fixedname_name(&fname), mctx, *namep);
+	dns_name_dup(&fname, mctx, *namep);
 
 	return ISC_R_SUCCESS;
 }

@@ -75,6 +75,9 @@ dns_fixedname_invalidate(dns_fixedname_t *fixed);
 dns_name_t *
 dns_fixedname_name(dns_fixedname_t *fixed);
 
+const dns_name_t *
+dns_fixedname_name_const(const dns_fixedname_t *fixed);
+
 dns_name_t *
 dns_fixedname_initname(dns_fixedname_t *fixed);
 

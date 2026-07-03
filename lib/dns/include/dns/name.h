@@ -134,6 +134,12 @@ dns_linkedname_name_const(const dns_linkedname_t *nwl) {
 	return nwl != NULL ? &nwl->name : NULL;
 }
 
+dns_name_t *
+dns_fixedname_name(dns_fixedname_t *fixed);
+
+const dns_name_t *
+dns_fixedname_name_const(const dns_fixedname_t *fixed);
+
 static inline const dns_name_t *
 dns_name__readonly_arg(const dns_name_t *name) {
 	return name;
@@ -1462,12 +1468,14 @@ dns_name_belowroot(const dns_name_t *name) {
  * \li	'name' to be valid.
  */
 
-#define DNS_NAME__RO_ARG(arg)                               \
-	_Generic((arg),                                     \
-		dns_name_t *: dns_name__readonly_arg,       \
-		const dns_name_t *: dns_name__readonly_arg, \
-		dns_linkedname_t *: dns_linkedname_name,    \
-		const dns_linkedname_t *: dns_linkedname_name_const)(arg)
+#define DNS_NAME__RO_ARG(arg)                                        \
+	_Generic((arg),                                              \
+		dns_name_t *: dns_name__readonly_arg,                \
+		const dns_name_t *: dns_name__readonly_arg,          \
+		dns_linkedname_t *: dns_linkedname_name,             \
+		const dns_linkedname_t *: dns_linkedname_name_const, \
+		dns_fixedname_t *: dns_fixedname_name,               \
+		const dns_fixedname_t *: dns_fixedname_name_const)(arg)
 
 #define dns_name_clone(source, target) \
 	dns_name__clone(DNS_NAME__RO_ARG(source), target)

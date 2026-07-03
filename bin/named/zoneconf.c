@@ -263,8 +263,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
 				    "'%s' is not a valid name", str);
 			goto cleanup;
 		}
-		dns_name_format(dns_fixedname_name(&fident), namebuf,
-				sizeof(namebuf));
+		dns_name_format(&fident, namebuf, sizeof(namebuf));
 		isc_buffer_putstr(&dbuf, " ");
 		isc_buffer_putstr(&dbuf, namebuf);
 
@@ -293,8 +292,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
 					    "'%s' is not a valid name", str);
 				goto cleanup;
 			}
-			dns_name_format(dns_fixedname_name(&fname), namebuf,
-					sizeof(namebuf));
+			dns_name_format(&fname, namebuf, sizeof(namebuf));
 			isc_buffer_putstr(&dbuf, " ");
 			isc_buffer_putstr(&dbuf, namebuf);
 		}

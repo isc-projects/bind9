@@ -161,7 +161,7 @@ convert_keyname(const cfg_obj_t *keyobj, isc_mem_t *mctx, dns_name_t *dnsname) {
 			    txtname);
 		return result;
 	}
-	dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname);
+	dns_name_dup(&fixname, mctx, dnsname);
 	return ISC_R_SUCCESS;
 }
 

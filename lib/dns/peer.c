@@ -491,7 +491,7 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	name = isc_mem_get(peer->mem, sizeof(dns_name_t));
 
 	dns_name_init(name);
-	dns_name_dup(dns_fixedname_name(&fname), peer->mem, name);
+	dns_name_dup(&fname, peer->mem, name);
 
 	result = dns_peer_setkey(peer, &name);
 	if (result != ISC_R_SUCCESS) {

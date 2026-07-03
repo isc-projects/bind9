@@ -8559,8 +8559,8 @@ addnsec3:
 	 * Did we find the closest provable encloser instead?
 	 * If so add the nearest to the closest provable encloser.
 	 */
-	if (!dns_name_equal(name, dns_fixedname_name(&fixed))) {
-		count = dns_name_countlabels(dns_fixedname_name(&fixed)) + 1;
+	if (!dns_name_equal(name, &fixed)) {
+		count = dns_name_countlabels(&fixed) + 1;
 		dns_name_getlabelsequence(name,
 					  dns_name_countlabels(name) - count,
 					  count, dns_fixedname_name(&fixed));

@@ -797,8 +797,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 			sizeof(*looknew->ecs_addr));
 	}
 
-	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
-		      dns_fixedname_name(&looknew->fdomain));
+	dns_name_copy(&lookold->fdomain, dns_fixedname_name(&looknew->fdomain));
 
 	if (servers) {
 		if (lookold->tls_ctx_cache != NULL) {

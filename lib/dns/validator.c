@@ -3147,12 +3147,11 @@ findnsec3proofs(dns_validator_t *val) {
 	if (!dns_name_empty(dns_fixedname_name(&val->closest))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
-		dns_name_format(dns_fixedname_name(&val->closest), namebuf,
-				sizeof(namebuf));
+		dns_name_format(&val->closest, namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "closest encloser from wildcard signature '%s'",
 			      namebuf);
-		dns_name_copy(dns_fixedname_name(&val->closest), closest);
+		dns_name_copy(&val->closest, closest);
 		closestp = NULL;
 	} else {
 		closestp = closest;

@@ -576,8 +576,7 @@ sendquery(struct query *query) {
 
 	dns_message_gettemprdataset(message, &qrdataset);
 
-	dns_name_clone(dns_fixedname_name(&queryname),
-		       dns_linkedname_name(qname));
+	dns_name_clone(&queryname, dns_linkedname_name(qname));
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
