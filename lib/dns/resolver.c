@@ -6356,8 +6356,7 @@ rctx_cachename(respctx_t *rctx, dns_message_t *message,
 	/*
 	 * Find or create the cache node.
 	 */
-	RETERR(dns_db_findnode(fctx->cache, dns_linkedname_name(name), true,
-			       &node));
+	RETERR(dns_db_findnode(fctx->cache, name, true, &node));
 
 	/*
 	 * Cache or validate each cacheable rdataset.
