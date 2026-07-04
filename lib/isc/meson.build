@@ -23,6 +23,7 @@ isc_inc_p += include_directories('.')
 subdir('crypto')
 subdir('netmgr')
 subdir('ossl_wrap')
+subdir('quic', if_found: [ngtcp2_dep])
 
 isc_srcset.add(
     m_dep,
