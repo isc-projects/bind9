@@ -821,8 +821,7 @@ query_reset(ns_client_t *client, bool everything) {
 	client->query.dboptions = 0;
 	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
-	client->query.authdb = 0;
-	client->query.authdbset = false;
+	client->query.authdb_id = NS_QUERY_AUTHDB_UNSET;
 	client->query.isreferral = false;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = UINT32_MAX;
@@ -1010,7 +1009,8 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	 */
 	if (client->query.rpz_st == NULL &&
 	    !(client->query.wantrecursion && client->query.recursionok) &&
-	    client->query.authdbset && (uintptr_t)db != client->query.authdb)
+	    client->query.authdb_id != NS_QUERY_AUTHDB_UNSET &&
+	    (uintptr_t)db != client->query.authdb_id)
 	{
 		return DNS_R_REFUSED;
 	}
@@ -1659,11 +1659,7 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 	 * First, look within the same zone database for authoritative
 	 * additional data.
 	 */
-	if (!client->query.authdbset || client->query.authdb == 0) {
-		return ISC_R_NOTFOUND;
-	}
-
-	dbversion = ns_client_findversionid(client, client->query.authdb);
+	dbversion = ns_client_findversionid(client, client->query.authdb_id);
 	if (dbversion == NULL) {
 		return ISC_R_NOTFOUND;
 	}
@@ -4903,7 +4899,7 @@ query_trace(query_ctx_t *qctx) {
 		 "origqname:%s, timer:%d, authdb:%d, referral:%d, id:%hu",
 		 iabuf, qabuf, qctx->client->query.restarts, qbuf,
 		 (int)qctx->client->query.timerset,
-		 (int)qctx->client->query.authdbset,
+		 (int)(qctx->client->query.authdb_id != NS_QUERY_AUTHDB_UNSET),
 		 (int)qctx->client->query.isreferral,
 		 qctx->client->message->id);
 	CCTRACE(ISC_LOG_DEBUG(3), mbuf);
@@ -5313,21 +5309,19 @@ ns__query_start(query_ctx_t *qctx) {
 	 * Update query statistics.
 	 */
 	if (qctx->fresp == NULL && qctx->client->query.restarts == 0) {
-		if (qctx->is_zone) {
-			if (qctx->zone != NULL) {
-				/*
-				 * if is_zone = true, zone = NULL then this is
-				 * a DLZ zone.  Don't attempt to attach zone.
-				 */
-				dns_zone_attach(qctx->zone,
-						&qctx->client->query.authzone);
-				qctx->zhooks =
-					dns_zone_gethooktable(qctx->zone);
-				CALL_HOOK(NS_QUERY_AUTHZONE_ATTACHED, qctx);
-			}
-			qctx->client->query.authdb = (uintptr_t)qctx->db;
+		/*
+		 * If this is a DLZ zone, qctx->is_zone is true but qctx->zone
+		 * is NULL, so there is no zone object to attach.
+		 */
+		if (qctx->is_zone && qctx->zone != NULL) {
+			dns_zone_attach(qctx->zone,
+					&qctx->client->query.authzone);
+			qctx->zhooks = dns_zone_gethooktable(qctx->zone);
+			CALL_HOOK(NS_QUERY_AUTHZONE_ATTACHED, qctx);
 		}
-		qctx->client->query.authdbset = true;
+		qctx->client->query.authdb_id = qctx->is_zone
+							? (uintptr_t)qctx->db
+							: NS_QUERY_AUTHDB_NONE;
 
 		isc_nmhandle_t *handle = qctx->client->inner.handle;
 

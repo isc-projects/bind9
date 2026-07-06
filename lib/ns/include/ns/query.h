@@ -47,6 +47,9 @@ typedef struct dns_getdb_options {
 	bool stalefirst : 1;
 } dns_getdb_options_t;
 
+#define NS_QUERY_AUTHDB_UNSET ((uintptr_t)0)
+#define NS_QUERY_AUTHDB_NONE  UINTPTR_MAX
+
 /*%
  * recursion type; various features can initiate recursion and this enum value
  * allows common code paths to differentiate between them
@@ -137,11 +140,10 @@ struct ns_query {
 	unsigned int	dboptions;
 	unsigned int	fetchoptions;
 	dns_db_t       *gluedb;
-	uintptr_t   authdb; /* Database identity; not an attached reference. */
-	dns_zone_t *authzone;
-	bool	    authdbset;
-	bool	    isreferral;
-	isc_mutex_t fetchlock;
+	uintptr_t authdb_id; /* Database identity; not an attached reference. */
+	dns_zone_t	*authzone;
+	bool		 isreferral;
+	isc_mutex_t	 fetchlock;
 	ns_hookasync_t	*hookasyncctx;
 	dns_rpz_st_t	*rpz_st;
 	isc_bufferlist_t namebufs;
