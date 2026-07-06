@@ -16,6 +16,7 @@
 /*! \file */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/netaddr.h>
@@ -127,20 +128,20 @@ struct ns_query {
 		};
 	};
 
-	unsigned int	 restarts;
-	isc_counter_t	*qc;
-	bool		 timerset;
-	dns_name_t	*qname;
-	dns_name_t	*origqname;
-	dns_rdatatype_t	 qtype;
-	unsigned int	 dboptions;
-	unsigned int	 fetchoptions;
-	dns_db_t	*gluedb;
-	dns_db_t	*authdb;
-	dns_zone_t	*authzone;
-	bool		 authdbset;
-	bool		 isreferral;
-	isc_mutex_t	 fetchlock;
+	unsigned int	restarts;
+	isc_counter_t  *qc;
+	bool		timerset;
+	dns_name_t     *qname;
+	dns_name_t     *origqname;
+	dns_rdatatype_t qtype;
+	unsigned int	dboptions;
+	unsigned int	fetchoptions;
+	dns_db_t       *gluedb;
+	uintptr_t   authdb; /* Database identity; not an attached reference. */
+	dns_zone_t *authzone;
+	bool	    authdbset;
+	bool	    isreferral;
+	isc_mutex_t fetchlock;
 	ns_hookasync_t	*hookasyncctx;
 	dns_rpz_st_t	*rpz_st;
 	isc_bufferlist_t namebufs;

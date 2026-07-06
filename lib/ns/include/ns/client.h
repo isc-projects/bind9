@@ -57,6 +57,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <isc/atomic.h>
 #include <isc/buffer.h>
@@ -560,6 +561,13 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
  * make sure subsequent queries are from the same version;
  * otherwise, take a database version from the list of dbversions
  * allocated by ns_client_newdbversion().
+ */
+
+ns_dbversion_t *
+ns_client_findversionid(ns_client_t *client, uintptr_t dbid);
+/*%<
+ * Find the active database version matching database identity 'dbid',
+ * without allocating a new database version if none is found.
  */
 
 ISC_REFCOUNT_DECL(ns_clientmgr);
