@@ -40,6 +40,7 @@ ATTACKER = "attacker.f004.test."
 VICTIM = "victim.f004.test."
 VICTIM_A = "203.0.113.1"
 POISON_NEXT = f"b.{VICTIM}"
+VICTIM_NODATA_NEXT = f"z.{F004_ZONE}"
 
 
 def attacker_nsec_rrset() -> dns.rrset.RRset:
@@ -47,6 +48,18 @@ def attacker_nsec_rrset() -> dns.rrset.RRset:
         ATTACKER,
         dns.rdatatype.NSEC,
         f"{POISON_NEXT} NS SOA RRSIG NSEC DNSKEY",
+    )
+
+
+def victim_nodata_nsec_rrset() -> dns.rrset.RRset:
+    # An NSEC owned by the victim name itself, whose type bitmap omits A but
+    # includes the NSEC and RRSIG types query_coveringnsec requires. If it
+    # were trusted, it would prove a NODATA for victim/A and hide the real
+    # A record below.
+    return rrset(
+        VICTIM,
+        dns.rdatatype.NSEC,
+        f"{VICTIM_NODATA_NEXT} TXT RRSIG NSEC",
     )
 
 
@@ -95,6 +108,13 @@ class F004Handler(DomainHandler):
         elif qctx.qname == self.attacker and qctx.qtype == dns.rdatatype.NSEC:
             if qctx.query.flags & dns.flags.CD:
                 nsec = attacker_nsec_rrset()
+                response.answer.append(nsec)
+                response.answer.append(garbage_rrsig(nsec, self.key))
+            else:
+                response.set_rcode(dns.rcode.REFUSED)
+        elif qctx.qname == self.victim and qctx.qtype == dns.rdatatype.NSEC:
+            if qctx.query.flags & dns.flags.CD:
+                nsec = victim_nodata_nsec_rrset()
                 response.answer.append(nsec)
                 response.answer.append(garbage_rrsig(nsec, self.key))
             else:
