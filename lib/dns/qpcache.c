@@ -499,10 +499,10 @@ qpcache_miss(qpcache_t *qpdb, dns_slabheader_t *newheader,
 
 static void
 qpcache_hit(qpcache_t *qpdb ISC_ATTR_UNUSED, dns_slabheader_t *header) {
-	/*
-	 * On cache hit, we only mark the header as seen.
-	 */
 	ISC_SIEVE_MARK(header, visited);
+	if (header->related) {
+		ISC_SIEVE_MARK(header->related, visited);
+	}
 }
 
 /*
