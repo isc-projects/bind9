@@ -5634,7 +5634,9 @@ validated(void *arg) {
 	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		result = dns_rdataset_addnoqname(
 			val->rdataset, val->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS) {
+			goto noanswer_response;
+		}
 		INSIST(val->sigrdataset != NULL);
 		val->sigrdataset->ttl = val->rdataset->ttl;
 		if (val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {

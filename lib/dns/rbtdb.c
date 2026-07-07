@@ -3231,7 +3231,9 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	isc_region_t r1 = { .base = NULL }, r2 = { .base = NULL };
 
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
