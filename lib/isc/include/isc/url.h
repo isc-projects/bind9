@@ -49,6 +49,8 @@
 #define HTTP_PARSER_STRICT 1
 #endif
 
+#define URL_MAX_LENGTH 8192
+
 typedef enum {
 	ISC_UF_SCHEMA = 0,
 	ISC_UF_HOST = 1,
