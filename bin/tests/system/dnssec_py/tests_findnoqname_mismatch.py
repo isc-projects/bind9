@@ -18,6 +18,7 @@ from isctest.template import NS4, NS9, Nameserver, zones
 from isctest.zone import PythonZoneKey, Zone
 
 import isctest
+import isctest.mark
 
 ZONE = "f217.test."
 CHILD = f"evil.{ZONE}"
@@ -27,7 +28,7 @@ FORGED_A = "192.0.2.217"
 AUTH = "10.53.0.4"
 RESOLVER = "10.53.0.9"
 
-pytestmark = DNSSEC_PY_MARK
+pytestmark = [isctest.mark.with_ecdsa_deterministic, DNSSEC_PY_MARK]
 
 
 def _make_key():
