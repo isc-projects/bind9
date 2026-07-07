@@ -214,18 +214,18 @@ ISC_RUN_TEST_IMPL(parse_addressable) {
 	static const url_testcase_t testcases[] = {
 		/* IPv6 literal hosts: the brackets are stripped from the host.
 		 */
-		{ "http://[::1]/", ISC_R_SUCCESS, "http", "", "::1", "", "/",
+		{ "http://[::1]/", ISC_R_SUCCESS, "http", "", "[::1]", "", "/",
 		  "", "" },
 		{ "http://[fe80::200:f8ff:fe21:67cf]/", ISC_R_SUCCESS, "http",
-		  "", "fe80::200:f8ff:fe21:67cf", "", "/", "", "" },
+		  "", "[fe80::200:f8ff:fe21:67cf]", "", "/", "", "" },
 		{ "http://[2001:db8::7]:8080/path", ISC_R_SUCCESS, "http", "",
-		  "2001:db8::7", "8080", "/path", "", "" },
+		  "[2001:db8::7]", "8080", "/path", "", "" },
 		{ "ldap://[2001:db8::7]/c=GB?objectClass?one", ISC_R_SUCCESS,
-		  "ldap", "", "2001:db8::7", "", "/c=GB", "objectClass?one",
+		  "ldap", "", "[2001:db8::7]", "", "/c=GB", "objectClass?one",
 		  "" },
 		/* An IPv6 zone identifier is kept verbatim (not decoded). */
 		{ "http://[fe80::1%25en0]/", ISC_R_SUCCESS, "http", "",
-		  "fe80::1%25en0", "", "/", "", "" },
+		  "[fe80::1%25en0]", "", "/", "", "" },
 
 		/* IPv4 host with an explicit port. */
 		{ "telnet://192.0.2.16:80/", ISC_R_SUCCESS, "telnet", "",
