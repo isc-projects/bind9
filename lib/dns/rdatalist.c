@@ -178,26 +178,24 @@ dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 	REQUIRE(rdataset != NULL);
 
 	ISC_LIST_FOREACH(name->list, rdset, link) {
-		if (rdset->rdclass != rdataset->rdclass) {
+		if (rdset->rdclass != rdataset->rdclass ||
+		    !dns_rdatatype_isnsec(rdset->type))
+		{
 			continue;
 		}
-		if (dns_rdatatype_isnsec(rdset->type)) {
-			neg = rdset;
-		}
-	}
-	if (neg == NULL) {
-		return ISC_R_NOTFOUND;
-	}
 
-	ISC_LIST_FOREACH(name->list, rdset, link) {
-		if (rdset->type == dns_rdatatype_rrsig &&
-		    rdset->covers == neg->type)
-		{
-			negsig = rdset;
+		ISC_LIST_FOREACH(name->list, sigset, link) {
+			if (sigset->type == dns_rdatatype_rrsig &&
+			    sigset->covers == rdset->type)
+			{
+				neg = rdset;
+				negsig = sigset;
+				break;
+			}
 		}
 	}
 
-	if (negsig == NULL) {
+	if (neg == NULL || negsig == NULL) {
 		return ISC_R_NOTFOUND;
 	}
 
@@ -214,6 +212,7 @@ dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
 	rdataset->attributes.noqname = true;
 	rdataset->rdlist.noqname = name;
+
 	return ISC_R_SUCCESS;
 }
 
