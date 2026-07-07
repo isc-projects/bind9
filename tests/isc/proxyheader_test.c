@@ -206,7 +206,7 @@ test_header_data(isc_proxy2_handler_t *handler, const void *data,
 
 static void
 verify_proxy_v2_header(isc_proxy2_handler_t *handler,
-		       dummy_handler_cbarg_t *cbarg) {
+		       dummy_handler_cbarg_t *cbarg, unsigned int tlvs) {
 	char sabuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
 	isc_sockaddr_t src_addr = { 0 }, dst_addr = { 0 };
 	isc_result_t result;
@@ -231,7 +231,7 @@ verify_proxy_v2_header(isc_proxy2_handler_t *handler,
 		assert_true(socktype == cbarg->socktype);
 	}
 
-	assert_true(cbarg->tlvs == 0);
+	assert_true(cbarg->tlvs == tlvs);
 	assert_true(cbarg->tls_subtlvs == 0);
 	assert_true(cbarg->tls_client_flags == 0);
 	assert_true(cbarg->client_cert_verified == false);
@@ -337,6 +337,9 @@ verify_proxy_v2_header_with_AF_UNIX(isc_proxy2_handler_t *handler,
 }
 
 ISC_RUN_TEST_IMPL(proxyheader_generic_test) {
+	isc_result_t result;
+	isc_buffer_t buf = { 0 };
+	isc_region_t region = { 0 };
 	isc_proxy2_handler_t *handler = (isc_proxy2_handler_t *)*state;
 	dummy_handler_cbarg_t cbarg = { 0 };
 
@@ -344,7 +347,7 @@ ISC_RUN_TEST_IMPL(proxyheader_generic_test) {
 
 	test_header_data(handler, proxy_v2_header, sizeof(proxy_v2_header),
 			 false, false);
-	verify_proxy_v2_header(handler, &cbarg);
+	verify_proxy_v2_header(handler, &cbarg, 0);
 
 	cbarg = (dummy_handler_cbarg_t){ 0 };
 	test_header_data(handler, (void *)proxy_v2_header_with_TLS,
@@ -360,6 +363,72 @@ ISC_RUN_TEST_IMPL(proxyheader_generic_test) {
 	test_header_data(handler, (void *)proxy_v2_header_with_AF_UNIX,
 			 sizeof(proxy_v2_header_with_AF_UNIX), false, false);
 	verify_proxy_v2_header_with_AF_UNIX(handler, &cbarg);
+
+	/* Test a header+data with a maximum size */
+	cbarg = (dummy_handler_cbarg_t){ 0 };
+	size_t big_data_len = ISC_PROXY2_HEADER_SIZE + UINT16_MAX;
+	uint8_t *proxy_v2_header_with_big_data = isc_mem_get(isc_g_mctx,
+							     big_data_len);
+	/* Copy the regular proxy_v2_header into the head of out buffer */
+	memmove(proxy_v2_header_with_big_data, proxy_v2_header,
+		sizeof(proxy_v2_header));
+	/* Construct the big region and create a isc_buffer based on it  */
+	region.base = proxy_v2_header_with_big_data;
+	region.length = big_data_len;
+	isc_buffer_init(&buf, region.base, region.length);
+	/* Move forward to the data size position */
+	isc_buffer_add(&buf, ISC_PROXY2_HEADER_SIZE - sizeof(uint16_t));
+	isc_buffer_forward(&buf, ISC_PROXY2_HEADER_SIZE - sizeof(uint16_t));
+	/* Write the new size */
+	isc_buffer_putuint16(&buf, UINT16_MAX);
+	/* Move to the tail of the proxy_v2_header data */
+	isc_buffer_add(&buf, sizeof(proxy_v2_header) - ISC_PROXY2_HEADER_SIZE);
+	isc_buffer_forward(&buf,
+			   sizeof(proxy_v2_header) - ISC_PROXY2_HEADER_SIZE);
+	/* Present all the additional data after this as an experimental TLV */
+	isc_buffer_putuint8(&buf, ISC_PROXY2_TLV_TYPE_MIN_EXPERIMENT);
+	isc_buffer_putuint16(&buf, UINT16_MAX -
+					   ISC_PROXY2_HEADER_SIGNATURE_SIZE -
+					   ISC_PROXY2_TLV_HEADER_SIZE);
+	test_header_data(handler, proxy_v2_header_with_big_data, big_data_len,
+			 false, false);
+	verify_proxy_v2_header(handler, &cbarg, 1);
+	isc_mem_put(isc_g_mctx, proxy_v2_header_with_big_data, big_data_len);
+	isc_buffer_clear(&buf);
+
+	/* Test a header+data with a bigger than maximum size */
+	cbarg = (dummy_handler_cbarg_t){ 0 };
+	size_t verybig_data_len = ISC_PROXY2_HEADER_SIZE + UINT16_MAX + 1;
+	uint8_t *proxy_v2_header_with_verybig_data =
+		isc_mem_get(isc_g_mctx, verybig_data_len);
+	/* Copy the regular proxy_v2_header into the head of our buffer */
+	memmove(proxy_v2_header_with_verybig_data, proxy_v2_header,
+		sizeof(proxy_v2_header));
+	/* Construct the big region and create a isc_buffer based on it  */
+	region.base = proxy_v2_header_with_verybig_data;
+	region.length = verybig_data_len;
+	isc_buffer_init(&buf, region.base, region.length);
+	/* Move forward to the data size position */
+	isc_buffer_add(&buf, ISC_PROXY2_HEADER_SIZE - sizeof(uint16_t));
+	isc_buffer_forward(&buf, ISC_PROXY2_HEADER_SIZE - sizeof(uint16_t));
+	/* Write the new size */
+	isc_buffer_putuint16(&buf, UINT16_MAX);
+	/* Move to the tail of the proxy_v2_header data */
+	isc_buffer_add(&buf, sizeof(proxy_v2_header) - ISC_PROXY2_HEADER_SIZE);
+	isc_buffer_forward(&buf,
+			   sizeof(proxy_v2_header) - ISC_PROXY2_HEADER_SIZE);
+	/* Present all the additional data after this as an experimental TLV */
+	isc_buffer_putuint8(&buf, ISC_PROXY2_TLV_TYPE_MIN_EXPERIMENT);
+	isc_buffer_putuint16(&buf, UINT16_MAX + 1 -
+					   ISC_PROXY2_HEADER_SIGNATURE_SIZE -
+					   ISC_PROXY2_TLV_HEADER_SIZE);
+	result = isc_proxy2_handler_push_data(
+		handler, proxy_v2_header_with_verybig_data, verybig_data_len);
+	assert_true(isc_proxy2_handler_result(handler) == result);
+	assert_true(isc_proxy2_handler_result(handler) == ISC_R_RANGE);
+	isc_mem_put(isc_g_mctx, proxy_v2_header_with_verybig_data,
+		    verybig_data_len);
+	isc_buffer_clear(&buf);
 }
 
 ISC_RUN_TEST_IMPL(proxyheader_generic_byte_by_byte_test) {
@@ -370,7 +439,7 @@ ISC_RUN_TEST_IMPL(proxyheader_generic_byte_by_byte_test) {
 
 	test_header_data(handler, proxy_v2_header, sizeof(proxy_v2_header),
 			 true, false);
-	verify_proxy_v2_header(handler, &cbarg);
+	verify_proxy_v2_header(handler, &cbarg, 0);
 	assert_true(cbarg.no_more_calls == sizeof(proxy_v2_header) - 1);
 
 	cbarg = (dummy_handler_cbarg_t){ 0 };
@@ -403,7 +472,7 @@ ISC_RUN_TEST_IMPL(proxyheader_generic_torn_apart_randomly_test) {
 
 	test_header_data(handler, proxy_v2_header, sizeof(proxy_v2_header),
 			 true, true);
-	verify_proxy_v2_header(handler, &cbarg);
+	verify_proxy_v2_header(handler, &cbarg, 0);
 
 	cbarg = (dummy_handler_cbarg_t){ 0 };
 	test_header_data(handler, (void *)proxy_v2_header_with_TLS,
@@ -433,7 +502,7 @@ ISC_RUN_TEST_IMPL(proxyheader_direct_test) {
 		&region, proxy2_handler_dummy, &cbarg);
 	assert_true(result == ISC_R_SUCCESS);
 	assert_true(cbarg.no_more_calls == 0);
-	verify_proxy_v2_header(NULL, &cbarg);
+	verify_proxy_v2_header(NULL, &cbarg, 0);
 
 	cbarg = (dummy_handler_cbarg_t){ 0 };
 	region.base = (uint8_t *)proxy_v2_header_with_TLS;
