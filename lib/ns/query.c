@@ -9963,10 +9963,10 @@ query_coveringnsec(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * If NSEC or RRSIG are missing from the type map
-	 * reject the NSEC RRset.
+	 * Check that the NSEC entry is legal.
+	 * (NSEC + RRSIG present and the entry isn't out-of-zone)
 	 */
-	if (!dns_nsec_requiredtypespresent(qctx->rdataset)) {
+	if (!dns_nsec_is_legal(qctx->rdataset, signer)) {
 		goto cleanup;
 	}
 
