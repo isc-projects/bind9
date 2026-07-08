@@ -129,6 +129,11 @@ dns_linkedname_name(dns_linkedname_t *nwl) {
 	return nwl != NULL ? &nwl->name : NULL;
 }
 
+static inline struct dns_name_attrs *
+dns_linkedname_attrs(dns_linkedname_t *nwl) {
+	return nwl != NULL ? &nwl->name.attributes : NULL;
+}
+
 static inline const dns_name_t *
 dns_linkedname_name_const(const dns_linkedname_t *nwl) {
 	return nwl != NULL ? &nwl->name : NULL;

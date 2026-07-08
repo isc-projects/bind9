@@ -856,7 +856,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	msg->tsigname = owner;
 
 	/* Windows does not like the tsig name being compressed. */
-	dns_linkedname_name(msg->tsigname)->attributes.nocompress = true;
+	dns_linkedname_attrs(msg->tsigname)->nocompress = true;
 
 	return ISC_R_SUCCESS;
 
