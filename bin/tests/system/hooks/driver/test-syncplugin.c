@@ -38,6 +38,7 @@ syncplugin__hook(void *arg, void *cbdata, isc_result_t *resp) {
 	if (inst->firstlbl != NULL) {
 		const dns_name_t *qname = qctx->client->query.qname;
 		dns_label_t label;
+		size_t len = strlen(inst->firstlbl);
 
 		dns_name_getlabel(qname, 0, &label);
 
@@ -45,8 +46,8 @@ syncplugin__hook(void *arg, void *cbdata, isc_result_t *resp) {
 		 * +1 because the first label byte is the length of the label
 		 * itself
 		 */
-		if (strncmp(inst->firstlbl, (char *)label.base + 1,
-			    strlen(inst->firstlbl)) == 0)
+		if (*label.base == len &&
+		    strncmp(inst->firstlbl, (char *)label.base + 1, len) == 0)
 		{
 			return NS_HOOK_CONTINUE;
 		}
