@@ -72,6 +72,16 @@ def test_hooks_zonetemplate2():
     res = isctest.query.udp(msg, "10.53.0.2")
     isctest.check.rcode(res, dns.rcode.NOTZONE)
 
+    # test that the skip label is not matched add suffix
+    msg = isctest.query.create("skipfooX.example4.com", "A")
+    res = isctest.query.udp(msg, "10.53.0.2")
+    isctest.check.rcode(res, dns.rcode.NOTAUTH)
+
+    # test that the skip label is not matched add prefix
+    msg = isctest.query.create("Xskipfoo.example4.com", "A")
+    res = isctest.query.udp(msg, "10.53.0.2")
+    isctest.check.rcode(res, dns.rcode.NOTAUTH)
+
 
 def test_hooks_zone_rndc_reload(servers):
     ns2 = servers["ns2"]
