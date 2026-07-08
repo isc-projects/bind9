@@ -11,19 +11,14 @@
 
 import pytest
 
-import isctest
-
-DNSSEC_PY_MARK = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/*.db",
-            "ans*/*.run",
-            "ans*/*.pem",
-            "ns*/dsset-*",
-            "ns*/trusted.conf",
-            "ns*/zones/*.db",
-            "ns*/zones/*.db.signed",
-        ]
-    ),
-]
+DNSSEC_PY_MARK = pytest.mark.extra_artifacts(
+    [
+        "ans*/*.db",
+        "ans*/*.run",
+        "ans*/*.pem",
+        "ns*/dsset-*",
+        "ns*/trusted.conf",
+        "ns*/zones/*.db",
+        "ns*/zones/*.db.signed",
+    ]
+)
