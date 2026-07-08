@@ -1,8 +1,4 @@
-include "../../_common/rndc.key";
-
-controls {
-	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
+{% include "_common/controls.conf.j2" %}
 
 tls self-signed {
 	cert-file "../self-signed-cert.pem";
