@@ -40,6 +40,7 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/private.h>
+#include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
@@ -970,7 +971,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
-	unsigned char data[1024]; /* XXX */
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	unsigned int i;
 	bool added_sig = false;
 	bool use_kasp = false;

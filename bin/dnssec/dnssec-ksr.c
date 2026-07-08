@@ -656,7 +656,7 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t *rrsig = NULL;
 		isc_region_t rs;
-		unsigned char rdatabuf[SIG_FORMATSIZE];
+		unsigned char rdatabuf[DNS_RDATA_MAXLENGTH];
 		isc_stdtime_t clockskew = inception - 3600;
 
 		isc_stdtime_t pub = 0, act = 0, inact = 0, del = 0;

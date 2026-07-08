@@ -5728,7 +5728,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	dns_stats_t *dnssecsignstats;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
-	unsigned char data[1024]; /* XXX */
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t buffer;
 	unsigned int i;
 	bool use_kasp = false;
@@ -6420,7 +6420,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	dns_stats_t *dnssecsignstats;
 	bool offlineksk = false;
 	isc_buffer_t buffer;
-	unsigned char data[1024];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	seen_t seen;
 
 	if (zone->kasp != NULL) {

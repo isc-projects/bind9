@@ -106,7 +106,6 @@ static int nsec_datatype = dns_rdatatype_nsec;
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 
-#define BUFSIZE	  2048
 #define MAXDSKEYS 8
 
 #define SIGNER_EVENTCLASS  ISC_EVENTCLASS(0x4453)
@@ -270,7 +269,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	isc_stdtime_t jendtime, expiry;
 	char keystr[DST_KEY_FORMATSIZE];
 	dns_rdata_t trdata = DNS_RDATA_INIT;
-	unsigned char array[BUFSIZE];
+	unsigned char array[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t b;
 	dns_difftuple_t *tuple;
 
