@@ -464,6 +464,9 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			/* The Engine: tag is explicitly ignored */
 			break;
 		case TAG_EDDSA_LABEL:
+			/* NUL terminated data? */
+			CHECK(dst__privelement_is_nul_terminated(
+				&priv.elements[i]));
 			label = (char *)priv.elements[i].data;
 			break;
 		case TAG_EDDSA_PRIVATEKEY:

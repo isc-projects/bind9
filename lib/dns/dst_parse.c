@@ -761,4 +761,14 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	return result;
 }
 
+isc_result_t
+dst__privelement_is_nul_terminated(const dst_private_element_t *element) {
+	if (element->length < 1 || element->data[element->length - 1] != 0 ||
+	    strlen((char *)element->data) != (size_t)element->length - 1)
+	{
+		return DST_R_INVALIDPRIVATEKEY;
+	}
+	return ISC_R_SUCCESS;
+}
+
 /*! \file */
