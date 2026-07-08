@@ -1,5 +1,3 @@
-controls { };
-
 options {
 	query-source address 10.53.0.1;
 	notify-source 10.53.0.1;
@@ -14,14 +12,7 @@ options {
 	dnssec-validation no;
 };
 
-key rndc_key {
-	secret "1234abcd8765";
-	algorithm @DEFAULT_HMAC@;
-};
-
-controls {
-	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
+{% include "_common/controls.conf.j2" %}
 
 dyndb sample "@TOP_BUILDDIR@/testlib-driver-sample.@DYLIB@" { ipv4.example.nil. in-addr.arpa. };
 dyndb sample2 "@TOP_BUILDDIR@/testlib-driver-sample.@DYLIB@" { ipv6.example.nil. 8.b.d.0.1.0.0.2.ip6.arpa. };
