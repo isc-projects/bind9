@@ -878,6 +878,14 @@ update_cachestats(qpcache_t *qpdb, isc_result_t result) {
 	}
 }
 
+static dns_trust_t
+header_trust(dns_slabheader_t *header) {
+	if (header == NULL) {
+		return dns_trust_none;
+	}
+	return atomic_load_acquire(&header->trust);
+}
+
 static void
 bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 	     isc_stdtime_t now, isc_rwlocktype_t nlocktype,
@@ -932,7 +940,7 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 		rdataset->covers = DNS_TYPEPAIR_COVERS(header->typepair);
 	}
 	rdataset->ttl = !ZEROTTL(header) ? header->expire - now : 0;
-	rdataset->trust = atomic_load(&header->trust);
+	rdataset->trust = header_trust(header);
 	rdataset->resign = 0;
 
 	if (NEGATIVE(header)) {
@@ -1260,7 +1268,7 @@ check_dname(qpcnode_t *node, void *arg DNS__DB_FLARG) {
 	 */
 	find_headers(node, search, dns_rdatatype_dname, &found, &foundsig);
 
-	if (found != NULL && (!DNS_TRUST_PENDING(atomic_load(&found->trust)) ||
+	if (found != NULL && (!DNS_TRUST_PENDING(header_trust(found)) ||
 			      (search->options & DNS_DBFIND_PENDINGOK) != 0))
 	{
 		/*
@@ -1344,7 +1352,9 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 
 	find_headers(node, search, dns_rdatatype_nsec, &found, &foundsig);
 
-	if (found != NULL) {
+	if (found != NULL && header_trust(found) == dns_trust_secure &&
+	    (foundsig == NULL || header_trust(foundsig) == dns_trust_secure))
+	{
 		if (nodep != NULL) {
 			qpcnode_acquire(search->qpdb, node, nlocktype,
 					isc_rwlocktype_none DNS__DB_FLARG_PASS);
@@ -1369,7 +1379,7 @@ missing_answer(dns_slabheader_t *found, unsigned int options) {
 		return true;
 	}
 
-	dns_trust_t trust = atomic_load(&found->trust);
+	dns_trust_t trust = header_trust(found);
 	return (DNS_TRUST_ADDITIONAL(trust) &&
 		(options & DNS_DBFIND_ADDITIONALOK) == 0) ||
 	       (DNS_TRUST_GLUE(trust) && (options & DNS_DBFIND_GLUEOK) == 0) ||
@@ -1534,7 +1544,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		empty_node = false;
 
 		if (header != NULL && header->noqname != NULL &&
-		    atomic_load(&header->trust) == dns_trust_secure)
+		    header_trust(header) == dns_trust_secure)
 		{
 			found_noqname = true;
 		}
@@ -2252,7 +2262,7 @@ check_ncache_block(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *header,
 		 * than the new data, evict it from the cache. Otherwise,
 		 * bind to it and leave the cache unchanged.
 		 */
-		if (trust >= header->trust) {
+		if (trust >= header_trust(header)) {
 			header_delete(qpnode, header);
 			return DNS_R_CONTINUE;
 		} else {
@@ -2312,7 +2322,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 	    rdtype == dns_rdatatype_any && trust < dns_trust_secure)
 	{
 		DNS_SLABHEADER_FOREACH(header, &qpnode->headers) {
-			if (header->trust >= dns_trust_secure) {
+			if (header_trust(header) >= dns_trust_secure) {
 				qpcache_hit(qpdb, header);
 				bindrdataset(qpdb, qpnode, header, now,
 					     nlocktype, tlocktype,
@@ -2426,7 +2436,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 		 * data will supersede it below. Unclear what the best
 		 * policy is here.
 		 */
-		dns_trust_t oldtrust = atomic_load(&oldheader->trust);
+		dns_trust_t oldtrust = header_trust(oldheader);
 		if (trust < oldtrust &&
 		    (ACTIVE(oldheader, now) || !EXISTS(oldheader)))
 		{
