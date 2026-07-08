@@ -6087,9 +6087,8 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_linkedname_t *name,
 
 			if (nrdataset->type == dns_rdatatype_nsec &&
 			    NXND(dns_nsec_noexistnodata(
-				    type, dns_linkedname_name(name),
-				    dns_linkedname_name(nsec), nrdataset,
-				    &exists, &data, NULL, fctx_log, fctx)))
+				    type, name, nsec, nrdataset, &exists, &data,
+				    NULL, fctx_log, fctx)))
 			{
 				if (!exists) {
 					noqname = nsec;
@@ -6099,9 +6098,8 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_linkedname_t *name,
 
 			if (nrdataset->type == dns_rdatatype_nsec3 &&
 			    NXND(dns_nsec3_noexistnodata(
-				    type, dns_linkedname_name(name),
-				    dns_linkedname_name(nsec), nrdataset,
-				    zonename, &exists, &data, &optout, &unknown,
+				    type, name, nsec, nrdataset, zonename,
+				    &exists, &data, &optout, &unknown,
 				    &setnearest, closest, nearest, fctx_log,
 				    fctx)))
 			{

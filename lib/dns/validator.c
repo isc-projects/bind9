@@ -1151,11 +1151,10 @@ validator_callback_nsec(void *arg) {
 		    !FOUNDNODATA(val) && !FOUNDNOQNAME(val) &&
 		    dns_name_issubdomain(val->name,
 					 &subvalidator->siginfo->signer) &&
-		    dns_nsec_noexistnodata(
-			    val->type, dns_linkedname_name(val->name),
-			    dns_linkedname_name(subvalidator->name), rdataset,
-			    &exists, &data, wild, validator_log,
-			    val) == ISC_R_SUCCESS)
+		    dns_nsec_noexistnodata(val->type, val->name,
+					   subvalidator->name, rdataset,
+					   &exists, &data, wild, validator_log,
+					   val) == ISC_R_SUCCESS)
 		{
 			if (exists && !data) {
 				val->attributes |= VALATTR_FOUNDNODATA;
@@ -3048,15 +3047,14 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 		dns_linkedname_t **proofs = val->proofs;
 		switch (rdataset->type) {
 		case dns_rdatatype_nsec:
-			result = valid_nsec_signer(
-				val, dns_linkedname_name(name), zonename);
+			result = valid_nsec_signer(val, dns_name(name),
+						   zonename);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
 			result = dns_nsec_noexistnodata(
-				val->type, wild, dns_linkedname_name(name),
-				rdataset, &exists, &data, NULL, validator_log,
-				val);
+				val->type, wild, name, rdataset, &exists, &data,
+				NULL, validator_log, val);
 
 			if (result != ISC_R_SUCCESS) {
 				continue;
@@ -3064,9 +3062,9 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 			break;
 		case dns_rdatatype_nsec3:
 			result = dns_nsec3_noexistnodata(
-				val->type, wild, dns_linkedname_name(name),
-				rdataset, zonename, &exists, &data, NULL, NULL,
-				NULL, NULL, NULL, validator_log, val);
+				val->type, wild, name, rdataset, zonename,
+				&exists, &data, NULL, NULL, NULL, NULL, NULL,
+				validator_log, val);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
@@ -3129,8 +3127,7 @@ findnsec3proofs(dns_validator_t *val) {
 		}
 
 		result = dns_nsec3_noexistnodata(
-			val->type, dns_linkedname_name(val->name),
-			dns_linkedname_name(name), rdataset, zonename, NULL,
+			val->type, val->name, name, rdataset, zonename, NULL,
 			NULL, NULL, NULL, NULL, NULL, NULL, validator_log, val);
 		if (result != ISC_R_IGNORE && result != ISC_R_SUCCESS) {
 			CLEANUP(result);
@@ -3175,8 +3172,7 @@ findnsec3proofs(dns_validator_t *val) {
 		optout = false;
 		unknown = false;
 		result = dns_nsec3_noexistnodata(
-			val->type, dns_linkedname_name(val->name),
-			dns_linkedname_name(name), rdataset, zonename, &exists,
+			val->type, val->name, name, rdataset, zonename, &exists,
 			&data, &optout, &unknown, &setnearest, closestp,
 			nearest, validator_log, val);
 		if (unknown) {
