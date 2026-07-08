@@ -11,6 +11,8 @@ options {
 	max-query-count 2;
 };
 
+{% include "_common/controls.conf.j2" %}
+
 zone "tld1." {
 	type static-stub;
 	server-addresses { 10.53.0.1; };

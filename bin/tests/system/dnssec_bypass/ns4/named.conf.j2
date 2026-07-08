@@ -25,6 +25,8 @@ options {
 	synth-from-dnssec yes;
 };
 
+{% include "_common/controls.conf.j2" %}
+
 trust-anchors {
 	@root.domain@ @root.type@ @root.contents@;
 };
