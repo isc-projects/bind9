@@ -432,10 +432,10 @@ rollback:
 }
 
 isc_result_t
-dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
-			    const dns_name_t *owner_name,
-			    dns_additionaldatafunc_t add, void *arg,
-			    size_t limit) {
+dns__rdataset_additionaldata(dns_rdataset_t *rdataset,
+			     const dns_name_t *owner_name,
+			     dns_additionaldatafunc_t add, void *arg,
+			     size_t limit) {
 	/*
 	 * For each rdata in rdataset, call 'add' for each name and type in the
 	 * rdata which is subject to additional section processing.
@@ -515,7 +515,7 @@ dns_rdataset_clearprefetch(dns_rdataset_t *rdataset) {
 }
 
 void
-dns_rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
+dns__rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
