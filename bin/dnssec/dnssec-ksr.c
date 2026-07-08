@@ -29,6 +29,7 @@
 #include <dns/keymgr.h>
 #include <dns/keyvalues.h>
 #include <dns/lib.h>
+#include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -1241,7 +1242,7 @@ sign(ksr_ctx_t *ksr) {
 			isc_buffer_t *newbuf = NULL;
 			dns_rdata_t *rdata = NULL;
 			isc_region_t r;
-			uint8_t rdatabuf[DST_KEY_MAXSIZE];
+			uint8_t rdatabuf[DNS_RDATA_MAXLENGTH];
 
 			if (rdatalist == NULL) {
 				fatal("bad KSR file %s(%lu): DNSKEY record "

@@ -49,6 +49,7 @@
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
+#include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
@@ -2096,7 +2097,7 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 		       const dns_name_t *keyname, isc_buffer_t *databuf) {
 	isc_result_t result;
 	dns_name_t *name = UNCONST(keyname);
-	char rdatabuf[DST_KEY_MAXSIZE];
+	char rdatabuf[DNS_RDATA_MAXLENGTH];
 	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_rdata_t rdata;

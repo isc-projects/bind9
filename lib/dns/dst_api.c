@@ -1425,7 +1425,7 @@ dst_key_setinactive(dst_key_t *key, bool inactive) {
 isc_result_t
 dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 		    dst_key_t **keyp) {
-	uint8_t rdatabuf[DST_KEY_MAXSIZE];
+	uint8_t rdatabuf[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t b;
 	dns_fixedname_t name;
 	isc_lex_t *lex = NULL;
@@ -1445,7 +1445,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	 * <algorithm> <key>
 	 */
 
-	/* 1500 should be large enough for any key */
+	/* Initial token size; the lexer grows it on demand. */
 	isc_lex_create(mctx, 1500, &lex);
 
 	memset(specials, 0, sizeof(specials));
