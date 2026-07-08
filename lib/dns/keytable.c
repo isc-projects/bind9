@@ -424,7 +424,7 @@ dns_keytable_deletekey(dns_keytable_t *keytable, const dns_name_t *keyname,
 	isc_result_t result;
 	dns_keynode_t *knode = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[4096], digest[DNS_DS_BUFFERSIZE];
+	unsigned char data[DNS_RDATA_MAXLENGTH], digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	isc_buffer_t b;
 	dns_qp_t *qp = NULL;

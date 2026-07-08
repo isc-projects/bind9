@@ -13841,7 +13841,7 @@ cdnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata,
 
 	ISC_LIST_FOREACH(*keylist, k, link) {
 		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
-		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 
 		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
 						&cdnskeyrdata);
@@ -13879,7 +13879,7 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 	ISC_LIST_FOREACH(*keylist, k, link) {
 		dns_rdata_t dnskey = DNS_RDATA_INIT;
 		dns_rdata_t cdsrdata = DNS_RDATA_INIT;
-		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
 
 		if (dst_key_id(k->key) != cds.key_tag ||
@@ -17234,7 +17234,7 @@ checkds_done(void *arg) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			isc_result_t r;
 			unsigned char dsbuf[DNS_DS_BUFFERSIZE];
-			unsigned char keybuf[DST_KEY_MAXSIZE];
+			unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 
 			dns_rdataset_current(ds_rrset, &rdata);
 			r = dns_rdata_tostruct(&rdata, &ds, NULL);

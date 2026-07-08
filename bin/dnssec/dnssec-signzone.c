@@ -2942,7 +2942,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	isc_region_t r;
 	isc_result_t result;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
-	unsigned char keybuf[DST_KEY_MAXSIZE];
+	unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 	unsigned int filenamelen;
 	const dns_master_style_t *style = (type == dns_rdatatype_dnskey)
 						  ? masterstyle

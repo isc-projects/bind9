@@ -1594,7 +1594,8 @@ dns_view_istrusted(dns_view_t *view, const dns_name_t *keyname,
 	if (result == ISC_R_SUCCESS) {
 		if (dns_keynode_dsset(knode, &dsset)) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
-			unsigned char data[4096], digest[DNS_DS_BUFFERSIZE];
+			unsigned char data[DNS_RDATA_MAXLENGTH];
+			unsigned char digest[DNS_DS_BUFFERSIZE];
 			dns_rdata_dnskey_t tmpkey = *dnskey;
 			dns_rdata_ds_t ds;
 			isc_buffer_t b;
