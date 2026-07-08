@@ -14,8 +14,9 @@ options {
 	minimal-responses no;
 };
 
+{% include "_common/controls.conf.j2" %}
+
 zone "foo.bar.com" {
 	type primary;
 	file "foo.bar.com.db";
 };
-
