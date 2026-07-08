@@ -382,8 +382,10 @@ dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		   bool ignoretime, unsigned int maxbits,
 		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild)
 {
+	dns_rdata_nsec_t nsec;
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_buffer_t envbuf;
 	dns_rdata_t *rdatas;
@@ -487,6 +489,22 @@ dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return (DNS_R_SIGINVALID);
 		}
 		break;
+	}
+
+	/*
+	 * Check for out of zone NSEC entries.
+	 */
+	if (set->type == dns_rdatatype_nsec) {
+		if (dns_rdataset_first(set) != ISC_R_SUCCESS) {
+			return (DNS_R_NOVALIDNSEC);
+		}
+		dns_rdataset_current(set, &rdata);
+		if (dns_rdata_tostruct(&rdata, &nsec, NULL) != ISC_R_SUCCESS) {
+			return (DNS_R_NOVALIDNSEC);
+		}
+		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
+			return (DNS_R_NOVALIDNSEC);
+		}
 	}
 
 	/*
