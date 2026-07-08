@@ -2179,8 +2179,7 @@ rpms-copr:
 # Job updating the Docker image for a specific release
 
 update-docker-image:
-  <<: *base_image
-  <<: *manual_release_job
+  <<: *manual_release_job_qa
   environment:
     name: write-zulip
     action: access
@@ -2199,8 +2198,7 @@ update-docker-image:
     - git commit -m "Version bump to ${VERSION}" Dockerfile
     - git push
     - COMMIT_SHA="$(git log -n1 --format=%H)"
-    - *git_clone_bind9-qa
-    - echo "Docker image for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})" > message.txt
+    - echo "Docker image definition for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})" > message.txt
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9 --topic Packaging
   needs:
@@ -2210,8 +2208,36 @@ update-docker-image:
       artifacts: false
   rules:
     - *rule_tag_open_source
-  tags:
-    - smalljob
+
+monitor-update-docker-image:
+  <<: *base_image
+  stage: release
+  environment:
+    name: write-zulip
+    action: access
+  variables:
+    DOCKERHUB_REPO_URL: "https://hub.docker.com/v2/namespaces/internetsystemsconsortium/repositories/bind9"
+  before_script:
+    - *git_clone_bind9-qa
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - DOCKER_TAG="${VERSION%.*}"
+    - DOCKERHUB_TAG_URL="${DOCKERHUB_REPO_URL}/tags/${DOCKER_TAG}"
+    - TAG_CREATED_AT="$(curl -s -L https://gitlab.isc.org/api/v4/projects/1/repository/tags/"${CI_COMMIT_TAG}" | jq '.created_at[:19] + "Z" | fromdateiso8601')"
+    - while ! curl -s "${DOCKERHUB_TAG_URL}" | jq -e '(.last_updated[:19] + "Z" | fromdateiso8601) > '"${TAG_CREATED_AT}"; do sleep 300; done
+  after_script:
+    - |
+      if [ "${CI_JOB_STATUS}" != "success" ]; then
+        MSG="Docker build monitoring ${CI_JOB_STATUS}"
+        MSG="${MSG}, check [job ${CI_JOB_ID}](${CI_JOB_URL})"
+        echo "$MSG" > message.txt
+        "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-qa --topic "Docker build errors"
+      fi
+  needs:
+    - job: update-docker-image
+      artifacts: false
+  rules:
+    - *rule_tag_open_source
 
 # Job creating the release announcement MR in Printing Press
 
