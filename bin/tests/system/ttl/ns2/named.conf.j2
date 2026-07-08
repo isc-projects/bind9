@@ -23,7 +23,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." { type hint; file "hints.db"; };
