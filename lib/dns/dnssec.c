@@ -357,8 +357,10 @@ isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  bool ignoretime, unsigned int maxbits, isc_mem_t *mctx,
 		  dns_rdata_t *sigrdata, dns_name_t *wild) {
+	dns_rdata_nsec_t nsec;
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_buffer_t envbuf;
 	dns_rdata_t *rdatas;
@@ -463,6 +465,17 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return DNS_R_SIGINVALID;
 		}
 		break;
+	}
+	/*
+	 * Check for out of zone NSEC entries.
+	 */
+	if (set->type == dns_rdatatype_nsec) {
+		RETERR(dns_rdataset_first(set));
+		dns_rdataset_current(set, &rdata);
+		RETERR(dns_rdata_tostruct(&rdata, &nsec, NULL));
+		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
+			return DNS_R_NOVALIDNSEC;
+		}
 	}
 
 again:
