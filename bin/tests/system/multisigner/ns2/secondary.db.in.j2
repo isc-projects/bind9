@@ -13,6 +13,7 @@ secondary.		IN	SOA  mname1. . (
 ns2			A	10.53.0.2
 
 scanner			A	10.53.0.2
+bad-scanner		A	6.6.6.6
 
 model2			NS	ns3
 			NS	ns4
@@ -20,6 +21,6 @@ model2			NS	ns3
 ns3.model2		A	10.53.0.3
 ns4.model2		A	10.53.0.4
 
-model2._dsync		DSYNC	CSYNC NOTIFY @PORT@ scanner ; ignored, unknown rrtype
-model2._dsync		DSYNC	DSYNC NOTIFY @PORT@ scanner ; ignored, bad rrtype
 model2._dsync		DSYNC	CDS NOTIFY @PORT@ scanner
+model2._dsync		DSYNC	CSYNC NOTIFY @CONTROLPORT@ bad-scanner ; ignored, unknown rrtype
+model2._dsync		DSYNC	DSYNC NOTIFY @CONTROLPORT@ bad-scanner ; ignored, bad rrtype
