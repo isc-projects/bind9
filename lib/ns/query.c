@@ -1659,10 +1659,8 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 	 * First, look within the same zone database for authoritative
 	 * additional data.
 	 */
-	dbversion = ns_client_findversionid(client, client->query.authdb_id);
-	if (dbversion == NULL) {
-		return ISC_R_NOTFOUND;
-	}
+	RETERR(ns_client_findversionid(client, client->query.authdb_id,
+				       &dbversion));
 
 	dns_db_attach(dbversion->db, &db);
 	version = dbversion->version;

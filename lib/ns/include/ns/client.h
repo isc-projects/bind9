@@ -563,11 +563,21 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
  * allocated by ns_client_newdbversion().
  */
 
-ns_dbversion_t *
-ns_client_findversionid(ns_client_t *client, uintptr_t dbid);
+isc_result_t
+ns_client_findversionid(ns_client_t *client, uintptr_t dbid,
+			ns_dbversion_t **dbversionp);
 /*%<
  * Find the active database version matching database identity 'dbid',
  * without allocating a new database version if none is found.
+ *
+ * Requires:
+ *
+ *\li   'dbversionp' points to a NULL ns_dbversion_t *.
+ *
+ * Returns:
+ *
+ *\li   #ISC_R_SUCCESS          A matching database version was found.
+ *\li   #ISC_R_NOTFOUND         No matching database version was found.
  */
 
 ISC_REFCOUNT_DECL(ns_clientmgr);
