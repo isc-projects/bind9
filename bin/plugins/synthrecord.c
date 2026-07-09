@@ -122,9 +122,8 @@ static isc_result_t
 synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 		    dns_rdatatype_t rtype) {
 	isc_result_t result;
-	isc_mem_t *mctx = qctx->client->inner.view->mctx;
 	dns_message_t *msg = qctx->client->message;
-	dns_name_t aname = DNS_NAME_INITEMPTY;
+	dns_name_t *aname = NULL;
 	dns_rdataset_t *synthset = NULL;
 	dns_rdatalist_t *synthlist = NULL;
 	dns_rdata_t *synthdata = NULL;
@@ -136,8 +135,9 @@ synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 	 */
 	dns_message_gettemprdata(msg, &synthdata);
 	isc_buffer_init(&synthdatab, synthdatabdata, sizeof(synthdatabdata));
-	CHECK(dns_rdata_fromstruct(synthdata, dns_rdataclass_in, rtype, rdata,
-				   &synthdatab));
+	result = dns_rdata_fromstruct(synthdata, dns_rdataclass_in, rtype,
+				      rdata, &synthdatab);
+	INSIST(result == ISC_R_SUCCESS);
 
 	/*
 	 * Reference synthdata from the rdatalist
@@ -158,10 +158,11 @@ synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 	 * Then create the name in the ANSWER section and attach the
 	 * rdataset to it.
 	 */
-	dns_name_dup(qctx->client->query.qname, mctx, &aname);
-	dns_message_addname(msg, &aname, DNS_SECTION_ANSWER);
-	dns_rdataset_setownercase(synthset, &aname);
-	ISC_LIST_APPEND(aname.list, synthset, link);
+	dns_message_gettempname(msg, &aname);
+	dns_name_copy(qctx->client->query.qname, aname);
+	dns_message_addname(msg, aname, DNS_SECTION_ANSWER);
+	dns_rdataset_setownercase(synthset, aname);
+	ISC_LIST_APPEND(aname->list, synthset, link);
 
 	/*
 	 * Send the message with the ANSWER section containing the
@@ -170,21 +171,11 @@ synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 	result = ns_query_done(qctx);
 
 	/*
-	 * Message is gone now, let's free message response datastructures
+	 * Message is gone now, intermediate data borrowed from the message
+	 * (name, rdataset, etc.) are automatically released internally. (See
+	 * comment in `lib/dns/message.h` regarding `dns_message_gettemp*()` API
+	 * usage.)
 	 */
-	dns_message_removename(msg, &aname, DNS_SECTION_ANSWER);
-	ISC_LIST_UNLINK(aname.list, synthset, link);
-	dns_name_free(&aname, mctx);
-
-	dns_rdataset_disassociate(synthset);
-	dns_message_puttemprdataset(msg, &synthset);
-
-	ISC_LIST_UNLINK(synthlist->rdata, synthdata, link);
-	dns_message_puttemprdatalist(msg, &synthlist);
-
-cleanup:
-	dns_message_puttemprdata(msg, &synthdata);
-
 	return result;
 }
 
