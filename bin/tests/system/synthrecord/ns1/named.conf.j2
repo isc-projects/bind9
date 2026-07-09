@@ -1,9 +1,13 @@
 {% set inview = inview | default(False) %}
 {% set toolongprefix = toolongprefix | default(False) %}
+{% set nocookieudpsize = nocookieudpsize | default(False) %}
 
 options {
 	{% include_indented "_common/options-dual.conf.j2" %}
 	recursion no;
+{% if nocookieudpsize %}
+	nocookie-udp-size 128;
+{% endif %}
 };
 
 {% include "_common/controls.conf.j2" %}
