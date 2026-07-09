@@ -18167,6 +18167,9 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	dns_name_t *dsyncname = NULL;
 	char dsyncnamebuf[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t *rrset = NULL;
+	in_port_t port = 0;
+	dns_fixedname_t fixed;
+	dns_name_t *target = dns_fixedname_initname(&fixed);
 
 	REQUIRE(fetch != NULL);
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_DSYNC);
@@ -18227,6 +18230,12 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 			continue;
 		}
 
+		/* Save matched DSYNC record. */
+		if (count == 0) {
+			port = dsync.port;
+			dns_name_copy(&dsync.target, target);
+		}
+
 		count++;
 		if (count > 1) {
 			dns_zone_log(zone, ISC_LOG_WARNING,
@@ -18243,27 +18252,41 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	} else {
+		/* We didn't scan the complete RRset. */
+		goto done;
+	}
+
+	/*
+	 * Only one NOTIFY can be queued per type.
+	 * Currently the only supported scheme/type is NOTIFY CDS.
+	 * The port and target from the first matched DSYNC record are saved in
+	 * 'port' and 'target'.
+	 */
+	if (count != 1) {
+		/*
+		 * Either count equals zero, and there is nothing to be queued.
+		 * Or count > 1, then this is an invalid DSYNC RRset.
+		 */
 		goto done;
 	}
 
 	bool isqueued = dns_notify_isqueued(&zone->notifycds, dns_rdatatype_cds,
-					    dsync.port, 0, &dsync.target, NULL,
-					    NULL, NULL);
+					    port, 0, target, NULL, NULL, NULL);
 
 	UNLOCK_ZONE(zone);
 
 	if (!isqueued) {
-		dns_notify_create(zone->mctx, dns_rdatatype_cds, dsync.port,
+		dns_notify_create(zone->mctx, dns_rdatatype_cds, port,
 				  DNS_NOTIFY_NOSOA, &notify);
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			char tbuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(&dsync.target, tbuf, sizeof(tbuf));
+			dns_name_format(target, tbuf, sizeof(tbuf));
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
 				     "dsyncfetch: send NOTIFY(CDS) query to %s",
 				     tbuf);
 		}
 		dns_zone_iattach(zone, &notify->zone);
-		dns_name_dup(&dsync.target, zone->mctx, &notify->ns);
+		dns_name_dup(target, zone->mctx, &notify->ns);
 		LOCK_ZONE(zone);
 		ISC_LIST_APPEND(zone->notifycds.notifies, notify, link);
 		UNLOCK_ZONE(zone);
