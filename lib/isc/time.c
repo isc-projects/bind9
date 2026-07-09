@@ -148,19 +148,19 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 		return ISC_R_UNEXPECTED;
 	}
 
-	/*
-	 * Ensure the resulting seconds value fits in the size of an
-	 * unsigned int.
-	 */
-	if ((unsigned int)ts.tv_sec > UINT_MAX - i->seconds) {
+	/* Seconds */
+	if (ckd_add(&t->seconds, ts.tv_sec, i->seconds)) {
 		return ISC_R_RANGE;
 	}
 
-	t->seconds = ts.tv_sec + i->seconds;
+	/* Nanoseconds */
 	t->nanoseconds = ts.tv_nsec + i->nanoseconds;
 	if (t->nanoseconds >= NS_PER_SEC) {
-		t->seconds++;
+		if (t->seconds == UINT_MAX) {
+			return ISC_R_RANGE;
+		}
 		t->nanoseconds -= NS_PER_SEC;
+		t->seconds++;
 	}
 
 	return ISC_R_SUCCESS;
