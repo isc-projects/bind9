@@ -87,6 +87,7 @@
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/private.h>
+#include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -618,9 +619,9 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	uint32_t rdata1, rdata2, rdata3;
 	const char *datastr = NULL, *namestr = NULL;
-	unsigned char data[4096];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t databuf;
-	unsigned char rrdata[4096];
+	unsigned char rrdata[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t rrdatabuf;
 	isc_region_t r;
 	dns_fixedname_t fname;

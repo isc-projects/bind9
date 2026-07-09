@@ -438,10 +438,10 @@ main(int argc, char **argv) {
 			emit(dir, &rdata);
 		}
 	} else {
-		unsigned char key_buf[DST_KEY_MAXSIZE];
+		unsigned char key_buf[DNS_RDATA_MAXLENGTH];
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
-		loadkey(argv[isc_commandline_index], key_buf, DST_KEY_MAXSIZE,
+		loadkey(argv[isc_commandline_index], key_buf, sizeof(key_buf),
 			&rdata);
 
 		emit(dir, &rdata);

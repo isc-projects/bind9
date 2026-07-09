@@ -102,7 +102,8 @@ dns_dnssec_make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
  *	Requires:
  *\li		'key' is not NULL
  *\li		'buf' is not NULL
- *\li		'bufsize' equals DST_KEY_MAXSIZE
+ *\li		'bufsize' is large enough to hold the DNSKEY rdata;
+ *		DNS_RDATA_MAXLENGTH is always sufficient
  *\li		'target' is not NULL
  *
  *	Returns:

@@ -3429,7 +3429,7 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 	    dns_keytag_t *tag) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[4096];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t buffer;
 	dst_key_t *dstkey = NULL;
 
@@ -3471,7 +3471,8 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname, dns_rdata_dnskey_t *dnskey,
 	  bool initial) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char data[4096], digest[DNS_DS_BUFFERSIZE];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
+	unsigned char digest[DNS_DS_BUFFERSIZE];
 	isc_buffer_t buffer;
 	dns_keytable_t *sr = NULL;
 	dns_rdata_ds_t ds;
@@ -5728,7 +5729,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	dns_stats_t *dnssecsignstats;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
-	unsigned char data[1024]; /* XXX */
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t buffer;
 	unsigned int i;
 	bool use_kasp = false;
@@ -6420,7 +6421,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	dns_stats_t *dnssecsignstats;
 	bool offlineksk = false;
 	isc_buffer_t buffer;
-	unsigned char data[1024];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	seen_t seen;
 
 	if (zone->kasp != NULL) {
@@ -13841,7 +13842,7 @@ cdnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata,
 
 	ISC_LIST_FOREACH(*keylist, k, link) {
 		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
-		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 
 		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
 						&cdnskeyrdata);
@@ -13879,7 +13880,7 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 	ISC_LIST_FOREACH(*keylist, k, link) {
 		dns_rdata_t dnskey = DNS_RDATA_INIT;
 		dns_rdata_t cdsrdata = DNS_RDATA_INIT;
-		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
 
 		if (dst_key_id(k->key) != cds.key_tag ||
@@ -17234,7 +17235,7 @@ checkds_done(void *arg) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			isc_result_t r;
 			unsigned char dsbuf[DNS_DS_BUFFERSIZE];
-			unsigned char keybuf[DST_KEY_MAXSIZE];
+			unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 
 			dns_rdataset_current(ds_rrset, &rdata);
 			r = dns_rdata_tostruct(&rdata, &ds, NULL);

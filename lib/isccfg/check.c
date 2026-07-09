@@ -51,6 +51,7 @@
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 #include <dns/peer.h>
+#include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rpz.h>
@@ -4912,7 +4913,7 @@ check_trust_anchor(const cfg_obj_t *key, unsigned int *flagsp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	uint32_t rdata1, rdata2, rdata3;
-	unsigned char data[4096];
+	unsigned char data[DNS_RDATA_MAXLENGTH];
 	const char *atstr = NULL;
 	enum {
 		INIT_DNSKEY,

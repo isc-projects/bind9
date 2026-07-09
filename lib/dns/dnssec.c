@@ -1725,7 +1725,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	    dns_ttl_t ttl, isc_mem_t *mctx,
 	    void (*report)(const char *, ...) ISC_FORMAT_PRINTF(1, 2)) {
 	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char buf[DST_KEY_MAXSIZE];
+	unsigned char buf[DNS_RDATA_MAXLENGTH];
 	char keystr[DST_KEY_FORMATSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 
@@ -1760,7 +1760,7 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	   dns_ttl_t ttl, isc_mem_t *mctx, const char *reason,
 	   void (*report)(const char *, ...) ISC_FORMAT_PRINTF(1, 2)) {
 	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char buf[DST_KEY_MAXSIZE];
+	unsigned char buf[DNS_RDATA_MAXLENGTH];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 	char alg[80];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -1875,7 +1875,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
 		      bool gencdnskey, dns_ttl_t ttl, dns_diff_t *diff,
 		      isc_mem_t *mctx) {
-	unsigned char keybuf[DST_KEY_MAXSIZE];
+	unsigned char keybuf[DNS_RDATA_MAXLENGTH];
 	isc_result_t result = DNS_R_UNCHANGED;
 	dns_ttl_t cdsttl = ttl;
 	dns_ttl_t cdnskeyttl = ttl;

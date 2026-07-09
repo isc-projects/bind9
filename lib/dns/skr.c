@@ -299,7 +299,7 @@ dns_skr_read(isc_mem_t *mctx, const char *filename, dns_name_t *origin,
 		} else {
 			isc_buffer_t buf;
 			dns_rdata_t *rdata = NULL;
-			uint8_t rdatabuf[DST_KEY_MAXSIZE];
+			uint8_t rdatabuf[DNS_RDATA_MAXLENGTH];
 			dns_rdatatype_t rdtype;
 
 			/* Parse record */

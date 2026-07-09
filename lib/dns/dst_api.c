@@ -1155,7 +1155,7 @@ comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 static bool
 pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	isc_result_t result;
-	unsigned char buf1[DST_KEY_MAXSIZE], buf2[DST_KEY_MAXSIZE];
+	unsigned char buf1[DNS_RDATA_MAXLENGTH], buf2[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t b1, b2;
 	isc_region_t r1, r2;
 
@@ -1425,7 +1425,7 @@ dst_key_setinactive(dst_key_t *key, bool inactive) {
 isc_result_t
 dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 		    dst_key_t **keyp) {
-	uint8_t rdatabuf[DST_KEY_MAXSIZE];
+	uint8_t rdatabuf[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t b;
 	dns_fixedname_t name;
 	isc_lex_t *lex = NULL;
@@ -1445,7 +1445,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	 * <algorithm> <key>
 	 */
 
-	/* 1500 should be large enough for any key */
+	/* Initial token size; the lexer grows it on demand. */
 	isc_lex_create(mctx, 1500, &lex);
 
 	memset(specials, 0, sizeof(specials));
@@ -1926,8 +1926,12 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	isc_region_t r;
 	char tmpname[NAME_MAX];
 	char filename[NAME_MAX];
-	unsigned char key_array[DST_KEY_MAXSIZE];
-	char text_array[DST_KEY_MAXTEXTSIZE];
+	unsigned char key_array[DNS_RDATA_MAXLENGTH];
+	/*
+	 * Big enough for the base64 expansion of the key data with
+	 * whitespace separators, plus the other rdata fields.
+	 */
+	char text_array[DNS_RDATA_MAXLENGTH * 2];
 	char class_array[10];
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2069,7 +2073,7 @@ buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 static isc_result_t
 computeid(dst_key_t *key) {
 	isc_buffer_t dnsbuf;
-	unsigned char dns_array[DST_KEY_MAXSIZE];
+	unsigned char dns_array[DNS_RDATA_MAXLENGTH];
 	isc_region_t r;
 
 	isc_buffer_init(&dnsbuf, dns_array, sizeof(dns_array));

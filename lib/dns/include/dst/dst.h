@@ -121,15 +121,6 @@ typedef enum dst_algorithm {
 	DST_MAX_ALGS = 258,
 } dst_algorithm_t;
 
-/*% A buffer of this size is large enough to hold any key */
-#define DST_KEY_MAXSIZE 1280
-
-/*%
- * A buffer of this size is large enough to hold the textual representation
- * of any key
- */
-#define DST_KEY_MAXTEXTSIZE 2048
-
 /*% 'Type' for dst_read_key() */
 #define DST_TYPE_KEY	  0x1000000 /* KEY key */
 #define DST_TYPE_PRIVATE  0x2000000
