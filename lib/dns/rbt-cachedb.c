@@ -728,7 +728,9 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 		}
 		header_prev = header;
 	}
-	if (found != NULL) {
+	if (found != NULL && found->trust == dns_trust_secure &&
+	    (foundsig == NULL || foundsig->trust == dns_trust_secure))
+	{
 		dns__rbtdb_bindrdataset(search->rbtdb, node, found, now,
 					nlocktype, rdataset DNS__DB_FLARG_PASS);
 		if (foundsig != NULL) {
