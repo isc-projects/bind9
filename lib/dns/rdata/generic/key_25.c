@@ -133,7 +133,7 @@ generic_totext_key(ARGS_TOTEXT) {
 		const unsigned char *in = sr.base + 1;
 		ASN1_OBJECT *obj = d2i_ASN1_OBJECT(NULL, &in, *sr.base);
 		INSIST(obj != NULL);
-		int n = i2t_ASN1_OBJECT(algbuf, sizeof(buf), obj);
+		int n = i2t_ASN1_OBJECT(algbuf, sizeof(algbuf), obj);
 		ASN1_OBJECT_free(obj);
 		if (n == -1 || (size_t)n >= sizeof(algbuf)) {
 			dns_secalg_format((dns_secalg_t)algorithm, algbuf,
