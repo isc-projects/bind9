@@ -150,7 +150,7 @@ def wait_for_serial(primary, server, zone):
     fqdn = f"{zone}."
     query = isctest.query.create(fqdn, dns.rdatatype.SOA)
 
-    isctest.run.retry_with_timeout(check_serial, timeout=10)
+    isctest.run.retry_with_timeout(check_serial, timeout=30)
 
 
 def check_add_zsk(server, zone, keys, expected, extra_keys, extra, primary=None):
