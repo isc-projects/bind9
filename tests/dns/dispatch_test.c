@@ -74,6 +74,7 @@ static dns_transport_t *tls_transport = NULL;
 static dns_transport_list_t *transport_list = NULL;
 
 static isc_nmsocket_t *sock = NULL;
+static isc_nm_udplistener_t *udp_listener = NULL;
 
 const struct in6_addr in6addr_blackhole = { { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 						0, 0, 0, 0, 1 } } };
@@ -622,6 +623,15 @@ stop_listening(void *arg) {
 	assert_null(sock);
 }
 
+static void
+stop_udp_listening(void *arg) {
+	UNUSED(arg);
+
+	isc_nm_udplistener_stop(udp_listener);
+	isc_nm_udplistener_detach(&udp_listener);
+	assert_null(udp_listener);
+}
+
 ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	isc_result_t result;
 	test_dispatch_t *test = isc_mem_get(isc_g_mctx, sizeof(*test));
@@ -739,11 +749,11 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_udp_response) {
 
 	/* Server */
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ONE, &udp_server_addr,
-				  noop_nameserver, NULL, &sock);
+				  noop_nameserver, NULL, &udp_listener);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* ensure we stop listening after the test is done */
-	isc_loop_teardown(isc_loop_main(), stop_listening, sock);
+	isc_loop_teardown(isc_loop_main(), stop_udp_listening, udp_listener);
 
 	/* Client */
 	result = dns_dispatchmgr_create(isc_g_mctx, &test->dispatchmgr);
@@ -771,10 +781,10 @@ ISC_LOOP_TEST_IMPL(dispatch_getnext) {
 
 	/* Server */
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ONE, &udp_server_addr,
-				  nameserver, NULL, &sock);
+				  nameserver, NULL, &udp_listener);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_loop_teardown(isc_loop_main(), stop_listening, sock);
+	isc_loop_teardown(isc_loop_main(), stop_udp_listening, udp_listener);
 
 	/* Client */
 	testdata.region.base = testdata.message;
@@ -812,10 +822,10 @@ ISC_LOOP_TEST_IMPL(dispatch_mismatch_tcp) {
 
 	/* Server: replies with a single wrong-id response. */
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ONE, &udp_server_addr,
-				  nameserver_mismatch, NULL, &sock);
+				  nameserver_mismatch, NULL, &udp_listener);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_loop_teardown(isc_loop_main(), stop_listening, sock);
+	isc_loop_teardown(isc_loop_main(), stop_udp_listening, udp_listener);
 
 	/* Client */
 	testdata.region.base = testdata.message;

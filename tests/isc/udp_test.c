@@ -81,9 +81,9 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_open) {
 	WILL_RETURN(uv_udp_open, UV_ENOMEM);
 
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
-				  mock_recv_cb, NULL, &listen_sock);
+				  mock_recv_cb, NULL, &udp_listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
-	assert_null(listen_sock);
+	assert_null(udp_listen_sock);
 
 	RESET_RETURN;
 
@@ -96,9 +96,9 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_bind) {
 	WILL_RETURN(uv_udp_bind, UV_EADDRINUSE);
 
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
-				  mock_recv_cb, NULL, &listen_sock);
+				  mock_recv_cb, NULL, &udp_listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
-	assert_null(listen_sock);
+	assert_null(udp_listen_sock);
 
 	RESET_RETURN;
 
@@ -111,9 +111,9 @@ ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_recv_start) {
 	WILL_RETURN(uv_udp_recv_start, UV_EADDRINUSE);
 
 	result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &udp_listen_addr,
-				  mock_recv_cb, NULL, &listen_sock);
+				  mock_recv_cb, NULL, &udp_listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
-	assert_null(listen_sock);
+	assert_null(udp_listen_sock);
 
 	RESET_RETURN;
 
@@ -175,6 +175,44 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_send_buffer_size) {
 	RESET_RETURN;
 }
 
+ISC_LOOP_TEST_IMPL(udp_listener_child_ref) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *child = NULL;
+	isc_nmsocket_t *hold = NULL;
+	uint_fast32_t listener_refs;
+	uint_fast32_t child_refs;
+
+	result = isc_nm_listenudp(ISC_NM_LISTEN_ONE, &udp_listen_addr,
+				  mock_recv_cb, NULL, &udp_listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(udp_listen_sock);
+	assert_int_equal(udp_listen_sock->nchildren, 1);
+
+	child = udp_listen_sock->children[0];
+	assert_non_null(child);
+	assert_int_equal(child->type, isc_nm_udpsocket);
+	assert_null(child->parent);
+
+	listener_refs = isc_refcount_current(&udp_listen_sock->references);
+	child_refs = isc_refcount_current(&child->references);
+
+	isc__nmsocket_attach(child, &hold);
+	assert_ptr_equal(hold, child);
+	assert_int_equal(isc_refcount_current(&child->references),
+			 child_refs + 1);
+	assert_int_equal(isc_refcount_current(&udp_listen_sock->references),
+			 listener_refs);
+
+	isc__nmsocket_detach(&hold);
+	assert_null(hold);
+
+	isc_nm_udplistener_stop(udp_listen_sock);
+	isc_nm_udplistener_detach(&udp_listen_sock);
+	assert_null(udp_listen_sock);
+
+	isc_loopmgr_shutdown();
+}
+
 ISC_LOOP_TEST_IMPL(udp_noop) { udp_noop(arg); }
 
 ISC_LOOP_TEST_IMPL(udp_noresponse) { udp_noresponse(arg); }
@@ -213,6 +251,7 @@ ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_recv_buffer_size, setup_udp_test,
 		      teardown_udp_test)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_send_buffer_size, setup_udp_test,
 		      teardown_udp_test)
+ISC_TEST_ENTRY_CUSTOM(udp_listener_child_ref, setup_udp_test, teardown_udp_test)
 
 ISC_TEST_ENTRY_CUSTOM(udp_noop, udp_noop_setup, udp_noop_teardown)
 ISC_TEST_ENTRY_CUSTOM(udp_noresponse, udp_noresponse_setup,

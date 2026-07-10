@@ -130,9 +130,8 @@ void
 isc_nmsocket_close(isc_nmsocket_t **sockp);
 /*%<
  * isc_nmsocket_close() detaches a listening socket that was
- * created by isc_nm_listenudp(), isc_nm_listentcp(), or
- * isc_nm_listentcpdns(). Once there are no remaining child
- * sockets with active handles, the socket will be closed.
+ * created by isc_nm_listentcp() or isc_nm_listentcpdns(). Once there are no
+ * remaining child sockets with active handles, the socket will be closed.
  */
 
 void
@@ -272,15 +271,27 @@ isc_nmhandle_real_localaddr(isc_nmhandle_t *handle);
 
 isc_result_t
 isc_nm_listenudp(uint32_t workers, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
-		 void *cbarg, isc_nmsocket_t **sockp);
+		 void *cbarg, isc_nm_udplistener_t **listenerp);
 /*%<
  * Start listening for UDP packets on interface 'iface' using net manager
  * 'mgr'.
  *
- * On success, 'sockp' will be updated to contain a new listening UDP socket.
+ * On success, 'listenerp' will be updated to contain a new UDP listener.
  *
  * When a packet is received on the socket, 'cb' will be called with 'cbarg'
  * as its argument.
+ */
+
+void
+isc_nm_udplistener_stop(isc_nm_udplistener_t *listener);
+/*%<
+ * Stop a UDP listener and close its per-worker sockets. This must be called
+ * before detaching the final listener reference.
+ */
+
+ISC_REFCOUNT_DECL(isc_nm_udplistener);
+/*%<
+ * Increment or decrement a UDP listener reference.
  */
 
 void

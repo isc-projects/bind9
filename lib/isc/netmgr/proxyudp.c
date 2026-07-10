@@ -351,12 +351,13 @@ isc_nm_listenproxyudp(uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	result = isc_nm_listenudp(workers, iface, proxyudp_read_cb, listener,
-				  &listener->outer);
+				  &listener->proxy.udp_listener);
 
 	if (result == ISC_R_SUCCESS) {
 		listener->active = true;
 		listener->result = result;
-		listener->nchildren = listener->outer->nchildren;
+		listener->nchildren = isc__nm_udplistener_nchildren(
+			listener->proxy.udp_listener);
 		*sockp = listener;
 	} else {
 		for (size_t i = 0; i < listener->proxy.udp_server_socks_num;
@@ -530,10 +531,15 @@ isc__nm_proxyudp_stoplistening(isc_nmsocket_t *listener) {
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->type == isc_nm_proxyudplistener);
 	REQUIRE(listener->proxy.sock == NULL);
+	REQUIRE(!listener->closing);
 
-	isc__nmsocket_stop(listener);
-
+	listener->closing = true;
 	listener->active = false;
+	isc_nm_udplistener_stop(listener->proxy.udp_listener);
+	isc_nm_udplistener_detach(&listener->proxy.udp_listener);
+	listener->recv_cb = NULL;
+	listener->recv_cbarg = NULL;
+	listener->closed = true;
 
 	for (size_t i = 1; i < listener->proxy.udp_server_socks_num; i++) {
 		stop_proxyudp_child(listener->proxy.udp_server_socks[i]);
@@ -561,6 +567,7 @@ isc__nm_proxyudp_cleanup_data(isc_nmsocket_t *sock) {
 		proxyudp_clear_proxy_header_data(sock);
 		break;
 	case isc_nm_proxyudplistener:
+		INSIST(sock->proxy.udp_listener == NULL);
 		isc_mem_cput(sock->worker->mctx, sock->proxy.udp_server_socks,
 			     sock->proxy.udp_server_socks_num,
 			     sizeof(isc_nmsocket_t *));
