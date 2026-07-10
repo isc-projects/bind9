@@ -29,6 +29,8 @@ project(
     },
 )
 
+add_test_setup('default', is_default: true, exclude_suites: ['lint'])
+
 fs = import('fs')
 ss = import('sourceset')
 
@@ -115,6 +117,17 @@ pytest = find_program(
     ['pytest-3', 'py.test-3', 'pytest', 'py.test', 'pytest-pypy'],
     required: false,
 )
+
+## Lint
+bash = find_program('bash', required: false)
+comm = find_program('comm', required: false)
+find = find_program('find', required: false)
+grep = find_program('grep', required: false)
+mktemp = find_program('mktemp', required: false)
+sed = find_program('sed', required: false)
+sort = find_program('sort', required: false)
+tr = find_program('tr', required: false)
+xargs = find_program('xargs', required: false)
 
 ## Documentation
 sphinx_build = find_program('sphinx-build', required: doc_opt)
@@ -2148,6 +2161,88 @@ if doc_opt.allowed()
             ],
         )
     endif
+endif
+
+###
+### Project Lints
+###
+
+# meson_version (>=1.11.2) : depends arg in test can take programs
+if git.found()
+    test(
+        'gitignore',
+        sh,
+        suite: 'lint',
+        args: ['util/check-gitignore.sh'],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
+
+    test(
+        'trailing-whitespace',
+        sh,
+        suite: 'lint',
+        args: ['util/check-trailing-whitespace.sh'],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
+
+    if grep.found() and xargs.found()
+        test(
+            'checklibs',
+            sh,
+            suite: 'lint',
+            args: ['util/checklibs.sh'],
+            verbose: true,
+            workdir: meson.project_source_root(),
+        )
+    endif
+
+    if bash.found() and grep.found() and sed.found()
+        test(
+            'unused-headers',
+            bash,
+            suite: 'lint',
+            args: ['util/unused-headers.sh'],
+            verbose: true,
+            workdir: meson.project_source_root(),
+        )
+    endif
+endif
+
+if grep.found() and sed.found() and sort.found() and tr.found()
+    test(
+        'categories',
+        sh,
+        suite: 'lint',
+        args: ['util/check-categories.sh'],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
+endif
+
+if bash.found() and comm.found() and grep.found() and mktemp.found() and sed.found() and sort.found()
+    test(
+        'rdata-registration',
+        bash,
+        suite: 'lint',
+        args: ['util/check-rdata-registration.sh', meson.project_build_root()],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
+endif
+
+if find.found() and grep.found()
+    test(
+        'dangling-symlink',
+        sh,
+        suite: 'lint',
+        args: [
+            '-c', 'if find . -type l ! -exec test -e {} \\; -print | grep .; then exit 1; fi',
+        ],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
 endif
 
 ###
