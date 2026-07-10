@@ -152,6 +152,11 @@ with_cpu_affinity = pytest.mark.skipif(
     reason="cpuset, numactl, or taskset is required",
 )
 
+with_openssl_cipher_suites = pytest.mark.skipif(
+    os.getenv("FEATURE_OPENSSL_CIPHER_SUITES") != "1",
+    reason="SSL_CTX_set_ciphersuites() is required",
+)
+
 dnsrps_enabled = pytest.mark.skipif(
     not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
