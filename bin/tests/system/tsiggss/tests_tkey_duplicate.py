@@ -27,8 +27,9 @@ import subprocess
 import pytest
 
 import isctest
+import isctest.mark
 
-pytestmark = pytest.mark.extra_artifacts(
+EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "nsupdate.out*",
         "ns1/K*",
@@ -37,6 +38,12 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns1/example.nil.db.jnl",
     ]
 )
+
+pytestmark = [
+    isctest.mark.with_gssapi,
+    isctest.mark.with_fips_dh,
+    EXTRA_ARTIFACTS,
+]
 
 TKEY_NAME = "duptest.sig-example.nil."
 

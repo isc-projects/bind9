@@ -546,14 +546,6 @@ def system_test(
             isctest.log.error("testsock.pl: exited with code %d", exc.returncode)
             pytest.skip("Network interface aliases not set up.")
 
-    def check_prerequisites():
-        try:
-            isctest.run.shell(f"{system_test_dir}/prereq.sh")
-        except FileNotFoundError:
-            pass  # prereq.sh is optional
-        except subprocess.CalledProcessError:
-            pytest.skip("Prerequisites missing.")
-
     def setup_test():
         template_data = None
         bootstrap_fn = getattr(request.module, "bootstrap", None)
@@ -613,7 +605,6 @@ def system_test(
 
     # Perform checks which may skip this test.
     check_net_interfaces()
-    check_prerequisites()
 
     # Store the fact that this fixture hasn't successfully finished yet.
     # This is checked before temporary directory teardown to decide whether

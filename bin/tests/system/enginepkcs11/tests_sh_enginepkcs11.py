@@ -11,7 +11,9 @@
 
 import pytest
 
-pytestmark = pytest.mark.extra_artifacts(
+import isctest.mark
+
+EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "dsset-*",
@@ -47,6 +49,12 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns2/*.view*.db.signed",
     ]
 )
+
+pytestmark = [
+    isctest.mark.with_pkcs11_provider,
+    isctest.mark.softhsm2_environment,
+    EXTRA_ARTIFACTS,
+]
 
 
 @pytest.mark.flaky(max_runs=5)  # GL#4605
