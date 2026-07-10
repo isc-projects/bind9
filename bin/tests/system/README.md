@@ -229,9 +229,6 @@ ported to python; do not add them to new tests:
 - `setup.sh`: Legacy shell test setup.  New tests use templates and a
   `bootstrap()` function instead.
 
-- `prereq.sh`: Legacy prerequisite check; when it exits non-zero, the test is
-  skipped.  New tests use pytest marks (see `isctest/mark.py`).
-
 ### Module Scope
 
 A module is a python file which contains test functions. Every system
