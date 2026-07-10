@@ -2658,7 +2658,7 @@ query_stale_refresh(ns_client_t *client, dns_name_t *qname,
 }
 
 static void
-query_stale_refresh_ncache(ns_client_t *client) {
+query_stale_refresh_ncache(ns_client_t *client, dns_rdataset_t *rdataset) {
 	dns_name_t *qname;
 
 	if (client->query.origqname != NULL) {
@@ -2666,7 +2666,7 @@ query_stale_refresh_ncache(ns_client_t *client) {
 	} else {
 		qname = client->query.qname;
 	}
-	query_stale_refresh(client, qname, NULL);
+	query_stale_refresh(client, qname, rdataset);
 }
 
 static void
@@ -10243,7 +10243,7 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	if (!qctx->is_zone && RECURSIONOK(qctx->client)) {
-		query_stale_refresh_ncache(qctx->client);
+		query_stale_refresh_ncache(qctx->client, qctx->rdataset);
 	}
 
 	return query_nodata(qctx, result);
