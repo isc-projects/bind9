@@ -2101,7 +2101,9 @@ qpcache_createiterator(dns_db_t *db, unsigned int options ISC_ATTR_UNUSED,
 static bool
 iterator_active(qpcache_t *qpdb, qpc_rditer_t *iterator,
 		dns_slabheader_t *header) {
-	dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
+	if (!EXISTS(header)) {
+		return false;
+	}
 
 	/*
 	 * If this header is still active then return it.
@@ -2109,6 +2111,8 @@ iterator_active(qpcache_t *qpdb, qpc_rditer_t *iterator,
 	if (ACTIVE(header, iterator->common.now)) {
 		return true;
 	}
+
+	dns_ttl_t stale_ttl = header->expire + STALE_TTL(header, qpdb);
 
 	/*
 	 * If we are not returning stale records or the rdataset is
@@ -2150,6 +2154,9 @@ qpcache_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	NODE_RDLOCK(nlock, &nlocktype);
 
 	DNS_SLABHEADER_FOREACH(header, &qpnode->headers) {
+		if (!EXISTS(header)) {
+			continue;
+		}
 		if (EXPIREDOK(iterator) ||
 		    iterator_active(qpdb, iterator, header))
 		{
