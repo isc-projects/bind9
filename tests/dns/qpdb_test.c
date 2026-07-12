@@ -269,6 +269,50 @@ ISC_LOOP_TEST_IMPL(servestale_fresh_cname_over_stale_type) {
 	isc_loopmgr_shutdown();
 }
 
+ISC_LOOP_TEST_IMPL(allrdatasets_expiredok_skips_deleted_header) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdatasetiter_t *iterator = NULL;
+	isc_mem_t *mctx = NULL;
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_fixedname_t fname;
+	dns_name_t *name = NULL;
+
+	isc_mem_create("test", &mctx);
+
+	result = dns_db_create(mctx, CACHEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
+			       &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_test_namefromstring("deleted.example.com.", &fname);
+	name = dns_fixedname_name(&fname);
+
+	servestale_addrdataset(db, name, now, dns_rdatatype_a, "10.53.0.1",
+			       3600, dns_trust_answer);
+
+	result = dns_db_findnode(db, name, false, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(node);
+
+	result = dns_db_deleterdataset(db, node, NULL, dns_rdatatype_a, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_allrdatasets(db, node, NULL, DNS_DB_EXPIREDOK, now,
+				     &iterator);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_rdatasetiter_first(iterator);
+	assert_int_equal(result, ISC_R_NOMORE);
+
+	dns_rdatasetiter_destroy(&iterator);
+	dns_db_detachnode(&node);
+	dns_db_detach(&db);
+	isc_mem_detach(&mctx);
+	isc_loopmgr_shutdown();
+}
+
 ISC_LOOP_TEST_IMPL(overmempurge_bigrdata) {
 	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
 	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
@@ -375,6 +419,8 @@ ISC_LOOP_TEST_IMPL(overmempurge_longname) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(overmempurge_bigrdata, setup_managers, teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(overmempurge_longname, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(allrdatasets_expiredok_skips_deleted_header,
+		      setup_managers, teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(servestale_fresh_over_stale_cname, setup_managers,
 		      teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(servestale_fresh_cname_over_stale_type, setup_managers,
