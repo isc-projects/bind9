@@ -15,6 +15,23 @@ Notes for BIND 9.20.25
 Security Fixes
 ~~~~~~~~~~~~~~
 
+- Correct verification of NSEC3 signer name. :cve:`2026-10723`
+
+  Previously, :iscman:`named` accepted child-zone NSEC3 records where
+  the first label equaled the hash of the parent zone as valid
+  parent-zone closest encloser proofs. This has been fixed.
+
+  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
+  this vulnerability to our attention. :gl:`#5874`
+
+- Malformed DNSKEY records could trigger an assertion. :cve:`2026-10822`
+
+  Previously, ``dns_name_fromwire()`` did not honor the record boundary
+  when reading names from the wire, allowing malformed records to be
+  accepted when they should not have been. In particular, malformed
+  DNSKEY records could trigger an assertion failure when being printed.
+  This has been fixed. :gl:`#6004`
+
 - Fix handling of RPZ CNAME expansion that returns too-long name.
   :cve:`2026-11331`
 
@@ -27,69 +44,6 @@ Security Fixes
 
   ISC would like to thank Laith Mash'al (0xmshal) for bringing this
   vulnerability to our attention. :gl:`#5856`
-
-- Stop accepting invalid signed wildcard records. :cve:`2026-11721`
-
-  Signed wildcard responses in which the Labels field in the RRSIG
-  record was less than the number of labels in the Signer Name field
-  were being incorrectly accepted. This in turn broke
-  :namedconf:ref:`synth-from-dnssec`, which depends on such records
-  being correctly validated. This has been fixed.
-
-  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
-  this vulnerability to our attention. :gl:`#5871`
-
-- Fix DNSSEC validation bypass via out-of-zone NSEC Next Field.
-  :cve:`2026-13321`
-
-  Previously, a malicious zone with out-of-zone NSEC next-owner names
-  could cause a DNSSEC-validating resolver to cache such a record and,
-  if :namedconf:ref:`synth-from-dnssec` was enabled, to generate
-  negative answers for any zone that was covered by the range. This has
-  been fixed.
-
-  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
-  this vulnerability to our attention. :gl:`#5873`
-
-- Correct verification of NSEC3 signer name. :cve:`2026-10723`
-
-  Previously, :iscman:`named` accepted child-zone NSEC3 records where
-  the first label equaled the hash of the parent zone as valid
-  parent-zone closest encloser proofs. This has been fixed.
-
-  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
-  this vulnerability to our attention. :gl:`#5874`
-
-- Do not assert for some specific CNAME and DNAME queries.
-  :cve:`2026-12617`
-
-  A bug in the resolver's handling of certain cached DNAME and CNAME
-  responses could cause :iscman:`named` to trigger an assertion failure
-  and exit. An attacker controlling a domain name and the authoritative
-  DNS server it was hosted on could exploit this behavior to cause a
-  denial-of-service. This has been fixed.
-
-  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
-  this vulnerability to our attention. :gl:`#5946`
-
-- Malformed DNSKEY records could trigger an assertion. :cve:`2026-10822`
-
-  Previously, ``dns_name_fromwire()`` did not honor the record boundary
-  when reading names from the wire, allowing malformed records to be
-  accepted when they should not have been. In particular, malformed
-  DNSKEY records could trigger an assertion failure when being printed.
-  This has been fixed. :gl:`#6004`
-
-- Reclaim memory promptly when DNSSEC validations are canceled.
-
-  When a resolver is flooded with queries that require DNSSEC validation
-  - for example during a random-subdomain attack - many of those
-  validations are canceled before they complete. Previously, a canceled
-  validation still kept its place in the internal work queue and held
-  the associated response in memory until that queued work eventually
-  ran, so memory could climb sharply under sustained load. The internal
-  work queue is now dropped as soon as the validation is canceled,
-  releasing the memory it was holding. :gl:`#4760`
 
 - Prevent excessive validation work from crafted negative responses.
   :cve:`2026-11605`
@@ -108,6 +62,60 @@ Security Fixes
   Cache memory could become exhausted with expired entries whose memory
   was not released, due to a sustained attack on the same DNS name that
   prevented the cleanup. This has been fixed. :gl:`#4760`
+
+- Stop accepting invalid signed wildcard records. :cve:`2026-11721`
+
+  Signed wildcard responses in which the Labels field in the RRSIG
+  record was less than the number of labels in the Signer Name field
+  were being incorrectly accepted. This in turn broke
+  :namedconf:ref:`synth-from-dnssec`, which depends on such records
+  being correctly validated. This has been fixed.
+
+  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
+  this vulnerability to our attention. :gl:`#5871`
+
+- Do not assert for some specific CNAME and DNAME queries.
+  :cve:`2026-12617`
+
+  A bug in the resolver's handling of certain cached DNAME and CNAME
+  responses could cause :iscman:`named` to trigger an assertion failure
+  and exit. An attacker controlling a domain name and the authoritative
+  DNS server it was hosted on could exploit this behavior to cause a
+  denial-of-service. This has been fixed.
+
+  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
+  this vulnerability to our attention. :gl:`#5946`
+
+- Prevent crash from malformed NSEC/NSEC3 response. :cve:`2026-13204`
+
+  An assertion could be triggered by an improperly signed NOQNAME proof.
+  This has been fixed.
+
+  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
+  this vulnerability to our attention. :gl:`#5985`
+
+- Fix DNSSEC validation bypass via out-of-zone NSEC Next Field.
+  :cve:`2026-13321`
+
+  Previously, a malicious zone with out-of-zone NSEC next-owner names
+  could cause a DNSSEC-validating resolver to cache such a record and,
+  if :namedconf:ref:`synth-from-dnssec` was enabled, to generate
+  negative answers for any zone that was covered by the range. This has
+  been fixed.
+
+  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
+  this vulnerability to our attention. :gl:`#5873`
+
+- Reclaim memory promptly when DNSSEC validations are canceled.
+
+  When a resolver is flooded with queries that require DNSSEC validation
+  - for example during a random-subdomain attack - many of those
+  validations are canceled before they complete. Previously, a canceled
+  validation still kept its place in the internal work queue and held
+  the associated response in memory until that queued work eventually
+  ran, so memory could climb sharply under sustained load. The internal
+  work queue is now dropped as soon as the validation is canceled,
+  releasing the memory it was holding. :gl:`#4760`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -216,14 +224,6 @@ Bug Fixes
   could cause resolution failures to persist until the cached SERVFAIL
   entry expired, even when the CNAME target itself was otherwise
   resolvable. This has been fixed. :gl:`#5983`
-
-- Prevent crash from malformed NSEC/NSEC3 response. :cve:`2026-13204`
-
-  An assertion could be triggered by an improperly signed NOQNAME proof.
-  This has been fixed.
-
-  ISC would like to thank Qifan Zhang of Palo Alto Networks for bringing
-  this vulnerability to our attention. :gl:`#5985`
 
 - Reject unsupported RSA DNSKEY shapes during DNSSEC validation.
 
