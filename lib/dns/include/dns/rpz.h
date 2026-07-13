@@ -158,9 +158,6 @@ struct dns_rpz_zone {
 	bool		 updaterunning; /* there is an update running */
 	dns_db_t	*db;		/* zones database */
 	dns_dbversion_t *dbversion;	/* version we will be updating to */
-	dns_db_t	*updb;		/* zones database we're working on */
-	dns_dbversion_t *updbversion;	/* version we're currently working
-					 * on */
 	bool	     addsoa;		/* add soa to the additional section */
 	isc_timer_t *updatetimer;
 };

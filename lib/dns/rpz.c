@@ -182,6 +182,12 @@ struct nmdata {
 	dns_rpz_nm_zbits_t wild;
 };
 
+typedef struct rpz_update {
+	dns_rpz_zone_t	 *rpz;
+	dns_db_t	 *db;
+	dns_dbversion_t *dbversion;
+} rpz_update_t;
+
 #ifdef DNS_RPZ_TRACE
 #define nmdata_ref(ptr)	  nmdata__ref(ptr, __func__, __FILE__, __LINE__)
 #define nmdata_unref(ptr) nmdata__unref(ptr, __func__, __FILE__, __LINE__)
@@ -1653,7 +1659,8 @@ dns__rpz_timer_stop(void *arg) {
 
 static void
 update_rpz_done_cb(void *data, isc_result_t result) {
-	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
+	rpz_update_t *update = data;
+	dns_rpz_zone_t *rpz = update->rpz;
 	char dname[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
@@ -1668,8 +1675,8 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 		dns__rpz_timer_start(rpz);
 	}
 
-	dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
-	dns_db_detach(&rpz->updb);
+	dns_db_closeversion(update->db, &update->dbversion, false);
+	dns_db_detach(&update->db);
 
 	if (rpz->dbregistered && !rpz->processed) {
 		rpz->processed = true;
@@ -1682,6 +1689,7 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 		      "rpz: %s: reload done: %s", dname,
 		      isc_result_totext(result));
 
+	isc_mem_put(rpz->rpzs->mctx, update, sizeof(*update));
 	dns_rpz_zones_unref(rpz->rpzs);
 }
 
@@ -1768,7 +1776,8 @@ cleanup:
 }
 
 static isc_result_t
-update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
+update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db,
+	     dns_dbversion_t *dbversion, isc_ht_t *newnodes) {
 	isc_result_t result;
 	dns_dbiterator_t *updbit = NULL;
 	dns_name_t *name = NULL;
@@ -1780,7 +1789,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 	name = dns_fixedname_initname(&fixname);
 
-	result = dns_db_createiterator(rpz->updb, DNS_DB_NONSEC3, &updbit);
+	result = dns_db_createiterator(db, DNS_DB_NONSEC3, &updbit);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ,
 			      ISC_LOG_ERROR,
@@ -1826,8 +1835,8 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		result = dns_dbiterator_pause(updbit);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		result = dns_db_allrdatasets(rpz->updb, node, rpz->updbversion,
-					     0, 0, &rdsiter);
+		result = dns_db_allrdatasets(db, node, dbversion, 0, 0,
+					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_RPZ, ISC_LOG_ERROR,
@@ -1982,7 +1991,8 @@ dns__rpz_shuttingdown(dns_rpz_zones_t *rpzs) {
 
 static isc_result_t
 update_rpz_cb(void *data) {
-	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
+	rpz_update_t *update = data;
+	dns_rpz_zone_t *rpz = update->rpz;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_ht_t *newnodes = NULL;
 
@@ -1992,7 +2002,7 @@ update_rpz_cb(void *data) {
 
 	isc_ht_init(&newnodes, rpz->rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
-	CHECK(update_nodes(rpz, newnodes));
+	CHECK(update_nodes(rpz, update->db, update->dbversion, newnodes));
 
 	CHECK(cleanup_nodes(rpz));
 
@@ -2009,11 +2019,10 @@ static void
 dns__rpz_timer_cb(void *arg) {
 	char domain[DNS_NAME_FORMATSIZE];
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)arg;
+	rpz_update_t *update = NULL;
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 	REQUIRE(DNS_DB_VALID(rpz->db));
-	REQUIRE(rpz->updb == NULL);
-	REQUIRE(rpz->updbversion == NULL);
 
 	LOCK(&rpz->rpzs->maint_lock);
 
@@ -2024,9 +2033,13 @@ dns__rpz_timer_cb(void *arg) {
 	rpz->updatepending = false;
 	rpz->updaterunning = true;
 
-	dns_db_attach(rpz->db, &rpz->updb);
+	update = isc_mem_get(rpz->rpzs->mctx, sizeof(*update));
+	*update = (rpz_update_t){
+		.rpz = rpz,
+	};
+	dns_db_attach(rpz->db, &update->db);
 	INSIST(rpz->dbversion != NULL);
-	rpz->updbversion = rpz->dbversion;
+	update->dbversion = rpz->dbversion;
 	rpz->dbversion = NULL;
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
@@ -2035,7 +2048,7 @@ dns__rpz_timer_cb(void *arg) {
 
 	dns_rpz_zones_ref(rpz->rpzs);
 	isc_work_enqueue(rpz->loop, ISC_WORKLANE_SLOW, update_rpz_cb,
-			 update_rpz_done_cb, rpz);
+			 update_rpz_done_cb, update);
 
 	isc_timer_destroy(&rpz->updatetimer);
 	rpz->loop = NULL;
