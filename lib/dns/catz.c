@@ -91,7 +91,6 @@ struct dns_catz_zone {
 
 	bool updatepending;	      /* there is an update pending */
 	bool updaterunning;	      /* there is an update running */
-	isc_result_t updateresult;    /* result from the offloaded work */
 	dns_db_t *db;		      /* zones database */
 	dns_dbversion_t *dbversion;   /* version we will be updating to */
 	dns_db_t *updb;		      /* zones database we're working on */
@@ -113,7 +112,7 @@ dns__catz_timer_start(dns_catz_zone_t *catz);
 static void
 dns__catz_timer_stop(void *arg);
 
-static void
+static isc_result_t
 dns__catz_update_cb(void *data);
 static void
 dns__catz_done_cb(void *data, isc_result_t result);
@@ -2101,7 +2100,6 @@ dns__catz_timer_cb(void *arg) {
 
 	catz->updatepending = false;
 	catz->updaterunning = true;
-	catz->updateresult = ISC_R_UNSET;
 
 	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
 
@@ -2111,7 +2109,6 @@ dns__catz_timer_cb(void *arg) {
 			      "catz: %s: no longer active, reload is canceled",
 			      domain);
 		catz->updaterunning = false;
-		catz->updateresult = ISC_R_CANCELED;
 		goto exit;
 	}
 
@@ -2231,7 +2228,7 @@ catz_rdatatype_is_processable(const dns_rdatatype_t type) {
  * It creates a new catz, iterates over database to fill it with content, and
  * then merges new catz into old catz.
  */
-static void
+static isc_result_t
 dns__catz_update_cb(void *data) {
 	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
 	dns_db_t *updb = NULL;
@@ -2261,8 +2258,7 @@ dns__catz_update_cb(void *data) {
 	catzs = catz->catzs;
 
 	if (atomic_load(&catzs->shuttingdown)) {
-		result = ISC_R_SHUTTINGDOWN;
-		goto exit;
+		return ISC_R_SHUTTINGDOWN;
 	}
 
 	dns_name_format(&updb->origin, bname, DNS_NAME_FORMATSIZE);
@@ -2274,8 +2270,7 @@ dns__catz_update_cb(void *data) {
 	LOCK(&catzs->lock);
 	if (catzs->zones == NULL) {
 		UNLOCK(&catzs->lock);
-		result = ISC_R_SHUTTINGDOWN;
-		goto exit;
+		return ISC_R_SHUTTINGDOWN;
 	}
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&oldcatz);
 	is_active = (result == ISC_R_SUCCESS && oldcatz->active);
@@ -2285,7 +2280,6 @@ dns__catz_update_cb(void *data) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' not in config", bname);
-		goto exit;
 	}
 
 	if (!is_active) {
@@ -2293,8 +2287,7 @@ dns__catz_update_cb(void *data) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 			      "catz: zone '%s' is no longer active", bname);
-		result = ISC_R_CANCELED;
-		goto exit;
+		return ISC_R_CANCELED;
 	}
 
 	result = dns_db_getsoaserial(updb, oldcatz->updbversion, &vers);
@@ -2304,7 +2297,7 @@ dns__catz_update_cb(void *data) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' has no SOA record (%s)", bname,
 			      isc_result_totext(result));
-		goto exit;
+		return result;
 	}
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
@@ -2318,7 +2311,7 @@ dns__catz_update_cb(void *data) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create DB iterator - %s",
 			      isc_result_totext(result));
-		goto exit;
+		return result;
 	}
 
 	name = dns_fixedname_initname(&fixname);
@@ -2335,7 +2328,7 @@ dns__catz_update_cb(void *data) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
-		goto exit;
+		return result;
 	}
 
 	result = dns_dbiterator_seek(updbit, name);
@@ -2346,7 +2339,8 @@ dns__catz_update_cb(void *data) {
 			      "catz: zone '%s' has no 'version' record (%s) "
 			      "and will not be processed",
 			      bname, isc_result_totext(result));
-		goto exit;
+
+		return result;
 	}
 
 	newcatz = dns_catz_zone_new(catzs, &updb->origin);
@@ -2491,8 +2485,7 @@ dns__catz_update_cb(void *data) {
 			      "will not be processed",
 			      bname);
 		dns_catz_zone_detach(&newcatz);
-		result = ISC_R_FAILURE;
-		goto exit;
+		return ISC_R_FAILURE;
 	}
 
 	/*
@@ -2506,19 +2499,18 @@ dns__catz_update_cb(void *data) {
 			      "catz: failed merging zones: %s",
 			      isc_result_totext(result));
 
-		goto exit;
+		return result;
 	}
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: new zone merged");
 
-exit:
-	catz->updateresult = result;
+	return result;
 }
 
 static void
-dns__catz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
+dns__catz_done_cb(void *data, isc_result_t result) {
 	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
 	char dname[DNS_NAME_FORMATSIZE];
 
@@ -2541,7 +2533,7 @@ dns__catz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload done: %s", dname,
-		      isc_result_totext(catz->updateresult));
+		      isc_result_totext(result));
 
 	dns_catz_zone_unref(catz);
 }

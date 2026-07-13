@@ -748,7 +748,7 @@ httpd_compress(isc_httpd_sendreq_t *req) {
 }
 #endif /* ifdef HAVE_ZLIB */
 
-static void
+static isc_result_t
 prepare_response(void *arg) {
 	isc_httpd_sendreq_t *req = arg;
 	isc_httpd_t *httpd = req->httpd;
@@ -872,6 +872,8 @@ prepare_response(void *arg) {
 	}
 	httpd->recvlen -= httpd->consume;
 	httpd->consume = 0;
+
+	return ISC_R_SUCCESS;
 }
 
 static void

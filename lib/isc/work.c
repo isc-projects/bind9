@@ -55,7 +55,8 @@ enum workstate {
 
 struct isc_work {
 	unsigned int magic;
-	uint32_t state;		  /* enum workstate */
+	uint32_t state; /* enum workstate */
+	isc_result_t result;
 	isc_work_cb cb;		  /* runs on a worker thread */
 	isc_work_done_cb done_cb; /* runs on the origin loop */
 	void *cbarg;
@@ -191,12 +192,11 @@ static void
 work_done(void *arg) {
 	isc_work_t *work = arg;
 	isc_loop_t *loop = work->loop;
-	isc_result_t result = (uatomic_load(&work->state, CMM_ACQUIRE) !=
-			       WORK_CANCELED)
-				      ? ISC_R_SUCCESS
-				      : ISC_R_CANCELED;
 
-	work->done_cb(work->cbarg, result);
+	/* work_run() has settled work->result before scheduling us. */
+	INSIST(work->result != ISC_R_UNSET);
+
+	work->done_cb(work->cbarg, work->result);
 
 	work->magic = 0;
 	isc_mem_put(work->loop->mctx, work, sizeof(*work));
@@ -216,9 +216,10 @@ work_run(void *arg) {
 					WORK_RUNNING);
 	switch (prev) {
 	case WORK_QUEUED:
-		work->cb(work->cbarg);
+		work->result = work->cb(work->cbarg);
 		break;
 	case WORK_CANCELED:
+		work->result = ISC_R_CANCELED;
 		break;
 	default:
 		UNREACHABLE();
@@ -290,6 +291,7 @@ isc_work_enqueue(isc_loop_t *loop, isc_worklane_t lane, isc_work_cb cb,
 	isc_work_t *work = isc_mem_get(loop->mctx, sizeof(*work));
 	*work = (isc_work_t){
 		.magic = WORK_MAGIC,
+		.result = ISC_R_UNSET,
 		.cb = cb,
 		.done_cb = done_cb,
 		.cbarg = cbarg,
@@ -331,7 +333,7 @@ isc_work_cancel(isc_work_t *work) {
 	/*
 	 * Tombstone: QUEUED -> CANCELED.  The node stays in the queue
 	 * (no interior unlink in a singly-linked lock-free queue) and
-	 * is discarded by whichever worker dequeues it; after_cb still
+	 * is discarded by whichever worker dequeues it; done_cb still
 	 * fires with ISC_R_CANCELED.  Nothing is freed here.  False
 	 * means the callback is running or done — uv_cancel semantics.
 	 */

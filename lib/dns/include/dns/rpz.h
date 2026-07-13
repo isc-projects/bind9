@@ -159,7 +159,6 @@ struct dns_rpz_zone {
 	bool		 dbregistered;	/* db callback notify is registered. */
 	bool		 updatepending; /* there is an update pending */
 	bool		 updaterunning; /* there is an update running */
-	isc_result_t	 updateresult;	/* result from the offloaded work */
 	dns_db_t	*db;		/* zones database */
 	dns_dbversion_t *dbversion;	/* version we will be updating to */
 	dns_db_t	*updb;		/* zones database we're working on */

@@ -16,9 +16,9 @@
  *
  * Each isc event loop has one worker thread per lane (see isc_worklane_t).
  * isc_work_enqueue() runs a callback on the worker thread bound to the calling
- * loop's lane and, when it finishes, runs a second callback back on that loop.
- * The handle it returns can be used to cancel a task that has not started
- * running yet.
+ * loop's lane and, when it finishes, runs a second callback back on that loop
+ * with the first callback's result.  The handle it returns can be used to
+ * cancel a task that has not started running yet.
  */
 
 #pragma once
@@ -37,7 +37,7 @@ typedef enum isc_worklane {
  * holding up short FAST tasks behind it.
  */
 
-typedef void (*isc_work_cb)(void *arg);
+typedef isc_result_t (*isc_work_cb)(void *arg);
 typedef void (*isc_work_done_cb)(void *arg, isc_result_t result);
 typedef struct isc_work isc_work_t;
 
@@ -49,18 +49,18 @@ isc_work_enqueue(isc_loop_t *loop, isc_worklane_t lane, isc_work_cb cb,
 /*%<
  * Schedule 'cb' to run on the worker thread bound to 'loop' and 'lane'.  When
  * 'cb' returns, 'done_cb' is scheduled back on 'loop' with the result of the
- * work: ISC_R_SUCCESS normally, or ISC_R_CANCELED if the task was canceled
+ * work: the value 'cb' returned, or ISC_R_CANCELED if the task was canceled
  * before it started (see isc_work_cancel()).
  *
  * Returns a handle that may be passed to isc_work_cancel().  The handle is
- * owned by 'loop' and stays valid until 'after_cb' has run; it must not be used
+ * owned by 'loop' and stays valid until 'done_cb' has run; it must not be used
  * afterwards.
  *
  * Requires:
  *
  *\li	'loop' is a valid isc event loop.
  *\li	'cb' is non-NULL.
- *\li	'after_cb' is non-NULL.
+ *\li	'done_cb' is non-NULL.
  *\li	'cbarg' is passed to both callbacks, may be NULL.
  */
 
@@ -69,7 +69,7 @@ isc_work_cancel(isc_work_t *work);
 /*%<
  * Try to cancel 'work' before its 'cb' starts running.  If the task is still
  * queued it is marked canceled and 'cb' will not run; if it is already running
- * or has finished this has no effect.  Either way the 'after_cb' passed to
+ * or has finished this has no effect.  Either way the 'done_cb' passed to
  * isc_work_enqueue() still runs on the origin loop, with ISC_R_CANCELED when
  * the cancel succeeded.  Nothing is freed here.
  *
@@ -80,7 +80,7 @@ isc_work_cancel(isc_work_t *work);
  *
  * Requires:
  *
- *\li	'work' is a handle from isc_work_enqueue() whose 'after_cb' has not run.
+ *\li	'work' is a handle from isc_work_enqueue() whose 'done_cb' has not run.
  */
 
 /* private */
