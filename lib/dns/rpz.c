@@ -2194,11 +2194,14 @@ dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs) {
 	REQUIRE(DNS_RPZ_ZONES_VALID(rpzs));
 	/*
 	 * Forget the last of the view's rpz machinery when shutting down.
+	 *
+	 * shuttingdown is monotonic: it changes from false to true and is never
+	 * cleared.  Publish it without taking update_lock or data_lock so
+	 * workers can observe shutdown immediately.  atomic_exchange() also
+	 * preserves idempotency: only the caller that changes the flag performs
+	 * the per-zone shutdown work.
 	 */
-
-	if (!atomic_compare_exchange_strong(&rpzs->shuttingdown,
-					    &(bool){ false }, true))
-	{
+	if (atomic_exchange(&rpzs->shuttingdown, true)) {
 		return;
 	}
 
