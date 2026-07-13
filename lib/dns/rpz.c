@@ -183,8 +183,8 @@ struct nmdata {
 };
 
 typedef struct rpz_update {
-	dns_rpz_zone_t	 *rpz;
-	dns_db_t	 *db;
+	dns_rpz_zone_t *rpz;
+	dns_db_t *db;
 	dns_dbversion_t *dbversion;
 } rpz_update_t;
 
@@ -455,7 +455,7 @@ set_sum_pair(dns_rpz_cidr_node_t *cnode) {
 	} while (cnode != NULL);
 }
 
-/* Caller must hold rpzs->maint_lock */
+/* Caller must hold rpzs->data_lock. */
 static void
 fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	dns_rpz_zbits_t mask;
@@ -1518,7 +1518,8 @@ dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 	};
 
 	isc_rwlock_init(&rpzs->search_lock);
-	isc_mutex_init(&rpzs->maint_lock);
+	isc_mutex_init(&rpzs->data_lock);
+	atomic_init(&rpzs->shuttingdown, false);
 	isc_refcount_init(&rpzs->references, 1);
 
 #ifdef USE_DNSRPS
@@ -1545,7 +1546,7 @@ dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 cleanup:
 	isc_refcount_decrementz(&rpzs->references);
 	isc_refcount_destroy(&rpzs->references);
-	isc_mutex_destroy(&rpzs->maint_lock);
+	isc_mutex_destroy(&rpzs->data_lock);
 	isc_rwlock_destroy(&rpzs->search_lock);
 	isc_mem_put(mctx, rpzs, sizeof(*rpzs));
 
@@ -1576,6 +1577,7 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 		.magic = DNS_RPZ_ZONE_MAGIC,
 		.rpzs = rpzs,
 	};
+	isc_mutex_init(&rpz->update_lock);
 
 	/*
 	 * This will never be used, but costs us nothing and
@@ -1612,9 +1614,9 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->update_lock);
 
-	if (rpz->rpzs->shuttingdown) {
+	if (atomic_load(&rpz->rpzs->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto unlock;
 	}
@@ -1656,7 +1658,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	}
 
 unlock:
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->update_lock);
 
 	return result;
 }
@@ -1666,7 +1668,7 @@ dns_rpz_dbupdate_unregister(dns_db_t *db, dns_rpz_zone_t *rpz) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->update_lock);
 	dns_db_updatenotify_unregister(db, dns_rpz_dbupdate_callback, rpz);
 	if (rpz->processed) {
 		rpz->processed = false;
@@ -1678,7 +1680,7 @@ dns_rpz_dbupdate_unregister(dns_db_t *db, dns_rpz_zone_t *rpz) {
 		INSIST(atomic_fetch_sub_acq_rel(&rpz->rpzs->zones_registered,
 						1) > 0);
 	}
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->update_lock);
 }
 
 void
@@ -1686,13 +1688,13 @@ dns_rpz_dbupdate_register(dns_db_t *db, dns_rpz_zone_t *rpz) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->update_lock);
 	if (!rpz->dbregistered) {
 		rpz->dbregistered = true;
 		atomic_fetch_add_acq_rel(&rpz->rpzs->zones_registered, 1);
 	}
 	dns_db_updatenotify_register(db, dns_rpz_dbupdate_callback, rpz);
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->update_lock);
 }
 
 static void
@@ -1747,12 +1749,12 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->update_lock);
 	rpz->updaterunning = false;
 
 	dns_name_format(&rpz->origin, dname, DNS_NAME_FORMATSIZE);
 
-	if (rpz->updatepending && !rpz->rpzs->shuttingdown) {
+	if (rpz->updatepending && !atomic_load(&rpz->rpzs->shuttingdown)) {
 		/* Restart the timer */
 		dns__rpz_timer_start(rpz);
 	}
@@ -1765,7 +1767,7 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 		atomic_fetch_add_acq_rel(&rpz->rpzs->zones_processed, 1);
 	}
 
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->update_lock);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload done: %s", dname,
@@ -1776,8 +1778,8 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 }
 
 static isc_result_t
-update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db,
-	     dns_dbversion_t *dbversion, isc_ht_t *newnodes) {
+update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db, dns_dbversion_t *dbversion,
+	     isc_ht_t *newnodes) {
 	isc_result_t result;
 	dns_dbiterator_t *updbit = NULL;
 	dns_name_t *name = NULL;
@@ -1807,7 +1809,7 @@ update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db,
 		goto cleanup;
 	}
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->rpzs->data_lock);
 	slow_mode = rpz->rpzs->p.slow_mode;
 
 	dns_qp_t *qp = NULL;
@@ -1818,7 +1820,7 @@ update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db,
 		dns_rdatasetiter_t *rdsiter = NULL;
 		dns_dbnode_t *node = NULL;
 
-		if (rpz->rpzs->shuttingdown) {
+		if (atomic_load(&rpz->rpzs->shuttingdown)) {
 			result = ISC_R_SHUTTINGDOWN;
 			goto done;
 		}
@@ -1917,7 +1919,7 @@ update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db,
 done:
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(rpz->rpzs->table, &qp);
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->rpzs->data_lock);
 
 cleanup:
 	dns_dbiterator_destroy(&updbit);
@@ -1935,7 +1937,7 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 
 	name = dns_fixedname_initname(&fixname);
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->rpzs->data_lock);
 	dns_qpmulti_write(rpz->rpzs->table, &qp);
 
 	isc_ht_iter_create(rpz->nodes, &iter);
@@ -1947,8 +1949,8 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 		unsigned char *key = NULL;
 		size_t keysize;
 
-		if (rpz->rpzs->shuttingdown) {
-			result = ISC_R_SHUTTINGDOWN;
+		result = dns__rpz_shuttingdown(rpz->rpzs);
+		if (result != ISC_R_SUCCESS) {
 			break;
 		}
 
@@ -1969,20 +1971,14 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 
 	isc_ht_iter_destroy(&iter);
 
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->rpzs->data_lock);
 
 	return result;
 }
 
 static isc_result_t
 dns__rpz_shuttingdown(dns_rpz_zones_t *rpzs) {
-	bool shuttingdown = false;
-
-	LOCK(&rpzs->maint_lock);
-	shuttingdown = rpzs->shuttingdown;
-	UNLOCK(&rpzs->maint_lock);
-
-	if (shuttingdown) {
+	if (atomic_load(&rpzs->shuttingdown)) {
 		return ISC_R_SHUTTINGDOWN;
 	}
 
@@ -2028,13 +2024,13 @@ dns__rpz_timer_cb(void *arg) {
 	rpz_update_t *update = NULL;
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
-	REQUIRE(DNS_DB_VALID(rpz->db));
 
-	LOCK(&rpz->rpzs->maint_lock);
+	LOCK(&rpz->update_lock);
 
-	if (rpz->rpzs->shuttingdown) {
+	if (atomic_load(&rpz->rpzs->shuttingdown)) {
 		goto unlock;
 	}
+	REQUIRE(DNS_DB_VALID(rpz->db));
 
 	rpz->updatepending = false;
 	rpz->updaterunning = true;
@@ -2061,7 +2057,7 @@ dns__rpz_timer_cb(void *arg) {
 
 	rpz->lastupdated = isc_time_now();
 unlock:
-	UNLOCK(&rpz->rpzs->maint_lock);
+	UNLOCK(&rpz->update_lock);
 }
 
 /*
@@ -2099,7 +2095,7 @@ cidr_free(dns_rpz_zones_t *rpzs) {
 
 static void
 dns__rpz_shutdown(dns_rpz_zone_t *rpz) {
-	/* maint_lock must be locked */
+	/* update_lock must be locked. */
 	if (rpz->updatetimer != NULL) {
 		/* Don't wait for timer to trigger for shutdown */
 		INSIST(rpz->loop != NULL);
@@ -2158,13 +2154,14 @@ dns_rpz_zone_destroy(dns_rpz_zone_t **rpzp) {
 	INSIST(!rpz->updaterunning);
 
 	isc_ht_destroy(&rpz->nodes);
+	isc_mutex_destroy(&rpz->update_lock);
 
 	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 }
 
 static void
 dns__rpz_zones_destroy(dns_rpz_zones_t *rpzs) {
-	REQUIRE(rpzs->shuttingdown);
+	REQUIRE(atomic_load(&rpzs->shuttingdown));
 
 	for (dns_rpz_num_t rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num)
 	{
@@ -2187,7 +2184,7 @@ dns__rpz_zones_destroy(dns_rpz_zones_t *rpzs) {
 		dns_qpmulti_destroy(&rpzs->table);
 	}
 
-	isc_mutex_destroy(&rpzs->maint_lock);
+	isc_mutex_destroy(&rpzs->data_lock);
 	isc_rwlock_destroy(&rpzs->search_lock);
 	isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 }
@@ -2199,13 +2196,11 @@ dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs) {
 	 * Forget the last of the view's rpz machinery when shutting down.
 	 */
 
-	LOCK(&rpzs->maint_lock);
-	if (rpzs->shuttingdown) {
-		UNLOCK(&rpzs->maint_lock);
+	if (!atomic_compare_exchange_strong(&rpzs->shuttingdown,
+					    &(bool){ false }, true))
+	{
 		return;
 	}
-
-	rpzs->shuttingdown = true;
 
 	for (dns_rpz_num_t rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num)
 	{
@@ -2213,9 +2208,10 @@ dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs) {
 			continue;
 		}
 
+		LOCK(&rpzs->zones[rpz_num]->update_lock);
 		dns__rpz_shutdown(rpzs->zones[rpz_num]);
+		UNLOCK(&rpzs->zones[rpz_num]->update_lock);
 	}
-	UNLOCK(&rpzs->maint_lock);
 }
 
 #ifdef DNS_RPZ_TRACE
