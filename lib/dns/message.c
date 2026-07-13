@@ -200,7 +200,6 @@ typedef struct checksig_ctx {
 	dns_view_t *view;
 	dns_message_cb_t cb;
 	void *cbarg;
-	isc_result_t result;
 } checksig_ctx_t;
 
 /*
@@ -3182,20 +3181,19 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 static void
 checksig_done(void *arg, isc_result_t result);
 
-static void
+static isc_result_t
 checksig_run(void *arg) {
 	checksig_ctx_t *chsigctx = arg;
 
-	chsigctx->result = dns_message_checksig(chsigctx->msg, chsigctx->view);
+	return dns_message_checksig(chsigctx->msg, chsigctx->view);
 }
 
 static void
-checksig_done(void *arg, isc_result_t result ISC_ATTR_UNUSED) {
+checksig_done(void *arg, isc_result_t result) {
 	checksig_ctx_t *chsigctx = arg;
 	dns_message_t *msg = chsigctx->msg;
 
-	chsigctx->cb(chsigctx->cbarg,
-		     (result != ISC_R_SUCCESS) ? result : chsigctx->result);
+	chsigctx->cb(chsigctx->cbarg, result);
 
 	dns_view_detach(&chsigctx->view);
 	isc_loop_detach(&chsigctx->loop);
@@ -3215,7 +3213,6 @@ dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
 	*chsigctx = (checksig_ctx_t){
 		.cb = cb,
 		.cbarg = cbarg,
-		.result = ISC_R_UNSET,
 		.loop = isc_loop_ref(loop),
 	};
 	dns_message_attach(msg, &chsigctx->msg);

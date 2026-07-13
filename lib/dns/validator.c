@@ -133,7 +133,7 @@ validate_async_done(dns_validator_t *val, isc_result_t result);
 static isc_result_t
 validate_async_run(dns_validator_t *val, isc_job_cb cb);
 static isc_result_t
-validate_work_enqueue(dns_validator_t *val, isc_job_cb cb);
+validate_work_enqueue(dns_validator_t *val, isc_work_cb cb);
 
 static void
 validate_dnskey(void *arg);
@@ -425,7 +425,7 @@ over_max_fails(dns_validator_t *val);
 static void
 consume_validation_fail(dns_validator_t *val);
 
-static void
+static isc_result_t
 resume_answer_with_key(void *arg) {
 	dns_validator_t *val = arg;
 	dns_rdataset_t *rdataset = &val->frdataset;
@@ -442,7 +442,7 @@ resume_answer_with_key(void *arg) {
 		consume_validation_fail(val);
 	}
 
-	(void)validate_async_run(val, resume_answer_with_key_done);
+	return validate_async_run(val, resume_answer_with_key_done);
 }
 
 static void
@@ -1738,7 +1738,7 @@ validate_answer_finish(void *arg);
 static void
 validate_answer_signing_key_done(void *arg);
 
-static void
+static isc_result_t
 validate_answer_signing_key(void *arg) {
 	dns_validator_t *val = arg;
 	isc_result_t result;
@@ -1779,7 +1779,7 @@ validate_answer_signing_key(void *arg) {
 		break;
 	}
 
-	(void)validate_async_run(val, validate_answer_signing_key_done);
+	return validate_async_run(val, validate_answer_signing_key_done);
 }
 
 static void
@@ -1990,7 +1990,7 @@ null_done(void *arg ISC_ATTR_UNUSED, isc_result_t result ISC_ATTR_UNUSED) {
 }
 
 static isc_result_t
-validate_work_enqueue(dns_validator_t *val, isc_job_cb cb) {
+validate_work_enqueue(dns_validator_t *val, isc_work_cb cb) {
 	val->attributes |= VALATTR_OFFLOADED;
 	isc_work_enqueue(val->loop, ISC_WORKLANE_FAST, cb, null_done, val);
 	return DNS_R_WAIT;
@@ -2240,7 +2240,7 @@ validate_dnskey_dsset(dns_validator_t *val) {
 static void
 validate_dnskey_dsset_next_done(void *arg);
 
-static void
+static isc_result_t
 validate_dnskey_dsset_next(void *arg) {
 	dns_validator_t *val = arg;
 
@@ -2255,7 +2255,7 @@ validate_dnskey_dsset_next(void *arg) {
 		val->result = validate_dnskey_dsset(val);
 	}
 
-	validate_async_run(val, validate_dnskey_dsset_next_done);
+	return validate_async_run(val, validate_dnskey_dsset_next_done);
 }
 
 static void

@@ -808,7 +808,7 @@ do_next_command(char *input) {
 	}
 }
 
-static void
+static isc_result_t
 readline_next_command(void *arg) {
 	char *ptr = NULL;
 
@@ -818,7 +818,7 @@ readline_next_command(void *arg) {
 	ptr = readline("> ");
 	isc_loopmgr_nonblocking(loopmgr);
 	if (ptr == NULL) {
-		return;
+		return ISC_R_SUCCESS;
 	}
 
 	if (*ptr != 0) {
@@ -827,13 +827,17 @@ readline_next_command(void *arg) {
 		cmdline = cmdlinebuf;
 	}
 	free(ptr);
+
+	return ISC_R_SUCCESS;
 }
 
-static void
+static isc_result_t
 fgets_next_command(void *arg) {
 	UNUSED(arg);
 
 	cmdline = fgets(cmdlinebuf, COMMSIZE, stdin);
+
+	return ISC_R_SUCCESS;
 }
 
 noreturn static void
