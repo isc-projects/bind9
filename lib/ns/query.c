@@ -988,17 +988,13 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		     dns_dbversion_t **versionp) {
 	isc_result_t result;
 	dns_acl_t *queryacl, *queryonacl;
+	dns_zonetype_t zonetype;
 	ns_dbversion_t *dbversion;
 
 	REQUIRE(zone != NULL);
 	REQUIRE(db != NULL);
 
-	/*
-	 * Mirror zone data is treated as cache data.
-	 */
-	if (dns_zone_gettype(zone) == dns_zone_mirror) {
-		return query_checkcacheaccess(client, name, qtype, options);
-	}
+	zonetype = dns_zone_gettype(zone);
 
 	/*
 	 * This limits our searching to the zone where the first name
@@ -1007,7 +1003,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	 * additional data from other zones. This does not apply if we're
 	 * answering a query where recursion is requested and allowed.
 	 */
-	if (client->query.rpz_st == NULL &&
+	if (zonetype != dns_zone_mirror && client->query.rpz_st == NULL &&
 	    !(client->query.wantrecursion && client->query.recursionok) &&
 	    client->query.authdb_id != NS_QUERY_AUTHDB_UNSET &&
 	    (uintptr_t)db != client->query.authdb_id)
@@ -1020,9 +1016,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	 * zone content is not public data, but a part of local configuration
 	 * and should not be disclosed.
 	 */
-	if (dns_zone_gettype(zone) == dns_zone_staticstub &&
-	    !client->query.recursionok)
-	{
+	if (zonetype == dns_zone_staticstub && !client->query.recursionok) {
 		return DNS_R_REFUSED;
 	}
 
@@ -1041,6 +1035,14 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	if (dbversion == NULL) {
 		CTRACE(ISC_LOG_ERROR, "unable to get db version");
 		return DNS_R_SERVFAIL;
+	}
+
+	/*
+	 * Mirror zone data is treated as cache data.
+	 */
+	if (zonetype == dns_zone_mirror) {
+		RETERR(query_checkcacheaccess(client, name, qtype, options));
+		goto approved;
 	}
 
 	if (options.ignoreacl) {
