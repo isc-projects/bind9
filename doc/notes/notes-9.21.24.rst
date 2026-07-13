@@ -91,6 +91,12 @@ Security Fixes
   now enforces that limit on negative answers and returns SERVFAIL once
   the limit is reached. :gl:`#4463`
 
+- Prevent cache exhaustion under sustained attack. :cve:`2026-11622`
+
+  Cache memory could become exhausted with expired entries whose memory
+  was not released, due to a sustained attack on the same DNS name that
+  prevented the cleanup. This has been fixed. :gl:`#4760`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
