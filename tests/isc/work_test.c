@@ -39,15 +39,18 @@
 
 static atomic_uint scheduled = 0;
 
-static void
+static isc_result_t
 work_cb(void *arg ISC_ATTR_UNUSED) {
 	atomic_fetch_add(&scheduled, 1);
 
 	assert_int_equal(isc_tid(), ISC_TID_UNKNOWN);
+
+	return ISC_R_ALREADYRUNNING; /* mock result code */
 }
 
 static void
-after_work_cb(void *arg ISC_ATTR_UNUSED, isc_result_t result ISC_ATTR_UNUSED) {
+after_work_cb(void *arg ISC_ATTR_UNUSED, isc_result_t result) {
+	assert_int_equal(result, ISC_R_ALREADYRUNNING);
 	assert_int_equal(atomic_load(&scheduled), 1);
 	isc_loopmgr_shutdown();
 }

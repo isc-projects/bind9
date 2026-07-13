@@ -1661,7 +1661,7 @@ dns__rpz_timer_stop(void *arg) {
 }
 
 static void
-update_rpz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
+update_rpz_done_cb(void *data, isc_result_t result) {
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
 	char dname[DNS_NAME_FORMATSIZE];
 
@@ -1689,7 +1689,7 @@ update_rpz_done_cb(void *data, isc_result_t result ISC_ATTR_UNUSED) {
 
 	isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RPZ, ISC_LOG_INFO,
 		      "rpz: %s: reload done: %s", dname,
-		      isc_result_totext(rpz->updateresult));
+		      isc_result_totext(result));
 
 	dns_rpz_zones_unref(rpz->rpzs);
 }
@@ -1899,7 +1899,7 @@ dns__rpz_shuttingdown(dns_rpz_zones_t *rpzs) {
 	return ISC_R_SUCCESS;
 }
 
-static void
+static isc_result_t
 update_rpz_cb(void *data) {
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1907,10 +1907,7 @@ update_rpz_cb(void *data) {
 
 	REQUIRE(rpz->nodes != NULL);
 
-	result = dns__rpz_shuttingdown(rpz->rpzs);
-	if (result != ISC_R_SUCCESS) {
-		goto shuttingdown;
-	}
+	RETERR(dns__rpz_shuttingdown(rpz->rpzs));
 
 	isc_ht_init(&newnodes, rpz->rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
@@ -1924,8 +1921,7 @@ update_rpz_cb(void *data) {
 cleanup:
 	isc_ht_destroy(&newnodes);
 
-shuttingdown:
-	rpz->updateresult = result;
+	return result;
 }
 
 static void
@@ -1946,7 +1942,6 @@ dns__rpz_timer_cb(void *arg) {
 
 	rpz->updatepending = false;
 	rpz->updaterunning = true;
-	rpz->updateresult = ISC_R_UNSET;
 
 	dns_db_attach(rpz->db, &rpz->updb);
 	INSIST(rpz->dbversion != NULL);
