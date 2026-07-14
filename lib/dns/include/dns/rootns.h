@@ -20,3 +20,9 @@
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		  const char *filename, dns_db_t **target);
+
+const char *
+dns_rootns_gethints(void);
+/*%
+ * Get built-in root NS hints
+ */

@@ -52,6 +52,7 @@
 #include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/resolver.h>
+#include <dns/rootns.h>
 #include <dns/view.h>
 
 #include <dlz/dlz_dlopen_driver.h>
@@ -866,6 +867,9 @@ parse_command_line(int argc, char *argv[]) {
 			named_g_logflags = ISC_LOG_PRINTTIME | ISC_LOG_ISO8601 |
 					   ISC_LOG_TZINFO;
 			break;
+		case 'H':
+			printf("%s", dns_rootns_gethints());
+			exit(EXIT_SUCCESS);
 		case 'L':
 			named_g_logfile = isc_commandline_argument;
 			break;

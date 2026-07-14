@@ -24,7 +24,7 @@
 /*
  * Commandline arguments for named;
  */
-#define NAMED_MAIN_ARGS "46A:c:Cd:D:E:fFgL:M:m:n:N:p:sS:t:T:U:u:vVx:X:"
+#define NAMED_MAIN_ARGS "46A:c:Cd:D:E:fFgHL:M:m:n:N:p:sS:t:T:U:u:vVx:X:"
 
 ISC_NORETURN void
 named_main_earlyfatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
