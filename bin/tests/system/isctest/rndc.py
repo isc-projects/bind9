@@ -66,9 +66,7 @@ class rndc:
                 sd = self.__serialize_dict(v)
                 rv += struct.pack(">BI", 2, len(sd)) + sd
             else:
-                raise NotImplementedError(
-                    "Cannot serialize element of type %s" % type(v)
-                )
+                raise NotImplementedError(f"Cannot serialize element of type {type(v)}")
         return rv
 
     def __prep_message(self, data):
@@ -110,26 +108,26 @@ class rndc:
         msg = self.__prep_message(data)
         sent = self.socket.send(msg)
         if sent != len(msg):
-            raise IOError("Cannot send the message")
+            raise OSError("Cannot send the message")
 
         header = self.socket.recv(8)
         if len(header) != 8:
             # What should we throw here? Bad auth can cause this...
-            raise IOError("Can't read response header")
+            raise OSError("Can't read response header")
 
         length, version = struct.unpack(">II", header)
         if version != 1:
-            raise NotImplementedError("Wrong message version %d" % version)
+            raise NotImplementedError(f"Wrong message version {version}")
 
         # it includes the header
         length -= 4
         data = self.socket.recv(length, socket.MSG_WAITALL)
         if len(data) != length:
-            raise IOError("Can't read response data")
+            raise OSError("Can't read response data")
 
         msg = self.__parse_message(data)
         if not self.__verify_msg(msg):
-            raise IOError("Authentication failure")
+            raise OSError("Authentication failure")
 
         return msg
 
@@ -163,7 +161,7 @@ class rndc:
             return label, d, rest
         # TODO type 3 - list
         else:
-            raise NotImplementedError("Unknown element type %d" % type)
+            raise NotImplementedError(f"Unknown element type {type}")
 
     def __parse_message(self, input):
         rv = {}
