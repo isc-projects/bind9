@@ -24,13 +24,14 @@ import socket
 
 class rndc:
     """RNDC protocol client library"""
+
     __algos = {
-        'md5': 157,
-        'sha1': 161,
-        'sha224': 162,
-        'sha256': 163,
-        'sha384': 164,
-        'sha512': 165
+        "md5": 157,
+        "sha1": 161,
+        "sha224": 162,
+        "sha256": 163,
+        "sha384": 164,
+        "sha512": 165,
     }
 
     def __init__(self, host, algo, secret):
@@ -50,23 +51,24 @@ class rndc:
         """Call a RNDC command, all parsing is done on the server side
         cmd - a complete command as bytes (eg b'reload zone example.com')
         """
-        return dict(self.__command({b'type': cmd})[b'_data'])
+        return dict(self.__command({b"type": cmd})[b"_data"])
 
     def __serialize_dict(self, data, ignore_auth=False):
-        rv = b''
+        rv = b""
         for k, v in data.items():
-            if ignore_auth and k == b'_auth':
+            if ignore_auth and k == b"_auth":
                 continue
             rv += bytes([len(k)])
             rv += k
             if isinstance(v, bytes):
-                rv += struct.pack('>BI', 1, len(v)) + v
+                rv += struct.pack(">BI", 1, len(v)) + v
             elif isinstance(v, dict):
                 sd = self.__serialize_dict(v)
-                rv += struct.pack('>BI', 2, len(sd)) + sd
+                rv += struct.pack(">BI", 2, len(sd)) + sd
             else:
-                raise NotImplementedError('Cannot serialize element of type %s'
-                                          % type(v))
+                raise NotImplementedError(
+                    "Cannot serialize element of type %s" % type(v)
+                )
         return rv
 
     def __prep_message(self, data):
@@ -74,36 +76,35 @@ class rndc:
         now = int(time.time())
 
         d = {}
-        d[b'_auth'] = {}
-        d[b'_ctrl'] = {}
-        d[b'_ctrl'][b'_ser'] = b'%d' % self.ser
-        d[b'_ctrl'][b'_tim'] = b'%d' % now
-        d[b'_ctrl'][b'_exp'] = b'%d' % (now + 60)
+        d[b"_auth"] = {}
+        d[b"_ctrl"] = {}
+        d[b"_ctrl"][b"_ser"] = b"%d" % self.ser
+        d[b"_ctrl"][b"_tim"] = b"%d" % now
+        d[b"_ctrl"][b"_exp"] = b"%d" % (now + 60)
         if self.nonce is not None:
-            d[b'_ctrl'][b'_nonce'] = self.nonce
-        d[b'_data'] = data
+            d[b"_ctrl"][b"_nonce"] = self.nonce
+        d[b"_data"] = data
 
         msg = self.__serialize_dict(d, ignore_auth=True)
         hash = hmac.new(self.secret, msg, self.hlalgo).digest()
         bhash = base64.b64encode(hash)
-        if self.algo == 'md5':
-            d[b'_auth'][b'hmd5'] = struct.pack('22s', bhash)
+        if self.algo == "md5":
+            d[b"_auth"][b"hmd5"] = struct.pack("22s", bhash)
         else:
-            d[b'_auth'][b'hsha'] = struct.pack('B88s',
-                                               self.__algos[self.algo], bhash)
+            d[b"_auth"][b"hsha"] = struct.pack("B88s", self.__algos[self.algo], bhash)
         msg = self.__serialize_dict(d)
-        msg = struct.pack('>II', len(msg) + 4, 1) + msg
+        msg = struct.pack(">II", len(msg) + 4, 1) + msg
         return msg
 
     def __verify_msg(self, msg):
-        if self.nonce is not None and msg[b'_ctrl'][b'_nonce'] != self.nonce:
+        if self.nonce is not None and msg[b"_ctrl"][b"_nonce"] != self.nonce:
             return False
-        bhash = msg[b'_auth'][b'hmd5' if self.algo == 'md5' else b'hsha']
-        bhash += b'=' * (4 - (len(bhash) % 4))
+        bhash = msg[b"_auth"][b"hmd5" if self.algo == "md5" else b"hsha"]
+        bhash += b"=" * (4 - (len(bhash) % 4))
         remote_hash = base64.b64decode(bhash)
         my_msg = self.__serialize_dict(msg, ignore_auth=True)
         my_hash = hmac.new(self.secret, my_msg, self.hlalgo).digest()
-        return (my_hash == remote_hash)
+        return my_hash == remote_hash
 
     def __command(self, data):
         msg = self.__prep_message(data)
@@ -116,9 +117,9 @@ class rndc:
             # What should we throw here? Bad auth can cause this...
             raise IOError("Can't read response header")
 
-        length, version = struct.unpack('>II', header)
+        length, version = struct.unpack(">II", header)
         if version != 1:
-            raise NotImplementedError('Wrong message version %d' % version)
+            raise NotImplementedError("Wrong message version %d" % version)
 
         # it includes the header
         length -= 4
@@ -135,26 +136,26 @@ class rndc:
     def __connect_login(self):
         self.socket = socket.create_connection(self.host)
         self.nonce = None
-        msg = self.__command({b'type': b'null'})
-        self.nonce = msg[b'_ctrl'][b'_nonce']
+        msg = self.__command({b"type": b"null"})
+        self.nonce = msg[b"_ctrl"][b"_nonce"]
 
     def __parse_element(self, input):
         pos = 0
         labellen = input[pos]
         pos += 1
-        label = input[pos:pos + labellen]
+        label = input[pos : pos + labellen]
         pos += labellen
         type = input[pos]
         pos += 1
-        datalen = struct.unpack('>I', input[pos:pos + 4])[0]
+        datalen = struct.unpack(">I", input[pos : pos + 4])[0]
         pos += 4
-        data = input[pos:pos + datalen]
+        data = input[pos : pos + datalen]
         pos += datalen
         rest = input[pos:]
 
-        if type == 1:         # raw binary value
+        if type == 1:  # raw binary value
             return label, data, rest
-        elif type == 2:       # dictionary
+        elif type == 2:  # dictionary
             d = {}
             while len(data) > 0:
                 ilabel, value, data = self.__parse_element(data)
@@ -162,7 +163,7 @@ class rndc:
             return label, d, rest
         # TODO type 3 - list
         else:
-            raise NotImplementedError('Unknown element type %d' % type)
+            raise NotImplementedError("Unknown element type %d" % type)
 
     def __parse_message(self, input):
         rv = {}
