@@ -76,7 +76,20 @@ ns2 A 10.53.0.2
 def _serve(ns2, system_test_dir, variant):
     """Make ns2 serve the 'full' or 'empty' (a.example-less) signed zone."""
     src = system_test_dir / "ns2" / f"example-{variant}.db.signed"
-    shutil.copyfile(src, system_test_dir / "ns2" / "example.db.signed")
+    dst = system_test_dir / "ns2" / "example.db.signed"
+    # Ensure that the modification time of 'dst' increases on
+    # file systems with seconds granuality.
+    st_ok = False
+    try:
+        st = os.stat(dst)
+        st_ok = True
+    except FileNotFoundError:
+        pass
+    shutil.copyfile(src, dst)
+    if st_ok:
+        st2 = os.stat(dst)
+        if int(st2.st_mtime) <= int(st.st_mtime):
+            os.utime(dst, (st2.st_atime, st.st_mtime + 1))
     ns2.reload()
 
 
