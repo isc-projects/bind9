@@ -25,7 +25,7 @@ import time
 class rndc:
     """RNDC protocol client library"""
 
-    __algos = {
+    _algos = {
         "md5": 157,
         "sha1": 161,
         "sha224": 162,
@@ -45,15 +45,15 @@ class rndc:
         self.secret = base64.b64decode(secret)
         self.ser = random.randint(0, 1 << 24)
         self.nonce = None
-        self.__connect_login()
+        self._connect_login()
 
     def call(self, cmd):
         """Call a RNDC command, all parsing is done on the server side
         cmd - a complete command as bytes (eg b'reload zone example.com')
         """
-        return dict(self.__command({b"type": cmd})[b"_data"])
+        return dict(self._command({b"type": cmd})[b"_data"])
 
-    def __serialize_dict(self, data, ignore_auth=False):
+    def _serialize_dict(self, data, ignore_auth=False):
         rv = b""
         for k, v in data.items():
             if ignore_auth and k == b"_auth":
@@ -63,13 +63,13 @@ class rndc:
             if isinstance(v, bytes):
                 rv += struct.pack(">BI", 1, len(v)) + v
             elif isinstance(v, dict):
-                sd = self.__serialize_dict(v)
+                sd = self._serialize_dict(v)
                 rv += struct.pack(">BI", 2, len(sd)) + sd
             else:
                 raise NotImplementedError(f"Cannot serialize element of type {type(v)}")
         return rv
 
-    def __prep_message(self, data):
+    def _prep_message(self, data):
         self.ser += 1
         now = int(time.time())
 
@@ -83,29 +83,29 @@ class rndc:
             d[b"_ctrl"][b"_nonce"] = self.nonce
         d[b"_data"] = data
 
-        msg = self.__serialize_dict(d, ignore_auth=True)
-        hash = hmac.new(self.secret, msg, self.hlalgo).digest()
-        bhash = base64.b64encode(hash)
+        msg = self._serialize_dict(d, ignore_auth=True)
+        digest = hmac.new(self.secret, msg, self.hlalgo).digest()
+        bhash = base64.b64encode(digest)
         if self.algo == "md5":
             d[b"_auth"][b"hmd5"] = struct.pack("22s", bhash)
         else:
-            d[b"_auth"][b"hsha"] = struct.pack("B88s", self.__algos[self.algo], bhash)
-        msg = self.__serialize_dict(d)
+            d[b"_auth"][b"hsha"] = struct.pack("B88s", self._algos[self.algo], bhash)
+        msg = self._serialize_dict(d)
         msg = struct.pack(">II", len(msg) + 4, 1) + msg
         return msg
 
-    def __verify_msg(self, msg):
+    def _verify_msg(self, msg):
         if self.nonce is not None and msg[b"_ctrl"][b"_nonce"] != self.nonce:
             return False
         bhash = msg[b"_auth"][b"hmd5" if self.algo == "md5" else b"hsha"]
         bhash += b"=" * (4 - (len(bhash) % 4))
         remote_hash = base64.b64decode(bhash)
-        my_msg = self.__serialize_dict(msg, ignore_auth=True)
+        my_msg = self._serialize_dict(msg, ignore_auth=True)
         my_hash = hmac.new(self.secret, my_msg, self.hlalgo).digest()
         return my_hash == remote_hash
 
-    def __command(self, data):
-        msg = self.__prep_message(data)
+    def _command(self, data):
+        msg = self._prep_message(data)
         sent = self.socket.send(msg)
         if sent != len(msg):
             raise OSError("Cannot send the message")
@@ -125,47 +125,47 @@ class rndc:
         if len(data) != length:
             raise OSError("Can't read response data")
 
-        msg = self.__parse_message(data)
-        if not self.__verify_msg(msg):
+        msg = self._parse_message(data)
+        if not self._verify_msg(msg):
             raise OSError("Authentication failure")
 
         return msg
 
-    def __connect_login(self):
+    def _connect_login(self):
         self.socket = socket.create_connection(self.host)
         self.nonce = None
-        msg = self.__command({b"type": b"null"})
+        msg = self._command({b"type": b"null"})
         self.nonce = msg[b"_ctrl"][b"_nonce"]
 
-    def __parse_element(self, input):
+    def _parse_element(self, buf):
         pos = 0
-        labellen = input[pos]
+        labellen = buf[pos]
         pos += 1
-        label = input[pos : pos + labellen]
+        label = buf[pos : pos + labellen]
         pos += labellen
-        type = input[pos]
+        etype = buf[pos]
         pos += 1
-        datalen = struct.unpack(">I", input[pos : pos + 4])[0]
+        datalen = struct.unpack(">I", buf[pos : pos + 4])[0]
         pos += 4
-        data = input[pos : pos + datalen]
+        data = buf[pos : pos + datalen]
         pos += datalen
-        rest = input[pos:]
+        rest = buf[pos:]
 
-        if type == 1:  # raw binary value
+        if etype == 1:  # raw binary value
             return label, data, rest
-        elif type == 2:  # dictionary
+        elif etype == 2:  # dictionary
             d = {}
             while len(data) > 0:
-                ilabel, value, data = self.__parse_element(data)
+                ilabel, value, data = self._parse_element(data)
                 d[ilabel] = value
             return label, d, rest
         # TODO type 3 - list
         else:
-            raise NotImplementedError(f"Unknown element type {type}")
+            raise NotImplementedError(f"Unknown element type {etype}")
 
-    def __parse_message(self, input):
+    def _parse_message(self, buf):
         rv = {}
-        while len(input) > 0:
-            label, value, input = self.__parse_element(input)
+        while len(buf) > 0:
+            label, value, buf = self._parse_element(buf)
             rv[label] = value
         return rv
