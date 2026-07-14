@@ -522,6 +522,45 @@ ISC_RUN_TEST_IMPL(tsig_delete) {
 	tsig_delete(true);
 }
 
+ISC_RUN_TEST_IMPL(tsig_maxkeys) {
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname = dns_fixedname_initname(&fkeyname);
+	dns_tsigkeyring_t *ring = NULL;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	assert_non_null(ring);
+
+	/*
+	 * Insert more than the the maximum allowed generated keys. When full,
+	 * the last created key should be findable, i.e. not evicted.
+	 */
+	for (size_t i = 0; i < DNS_TSIG_MAXGENERATEDKEYS + 1; i++) {
+		char str[32];
+		isc_result_t result;
+
+		snprintf(str, sizeof(str), "tsig-key-%zu", i);
+		result = dns_name_fromstring(keyname, str, dns_rootname, 0,
+					     NULL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		/* Add a new key. */
+		dns_tsigkey_t *key = NULL;
+		result = dns_tsigkey_createfromkey(keyname, DST_ALG_HMACSHA256,
+						   NULL, true, false, NULL, 0,
+						   0, isc_g_mctx, &key);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		result = dns_tsigkeyring_add(ring, key);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_tsigkey_detach(&key);
+
+		/* Find the newly created key. */
+		result = dns_tsigkey_find(&key, keyname, NULL, ring);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_tsigkey_detach(&key);
+	}
+
+	dns_tsigkeyring_detach(&ring);
+}
+
 /* Tests the dns__tsig_algvalid function */
 ISC_RUN_TEST_IMPL(algvalid) {
 	UNUSED(state);
@@ -543,6 +582,7 @@ ISC_TEST_ENTRY(tsig_badsig)
 ISC_TEST_ENTRY(tsig_badtime)
 ISC_TEST_ENTRY(tsig_delete)
 ISC_TEST_ENTRY(tsig_tcp)
+ISC_TEST_ENTRY(tsig_maxkeys)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
