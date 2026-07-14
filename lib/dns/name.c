@@ -981,6 +981,8 @@ dns_name_totext(const dns_name_t *name, unsigned int options,
 	bool saw_root = false;
 	unsigned int oused;
 	bool omit_final_dot = ((options & DNS_NAME_OMITFINALDOT) != 0);
+	bool minimal = ((options & DNS_NAME_QUOTED) != 0);
+	bool principal = ((options & DNS_NAME_PRINCIPAL) != 0);
 	bool first = true;
 
 	/*
@@ -1047,16 +1049,19 @@ dns_name_totext(const dns_name_t *name, unsigned int options,
 				/* Special modifiers in zone files. */
 				case 0x40: /* '@' */
 				case 0x24: /* '$' */
-					if ((options & DNS_NAME_PRINCIPAL) != 0)
-					{
+					if (principal) {
+						goto no_escape;
+					}
+					FALLTHROUGH;
+				case 0x28: /* '(' */
+				case 0x29: /* ')' */
+				case 0x3B: /* ';' */
+					if (minimal) {
 						goto no_escape;
 					}
 					FALLTHROUGH;
 				case 0x22: /* '"' */
-				case 0x28: /* '(' */
-				case 0x29: /* ')' */
 				case 0x2E: /* '.' */
-				case 0x3B: /* ';' */
 				case 0x5C: /* '\\' */
 					value = '\\' << 8 | c;
 					CHECK(isc_buffer_reserve(target, 2));
@@ -1066,7 +1071,9 @@ dns_name_totext(const dns_name_t *name, unsigned int options,
 					break;
 				no_escape:
 				default:
-					if (c > 0x20 && c < 0x7f) {
+					if ((c > 0x20 && c < 0x7f) ||
+					    (c == 0x20 && minimal))
+					{
 						CHECK(isc_buffer_reserve(target,
 									 1));
 						isc_buffer_putuint8(target, c);

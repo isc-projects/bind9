@@ -18,10 +18,15 @@ import pytest
 
 import isctest
 
-INJECTION = (
-    'backdoor" { algorithm hmac-sha256; '
-    'secret "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; }; key "rndc-key'
+INJECTION = 'backdoor"{algorithm hmac-sha256;secret "AAAA";};key "rndc-key'
+
+ESCAPED_KEY = (
+    b'key "backdoor\\"{algorithm hmac-sha256;secret \\"AAAA\\";};key \\"rndc-key"'
 )
+
+ESCAPED_PART = b'backdoor\\"{algorithm hmac-sha256;secret \\"AAAA\\";};key \\"rndc-key'
+
+TOO_BIG_LABEL = "key012345678901234567890123456789012345678901234567890123456789X"
 
 
 def test_rndc_confgen_default():
@@ -34,9 +39,14 @@ def test_rndc_confgen_keyname_with_dots():
     assert b'key "key.example.com" {' in cmd.proc.stdout
 
 
-def test_rndc_confgen_rejects_injection():
+def test_rndc_confgen_escapes_injection():
+    cmd = isctest.run.cmd([os.environ["RNDCCONFGEN"], "-k", INJECTION])
+    assert ESCAPED_KEY in cmd.proc.stdout
+
+
+def test_rndc_confgen_rejects_to_big_label():
     with pytest.raises(subprocess.CalledProcessError):
-        isctest.run.cmd([os.environ["RNDCCONFGEN"], "-k", INJECTION])
+        isctest.run.cmd([os.environ["RNDCCONFGEN"], "-k", TOO_BIG_LABEL])
 
 
 def test_tsig_keygen_default():
@@ -44,9 +54,9 @@ def test_tsig_keygen_default():
     assert b'key "tsig-key" {' in cmd.proc.stdout
 
 
-def test_tsig_keygen_rejects_injection_positional():
-    with pytest.raises(subprocess.CalledProcessError):
-        isctest.run.cmd([os.environ["TSIGKEYGEN"], INJECTION])
+def test_tsig_keygen_escapes_injection():
+    cmd = isctest.run.cmd([os.environ["TSIGKEYGEN"], INJECTION])
+    assert ESCAPED_KEY in cmd.proc.stdout
 
 
 DDNSCONFGEN = "./ddns-confgen"
@@ -66,9 +76,9 @@ def test_ddns_confgen_default():
         ["-s", INJECTION],
     ],
 )
-def test_ddns_confgen_rejects_injection(args):
-    with pytest.raises(subprocess.CalledProcessError):
-        isctest.run.cmd([DDNSCONFGEN, "-q", *args])
+def test_ddns_confgen_escapes_injection(args):
+    cmd = isctest.run.cmd([DDNSCONFGEN, "-q", *args])
+    assert ESCAPED_PART in cmd.proc.stdout
 
 
 def _extract_secret(stdout: bytes) -> bytes:
