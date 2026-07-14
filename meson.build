@@ -643,6 +643,21 @@ else
     config.set('HAVE_OPENSSL_3', false)
     config.set('OPENSSL_API_COMPAT', 10100)
 
+    have_openssl_aead_h = cc.has_header('openssl/aead.h', dependencies: openssl_dep)
+    config.set('HAVE_OPENSSL_AEAD_H', have_openssl_aead_h)
+    if have_openssl_aead_h
+        config.set('HAVE_EVP_AEAD_CTX_NEW', true)
+    else
+        config.set(
+            'HAVE_EVP_AEAD_CTX_NEW',
+            cc.has_function(
+                'EVP_AEAD_CTX_new',
+                dependencies: openssl_dep,
+                prefix: '#include <openssl/evp.h>',
+            ),
+        )
+    endif
+
     config.set(
         'HAVE_FIPS_MODE',
         cc.has_function(
@@ -669,12 +684,18 @@ foreach fn, header : {
     'BIO_write_ex': '#include <openssl/bio.h>',
     'EVP_PKEY_eq': '#include <openssl/evp.h>',
     'SSL_CTX_set1_cert_store': '#include <openssl/ssl.h>',
+    'CRYPTO_chacha_20': '#include <openssl/chacha.h>',
 }
     config.set10(
         'HAVE_@0@'.format(fn.to_upper()),
         cc.has_function(fn, dependencies: openssl_dep, prefix: header),
     )
 endforeach
+
+config.set(
+    'HAVE_OPENSSL_HKDF_H',
+    cc.has_header('openssl/hkdf.h', dependencies: openssl_dep),
+)
 
 ## libuv
 uv_dep = dependency('libuv', version: '>=1.34.0')

@@ -14,6 +14,7 @@ isc_test = [
     'async',
     'buffer',
     'counter',
+    'crypto',
     'dnsstream_utils',
     'errno',
     'file',
