@@ -13,6 +13,8 @@
 This module implements the RNDC control protocol.
 """
 
+from typing import Any
+
 import base64
 import hashlib
 import hmac
@@ -34,7 +36,7 @@ class rndc:
         "sha512": 165,
     }
 
-    def __init__(self, host, algo, secret):
+    def __init__(self, host: tuple[str, int], algo: str, secret: str) -> None:
         """Creates a persistent connection to RNDC and logs in
         host - (ip, port) tuple
         algo - HMAC algorithm, one of md5, sha1, sha224, sha256, sha384, sha512
@@ -44,16 +46,18 @@ class rndc:
         self.hlalgo = getattr(hashlib, algo)
         self.secret = base64.b64decode(secret)
         self.ser = random.randint(0, 1 << 24)
-        self.nonce = None
+        self.nonce: bytes | None = None
         self._connect_login()
 
-    def call(self, cmd):
+    def call(self, cmd: bytes) -> dict[bytes, bytes]:
         """Call a RNDC command, all parsing is done on the server side
         cmd - a complete command as bytes (eg b'reload zone example.com')
         """
         return dict(self._command({b"type": cmd})[b"_data"])
 
-    def _serialize_dict(self, data, ignore_auth=False):
+    def _serialize_dict(
+        self, data: dict[bytes, Any], ignore_auth: bool = False
+    ) -> bytes:
         rv = b""
         for k, v in data.items():
             if ignore_auth and k == b"_auth":
@@ -69,11 +73,11 @@ class rndc:
                 raise NotImplementedError(f"Cannot serialize element of type {type(v)}")
         return rv
 
-    def _prep_message(self, data):
+    def _prep_message(self, data: dict[bytes, Any]) -> bytes:
         self.ser += 1
         now = int(time.time())
 
-        d = {}
+        d: dict[bytes, Any] = {}
         d[b"_auth"] = {}
         d[b"_ctrl"] = {}
         d[b"_ctrl"][b"_ser"] = b"%d" % self.ser
@@ -94,7 +98,7 @@ class rndc:
         msg = struct.pack(">II", len(msg) + 4, 1) + msg
         return msg
 
-    def _verify_msg(self, msg):
+    def _verify_msg(self, msg: dict[bytes, Any]) -> bool:
         if self.nonce is not None and msg[b"_ctrl"][b"_nonce"] != self.nonce:
             return False
         bhash = msg[b"_auth"][b"hmd5" if self.algo == "md5" else b"hsha"]
@@ -104,7 +108,7 @@ class rndc:
         my_hash = hmac.new(self.secret, my_msg, self.hlalgo).digest()
         return my_hash == remote_hash
 
-    def _command(self, data):
+    def _command(self, data: dict[bytes, Any]) -> dict[bytes, Any]:
         msg = self._prep_message(data)
         sent = self.socket.send(msg)
         if sent != len(msg):
@@ -121,23 +125,23 @@ class rndc:
 
         # it includes the header
         length -= 4
-        data = self.socket.recv(length, socket.MSG_WAITALL)
-        if len(data) != length:
+        payload = self.socket.recv(length, socket.MSG_WAITALL)
+        if len(payload) != length:
             raise OSError("Can't read response data")
 
-        msg = self._parse_message(data)
-        if not self._verify_msg(msg):
+        response = self._parse_message(payload)
+        if not self._verify_msg(response):
             raise OSError("Authentication failure")
 
-        return msg
+        return response
 
-    def _connect_login(self):
+    def _connect_login(self) -> None:
         self.socket = socket.create_connection(self.host)
         self.nonce = None
         msg = self._command({b"type": b"null"})
         self.nonce = msg[b"_ctrl"][b"_nonce"]
 
-    def _parse_element(self, buf):
+    def _parse_element(self, buf: bytes) -> tuple[bytes, Any, bytes]:
         pos = 0
         labellen = buf[pos]
         pos += 1
@@ -154,7 +158,7 @@ class rndc:
         if etype == 1:  # raw binary value
             return label, data, rest
         elif etype == 2:  # dictionary
-            d = {}
+            d: dict[bytes, Any] = {}
             while len(data) > 0:
                 ilabel, value, data = self._parse_element(data)
                 d[ilabel] = value
@@ -163,8 +167,8 @@ class rndc:
         else:
             raise NotImplementedError(f"Unknown element type {etype}")
 
-    def _parse_message(self, buf):
-        rv = {}
+    def _parse_message(self, buf: bytes) -> dict[bytes, Any]:
+        rv: dict[bytes, Any] = {}
         while len(buf) > 0:
             label, value, buf = self._parse_element(buf)
             rv[label] = value
