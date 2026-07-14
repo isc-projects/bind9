@@ -23,9 +23,47 @@ import socket
 import struct
 import time
 
+from .text import Text
 
-class rndc:
-    """RNDC protocol client library"""
+
+class RNDCException(Exception):
+    """
+    Raised when an RNDC command returns a non-zero result code.
+    """
+
+    def __init__(self, result: "RNDCResult") -> None:
+        super().__init__(f'rndc command failed with result {result.rc}: "{result.err}"')
+        self.result = result
+
+
+class RNDCProtocolError(Exception):
+    """
+    Raised when the control channel yields a truncated, malformed, or
+    unauthenticated response.
+    """
+
+
+class RNDCResult:
+    """
+    Result of an RNDC command; mirrors isctest.run.CmdResult.
+    """
+
+    def __init__(self, response: dict[str, str]) -> None:
+        self.response = response
+        self.rc = int(response.get("result", "0"))
+        self.out = Text(response.get("text", ""))
+        self.err = Text(response.get("err", ""))
+
+
+class RNDCClient:
+    """
+    RNDC protocol client.
+
+    A pure-Python alternative to controlling a server with the rndc
+    binary (`NamedInstance.rndc()`), useful when the overhead of
+    spawning the binary for every command is undesirable. Exercising
+    the rndc binary itself remains the primary interface in tests.
+    """
 
     _algos = {
         "md5": 157,
@@ -36,24 +74,55 @@ class rndc:
         "sha512": 165,
     }
 
-    def __init__(self, host: tuple[str, int], algo: str, secret: str) -> None:
-        """Creates a persistent connection to RNDC and logs in
-        host - (ip, port) tuple
+    def __init__(
+        self,
+        ip: str,
+        port: int,
+        algo: str = "sha256",
+        secret: str = "1234abcd8765",
+        timeout: float = 10,
+    ) -> None:
+        """
+        Creates a persistent connection to the control channel and logs in.
+
         algo - HMAC algorithm, one of md5, sha1, sha224, sha256, sha384, sha512
-        secret - HMAC secret, base64 encoded"""
-        self.host = host
+        secret - HMAC secret, base64 encoded
+
+        The `algo` and `secret` defaults match _common/rndc.key, which
+        virtually all named instances in the system tests use for their
+        control channel.
+        """
         self.algo = algo
         self.hlalgo = getattr(hashlib, algo)
         self.secret = base64.b64decode(secret)
-        self.ser = random.randint(0, 1 << 24)
+        self.ser = random.getrandbits(32)
         self.nonce: bytes | None = None
-        self._connect_login()
+        self.socket = socket.create_connection((ip, port), timeout=timeout)
+        try:
+            self._login()
+        except (OSError, RNDCProtocolError):
+            self.socket.close()
+            raise
 
-    def call(self, cmd: bytes) -> dict[bytes, bytes]:
-        """Call a RNDC command, all parsing is done on the server side
-        cmd - a complete command as bytes (eg b'reload zone example.com')
+    def __enter__(self) -> "RNDCClient":
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        self.close()
+
+    def close(self) -> None:
+        self.socket.close()
+
+    def call(self, command: str, *, raise_on_exception: bool = True) -> RNDCResult:
         """
-        return dict(self._command({b"type": cmd})[b"_data"])
+        Call an RNDC command and check its result.
+        """
+        response = self._command({b"type": command.encode()})
+        data = {k.decode(): v.decode() for k, v in response[b"_data"].items()}
+        result = RNDCResult(data)
+        if result.rc != 0 and raise_on_exception:
+            raise RNDCException(result)
+        return result
 
     def _serialize_dict(
         self, data: dict[bytes, Any], ignore_auth: bool = False
@@ -74,7 +143,7 @@ class rndc:
         return rv
 
     def _prep_message(self, data: dict[bytes, Any]) -> bytes:
-        self.ser += 1
+        self.ser = (self.ser + 1) & 0xFFFFFFFF
         now = int(time.time())
 
         d: dict[bytes, Any] = {}
@@ -108,38 +177,55 @@ class rndc:
         my_hash = hmac.new(self.secret, my_msg, self.hlalgo).digest()
         return my_hash == remote_hash
 
+    def _recv_exact(self, length: int) -> bytes:
+        # MSG_WAITALL would not help here: the socket timeout puts the
+        # socket in non-blocking mode, where the kernel may return
+        # partial data regardless of the flag.
+        buf = b""
+        while len(buf) < length:
+            chunk = self.socket.recv(length - len(buf))
+            if not chunk:
+                raise RNDCProtocolError(
+                    "connection closed mid-response; possible authentication failure"
+                )
+            buf += chunk
+        return buf
+
     def _command(self, data: dict[bytes, Any]) -> dict[bytes, Any]:
         msg = self._prep_message(data)
-        sent = self.socket.send(msg)
-        if sent != len(msg):
-            raise OSError("Cannot send the message")
+        self.socket.sendall(msg)
 
-        header = self.socket.recv(8)
-        if len(header) != 8:
-            # What should we throw here? Bad auth can cause this...
-            raise OSError("Can't read response header")
-
+        header = self._recv_exact(8)
         length, version = struct.unpack(">II", header)
         if version != 1:
-            raise NotImplementedError(f"Wrong message version {version}")
+            raise RNDCProtocolError(f"Unsupported message version {version}")
 
-        # it includes the header
-        length -= 4
-        payload = self.socket.recv(length, socket.MSG_WAITALL)
-        if len(payload) != length:
-            raise OSError("Can't read response data")
+        # the length field also covers the 4-byte version word
+        payload = self._recv_exact(length - 4)
 
-        response = self._parse_message(payload)
-        if not self._verify_msg(response):
-            raise OSError("Authentication failure")
+        try:
+            response = self._parse_dict(payload)
+            verified = self._verify_msg(response)
+        except (
+            KeyError,
+            IndexError,
+            ValueError,
+            struct.error,
+            NotImplementedError,
+        ) as exc:
+            raise RNDCProtocolError(f"Malformed response ({exc})") from exc
+        if not verified:
+            raise RNDCProtocolError("HMAC verification of the response failed")
 
         return response
 
-    def _connect_login(self) -> None:
-        self.socket = socket.create_connection(self.host)
+    def _login(self) -> None:
         self.nonce = None
         msg = self._command({b"type": b"null"})
-        self.nonce = msg[b"_ctrl"][b"_nonce"]
+        try:
+            self.nonce = msg[b"_ctrl"][b"_nonce"]
+        except KeyError as exc:
+            raise RNDCProtocolError("Login response is missing a nonce") from exc
 
     def _parse_element(self, buf: bytes) -> tuple[bytes, Any, bytes]:
         pos = 0
@@ -157,17 +243,12 @@ class rndc:
 
         if etype == 1:  # raw binary value
             return label, data, rest
-        elif etype == 2:  # dictionary
-            d: dict[bytes, Any] = {}
-            while len(data) > 0:
-                ilabel, value, data = self._parse_element(data)
-                d[ilabel] = value
-            return label, d, rest
-        # TODO type 3 - list
-        else:
-            raise NotImplementedError(f"Unknown element type {etype}")
+        if etype == 2:  # dictionary
+            return label, self._parse_dict(data), rest
+        # element type 3 (list) is not implemented
+        raise NotImplementedError(f"Unknown element type {etype}")
 
-    def _parse_message(self, buf: bytes) -> dict[bytes, Any]:
+    def _parse_dict(self, buf: bytes) -> dict[bytes, Any]:
         rv: dict[bytes, Any] = {}
         while len(buf) > 0:
             label, value, buf = self._parse_element(buf)
