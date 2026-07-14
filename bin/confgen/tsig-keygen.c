@@ -87,6 +87,7 @@ main(int argc, char **argv) {
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
 	isc_mem_t *mctx = NULL;
+	char namebuf[DNS_NAME_FORMATSIZE];
 	const char *keyname = NULL;
 	const char *zone = NULL;
 	const char *self_domain = NULL;
@@ -230,6 +231,8 @@ main(int argc, char **argv) {
 		}
 	}
 
+	makesafe_keyname(keyname, namebuf, sizeof(namebuf));
+
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(mctx, alg, keysize, &key_txtbuffer);
@@ -246,7 +249,7 @@ key \"%s\" {\n\
 	algorithm %s;\n\
 	secret \"%.*s\";\n\
 };\n",
-	       keyname, algname, (int)isc_buffer_usedlength(&key_txtbuffer),
+	       namebuf, algname, (int)isc_buffer_usedlength(&key_txtbuffer),
 	       (char *)isc_buffer_base(&key_txtbuffer));
 
 	if (!quiet) {
@@ -258,7 +261,7 @@ key \"%s\" {\n\
 update-policy {\n\
 	  grant %s name %s ANY;\n\
 };\n",
-			       self_domain, keyname, self_domain);
+			       self_domain, namebuf, self_domain);
 		} else if (zone != NULL) {
 			printf("\n\
 # Then, in the \"zone\" definition statement for \"%s\",\n\
@@ -267,7 +270,7 @@ update-policy {\n\
 update-policy {\n\
 	  grant %s zonesub ANY;\n\
 };\n",
-			       zone, keyname);
+			       zone, namebuf);
 		} else {
 			printf("\n\
 # Then, in the \"zone\" statement for each zone you wish to dynamically\n\
@@ -277,7 +280,7 @@ update-policy {\n\
 update-policy {\n\
 	grant %s zonesub ANY;\n\
 };\n",
-			       keyname);
+			       namebuf);
 		}
 
 		printf("\n\
