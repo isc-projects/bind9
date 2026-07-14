@@ -13,13 +13,13 @@
 This module implements the RNDC control protocol.
 """
 
-import time
-import struct
+import base64
 import hashlib
 import hmac
-import base64
 import random
 import socket
+import struct
+import time
 
 
 class rndc:
