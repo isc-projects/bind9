@@ -1556,12 +1556,17 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, dns_tsigkey_t *tkey) {
 		 * delete the least recently used one.
 		 */
 		if (tkey->generated) {
-			ISC_SIEVE_INSERT(ring->lrulist, tkey, lrulink);
 			if (++ring->generated > DNS_TSIG_MAXGENERATEDKEYS) {
 				dns_tsigkey_t *key = ISC_SIEVE_NEXT(
 					ring->lrulist, visited, lrulink);
 				dns__tsigkey_delete(ring, key);
 			}
+			/*
+			 * Insert the new key AFTER any possible eviction, so
+			 * that the key is not evicted immediately after the
+			 * insertion.
+			 */
+			ISC_SIEVE_INSERT(ring->lrulist, tkey, lrulink);
 		}
 	}
 	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
