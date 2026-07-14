@@ -209,7 +209,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	return ISC_R_SUCCESS;
 }
 
-void
+isc_result_t
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix) {
 	isc_radix_node_t *node;
@@ -254,7 +254,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		radix->head = node;
 		radix->num_active_node++;
 		*target = node;
-		return;
+		return ISC_R_SUCCESS;
 	}
 
 	uint8_t *addr = isc_prefix_touint8(prefix);
@@ -328,7 +328,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 				}
 			}
 			*target = node;
-			return;
+			return ISC_R_EXISTS;
 		} else {
 			node->prefix = *prefix;
 		}
@@ -351,7 +351,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			node->node_num[ISC_RADIX_FAMILY(prefix)] = next;
 		}
 		*target = node;
-		return;
+		return ISC_R_EXISTS;
 	}
 
 	isc_radix_node_t *new_node = radix_node_create(radix->mctx, prefix,
@@ -390,7 +390,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			node->left = new_node;
 		}
 		*target = new_node;
-		return;
+		return ISC_R_SUCCESS;
 	}
 
 	if (bitlen == differ_bit) {
@@ -440,7 +440,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	}
 
 	*target = new_node;
-	return;
+	return ISC_R_SUCCESS;
 }
 
 void
