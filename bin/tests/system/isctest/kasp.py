@@ -18,7 +18,6 @@ from re import compile as Re
 import glob
 import os
 import re
-import time
 
 import dns.exception
 import dns.message
@@ -870,32 +869,30 @@ def check_keyrelationships(keys, expected):
 
 
 def check_dnssec_verify(server, zone, tsig=None):
-    # Check if zone if DNSSEC valid with dnssec-verify.
+    # Check if zone is DNSSEC valid with dnssec-verify.
     fqdn = f"{zone}."
 
-    verified = False
-    for _ in range(10):
+    def _verify_zone():
         transfer = _query(server, fqdn, dns.rdatatype.AXFR, tsig=tsig)
         if not isinstance(transfer, dns.message.Message):
             isctest.log.debug(f"no response for {fqdn} AXFR from {server.ip}")
-        elif transfer.rcode() != dns.rcode.NOERROR:
+            return False
+        if transfer.rcode() != dns.rcode.NOERROR:
             rcode = dns.rcode.to_text(transfer.rcode())
             isctest.log.debug(f"{rcode} response for {fqdn} AXFR from {server.ip}")
-        else:
-            zonefile = f"{zone}.axfr"
-            with open(zonefile, "w", encoding="utf-8") as file:
-                for rr in transfer.answer:
-                    file.write(rr.to_text())
-                    file.write("\n")
+            return False
 
-            verify_command = [os.environ.get("VERIFY"), "-z", "-o", fqdn, zonefile]
-            verified = isctest.run.cmd(verify_command, raise_on_exception=False)
-            if verified.rc == 0:
-                return
+        zonefile = f"{zone}.axfr"
+        with open(zonefile, "w", encoding="utf-8") as file:
+            for rr in transfer.answer:
+                file.write(rr.to_text())
+                file.write("\n")
 
-        time.sleep(1)
+        verify_command = [os.environ.get("VERIFY"), "-z", "-o", fqdn, zonefile]
+        verified = isctest.run.cmd(verify_command, raise_on_exception=False)
+        return verified.rc == 0
 
-    assert False, "zone not verified"
+    isctest.run.retry_with_timeout(_verify_zone, timeout=60, msg="zone not verified")
 
 
 def check_dnssecstatus(server, zone, keys, policy=None, view=None, verbose=False):
