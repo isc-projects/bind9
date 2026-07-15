@@ -1167,6 +1167,30 @@ if [ -x "$DIG" ]; then
     status=$((status + ret))
   fi
 
+  # +nocmd placed after the query name must suppress the startup banner
+  # ("<<>> DiG ..." lines), including on the error path.  This regressed
+  # because the banner was built as soon as the query name was seen, before
+  # +nocmd had been parsed; it is now built after the whole command line has
+  # been processed.  The default (+cmd) case is checked first so the absence
+  # check below is meaningful.
+  n=$((n + 1))
+  echo_i "check that dig prints the startup banner by default ($n)"
+  ret=0
+  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 >dig.out.test$n 2>&1 && ret=1
+  grep -F "<<>> DiG" dig.out.test$n >/dev/null || ret=1
+  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check that dig +nocmd after the query name suppresses the startup banner ($n)"
+  ret=0
+  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +nocmd >dig.out.test$n 2>&1 && ret=1
+  grep -F "<<>> DiG" dig.out.test$n >/dev/null && ret=1
+  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
   n=$((n + 1))
   echo_i "check that dig +bufsize=0 just sets the buffer size to 0 ($n)"
   ret=0
