@@ -1229,6 +1229,23 @@ if [ -x "$DIG" ]; then
     [ "$value" = "d.example. 300 IN AAAA fd92:7065:b8e:ffff::0" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
+
+    # When all servers fail (here: a UDP query that times out with no
+    # response), dig must not emit the ";"-prefixed startup banner ahead of
+    # the "- type: DIG_ERROR" block, as that would make the +yaml output
+    # invalid YAML.  The query name is deliberately placed before +yaml on the
+    # command line: that is what makes dig build the banner (while +cmd is
+    # still in effect) before switching to YAML output, which is the ordering
+    # that regressed.
+    n=$((n + 1))
+    echo_i "check that dig +yaml produces valid YAML when no servers could be reached ($n)"
+    ret=0
+    dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +yaml >dig.out.test$n 2>&1 && ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 type >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "DIG_ERROR" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
   fi
 
   n=$((n + 1))

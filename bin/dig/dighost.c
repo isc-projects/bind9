@@ -3308,6 +3308,17 @@ try_next_server(dig_lookup_t *lookup) {
 	return true;
 }
 
+/*
+ * Print the lookup's startup banner.  It is skipped in +yaml mode, where
+ * the ";"-prefixed banner is not valid YAML and would corrupt the output.
+ */
+static void
+print_cmdline(const dig_lookup_t *l) {
+	if (!yaml) {
+		printf("%s", l->cmdline);
+	}
+}
+
 static void
 force_next(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
@@ -3350,7 +3361,7 @@ force_next(dig_query_t *query) {
 
 		dighost_error("no response from %s", buf);
 	} else {
-		printf("%s", l->cmdline);
+		print_cmdline(l);
 		dighost_error("no servers could be reached");
 	}
 
@@ -4018,7 +4029,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			 * Otherwise, print the cmdline and an error message,
 			 * and cancel the lookup.
 			 */
-			printf("%s", l->cmdline);
+			print_cmdline(l);
 			dighost_error("no servers could be reached");
 
 			if (exitcode < 9) {
