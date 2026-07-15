@@ -2627,8 +2627,8 @@ static const char *single_dash_opts = "46dFhimnruv";
 static const char *dash_opts = "46bcdFfhikmnpqrtvyx";
 static bool
 dash_option(char *option, char *next, dig_lookup_t **lookup,
-	    bool *open_type_class, bool *need_clone, bool config_only, int argc,
-	    char **argv, bool *firstarg) {
+	    bool *open_type_class, bool *need_clone, bool config_only,
+	    bool *added_lookup) {
 	char opt, *value, *ptr, *ptr2, *ptr3, *last;
 	isc_result_t result;
 	bool value_from_next;
@@ -2799,10 +2799,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			(*lookup)->trace_root = ((*lookup)->trace ||
 						 (*lookup)->ns_search_only);
 			(*lookup)->new_search = true;
-			if (*firstarg) {
-				printgreeting(argc, argv, *lookup);
-				*firstarg = false;
-			}
+			*added_lookup = true;
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 			debug("looking up %s", (*lookup)->textname);
 		}
@@ -2910,10 +2907,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				(*lookup)->rdclass = dns_rdataclass_in;
 			}
 			(*lookup)->new_search = true;
-			if (*firstarg) {
-				printgreeting(argc, argv, *lookup);
-				*firstarg = false;
-			}
+			*added_lookup = true;
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
@@ -3032,8 +3026,9 @@ static void
 parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 	isc_result_t result;
 	isc_textregion_t tr;
-	bool firstarg = true;
+	bool added_lookup = false;
 	dig_lookup_t *lookup = NULL;
+	dig_lookup_t *last_existing_lookup = ISC_LIST_TAIL(lookup_list);
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	bool open_type_class = true;
@@ -3146,8 +3141,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL, &lookup,
 						&open_type_class, &need_clone,
-						config_only, argc, argv,
-						&firstarg))
+						config_only, &added_lookup))
 				{
 					rc--;
 					rv++;
@@ -3155,8 +3149,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 			} else {
 				if (dash_option(&rv[0][1], rv[1], &lookup,
 						&open_type_class, &need_clone,
-						config_only, argc, argv,
-						&firstarg))
+						config_only, &added_lookup))
 				{
 					rc--;
 					rv++;
@@ -3260,15 +3253,32 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 				lookup->trace_root = (lookup->trace ||
 						      lookup->ns_search_only);
 				lookup->new_search = true;
-				if (firstarg) {
-					printgreeting(argc, argv, lookup);
-					firstarg = false;
-				}
+				added_lookup = true;
 				ISC_LIST_APPEND(lookup_list, lookup, link);
 				debug("looking up %s", lookup->textname);
 			}
 			/* XXX Error message */
 		}
+	}
+
+	/*
+	 * The whole command line has now been parsed, so every option is in
+	 * its final state.  Build the greeting only now: deferring it until
+	 * here is what lets the banner reflect options such as +[no]cmd,
+	 * +short and +yaml that may follow the query name on the command line.
+	 *
+	 * The greeting belongs to the first lookup this call appended.  Because
+	 * lookup_list is global and may already hold lookups on entry (e.g.
+	 * "dig foo -f batchfile" queues "foo" before the batch file's first
+	 * line is parsed), that first lookup is the one right after
+	 * last_existing_lookup, or the list head if the list was empty.
+	 */
+	if (added_lookup) {
+		dig_lookup_t *greeting =
+			(last_existing_lookup != NULL)
+				? ISC_LIST_NEXT(last_existing_lookup, link)
+				: ISC_LIST_HEAD(lookup_list);
+		printgreeting(argc, argv, greeting);
 	}
 
 	/*
@@ -3321,10 +3331,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 		strlcpy(lookup->textname, ".", sizeof(lookup->textname));
 		lookup->rdtype = dns_rdatatype_ns;
 		lookup->rdtypeset = true;
-		if (firstarg) {
-			printgreeting(argc, argv, lookup);
-			firstarg = false;
-		}
+		printgreeting(argc, argv, lookup);
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 	if (!need_clone) {
