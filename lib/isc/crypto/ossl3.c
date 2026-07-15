@@ -533,10 +533,13 @@ isc_crypto_aead_seal(isc_crypto_aead_t *aead, isc_constregion_t nonce,
 		CLEANUP(ISC_R_CRYPTOFAILURE);
 	}
 
-	if (EVP_EncryptUpdate(aead, NULL, &len, additional_data.base,
-			      additional_data.length) != 1)
-	{
-		CLEANUP(ISC_R_CRYPTOFAILURE);
+	if (additional_data.base != NULL) {
+		INSIST(additional_data.length != 0);
+		if (EVP_EncryptUpdate(aead, NULL, &len, additional_data.base,
+				      additional_data.length) != 1)
+		{
+			CLEANUP(ISC_R_CRYPTOFAILURE);
+		}
 	}
 
 	len = out.length;
@@ -599,10 +602,13 @@ isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
 		CLEANUP(ISC_R_CRYPTOFAILURE);
 	}
 
-	if (EVP_DecryptUpdate(aead, NULL, &len, additional_data.base,
-			      additional_data.length) != 1)
-	{
-		CLEANUP(ISC_R_CRYPTOFAILURE);
+	if (additional_data.base != NULL) {
+		INSIST(additional_data.length != 0);
+		if (EVP_DecryptUpdate(aead, NULL, &len, additional_data.base,
+				      additional_data.length) != 1)
+		{
+			CLEANUP(ISC_R_CRYPTOFAILURE);
+		}
 	}
 
 	len = out.length;
