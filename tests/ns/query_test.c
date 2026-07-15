@@ -761,23 +761,10 @@ hook_async_query_notfound_begin(void *arg, void *data, isc_result_t *resultp) {
 }
 
 static ns_hookresult_t
-hook_async_query_prep_delegation_begin(void *arg, void *data,
-				       isc_result_t *resultp) {
-	return hook_async_common(arg, data, resultp,
-				 NS_QUERY_PREP_DELEGATION_BEGIN);
-}
-
-static ns_hookresult_t
 hook_async_query_zone_delegation_begin(void *arg, void *data,
 				       isc_result_t *resultp) {
 	return hook_async_common(arg, data, resultp,
 				 NS_QUERY_ZONE_DELEGATION_BEGIN);
-}
-
-static ns_hookresult_t
-hook_async_query_delegation_begin(void *arg, void *data,
-				  isc_result_t *resultp) {
-	return hook_async_common(arg, data, resultp, NS_QUERY_DELEGATION_BEGIN);
 }
 
 static ns_hookresult_t
@@ -1087,28 +1074,10 @@ ISC_LOOP_TEST_IMPL(ns__query_hookasync) {
 			false,
 		},
 		{
-			NS_TEST_ID("async from prep delegation"),
-			NS_QUERY_PREP_DELEGATION_BEGIN,
-			NS_QUERY_PREP_DELEGATION_BEGIN,
-			hook_async_query_prep_delegation_begin,
-			ISC_R_SUCCESS,
-			true,
-			false,
-		},
-		{
 			NS_TEST_ID("async from zone delegation"),
 			NS_QUERY_ZONE_DELEGATION_BEGIN,
 			NS_QUERY_ZONE_DELEGATION_BEGIN,
 			hook_async_query_zone_delegation_begin,
-			ISC_R_SUCCESS,
-			true,
-			false,
-		},
-		{
-			NS_TEST_ID("async from delegation"),
-			NS_QUERY_DELEGATION_BEGIN,
-			NS_QUERY_DELEGATION_BEGIN,
-			hook_async_query_delegation_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
