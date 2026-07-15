@@ -98,7 +98,17 @@ fstrm_capture = find_program('fstrm_capture', required: false)
 git = find_program('git', required: false)
 jq = find_program('jq', required: false)
 nc = find_program('nc', required: false)
-python = find_program(['python3.12', 'python3.11', 'python3', 'python'], required: false)
+python = find_program(
+    [
+        'python3.14',
+        'python3.13',
+        'python3.12',
+        'python3.11',
+        'python3',
+        'python',
+    ],
+    required: false,
+)
 xmllint = find_program('xmllint', required: false)
 xsltproc = find_program('xsltproc', required: false)
 pytest = find_program(
