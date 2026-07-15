@@ -93,10 +93,10 @@ class TemplateEngine:
             data = {**self.env_vars, **data}
 
         # directory-specific "ns" var
-        assert "ns" not in data, '"ns" variable is reserved for nameserver data'
-        match = NS_DIR_RE.search(output)
-        if match:
-            data["ns"] = Nameserver(match.group(1))
+        if "ns" not in data:
+            match = NS_DIR_RE.search(output)
+            if match:
+                data["ns"] = Nameserver(match.group(1))
 
         debug("rendering template `%s` to file `%s`", template, output)
         stream = self.j2env.get_template(template).stream(data)
@@ -145,6 +145,7 @@ NS8 = Nameserver("ns8")
 NS9 = Nameserver("ns9")
 NS10 = Nameserver("ns10")
 NS11 = Nameserver("ns11")
+NO_NS = Nameserver(".", 0, "", "")
 
 
 @dataclass
