@@ -167,7 +167,8 @@ typedef struct dns_db_methods {
 	isc_result_t (*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
 	void (*addglue)(dns_db_t *db, dns_dbversion_t *version,
 			const dns_name_t *owner_name, dns_rdataset_t *rdataset,
-			dns_message_t *msg);
+			dns_message_t *msg, dns_clientinfomethods_t *methods,
+			dns_clientinfo_t *clientinfo);
 	void (*setmaxrrperset)(dns_db_t *db, uint32_t value);
 	void (*setmaxtypepername)(dns_db_t *db, uint32_t value);
 	isc_result_t (*getzoneversion)(dns_db_t *db, isc_buffer_t *b);
@@ -1747,7 +1748,8 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
 isc_result_t
 dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
 	       const dns_name_t *owner_name, dns_rdataset_t *rdataset,
-	       dns_message_t *msg);
+	       dns_message_t *msg, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo);
 /*%<
  * Add glue records for rdataset to the additional section of message in
  * 'msg'. 'rdataset' must be of type NS.
@@ -1758,6 +1760,8 @@ dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
  * \li	'owner_name' name of the rdataset.
  * \li	'rdataset' is a valid NS rdataset.
  * \li	'msg' is the DNS message to which the glue should be added.
+ * \li	'methods' and 'clientinfo', if non-NULL, provide client context for
+ *	database lookups used to find glue.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

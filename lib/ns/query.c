@@ -2142,6 +2142,8 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 	if (rdataset->type == dns_rdatatype_ns &&
 	    client->query.gluedb != NULL && dns_db_iszone(client->query.gluedb))
 	{
+		dns_clientinfomethods_t cm;
+		dns_clientinfo_t ci;
 		ns_dbversion_t *dbversion = NULL;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
@@ -2149,8 +2151,11 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 			goto regular;
 		}
 
+		dns_clientinfomethods_init(&cm, ns_client_sourceip);
+		dns_clientinfo_init(&ci, client, NULL);
+
 		result = dns_db_addglue(qctx->db, dbversion->version, name,
-					rdataset, client->message);
+					rdataset, client->message, &cm, &ci);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}

@@ -1044,7 +1044,8 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 isc_result_t
 dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
 	       const dns_name_t *owner_name, dns_rdataset_t *rdataset,
-	       dns_message_t *msg) {
+	       dns_message_t *msg, dns_clientinfomethods_t *methods,
+	       dns_clientinfo_t *clientinfo) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
@@ -1052,7 +1053,8 @@ dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 
 	if (db->methods->addglue != NULL) {
-		(db->methods->addglue)(db, version, owner_name, rdataset, msg);
+		(db->methods->addglue)(db, version, owner_name, rdataset, msg,
+					methods, clientinfo);
 
 		return ISC_R_SUCCESS;
 	}
