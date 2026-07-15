@@ -1745,7 +1745,7 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
  *	dns_rdatasetstats_create(); otherwise NULL.
  */
 
-isc_result_t
+void
 dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
 	       const dns_name_t *owner_name, dns_rdataset_t *rdataset,
 	       dns_message_t *msg, dns_clientinfomethods_t *methods,
@@ -1762,12 +1762,6 @@ dns_db_addglue(dns_db_t *db, dns_dbversion_t *version,
  * \li	'msg' is the DNS message to which the glue should be added.
  * \li	'methods' and 'clientinfo', if non-NULL, provide client context for
  *	database lookups used to find glue.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTIMPLEMENTED
- *\li	#ISC_R_FAILURE
- *\li	Any error that dns_rdata_additionaldata() can return.
  */
 
 void
