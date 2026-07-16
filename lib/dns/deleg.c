@@ -236,6 +236,11 @@ qplru_destroy(qplru_t *qplru) {
 }
 
 inline static bool
+isrootnode(delegdb_node_t *node) {
+	return dns_name_isroot(&node->zonecut);
+}
+
+inline static bool
 isactive(delegdb_node_t *node, dns_ttl_t now) {
 	return node->delegset->expires > now;
 }
@@ -248,7 +253,7 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
 		delegdb_node_t *parent = NULL;
 		dns_qpchain_node(chain, len - 2, (void **)&parent, NULL);
 
-		if (isactive(parent, now)) {
+		if (isactive(parent, now) || isrootnode(parent)) {
 			*node = parent;
 			return;
 		}
@@ -258,9 +263,11 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
 	/*
 	 * No active proper ancestor was found in the chain.  Signal
 	 * "no parent" so the caller does not mistake the original
-	 * matched node for an ancestor.
+	 * matched node for an ancestor. Except for root node.
 	 */
-	*node = NULL;
+	if (*node != NULL && !isrootnode(*node)) {
+		*node = NULL;
+	}
 }
 
 /*
@@ -310,7 +317,31 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 		getparentnode(&chain, &node, now);
 	}
 
-	if (node != NULL && isactive(node, now)) {
+	/*
+	 * The (non root) expired node will be replaced when the resolver
+	 * fetches a fresh delegation, so there is no need to schedule explicit
+	 * cleanup here.  Stale nodes that are never replaced will
+	 * eventually be evicted by the SIEVE policy under memory
+	 * pressure.
+	 */
+	if (node == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+
+	if (isrootnode(node)) {
+		dns_name_copy(&node->zonecut, zonecut);
+		INSIST(node->delegset);
+		dns_delegset_attach(node->delegset, delegsetp);
+
+		/*
+		 * The root delegation might be expired, but we still use it,
+		 * and return `DNS_R_EXPIRED` so the caller knows it needs to
+		 * run priming again.
+		 */
+		return isactive(node, now) ? ISC_R_SUCCESS : DNS_R_EXPIRED;
+	}
+
+	if (isactive(node, now)) {
 		dns_name_copy(&node->zonecut, zonecut);
 		INSIST(node->delegset);
 		dns_delegset_attach(node->delegset, delegsetp);
@@ -318,13 +349,6 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 		return ISC_R_SUCCESS;
 	}
 
-	/*
-	 * The expired node will be replaced when the resolver fetches
-	 * a fresh delegation, so there is no need to schedule explicit
-	 * cleanup here.  Stale nodes that are never replaced will
-	 * eventually be evicted by the SIEVE policy under memory
-	 * pressure.
-	 */
 	return ISC_R_NOTFOUND;
 }
 
@@ -539,7 +563,6 @@ static size_t
 delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 		     const dns_name_t *zonecut, dns_delegset_t *delegset,
 		     delegdb_node_t **nodep) {
-	ttl = normalize_ttl(delegdb, ttl);
 	delegset->expires = ttl + now;
 
 	isc_region_t zonecut_r = { 0 };
@@ -565,6 +588,26 @@ delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 	*nodep = node;
 
 	return delegdb_node_size(node);
+}
+
+static void
+insertroot(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
+	   dns_delegset_t *delegset) {
+	delegdb_node_t *node = NULL;
+	dns_qp_t *qp = NULL;
+
+	(void)delegdb_node_prepare(delegdb, now, ttl, dns_rootname, delegset,
+				   &node);
+
+	dns_qpmulti_write(delegdb->qplru->nodes, &qp);
+
+	(void)dns_qp_deletename(qp, dns_rootname, DNS_DBNAMESPACE_NORMAL, NULL,
+				NULL);
+	(void)dns_qp_insert(qp, node, 0);
+	delegdb_node_unref(node);
+
+	dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	dns_qpmulti_commit(delegdb->qplru->nodes, &qp);
 }
 
 isc_result_t
@@ -596,6 +639,19 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	LIBDNS_DELEGDB_INSERT_START(delegdb, zonecutbuf);
 
 	/*
+	 * The root zone cut has special handling: it can be proactively
+	 * replaced (even if not expired), and must not be part of the LRU
+	 * list. It is fine to skip the reclamation phase for this, as it is
+	 * really an edge case to have to replace it anyway, and it avoids
+	 * riddling the insertion code with specific root checks.
+	 */
+	if (dns_name_isroot(zonecut)) {
+		insertroot(delegdb, now, ttl, delegset);
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	/*
 	 * First, check (without write txn) if the node already exists and is
 	 * still valid.
 	 */
@@ -616,6 +672,7 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	 * clean up expired/least recently used delegation, then allocate and
 	 * initialize a new node.
 	 */
+	ttl = normalize_ttl(delegdb, ttl);
 	size_t requested = delegdb_node_prepare(delegdb, now, ttl, zonecut,
 						delegset, &node) +
 			   delegset_size(delegset);
@@ -778,7 +835,7 @@ deleg_tostring_addresses(dns_deleg_t *deleg, FILE *fp) {
 
 static void
 delegset_tostring(const dns_name_t *zonecut, dns_delegset_t *delegset,
-		  isc_stdtime_t now, bool expired, FILE *fp) {
+		  isc_stdtime_t now, FILE *fp) {
 	ISC_LIST_FOREACH(delegset->delegs, deleg, link) {
 		isc_buffer_t zonecutb;
 		char bdata[DNS_NAME_FORMATSIZE];
@@ -786,8 +843,6 @@ delegset_tostring(const dns_name_t *zonecut, dns_delegset_t *delegset,
 
 		if (delegset->expires > now) {
 			ttl = delegset->expires - now;
-		} else {
-			INSIST(expired);
 		}
 
 		isc_buffer_init(&zonecutb, bdata, sizeof(bdata));
@@ -827,12 +882,11 @@ dns_delegdb_dump(dns_delegdb_t *delegdb, bool expired, FILE *fp) {
 
 	dns_qpiter_init(&qpr, &it);
 	while (dns_qpiter_next(&it, (void **)&node, NULL) == ISC_R_SUCCESS) {
-		if (!expired && !isactive(node, now)) {
+		if (!expired && !isactive(node, now) && !isrootnode(node)) {
 			continue;
 		}
 
-		delegset_tostring(&node->zonecut, node->delegset, now, expired,
-				  fp);
+		delegset_tostring(&node->zonecut, node->delegset, now, fp);
 	}
 
 	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
@@ -960,6 +1014,13 @@ dns_delegdb_delete(dns_delegdb_t *delegdb, const dns_name_t *name, bool tree) {
 	dns_qp_t *qp = NULL;
 	isc_result_t result = ISC_R_SHUTTINGDOWN;
 	char namebuf[DNS_NAME_FORMATSIZE];
+
+	/*
+	 * Once added, the root node must always remain in the DB.
+	 */
+	if (dns_name_isroot(name)) {
+		return DNS_R_REFUSED;
+	}
 
 	if (LIBDNS_DELEGDB_DELETE_ENABLED()) {
 		dns_name_format(name, namebuf, sizeof(namebuf));

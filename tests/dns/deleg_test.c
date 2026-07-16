@@ -139,7 +139,7 @@ lookupdb(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
 	}
 	dns_name_fromstring(name, namestr, NULL, 0, NULL);
 	result = dns_delegdb_lookup(db, name, now, options, zonecut, NULL,
-				    delegsetp);
+				    delegsetp, false);
 
 	if (result == ISC_R_SUCCESS) {
 		assert_non_null(*delegsetp);
@@ -812,12 +812,91 @@ longnametests(ISC_ATTR_UNUSED void *arg) {
 	shutdowntest(&db);
 }
 
+static isc_result_t
+lookupdb_roothints(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
+		   unsigned int options, const char *expectedzcstr) {
+	isc_result_t result;
+	dns_fixedname_t fname, fexpectedzc, fzonecut;
+	dns_delegset_t *delegset = NULL;
+	dns_name_t *name = dns_fixedname_initname(&fname),
+		   *expectedzc = dns_fixedname_initname(&fexpectedzc),
+		   *zonecut = dns_fixedname_initname(&fzonecut);
+
+	if (expectedzcstr != NULL) {
+		dns_name_fromstring(expectedzc, expectedzcstr, NULL, 0, NULL);
+	}
+	dns_name_fromstring(name, namestr, NULL, 0, NULL);
+	result = dns_delegdb_lookup(db, name, now, options, zonecut, NULL,
+				    &delegset, true);
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_EXPIRED) {
+		assert_non_null(delegset);
+		assert_non_null(expectedzcstr);
+		assert_true(dns_name_equal(zonecut, expectedzc));
+		dns_delegset_detach(&delegset);
+	} else {
+		assert_null(delegset);
+	}
+
+	return result;
+}
+
+static void
+roothintstests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_deleg_t *deleg = NULL;
+	dns_delegset_t *delegset = NULL;
+	isc_result_t result;
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", 0, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, "foo.", 0, 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	result = lookupdb_roothints(db, ".", 0, 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	/*
+	 * With non expired TTL
+	 */
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", isc_stdtime_now() + 3000, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, ".", 0, 0, ".");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Override of non expired TTL
+	 */
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", 0, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, "foo.", 0, 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	shutdowntest(&db);
+}
+
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
 ISC_RUN_TEST_IMPL(dns_deleg_ttltests) { rundelegtest(ttltests); }
 ISC_RUN_TEST_IMPL(dns_deleg_noexacttests) { rundelegtest(noexacttests); }
 ISC_RUN_TEST_IMPL(dns_deleg_deletetests) { rundelegtest(deletetests); }
 ISC_RUN_TEST_IMPL(dns_deleg_cleanuptests) { rundelegtest(cleanuptests); }
 ISC_RUN_TEST_IMPL(dns_deleg_longnametests) { rundelegtest(longnametests); }
+ISC_RUN_TEST_IMPL(dns_deleg_roothints) { rundelegtest(roothintstests); }
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(dns_deleg_basictests)
@@ -826,6 +905,7 @@ ISC_TEST_ENTRY(dns_deleg_noexacttests)
 ISC_TEST_ENTRY(dns_deleg_deletetests)
 ISC_TEST_ENTRY(dns_deleg_cleanuptests)
 ISC_TEST_ENTRY(dns_deleg_longnametests)
+ISC_TEST_ENTRY(dns_deleg_roothints)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

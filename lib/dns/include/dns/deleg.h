@@ -135,14 +135,22 @@ dns_delegdb_getconfig(dns_delegdb_t *delegdb);
  * detached once the caller is done with it. Even though `delegset` is not
  * const (for convenience with ISC_LIST_FOREACH macros, _attach, _detach
  * functions, etc.) the `delegset` _is_ a read-only object, and must not be
- * modified.
+ * modified. Few notes:
  *
- * If only the zonecut is needed from the caller, `delegset` can be NULL, it
- * won't be attached.
+ * - Parameter `delegset` is optional. If it is NULL, it won't be attached.
+ * - The zonecut must be a initialized and attached to a buffer.
+ * - If `now` is 0, the actual expiration time is `isc_stdtime_now()`.
  *
- * The zonecut must be a initialized and attached to a buffer.
+ * Returns:
  *
- * If `now` is 0, the actual expiration time is `isc_stdtime_now()`.
+ * - `ISC_R_SUCCESS` in case of success (partial/exact match)
+ * - `DNS_R_EXPIRED` if not zonecut is the root and those are expired.
+ * - `ISC_R_NOTFOUND` if no match is found at all (although this should never
+ *   occurs since the root hints are loaded before the resolver kicks in).
+ *
+ * Note that if a match or partial match for a (non root) expired delegation is
+ * found, the first non-expired parent delegation is returned, up to the root,
+ * which is still returned even if expired.
  */
 isc_result_t
 dns_delegdb_lookup(dns_delegdb_t *db, const dns_name_t *name, isc_stdtime_t now,
