@@ -136,12 +136,9 @@ main(int argc, char **argv) {
 		prog_name += 3;
 	}
 
-#define PROGCMP(X) \
-	(strcasecmp(prog_name, X) == 0 || strcasecmp(prog_name, X ".exe") == 0)
-
-	if (PROGCMP("named-checkzone")) {
+	if (isc_string_casehasprefix(prog_name, "named-checkzone")) {
 		progmode = progmode_check;
-	} else if (PROGCMP("named-compilezone")) {
+	} else if (isc_string_casehasprefix(prog_name, "named-compilezone")) {
 		progmode = progmode_compile;
 	} else {
 		UNREACHABLE();

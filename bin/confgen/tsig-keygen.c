@@ -112,13 +112,10 @@ main(int argc, char **argv) {
 		progname += 3;
 	}
 
-#define PROGCMP(X) \
-	(strcasecmp(progname, X) == 0 || strcasecmp(progname, X ".exe") == 0)
-
-	if (PROGCMP("tsig-keygen")) {
+	if (isc_string_casehasprefix(progname, "tsig-keygen")) {
 		progmode = progmode_keygen;
 		quiet = true;
-	} else if (PROGCMP("ddns-confgen")) {
+	} else if (isc_string_casehasprefix(progname, "ddns-confgen")) {
 		progmode = progmode_confgen;
 	} else {
 		UNREACHABLE();
