@@ -18,14 +18,17 @@ import isctest
 pytestmark = pytest.mark.extra_artifacts(ARTIFACTS)
 
 
-def test_filter_dns64():
-    # This configuration doesn't make sense. The AAAA is wanted by
-    # filter-aaaa, but discarded by the dns64 configuration. We just
-    # need to ensure that the server keeps running.
-    msg = isctest.query.create("aaaa-only.unsigned", "aaaa")
-    res = isctest.query.tcp(msg, "10.53.0.5")
-    isctest.check.noerror(res)
+def bootstrap():
+    return {
+        "family": "v4",
+        "filtertype": "a",
+    }
 
-    msg = isctest.query.create("excludeone.unsigned", "aaaa")
-    res = isctest.query.tcp(msg, "10.53.0.5")
+
+def test_dns64_filter_a_reentry():
+    msg = isctest.query.create("nodata.test.", "aaaa", dnssec=False)
+    res = isctest.query.tcp(msg, "10.53.0.5", attempts=1)
     isctest.check.noerror(res)
+    answer = res.get_rrset(res.answer, "nodata.test.", "in", "aaaa")
+    assert answer is not None, res
+    assert answer[0].address == "64:ff9b::c000:201"
