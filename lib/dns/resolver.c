@@ -6835,12 +6835,13 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, respctx_t *rctx) {
 }
 
 static size_t
-cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
-		respctx_t *rctx, const dns_name_t *nsname) {
+cache_delegglue(fetchctx_t *fctx, dns_message_t *message,
+		dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
+		const dns_name_t *nsname) {
 	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
 	isc_result_t result;
-	dns_resolver_t *res = rctx->fctx->res;
+	dns_resolver_t *res = fctx->res;
 	bool hasv4 = res->dispatches4 != NULL;
 	bool dns64 = !ISC_LIST_EMPTY(res->view->dns64) && res->view->usedns64;
 
@@ -6848,8 +6849,7 @@ cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 		return 0;
 	}
 
-	result = dns_message_findname(rctx->query->rmessage,
-				      DNS_SECTION_ADDITIONAL, nsname,
+	result = dns_message_findname(message, DNS_SECTION_ADDITIONAL, nsname,
 				      dns_rdatatype_a, 0, NULL, &rdataset);
 	if (result != ISC_R_SUCCESS) {
 		return 0;
@@ -6878,18 +6878,18 @@ cache_delegglue(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
 }
 
 static size_t
-cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
-		 respctx_t *rctx, const dns_name_t *nsname) {
+cache_delegglue6(fetchctx_t *fctx, dns_message_t *message,
+		 dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
+		 const dns_name_t *nsname) {
 	dns_rdataset_t *rdataset = NULL;
 	size_t naddrs = 0;
 	isc_result_t result;
 
-	if (rctx->fctx->res->dispatches6 == NULL) {
+	if (fctx->res->dispatches6 == NULL) {
 		return 0;
 	}
 
-	result = dns_message_findname(rctx->query->rmessage,
-				      DNS_SECTION_ADDITIONAL, nsname,
+	result = dns_message_findname(message, DNS_SECTION_ADDITIONAL, nsname,
 				      dns_rdatatype_aaaa, 0, NULL, &rdataset);
 	if (result != ISC_R_SUCCESS) {
 		return 0;
@@ -6930,11 +6930,11 @@ cache_delegglue6(dns_delegset_t *delegset, dns_deleg_t *deleg, dns_ttl_t *ttl,
  * And the flag would be true only from `cache_delegns()`.
  */
 static isc_result_t
-cache_delegns(respctx_t *rctx) {
-	fetchctx_t *fctx = rctx->fctx;
+cache_delegns(fetchctx_t *fctx, dns_name_t *name, dns_rdataset_t *nsset,
+	      dns_message_t *message) {
 	dns_delegdb_t *delegdb = fctx->res->view->deleg;
 	dns_delegset_t *delegset = NULL;
-	dns_ttl_t ttl = rctx->ns_rdataset->ttl;
+	dns_ttl_t ttl = nsset->ttl;
 	size_t labels;
 	size_t ns_count = 0;
 	size_t max_servers = fctx->res->view->max_delegation_servers;
@@ -6944,7 +6944,7 @@ cache_delegns(respctx_t *rctx) {
 
 	dns_delegset_allocset(delegdb, &delegset);
 
-	DNS_RDATASET_FOREACH(rctx->ns_rdataset) {
+	DNS_RDATASET_FOREACH(nsset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_ns_t ns;
 		dns_deleg_t *deleg = NULL;
@@ -6965,16 +6965,16 @@ cache_delegns(respctx_t *rctx) {
 		dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES,
 					&deleg);
 
-		dns_rdataset_current(rctx->ns_rdataset, &rdata);
+		dns_rdataset_current(nsset, &rdata);
 		INSIST(rdata.type == dns_rdatatype_ns);
 		dns_rdata_tostruct(&rdata, &ns, NULL);
 
 		/* in-domain GLUE */
-		if (dns_name_issubdomain(&ns.name, rctx->ns_name)) {
-			naddrs += cache_delegglue(delegset, deleg, &ttl, rctx,
-						  &ns.name);
-			naddrs += cache_delegglue6(delegset, deleg, &ttl, rctx,
-						   &ns.name);
+		if (dns_name_issubdomain(&ns.name, name)) {
+			naddrs += cache_delegglue(fctx, message, delegset,
+						  deleg, &ttl, &ns.name);
+			naddrs += cache_delegglue6(fctx, message, delegset,
+						   deleg, &ttl, &ns.name);
 			if (naddrs == 0) {
 				INSIST(ISC_LIST_EMPTY(deleg->addresses));
 				char namebuf[DNS_NAME_FORMATSIZE];
@@ -6999,19 +6999,20 @@ cache_delegns(respctx_t *rctx) {
 		 * allowed to get glues (this allows in-domain and sibling, but
 		 * not different parents).
 		 */
-		labels = dns_name_countlabels(rctx->ns_name);
+		labels = dns_name_countlabels(name);
 		if (labels > 1) {
 			dns_fixedname_t fparent;
 			dns_name_t *parent = dns_fixedname_initname(&fparent);
 
-			dns_name_getlabelsequence(rctx->ns_name, 1, labels - 1,
-						  parent);
+			dns_name_getlabelsequence(name, 1, labels - 1, parent);
 
 			if (dns_name_issubdomain(&ns.name, parent)) {
-				naddrs += cache_delegglue(delegset, deleg, &ttl,
-							  rctx, &ns.name);
-				naddrs += cache_delegglue6(
-					delegset, deleg, &ttl, rctx, &ns.name);
+				naddrs += cache_delegglue(fctx, message,
+							  delegset, deleg, &ttl,
+							  &ns.name);
+				naddrs += cache_delegglue6(fctx, message,
+							   delegset, deleg,
+							   &ttl, &ns.name);
 			}
 		}
 
@@ -7026,7 +7027,11 @@ cache_delegns(respctx_t *rctx) {
 		}
 	}
 
-	result = dns_delegset_insert(delegdb, rctx->ns_name, ttl, delegset);
+	if (ISC_LIST_EMPTY(delegset->delegs)) {
+		result = ISC_R_FAILURE;
+	} else {
+		result = dns_delegset_insert(delegdb, name, ttl, delegset);
+	}
 	dns_delegset_detach(&delegset);
 
 	return result;
@@ -9572,7 +9577,8 @@ rctx_referral(respctx_t *rctx) {
 	 * happen.
 	 */
 	INSIST(rctx->ns_rdataset != NULL);
-	(void)cache_delegns(rctx);
+	(void)cache_delegns(rctx->fctx, rctx->ns_name, rctx->ns_rdataset,
+			    rctx->query->rmessage);
 
 	/*
 	 * Set the current query domain to the referral name.
