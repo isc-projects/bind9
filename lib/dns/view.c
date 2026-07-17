@@ -1158,6 +1158,10 @@ dns_view_bestzonecut(dns_view_t *view, const dns_name_t *name,
 	REQUIRE(view->frozen);
 	REQUIRE(delegsetp == NULL || *delegsetp == NULL);
 
+	if (usehints) {
+		options |= DNS_DBFIND_HINTOK;
+	}
+
 	result = bestzonecut_zone(view, name, fname, dcname, now, options,
 				  &rdataset);
 
@@ -1173,6 +1177,7 @@ dns_view_bestzonecut(dns_view_t *view, const dns_name_t *name,
 		 * A zone with a (possibly partial) delegation match but the
 		 * cache can have a more precise delegation.
 		 */
+		options &= ~DNS_DBFIND_HINTOK;
 		bestzonecut_zoneorcache(view, name, fname, dcname, now, options,
 					&rdataset, delegsetp);
 	}

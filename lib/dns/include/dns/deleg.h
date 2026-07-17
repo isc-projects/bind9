@@ -148,9 +148,12 @@ dns_delegdb_getconfig(dns_delegdb_t *delegdb);
  * - `ISC_R_NOTFOUND` if no match is found at all (although this should never
  *   occurs since the root hints are loaded before the resolver kicks in).
  *
- * Note that if a match or partial match for a (non root) expired delegation is
+ * If a match or partial match for a (non root) expired delegation is
  * found, the first non-expired parent delegation is returned, up to the root,
  * which is still returned even if expired.
+ *
+ * Finally, if `includes_hint` is false, the DB acts as if there was no root
+ * hints.
  */
 isc_result_t
 dns_delegdb_lookup(dns_delegdb_t *db, const dns_name_t *name, isc_stdtime_t now,
@@ -169,6 +172,10 @@ dns_delegdb_lookup(dns_delegdb_t *db, const dns_name_t *name, isc_stdtime_t now,
  * (dns_deleg_writeanddetach()).
  *
  * This could be changed to run through those API calls also if needed.
+ *
+ * Supported options include DNS_DBFIND_ABOVE (only return matches higher
+ * in the tree than 'name') and DNS_DBFIND_HINTOK (include root hints if
+ * no better match is found).
  */
 void
 dns_delegset_allocset(dns_delegdb_t *db, dns_delegset_t **delegsetp);

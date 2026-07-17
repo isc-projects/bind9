@@ -283,6 +283,7 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 
 	dns_qpchain_t chain = {};
 	bool above = (options & DNS_DBFIND_ABOVE) != 0;
+	bool include_hint = (options & DNS_DBFIND_HINTOK) != 0;
 
 	REQUIRE(VALID_DELEGDB(delegdb));
 	REQUIRE(DNS_NAME_VALID(name));
@@ -329,6 +330,10 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 	}
 
 	if (isrootnode(node)) {
+		if (!include_hint) {
+			return ISC_R_NOTFOUND;
+		}
+
 		dns_name_copy(&node->zonecut, zonecut);
 		INSIST(node->delegset);
 		dns_delegset_attach(node->delegset, delegsetp);

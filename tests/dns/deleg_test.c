@@ -139,7 +139,7 @@ lookupdb(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
 	}
 	dns_name_fromstring(name, namestr, NULL, 0, NULL);
 	result = dns_delegdb_lookup(db, name, now, options, zonecut, NULL,
-				    delegsetp, false);
+				    delegsetp);
 
 	if (result == ISC_R_SUCCESS) {
 		assert_non_null(*delegsetp);
@@ -814,7 +814,7 @@ longnametests(ISC_ATTR_UNUSED void *arg) {
 
 static isc_result_t
 lookupdb_roothints(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
-		   unsigned int options, const char *expectedzcstr) {
+		   const char *expectedzcstr) {
 	isc_result_t result;
 	dns_fixedname_t fname, fexpectedzc, fzonecut;
 	dns_delegset_t *delegset = NULL;
@@ -826,8 +826,8 @@ lookupdb_roothints(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
 		dns_name_fromstring(expectedzc, expectedzcstr, NULL, 0, NULL);
 	}
 	dns_name_fromstring(name, namestr, NULL, 0, NULL);
-	result = dns_delegdb_lookup(db, name, now, options, zonecut, NULL,
-				    &delegset, true);
+	result = dns_delegdb_lookup(db, name, now, DNS_DBFIND_HINTOK, zonecut,
+				    NULL, &delegset);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_EXPIRED) {
 		assert_non_null(delegset);
@@ -857,10 +857,10 @@ roothintstests(ISC_ATTR_UNUSED void *arg) {
 	writedb(db, ".", 0, &delegset, true);
 	deleg = NULL;
 
-	result = lookupdb_roothints(db, "foo.", 0, 0, ".");
+	result = lookupdb_roothints(db, "foo.", 0, ".");
 	assert_int_equal(result, DNS_R_EXPIRED);
 
-	result = lookupdb_roothints(db, ".", 0, 0, ".");
+	result = lookupdb_roothints(db, ".", 0, ".");
 	assert_int_equal(result, DNS_R_EXPIRED);
 
 	/*
@@ -872,7 +872,7 @@ roothintstests(ISC_ATTR_UNUSED void *arg) {
 	writedb(db, ".", isc_stdtime_now() + 3000, &delegset, true);
 	deleg = NULL;
 
-	result = lookupdb_roothints(db, ".", 0, 0, ".");
+	result = lookupdb_roothints(db, ".", 0, ".");
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -884,7 +884,7 @@ roothintstests(ISC_ATTR_UNUSED void *arg) {
 	writedb(db, ".", 0, &delegset, true);
 	deleg = NULL;
 
-	result = lookupdb_roothints(db, "foo.", 0, 0, ".");
+	result = lookupdb_roothints(db, "foo.", 0, ".");
 	assert_int_equal(result, DNS_R_EXPIRED);
 
 	shutdowntest(&db);
