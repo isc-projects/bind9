@@ -122,4 +122,8 @@ isc_result_t
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory);
 
+isc_result_t
+dst__privelement_is_nul_terminated(
+	const dst_private_element_t *dst_private_element_t);
+
 ISC_LANG_ENDDECLS
