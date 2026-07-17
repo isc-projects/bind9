@@ -1,3 +1,6 @@
+{% set filtertype = filtertype | default("aaaa") %}
+{% set family = family | default("v4") %}
+
 options {
 	{% include_indented "_common/options-dual.conf.j2" %}
 	dnssec-validation no;
@@ -9,13 +12,22 @@ options {
 	minimal-responses no;
 };
 
-plugin query "@TOP_BUILDDIR@/filter-aaaa.@DYLIB@" {
-	filter-aaaa-on-v4 break-dnssec;
-	filter-aaaa { any; };
-};
+{% if family == "v6" %}
+	plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
+		filter-@filtertype@-on-v6 break-dnssec;
+		filter-@filtertype@ { any; };
+	};
+{% else %}
+	plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
+		filter-@filtertype@-on-v4 break-dnssec;
+		filter-@filtertype@ { any; };
+	};
+{% endif %}
 
 {% include "_common/controls.conf.j2" %}
 
 zone "." { type hint; file "hints"; };
+
+zone "test" { type forward; forward only; forwarders { 10.53.0.6; }; };
 
 include "trusted.conf";
