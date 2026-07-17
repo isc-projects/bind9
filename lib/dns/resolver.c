@@ -6930,7 +6930,7 @@ cache_delegglue6(fetchctx_t *fctx, dns_message_t *message,
  * And the flag would be true only from `cache_delegns()`.
  */
 static isc_result_t
-cache_delegns(fetchctx_t *fctx, dns_name_t *name, dns_rdataset_t *nsset,
+cache_delegns(fetchctx_t *fctx, const dns_name_t *name, dns_rdataset_t *nsset,
 	      dns_message_t *message) {
 	dns_delegdb_t *delegdb = fctx->res->view->deleg;
 	dns_delegset_t *delegset = NULL;
@@ -8191,6 +8191,22 @@ resquery_response_continue(void *arg, isc_result_t result) {
 		 */
 		if ((fctx->options & DNS_FETCHOPT_PRIMING) != 0) {
 			update_rootdb(fctx->res->view, query->rmessage);
+
+			dns_rdataset_t *nsset = NULL;
+			tresult = dns_message_findname(
+				query->rmessage, DNS_SECTION_ANSWER,
+				dns_rootname, dns_rdatatype_ns, 0, NULL,
+				&nsset);
+			if (tresult == ISC_R_SUCCESS) {
+				result = cache_delegns(fctx, dns_rootname,
+						       nsset, query->rmessage);
+
+				if (result != ISC_R_SUCCESS) {
+					FCTXTRACE3("failed to cache priming "
+						   "response",
+						   result);
+				}
+			}
 		}
 	}
 
