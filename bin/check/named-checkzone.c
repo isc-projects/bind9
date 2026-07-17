@@ -113,10 +113,12 @@ main(int argc, char **argv) {
 
 	isc_commandline_init(argc, argv);
 
-	if (strcasecmp(isc_commandline_progname, "named-checkzone") == 0) {
+	if (isc_string_casehasprefix(isc_commandline_progname,
+				     "named-checkzone"))
+	{
 		progmode = progmode_check;
-	} else if (strcasecmp(isc_commandline_progname, "named-compilezone") ==
-		   0)
+	} else if (isc_string_casehasprefix(isc_commandline_progname,
+					    "named-compilezone"))
 	{
 		progmode = progmode_compile;
 	} else {

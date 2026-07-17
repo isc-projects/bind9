@@ -100,10 +100,12 @@ main(int argc, char **argv) {
 
 	isc_commandline_init(argc, argv);
 
-	if (strcasecmp(isc_commandline_progname, "tsig-keygen") == 0) {
+	if (isc_string_casehasprefix(isc_commandline_progname, "tsig-keygen")) {
 		progmode = progmode_keygen;
 		quiet = true;
-	} else if (strcasecmp(isc_commandline_progname, "ddns-confgen") == 0) {
+	} else if (isc_string_casehasprefix(isc_commandline_progname,
+					    "ddns-confgen"))
+	{
 		progmode = progmode_confgen;
 	} else {
 		UNREACHABLE();
