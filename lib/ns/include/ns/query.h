@@ -16,6 +16,7 @@
 /*! \file */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/netaddr.h>
@@ -45,6 +46,9 @@ typedef struct dns_getdb_options {
 	bool ignoreacl	: 1;
 	bool stalefirst : 1;
 } dns_getdb_options_t;
+
+#define NS_QUERY_AUTHDB_UNSET ((uintptr_t)0)
+#define NS_QUERY_AUTHDB_NONE  UINTPTR_MAX
 
 /*%
  * recursion type; various features can initiate recursion and this enum value
@@ -127,18 +131,17 @@ struct ns_query {
 		};
 	};
 
-	unsigned int	 restarts;
-	isc_counter_t	*qc;
-	bool		 timerset;
-	dns_name_t	*qname;
-	dns_name_t	*origqname;
-	dns_rdatatype_t	 qtype;
-	unsigned int	 dboptions;
-	unsigned int	 fetchoptions;
-	dns_db_t	*gluedb;
-	dns_db_t	*authdb;
+	unsigned int	restarts;
+	isc_counter_t  *qc;
+	bool		timerset;
+	dns_name_t     *qname;
+	dns_name_t     *origqname;
+	dns_rdatatype_t qtype;
+	unsigned int	dboptions;
+	unsigned int	fetchoptions;
+	dns_db_t       *gluedb;
+	uintptr_t authdb_id; /* Database identity; not an attached reference. */
 	dns_zone_t	*authzone;
-	bool		 authdbset;
 	bool		 isreferral;
 	isc_mutex_t	 fetchlock;
 	ns_hookasync_t	*hookasyncctx;

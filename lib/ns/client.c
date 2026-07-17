@@ -3166,19 +3166,45 @@ client_getdbversion(ns_client_t *client) {
 	return dbversion;
 }
 
-ns_dbversion_t *
-ns_client_findversion(ns_client_t *client, dns_db_t *db) {
+static ns_dbversion_t *
+client_findversionid(ns_client_t *client, uintptr_t dbid) {
 	ISC_LIST_FOREACH(client->query.activeversions, dbversion, link) {
-		if (dbversion->db == db) {
+		if ((uintptr_t)dbversion->db == dbid) {
 			return dbversion;
 		}
+	}
+
+	return NULL;
+}
+
+isc_result_t
+ns_client_findversionid(ns_client_t *client, uintptr_t dbid,
+			ns_dbversion_t **dbversionp) {
+	ns_dbversion_t *dbversion = NULL;
+
+	REQUIRE(dbversionp != NULL && *dbversionp == NULL);
+
+	dbversion = client_findversionid(client, dbid);
+	if (dbversion == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+
+	*dbversionp = dbversion;
+	return ISC_R_SUCCESS;
+}
+
+ns_dbversion_t *
+ns_client_findversion(ns_client_t *client, dns_db_t *db) {
+	ns_dbversion_t *dbversion = client_findversionid(client, (uintptr_t)db);
+	if (dbversion != NULL) {
+		return dbversion;
 	}
 
 	/*
 	 * This is a new zone for this query.  Add it to
 	 * the active list.
 	 */
-	ns_dbversion_t *dbversion = client_getdbversion(client);
+	dbversion = client_getdbversion(client);
 	dns_db_attach(db, &dbversion->db);
 	dns_db_currentversion(db, &dbversion->version);
 	dbversion->acl_checked = false;
