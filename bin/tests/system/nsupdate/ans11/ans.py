@@ -9,19 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""
-AsyncDnsServer primary serving "sigaxfr.nil.".
-
-The AXFR carries two SIG (type 24) rdatas at the same owner with
-different "covered type" body fields (A and MX) so the secondary can
-verify it stores both under a single opaque rdataset.  Per RFC 3755
-SIG has no covered-type semantics on BIND any more; the two rdatas
-share the rdataset TTL.
-"""
-
-from collections.abc import AsyncGenerator
-
-import dns.name
 import dns.rcode
 import dns.rdata
 import dns.rdataclass
@@ -30,84 +17,77 @@ import dns.rrset
 
 from isctest.asyncserver import (
     AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
+    AxfrHandler,
+    QnameQtypeHandler,
+    StaticResponseHandler,
 )
 
-ZONE = dns.name.from_text("sigaxfr.nil.")
-NS_NAME = dns.name.from_text("ns.sigaxfr.nil.")
-HOST = dns.name.from_text("host.sigaxfr.nil.")
-
-SOA_TEXT = "ns.sigaxfr.nil. hostmaster.sigaxfr.nil. 1 3600 1200 604800 3600"
+ZONE = "sigaxfr.nil."
+NS_NAME = "ns.sigaxfr.nil."
+HOST = "host.sigaxfr.nil."
 
 
-def _make_sig_rdata(covered_text):
-    """Produce a legacy SIG (24) rdata via RRSIG (46) round-trip."""
-    rrsig = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.RRSIG, covered_text)
+def rrset(name: str, rdtype: dns.rdatatype.RdataType, *rdata: str) -> dns.rrset.RRset:
+    return dns.rrset.from_text(name, 3600, dns.rdataclass.IN, rdtype, *rdata)
+
+
+def soa() -> dns.rrset.RRset:
+    return rrset(
+        ZONE,
+        dns.rdatatype.SOA,
+        "ns.sigaxfr.nil. hostmaster.sigaxfr.nil. 1 3600 1200 604800 3600",
+    )
+
+
+def sig_rdata(covers: dns.rdatatype.RdataType) -> dns.rdata.Rdata:
+    """
+    dnspython cannot parse the legacy SIG (24) type from text; parse the
+    text as RRSIG (46), which shares its wire format, and re-wrap as SIG.
+    """
+    covered = dns.rdatatype.to_text(covers)
+    text = f"{covered} 6 2 600 20260331170000 20260318160000 21831 . 0000"
+    rrsig = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.RRSIG, text)
     wire = rrsig.to_digestable()
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.SIG, wire, 0, len(wire))
 
 
-class SigAxfrServer(DomainHandler):
-    """Serve SOA and AXFR for sigaxfr.nil.; other qtypes get NOERROR/NODATA."""
+def sig() -> dns.rrset.RRset:
+    return dns.rrset.from_rdata(
+        HOST,
+        600,
+        sig_rdata(dns.rdatatype.A),
+        sig_rdata(dns.rdatatype.MX),
+    )
 
-    domains = ["sigaxfr.nil."]
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        soa_rrset = dns.rrset.from_text(
-            ZONE, 3600, dns.rdataclass.IN, dns.rdatatype.SOA, SOA_TEXT
-        )
+class SoaHandler(QnameQtypeHandler, StaticResponseHandler):
+    qnames = [ZONE]
+    qtypes = [dns.rdatatype.SOA]
+    answer = [soa()]
 
-        if qctx.qtype == dns.rdatatype.SOA:
-            resp = qctx.response
-            resp.answer.append(soa_rrset)
-            yield DnsResponseSend(resp)
-            return
 
-        if qctx.qtype != dns.rdatatype.AXFR:
-            # Other types: empty NOERROR response.
-            yield DnsResponseSend(qctx.response)
-            return
+class SigAxfrHandler(QnameQtypeHandler, AxfrHandler):
+    """
+    Serve an AXFR carrying two legacy SIG (24) rdatas at one owner whose
+    body "covered type" fields differ (A, MX); per RFC 3755 SIG has no
+    covered-type semantics, so the transferring secondary must store both
+    in a single opaque rdataset.
+    """
 
-        # AXFR: opening SOA, NS, NS's A, two SIG RRs at the same owner
-        # with distinct "covered type" body fields, closing SOA.
-        resp = qctx.response
-        resp.answer.append(soa_rrset)
-
-        ns_rrset = dns.rrset.from_text(
-            ZONE, 3600, dns.rdataclass.IN, dns.rdatatype.NS, str(NS_NAME)
-        )
-        resp.answer.append(ns_rrset)
-
-        a_rrset = dns.rrset.from_text(
-            NS_NAME, 3600, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.11"
-        )
-        resp.answer.append(a_rrset)
-
-        sig_rrset = dns.rrset.RRset(HOST, dns.rdataclass.IN, dns.rdatatype.SIG)
-        sig_rrset.add(
-            _make_sig_rdata("A 6 2 600 20260331170000 20260318160000 21831 . 0000"),
-            ttl=600,
-        )
-        sig_rrset.add(
-            _make_sig_rdata("MX 6 2 600 20260331170000 20260318160000 21831 . 0000"),
-            ttl=600,
-        )
-        resp.answer.append(sig_rrset)
-
-        # Closing SOA terminates the AXFR.
-        resp.answer.append(soa_rrset)
-
-        yield DnsResponseSend(resp)
+    qnames = [ZONE]
+    qtypes = [dns.rdatatype.AXFR]
+    initial_soa = soa()
+    zone_contents = [
+        rrset(ZONE, dns.rdatatype.NS, NS_NAME),
+        rrset(NS_NAME, dns.rdatatype.A, "10.53.0.11"),
+        sig(),
+    ]
+    final_soa = soa()
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handler(SigAxfrServer())
+    server.install_response_handlers(SoaHandler(), SigAxfrHandler())
     server.run()
 
 
