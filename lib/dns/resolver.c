@@ -2326,9 +2326,12 @@ compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
 
 static isc_result_t
 issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, bool checknta, bool *ntap, bool *issecure) {
+	       dns_edectx_t *edectx, isc_stdtime_t now, bool checknta,
+	       bool *ntap, bool *issecure) {
 	dns_name_t suffix;
 	unsigned int labels;
+	bool nta = false;
+	isc_result_t result;
 
 	/*
 	 * For DS variants we need to check fom the parent domain,
@@ -2343,8 +2346,24 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 		name = &suffix;
 	}
 
-	return dns_view_issecuredomain(view, name, now, checknta, ntap,
-				       issecure);
+	result = dns_view_issecuredomain(view, name, now, checknta, &nta,
+					 issecure);
+
+	/*
+	 * A covering negative trust anchor suppressed DNSSEC validation for
+	 * an otherwise secure name (RFC 7646). Disclose that to the client
+	 * via an Extended DNS Error (draft-farrokhi-dnsop-ede-nta). Duplicate
+	 * codes are coalesced by dns_ede_add(), so this is emitted at most
+	 * once per fetch.
+	 */
+	if (nta && edectx != NULL) {
+		dns_ede_add(edectx, DNS_EDE_NTA,
+			    "Negative Trust Anchor applied (RFC 7646)");
+	}
+
+	SET_IF_NOT_NULL(ntap, nta);
+
+	return result;
 }
 
 static isc_result_t
@@ -2420,6 +2439,7 @@ resquery_send(resquery_t *query) {
 		bool checknta = ((query->options & DNS_FETCHOPT_NONTA) == 0);
 		bool ntacovered = false;
 		result = issecuredomain(res->view, fctx->name, fctx->type,
+					&fctx->edectx,
 					isc_time_seconds(&query->start),
 					checknta, &ntacovered, &secure_domain);
 		if (result != ISC_R_SUCCESS) {
@@ -6060,8 +6080,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 	}
 
 	if (res->view->enablevalidation) {
-		result = issecuredomain(res->view, name, fctx->type, now,
-					checknta, NULL, &secure_domain);
+		result = issecuredomain(res->view, name, fctx->type,
+					&fctx->edectx, now, checknta, NULL,
+					&secure_domain);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -6723,8 +6744,9 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 	}
 
 	if (fctx->res->view->enablevalidation) {
-		result = issecuredomain(res->view, name, fctx->type, now,
-					checknta, NULL, &secure_domain);
+		result = issecuredomain(res->view, name, fctx->type,
+					&fctx->edectx, now, checknta, NULL,
+					&secure_domain);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -9584,8 +9606,9 @@ rctx_authority_dnssec(respctx_t *rctx) {
 				if (fctx->res->view->enablevalidation) {
 					result = issecuredomain(
 						fctx->res->view, name,
-						dns_rdatatype_ds, fctx->now,
-						checknta, NULL, &secure_domain);
+						dns_rdatatype_ds, &fctx->edectx,
+						fctx->now, checknta, NULL,
+						&secure_domain);
 					if (result != ISC_R_SUCCESS) {
 						return result;
 					}

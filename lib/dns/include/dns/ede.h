@@ -43,8 +43,9 @@
 #define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
 #define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
 #define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
+#define DNS_EDE_NTA		     33 /*%< Negative Trust Anchor */
 
-#define DNS_EDE_MAX_CODE DNS_EDE_INVALIDDATA
+#define DNS_EDE_MAX_CODE DNS_EDE_NTA
 
 /*
  * From RFC 8914:
@@ -63,7 +64,7 @@ struct dns_edectx {
 	int	       magic;
 	isc_mem_t     *mctx;
 	dns_ednsopt_t *ede[DNS_EDE_MAX_ERRORS];
-	uint32_t       edeused;
+	uint64_t       edeused;
 	size_t	       nextede;
 };
 /*%<
@@ -73,6 +74,13 @@ struct dns_edectx {
  * manipulate its state (adding EDE, transfer to another context, etc.). EDE are
  * internally stored in the wire format, so it can be directly consumed to build
  * the response client message.
+ */
+
+STATIC_ASSERT(DNS_EDE_MAX_CODE <=
+		      CHAR_BIT * sizeof(((dns_edectx_t *){ NULL })->edeused),
+	      "DNS_EDE_MAX_CODE does not fit in the edeused bitmap");
+/*
+ * Make sure we can fit the currently supported EDE codes in the edeused bitmap.
  */
 
 void
