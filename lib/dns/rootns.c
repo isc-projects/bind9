@@ -215,6 +215,58 @@ cleanup:
 }
 
 isc_result_t
+dns_rootns_filldelegdb(isc_mem_t *mctx, const char *filename,
+		       dns_delegdb_t *db) {
+	dns_rdatacallbacks_t callbacks;
+	isc_result_t result;
+
+	dns_rdatacallbacks_init(&callbacks);
+	dns_delegdb_rootns_prepare(db, &callbacks);
+
+	if (filename != NULL) {
+		result = dns_master_loadfile(
+			filename, (dns_name_t *)dns_rootname,
+			(dns_name_t *)dns_rootname, dns_rdataclass_in,
+			DNS_MASTER_HINT, 0, &callbacks, NULL, NULL, mctx,
+			dns_masterformat_text, 0);
+	} else {
+		isc_buffer_t source;
+		size_t len = strlen(root_ns);
+
+		isc_buffer_init(&source, root_ns, len);
+		isc_buffer_add(&source, len);
+		result = dns_master_loadbuffer(
+			&source, (dns_name_t *)dns_rootname,
+			(dns_name_t *)dns_rootname, dns_rdataclass_in,
+			DNS_MASTER_HINT, &callbacks, mctx);
+	}
+
+	/*
+	 * DNS_R_SEENINCLUDE only signals the file used $INCLUDE; the load
+	 * itself succeeded.
+	 */
+	if (result == DNS_R_SEENINCLUDE) {
+		result = ISC_R_SUCCESS;
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		result = dns_delegdb_rootns_commit(&callbacks);
+	}
+	dns_delegdb_rootns_cleanup(&callbacks);
+
+	if (result != ISC_R_SUCCESS) {
+		const char *from = filename != NULL ? filename : "<builtin>";
+
+		isc_log_write(NAMED_LOGCATEGORY_GENERAL, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_ERROR,
+			      "could not configure root hints from '%s': %s",
+			      from, isc_result_totext(result));
+	}
+
+	return result;
+}
+
+isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		  const char *filename, dns_db_t **target) {
 	isc_result_t result, eresult;

@@ -18,6 +18,7 @@
 #include <isc/urcu.h>
 #include <isc/uv.h>
 
+#include <dns/callbacks.h>
 #include <dns/deleg.h>
 #include <dns/name.h>
 #include <dns/qp.h>
@@ -1102,4 +1103,155 @@ dns_delegdb_setconfig(dns_delegdb_t *delegdb,
 	delegdb->config = *config;
 
 	delegdb_setsize(delegdb, delegdb->config.dbsize);
+}
+
+typedef struct {
+	dns_delegdb_t *db;
+	dns_delegset_t *delegset;
+	dns_deleg_t *deleg;
+	bool empty_file;
+} delegdb_rootns_ctx_t;
+
+static isc_result_t
+delegdb_rootns_update(void *arg, const dns_name_t *name,
+		      dns_rdataset_t *rdataset, dns_diffop_t op DNS__DB_FLARG) {
+	delegdb_rootns_ctx_t *ctx = arg;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	ctx->empty_file = false;
+
+	if (op != DNS_DIFFOP_ADD) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	if (dns_name_isroot(name) && rdataset->type == dns_rdatatype_ns) {
+		/*
+		 * We don't need root NS names, we're only interested in the
+		 * glues. (Otherwise, no point of root hints...)
+		 *
+		 * Altough, let's fail (see below) if a non-root NS name is
+		 * defined here, as it doesn't make any sense.
+		 */
+		return ISC_R_SUCCESS;
+	}
+
+	if (rdataset->type != dns_rdatatype_a &&
+	    rdataset->type != dns_rdatatype_aaaa)
+	{
+		char namestr[DNS_NAME_FORMATSIZE];
+		char typestr[DNS_RDATATYPE_FORMATSIZE];
+
+		dns_name_format(name, namestr, sizeof(namestr));
+		dns_rdatatype_format(rdataset->type, typestr, sizeof(typestr));
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_NOTICE,
+			      "hints loading has skipped the rdataset %s/%s",
+			      namestr, typestr);
+
+		/*
+		 * Do not fail the whole root hint loading, though this is
+		 * suspicious, hence the log.
+		 */
+		return ISC_R_SUCCESS;
+	}
+
+	DNS_RDATASET_FOREACH(rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_netaddr_t addr = {};
+
+		switch (rdataset->type) {
+		case dns_rdatatype_a: {
+			dns_rdata_in_a_t a;
+
+			dns_rdataset_current(rdataset, &rdata);
+			dns_rdata_tostruct(&rdata, &a, NULL);
+			addr.type.in = a.in_addr;
+			addr.family = AF_INET;
+			break;
+		}
+		case dns_rdatatype_aaaa: {
+			dns_rdata_in_aaaa_t aaaa;
+
+			dns_rdataset_current(rdataset, &rdata);
+			dns_rdata_tostruct(&rdata, &aaaa, NULL);
+			addr.type.in6 = aaaa.in6_addr;
+			addr.family = AF_INET6;
+			break;
+		}
+		default:
+			UNREACHABLE();
+		}
+
+		dns_delegset_addaddr(ctx->delegset, ctx->deleg, &addr);
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+void
+dns_delegdb_rootns_prepare(dns_delegdb_t *db, dns_rdatacallbacks_t *callbacks) {
+	REQUIRE(VALID_DELEGDB(db));
+	REQUIRE(DNS_CALLBACK_VALID(callbacks));
+
+	callbacks->update = delegdb_rootns_update;
+
+	delegdb_rootns_ctx_t *ctx = isc_mem_cget(db->mctx, 1, sizeof(*ctx));
+	dns_delegdb_attach(db, &ctx->db);
+	dns_delegset_allocset(db, &ctx->delegset);
+	dns_delegset_allocdeleg(ctx->delegset, DNS_DELEGTYPE_NS_GLUES,
+				&ctx->deleg);
+	ctx->empty_file = true;
+	callbacks->add_private = ctx;
+}
+
+isc_result_t
+dns_delegdb_rootns_commit(dns_rdatacallbacks_t *callbacks) {
+	delegdb_rootns_ctx_t *ctx = callbacks->add_private;
+	isc_result_t result;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	/*
+	 * The root hints file was empty, this is not really an error.
+	 */
+	if (ctx->empty_file) {
+		INSIST(ISC_LIST_EMPTY(ctx->deleg->addresses));
+		return ISC_R_SUCCESS;
+	}
+
+	/*
+	 * No matter what there was in the root hints file, there were no
+	 * glues at all.
+	 */
+	if (ISC_LIST_EMPTY(ctx->deleg->addresses)) {
+		return ISC_R_FAILURE;
+	}
+
+	/*
+	 * Root NS delegset insertion can't fail. TTL of 0, so it will prime
+	 * first time root hints are used.
+	 */
+	result = dns_delegset_insert(ctx->db, dns_rootname, 0, ctx->delegset);
+	INSIST(result == ISC_R_SUCCESS);
+
+	return result;
+}
+
+void
+dns_delegdb_rootns_cleanup(dns_rdatacallbacks_t *callbacks) {
+	delegdb_rootns_ctx_t *ctx = callbacks->add_private;
+	dns_delegdb_t *db = NULL;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	dns_delegdb_attach(ctx->db, &db);
+	dns_delegset_detach(&ctx->delegset);
+	dns_delegdb_detach(&ctx->db);
+	isc_mem_cput(db->mctx, ctx, 1, sizeof(*ctx));
+	callbacks->add_private = NULL;
+	dns_delegdb_detach(&db);
 }

@@ -258,4 +258,24 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 isc_result_t
 dns_delegdb_delete(dns_delegdb_t *db, const dns_name_t *name, bool tree);
 
+/*
+ * These are used to load root hints from a master buffer/file into the
+ * delegdb. The `_rootns_prepare()` function initialize the `callbacks`
+ * object used by the master parser. After the load, `_rootns_commit()`
+ * inserts the collected root delegation into the DB; the caller must only
+ * invoke it when the load succeeded, so a hints file failing halfway
+ * through does not replace an existing root delegation with partial glues.
+ * It returns ISC_R_SUCCESS only if the delegdb now has a root NS entry
+ * with glues (or the hints file was completely empty). Finally,
+ * `_rootns_cleanup()` releases the state; it must always be called.
+ */
+void
+dns_delegdb_rootns_prepare(dns_delegdb_t *db, dns_rdatacallbacks_t *callbacks);
+
+isc_result_t
+dns_delegdb_rootns_commit(dns_rdatacallbacks_t *callbacks);
+
+void
+dns_delegdb_rootns_cleanup(dns_rdatacallbacks_t *callbacks);
+
 ISC_REFCOUNT_DECL(dns_delegdb);
