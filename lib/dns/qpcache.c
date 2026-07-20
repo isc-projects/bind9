@@ -2329,7 +2329,9 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *newheader,
 	    rdtype == dns_rdatatype_any && trust < dns_trust_secure)
 	{
 		DNS_SLABHEADER_FOREACH(header, &qpnode->headers) {
-			if (header_trust(header) >= dns_trust_secure) {
+			if (ACTIVE(header, now) &&
+			    header_trust(header) >= dns_trust_secure)
+			{
 				qpcache_hit(qpdb, header);
 				bindrdataset(qpdb, qpnode, header, now,
 					     nlocktype, tlocktype,
