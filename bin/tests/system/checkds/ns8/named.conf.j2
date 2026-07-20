@@ -1,10 +1,26 @@
 // NS8
 
+{% if FEATURE_FIPS_DH == "1" %}
+tls tls-forward-secrecy {
+	protocols { TLSv1.2; };
+	ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+	prefer-server-ciphers yes;
+	key-file "../CA/certs/srv01.crt01.example.com.key";
+	cert-file "../CA/certs/srv01.crt01.example.com.pem";
+	dhparam-file "../dhparam3072.pem";
+};
+{% endif %}
+
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	allow-transfer { any; };
 	recursion no;
 	dnssec-validation no;
+
+{% if FEATURE_FIPS_DH == "1" %}
+	tls-port @TLSPORT@;
+	listen-on tls tls-forward-secrecy { 10.53.0.8; };
+{% endif %}
 };
 
 {% include "_common/controls.conf.j2" %}
