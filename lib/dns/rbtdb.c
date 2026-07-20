@@ -2619,7 +2619,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 					header = header->down;
 				}
 
-				if (header != NULL &&
+				if (header != NULL && ACTIVE(header, now) &&
 				    header->trust >= dns_trust_secure)
 				{
 					dns_slabheader_destroy(&newheader);

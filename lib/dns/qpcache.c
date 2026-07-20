@@ -2895,7 +2895,7 @@ add(qpcache_t *qpdb, qpcnode_t *qpnode,
 					header = header->down;
 				}
 
-				if (header != NULL &&
+				if (header != NULL && ACTIVE(header, now) &&
 				    header_trust(header) >= dns_trust_secure)
 				{
 					dns_slabheader_destroy(&newheader);
