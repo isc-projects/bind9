@@ -2446,9 +2446,10 @@ compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
 
 static bool
 issecuredomain(fetchctx_t *fctx, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, bool *ntap) {
+	       isc_stdtime_t now) {
 	dns_name_t suffix;
 	unsigned int labels;
+	bool secure_domain, nta = false;
 
 	/*
 	 * For DS variants we need to check fom the parent domain,
@@ -2463,8 +2464,22 @@ issecuredomain(fetchctx_t *fctx, const dns_name_t *name, dns_rdatatype_t type,
 		name = &suffix;
 	}
 
-	return dns_view_issecuredomain(fctx->res->view, name, now,
-				       CHECKNTA(fctx), ntap);
+	secure_domain = dns_view_issecuredomain(fctx->res->view, name, now,
+						CHECKNTA(fctx), &nta);
+
+	/*
+	 * A covering negative trust anchor suppressed DNSSEC validation for
+	 * an otherwise secure name (RFC 7646). Disclose that to the client
+	 * via an Extended DNS Error (draft-farrokhi-dnsop-ede-nta). Duplicate
+	 * codes are coalesced by dns_ede_add(), so this is emitted at most
+	 * once per fetch.
+	 */
+	if (nta) {
+		dns_ede_add(&fctx->edectx, DNS_EDE_NTA,
+			    "Negative Trust Anchor applied (RFC 7646)");
+	}
+
+	return secure_domain;
 }
 
 static isc_result_t
@@ -6343,8 +6358,7 @@ rctx_cachename(respctx_t *rctx, dns_message_t *message, dns_name_t *name) {
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	bool secure_domain = issecuredomain(fctx, name, fctx->type, rctx->now,
-					    NULL);
+	bool secure_domain = issecuredomain(fctx, name, fctx->type, rctx->now);
 	bool need_validation = secure_domain &&
 			       ((fctx->options & DNS_FETCHOPT_NOVALIDATE) == 0);
 
@@ -6592,8 +6606,7 @@ rctx_ncache(respctx_t *rctx) {
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	bool secure_domain = issecuredomain(fctx, name, fctx->type, rctx->now,
-					    NULL);
+	bool secure_domain = issecuredomain(fctx, name, fctx->type, rctx->now);
 	bool need_validation = secure_domain &&
 			       ((fctx->options & DNS_FETCHOPT_NOVALIDATE) == 0);
 
@@ -9418,7 +9431,7 @@ rctx_authority_dnssec(respctx_t *rctx) {
 
 				secure_domain = issecuredomain(fctx, name,
 							       dns_rdatatype_ds,
-							       fctx->now, NULL);
+							       fctx->now);
 				if (secure_domain) {
 					rdataset->trust =
 						dns_trust_pending_answer;
