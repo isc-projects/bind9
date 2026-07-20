@@ -313,3 +313,15 @@ mock_assert(const int result, const char *const expression,
 #else /* __has_builtin(__builtin_types_compatible_p) */
 #define ISC_TYPES_COMPATIBLE(x, y) 1
 #endif /* __has_builtin(__builtin_types_compatible_p) */
+
+/* clang-format off */
+/*
+ * This needs some extra plumbing for non-C23 compilers, see
+ * lib/dns/include/dns/ede.h:dns_edecode_t for example.
+ */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
+#define ISC_FIXED_ENUM(name, type) name: type
+#else
+#define ISC_FIXED_ENUM(name, type) __attribute__((__packed__)) name
+#endif
+/* clang-format on */

@@ -13,6 +13,8 @@
 
 /*! \file */
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -22,12 +24,12 @@
 #define DNS_EDE_VALID(v) ISC_MAGIC_VALID(v, DNS_EDE_MAGIC)
 
 static bool
-dns__ede_checkandupdateedeused(dns_edectx_t *edectx, uint16_t code) {
-	if (edectx->edeused & (1 << code)) {
+dns__ede_checkandupdateedeused(dns_edectx_t *edectx, dns_edecode_t code) {
+	if (edectx->edeused & (UINT64_C(1) << code)) {
 		return true;
 	}
 
-	edectx->edeused |= 1 << code;
+	edectx->edeused |= UINT64_C(1) << code;
 	return false;
 }
 

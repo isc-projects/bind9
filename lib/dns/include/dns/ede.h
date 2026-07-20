@@ -13,12 +13,16 @@
 
 #pragma once
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
+#include <isc/util.h>
 
 #include <dns/message.h>
 
 /*%< EDNS0 extended DNS errors */
-enum {
+typedef enum ISC_FIXED_ENUM(dns_edecode, uint16_t) {
+	// typedef enum ISC_FIXED_ENUM(dns_edecode, uint16_t) {
 	DNS_EDE_OTHER = 0,		  /*%< Other Error */
 	DNS_EDE_DNSKEYALG = 1,		  /*%< Unsupported DNSKEY Algorithm */
 	DNS_EDE_DSDIGESTTYPE = 2,	  /*%< Unsupported DS Digest Type */
@@ -44,8 +48,13 @@ enum {
 	DNS_EDE_NOREACHABLEAUTH = 22,	  /*%< No Reachable Authority */
 	DNS_EDE_NETWORKERROR = 23,	  /*%< Network Error */
 	DNS_EDE_INVALIDDATA = 24,	  /*%< Invalid Data */
-	DNS_EDE_MAX_CODE
-};
+	DNS_EDE_NTA = 33,		  /*%< Negative Trust Anchor */
+	DNS_EDE_MAX_CODE,
+	DNS_EDE_ENFORCE = UINT16_MAX, /*%< Enforce uint16_t size */
+} dns_edecode_t;
+
+STATIC_ASSERT(sizeof(dns_edecode_t) == sizeof(uint16_t),
+	      "dns_edecode_t is not uint16_t sized");
 
 /*
  * From RFC 8914:
@@ -62,7 +71,7 @@ struct dns_edectx {
 	int	       magic;
 	isc_mem_t     *mctx;
 	dns_ednsopt_t *ede[DNS_EDE_MAX_ERRORS];
-	uint32_t       edeused;
+	uint64_t       edeused;
 	size_t	       nextede;
 };
 /*%<
@@ -72,6 +81,13 @@ struct dns_edectx {
  * manipulate its state (adding EDE, transfer to another context, etc.). EDE are
  * internally stored in the wire format, so it can be directly consumed to build
  * the response client message.
+ */
+
+STATIC_ASSERT(DNS_EDE_MAX_CODE <=
+		      CHAR_BIT * sizeof(((dns_edectx_t *){ NULL })->edeused),
+	      "DNS_EDE_MAX_CODE does not fit in the edeused bitmap");
+/*
+ * Make sure we can fit the currently supported EDE codes in the edeused bitmap.
  */
 
 void
