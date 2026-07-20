@@ -146,7 +146,7 @@ ISC_RUN_TEST_IMPL(dns_ede_test_infocode_range) {
 	dns_ede_init(mctx, &edectx);
 
 	dns_ede_add(&edectx, 1, NULL);
-	expect_assert_failure(dns_ede_add(&edectx, 32, NULL));
+	expect_assert_failure(dns_ede_add(&edectx, DNS_EDE_MAX_CODE + 1, NULL));
 
 	const ede_test_expected_t expected[] = {
 		{ .code = 1, .txt = NULL },
