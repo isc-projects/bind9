@@ -148,12 +148,22 @@ ISC_RUN_TEST_IMPL(dns_ede_test_infocode_range) {
 	dns_ede_init(isc_g_mctx, &edectx);
 
 	dns_ede_add(&edectx, 1, NULL);
-	expect_assert_failure(dns_ede_add(&edectx, 32, NULL));
+
+	/*
+	 * DNS_EDE_NTA (33) is the highest defined INFO-CODE. Adding it must
+	 * succeed and must not collide with the previously added code 1 in
+	 * the "already used" bitmap (which requires more than 32 bits).
+	 */
+	dns_ede_add(&edectx, DNS_EDE_NTA, NULL);
+
+	/* Codes at or beyond DNS_EDE_MAX_CODE are rejected. */
+	expect_assert_failure(dns_ede_add(&edectx, DNS_EDE_MAX_CODE, NULL));
 
 	const ede_test_expected_t expected[] = {
 		{ .code = 1, .txt = NULL },
+		{ .code = DNS_EDE_NTA, .txt = NULL },
 	};
-	dns_ede_test_equals(expected, 1, &edectx);
+	dns_ede_test_equals(expected, 2, &edectx);
 
 	dns_ede_reset(&edectx);
 }
