@@ -945,6 +945,41 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 	*delegsetp = delegset;
 }
 
+void
+dns_delegset_copy(dns_delegset_t *src, dns_delegdb_t *db,
+		  dns_delegset_t **delegsetp) {
+	dns_delegset_t *delegset = NULL;
+
+	REQUIRE(DNS_DELEGSET_VALID(src));
+	REQUIRE(VALID_DELEGDB(db));
+	REQUIRE(delegsetp != NULL && *delegsetp == NULL);
+
+	dns_delegset_allocset(db, &delegset);
+	delegset->staticstub = src->staticstub;
+	delegset->expires = src->expires;
+
+	ISC_LIST_FOREACH(src->delegs, srcdeleg, link) {
+		dns_deleg_t *deleg = NULL;
+
+		dns_delegset_allocdeleg(delegset, srcdeleg->type, &deleg);
+
+		/*
+		 * Only one of these two loops will actually run; this
+		 * avoids having to do conditional checks depending on the
+		 * type.
+		 */
+		ISC_LIST_FOREACH(srcdeleg->addresses, addr, link) {
+			dns_delegset_addaddr(delegset, deleg, &addr->addr);
+		}
+
+		ISC_LIST_FOREACH(srcdeleg->names, name, link) {
+			addname(delegset, &deleg->names, name);
+		}
+	}
+
+	*delegsetp = delegset;
+}
+
 static isc_result_t
 deleg_deletetree(qplru_t *qplru, dns_qp_t *qp, const dns_name_t *name) {
 	isc_result_t result;

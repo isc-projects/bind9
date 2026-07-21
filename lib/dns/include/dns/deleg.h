@@ -92,7 +92,7 @@ struct dns_delegset {
 	isc_refcount_t references;
 
 	dns_deleglist_t delegs;
-	isc_stdtime_t	expires;
+	isc_stdtime_t	expires; /* Overriden by the database when inserted. */
 
 	/*
 	 * Used only when a delegation is built from a local zone.
@@ -251,6 +251,18 @@ dns_delegdb_dump(dns_delegdb_t *db, bool expired, FILE *fp);
 void
 dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 			    dns_delegset_t **delegsetp);
+
+/*
+ * Copy `src` (which might come from any DB or memory context) into
+ * `*delesetp`.  The memory context used to allocate `*delegsetp` (and
+ * internal sub-objects) comes from `db`.
+ *
+ * Note that the `expires` field is not copied, as this is only used
+ * internally in the DB after the delegset is added.
+ */
+void
+dns_delegset_copy(dns_delegset_t *src, dns_delegdb_t *db,
+		  dns_delegset_t **delegsetp);
 
 /*
  * Delete a delegation matching a name. If `tree` is true, this will also
