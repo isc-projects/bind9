@@ -1261,6 +1261,28 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
+  # With +short, dig must not emit the ";; " progress/error comments (here:
+  # the "Got SERVFAIL reply from ..." note printed while retrying).  +short
+  # normally turns comments off, but "+short +comments" re-enables them while
+  # short form is still in effect; the comment output then belongs to the
+  # verbose form and would corrupt the short output.  The "+comments" case
+  # (without +short) is checked first so the absence check below is meaningful.
+  n=$((n + 1))
+  echo_i "check that dig +comments emits the retry comment ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check that dig +short +comments suppresses the retry comment ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail +short +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
   n=$((n + 1))
   echo_i "check that dig tries the next server after a UDP socket network unreachable error ($n)"
   ret=0
