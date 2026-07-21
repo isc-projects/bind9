@@ -3419,7 +3419,7 @@ static void
 dig_comments(dig_lookup_t *lookup, const char *format, ...) {
 	va_list args;
 
-	if (lookup->comments && !yaml) {
+	if (lookup->comments && !yaml && !short_form) {
 		printf(";; ");
 
 		va_start(args, format);
