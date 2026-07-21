@@ -1229,7 +1229,48 @@ if [ -x "$DIG" ]; then
     [ "$value" = "d.example. 300 IN AAAA fd92:7065:b8e:ffff::0" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
+
+    # When all servers fail (here: a UDP query that times out with no
+    # response), dig must not emit the ";"-prefixed startup banner ahead of
+    # the "- type: DIG_ERROR" block, as that would make the +yaml output
+    # invalid YAML.  The query name is deliberately placed before +yaml on the
+    # command line: that is what makes dig build the banner (while +cmd is
+    # still in effect) before switching to YAML output, which is the ordering
+    # that regressed.
+    n=$((n + 1))
+    echo_i "check that dig +yaml produces valid YAML when no servers could be reached ($n)"
+    ret=0
+    dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +yaml >dig.out.test$n 2>&1 && ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 type >yamlget.out.test$n 2>&1 || ret=1
+    read -r value <yamlget.out.test$n
+    [ "$value" = "DIG_ERROR" ] || ret=1
+    if [ $ret -ne 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
   fi
+
+  # +nocmd placed after the query name must suppress the startup banner
+  # ("<<>> DiG ..." lines), including on the error path.  This regressed
+  # because the banner was built as soon as the query name was seen, before
+  # +nocmd had been parsed; it is now built after the whole command line has
+  # been processed.  The default (+cmd) case is checked first so the absence
+  # check below is meaningful.
+  n=$((n + 1))
+  echo_i "check that dig prints the startup banner by default ($n)"
+  ret=0
+  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 >dig.out.test$n 2>&1 && ret=1
+  grep -F "<<>> DiG" dig.out.test$n >/dev/null || ret=1
+  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check that dig +nocmd after the query name suppresses the startup banner ($n)"
+  ret=0
+  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +nocmd >dig.out.test$n 2>&1 && ret=1
+  grep -F "<<>> DiG" dig.out.test$n >/dev/null && ret=1
+  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 
   n=$((n + 1))
   echo_i "check that dig +bufsize=0 just sets the buffer size to 0 ($n)"
@@ -1298,6 +1339,28 @@ if [ -x "$DIG" ]; then
   ret=0
   dig_with_opts +timeout=1 +nofail +tcp @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
   grep -F "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  # With +short, dig must not emit the ";; " progress/error comments (here:
+  # the "Got SERVFAIL reply from ..." note printed while retrying).  +short
+  # normally turns comments off, but "+short +comments" re-enables them while
+  # short form is still in effect; the comment output then belongs to the
+  # verbose form and would corrupt the short output.  The "+comments" case
+  # (without +short) is checked first so the absence check below is meaningful.
+  n=$((n + 1))
+  echo_i "check that dig +comments emits the retry comment ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+
+  n=$((n + 1))
+  echo_i "check that dig +short +comments suppresses the retry comment ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +nofail +short +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null && ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
