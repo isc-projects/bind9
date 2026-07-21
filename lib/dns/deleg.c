@@ -288,7 +288,7 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 
 	REQUIRE(VALID_DELEGDB(delegdb));
 	REQUIRE(DNS_NAME_VALID(name));
-	REQUIRE(dns_name_hasbuffer(zonecut));
+	REQUIRE(zonecut == NULL || dns_name_hasbuffer(zonecut));
 	REQUIRE(deepestzonecut == NULL || dns_name_hasbuffer(deepestzonecut));
 
 	result = dns_qp_lookup(qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, &chain,
@@ -299,7 +299,7 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 	}
 	INSIST(VALID_DELEGDB_NODE(node));
 
-	if (deepestzonecut != NULL) {
+	if (zonecut != NULL && deepestzonecut != NULL) {
 		dns_name_copy(&node->zonecut, deepestzonecut);
 	}
 
@@ -335,7 +335,9 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 			return ISC_R_NOTFOUND;
 		}
 
-		dns_name_copy(&node->zonecut, zonecut);
+		if (zonecut != NULL) {
+			dns_name_copy(&node->zonecut, zonecut);
+		}
 		INSIST(node->delegset);
 		dns_delegset_attach(node->delegset, delegsetp);
 
@@ -348,7 +350,9 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 	}
 
 	if (isactive(node, now)) {
-		dns_name_copy(&node->zonecut, zonecut);
+		if (zonecut != NULL) {
+			dns_name_copy(&node->zonecut, zonecut);
+		}
 		INSIST(node->delegset);
 		dns_delegset_attach(node->delegset, delegsetp);
 		ISC_SIEVE_MARK(node, visited);

@@ -138,7 +138,8 @@ dns_delegdb_getconfig(dns_delegdb_t *delegdb);
  * modified. Few notes:
  *
  * - Parameter `delegset` is optional. If it is NULL, it won't be attached.
- * - The zonecut must be a initialized and attached to a buffer.
+ * - The zonecut is optional, but if non NULL, it must be a initialized and
+ *   attached to a buffer.
  * - If `now` is 0, the actual expiration time is `isc_stdtime_now()`.
  *
  * Returns:
