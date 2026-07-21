@@ -1075,6 +1075,18 @@ bestzonecut_delegdb(dns_view_t *view, const dns_name_t *name, dns_name_t *fname,
 					    fname, dcname, delegsetp);
 	}
 
+	if (result == DNS_R_EXPIRED) {
+		dns_resolver_t *res = NULL;
+
+		INSIST((options & DNS_DBFIND_HINTOK) != 0);
+		if (dns_view_getresolver(view, &res) == ISC_R_SUCCESS) {
+			dns_resolver_prime(res);
+			dns_resolver_detach(&res);
+		}
+
+		result = ISC_R_SUCCESS;
+	}
+
 	/*
 	 * Cache miss returns ISC_R_NOTFOUND, but to not confuse it
 	 * with a zone found without delegation matching `name` (nor partial),
@@ -1118,34 +1130,6 @@ bestzonecut_zoneorcache(dns_view_t *view, const dns_name_t *name,
 	}
 }
 
-static isc_result_t
-bestzonecut_rootdb(dns_view_t *view, dns_name_t *fname, dns_name_t *dcname,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset) {
-	if (view->rootdb == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	isc_result_t result = dns_db_find(view->rootdb, dns_rootname, NULL,
-					  dns_rdatatype_ns, 0, now, fname,
-					  rdataset, NULL);
-	if (result != ISC_R_SUCCESS) {
-		dns_rdataset_cleanup(rdataset);
-		return result;
-	}
-
-	if (dcname != NULL) {
-		dns_name_copy(fname, dcname);
-	}
-	/*
-	 * Returned record may be stale by TTL; that's fine — it
-	 * is better than nothing until the next priming fetch.
-	 * Kick off priming if the stored expiry has elapsed.
-	 */
-	maybe_prime(view);
-
-	return result;
-}
-
 isc_result_t
 dns_view_bestzonecut(dns_view_t *view, const dns_name_t *name,
 		     dns_name_t *fname, dns_name_t *dcname, isc_stdtime_t now,
@@ -1176,18 +1160,13 @@ dns_view_bestzonecut(dns_view_t *view, const dns_name_t *name,
 		/*
 		 * A zone with a (possibly partial) delegation match but the
 		 * cache can have a more precise delegation.
+		 *
+		 * No need to look for hints in this case: we have something
+		 * better in a local zone.
 		 */
 		options &= ~DNS_DBFIND_HINTOK;
 		bestzonecut_zoneorcache(view, name, fname, dcname, now, options,
 					&rdataset, delegsetp);
-	}
-
-	/*
-	 * No local zone nor cache match. Last attempt with the rootdb.
-	 */
-	if (result == DNS_R_NXDOMAIN && usehints) {
-		result = bestzonecut_rootdb(view, fname, dcname, now,
-					    &rdataset);
 	}
 
 	if (result != ISC_R_SUCCESS) {
