@@ -642,8 +642,7 @@ isc_crypto_aead_open(isc_crypto_aead_t *aead, isc_constregion_t nonce,
 	}
 
 	len = out.length;
-	if (EVP_DecryptUpdate(aead, out.base, &len, ciphertext.base,
-			      ciphertext.length) != 1)
+	if (EVP_DecryptUpdate(aead, out.base, &len, ciphertext.base, len) != 1)
 	{
 		CLEANUP(ISC_R_CRYPTOFAILURE);
 	}
