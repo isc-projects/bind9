@@ -11339,11 +11339,39 @@ static void
 flush_delegdb(dns_view_t *view) {
 	REQUIRE(view->deleg != NULL);
 
+	dns_delegdb_t *newdelegdb = NULL;
+	dns_delegset_t *roothints = NULL;
 	dns_delegdb_config_t config = dns_delegdb_getconfig(view->deleg);
+	isc_result_t result = dns_delegdb_lookup(view->deleg, dns_rootname, 0,
+						 DNS_DBFIND_HINTOK, NULL, NULL,
+						 &roothints);
+
+	dns_delegdb_create(&newdelegdb);
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_EXPIRED) {
+		dns_delegset_t *troothints = NULL;
+
+		dns_delegset_copy(roothints, newdelegdb, &troothints);
+		dns_delegset_detach(&roothints);
+		roothints = MOVE_OWNERSHIP(troothints);
+	} else {
+		INSIST(roothints == NULL);
+	}
 
 	dns_delegdb_detach(&view->deleg);
-	dns_delegdb_create(&view->deleg);
+	view->deleg = MOVE_OWNERSHIP(newdelegdb);
+
 	dns_delegdb_setconfig(view->deleg, &config);
+	if (roothints != NULL) {
+		/*
+		 * TTL of 0, so it will prime again next time root hints are
+		 * used.
+		 */
+		result = dns_delegset_insert(view->deleg, dns_rootname, 0,
+					     roothints);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_delegset_detach(&roothints);
+	}
 }
 
 isc_result_t
