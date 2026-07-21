@@ -57,8 +57,6 @@ INPUTS = [
     ("ns2", "a.example4", "A", True, False, REFUSED, None, None, None),
     ("ns2", "a.example4", "A", False, False, REFUSED, None, None, None),
     # ns3 being resolver only and having the answer, no AUTHORITY or ADDITIONAL are added.
-    # However, with RD=0 and no cache, it can't answer, so the root hints are provided
-    # in AUTHORITY.
     ("ns3", "a.example2", "A", True, False, NOERROR, AEXAMPLE2_A, None, None),
     ("ns3", "a.example4", "A", True, False, NOERROR, AEXAMPLE4_A, None, None),
     ("ns3", "a.example2", "A", True, True, NOERROR, AEXAMPLE2_A, None, None),
