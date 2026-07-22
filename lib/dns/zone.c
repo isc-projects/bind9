@@ -11112,8 +11112,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			flags |= DNS_NOTIFY_TCP;
 		}
 
-		/* TODO: glue the transport to the notify */
-
 		dst = dns_remote_curraddr(&zone->alsonotify);
 		src = dns_remote_sourceaddr(&zone->alsonotify);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
@@ -17752,8 +17750,6 @@ checkds_send(dns_zone_t *zone) {
 			}
 			goto next;
 		}
-
-		/* TODO: glue the transport to the checkds request */
 
 		if (checkds_isqueued(zone, NULL, &dst, key, transport)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
