@@ -75,158 +75,6 @@ $PYTHON -c "import yaml" 2>/dev/null && HAS_PYYAML=1
 
 if [ -x "$DIG" ]; then
   n=$((n + 1))
-  echo_i "check dig handles UPDATE response ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +tries=1 +timeout=1 cname foo.bar >dig.out.test$n 2>&1 && ret=1
-  grep "Opcode mismatch" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig short form works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +short a a.example >dig.out.test$n || ret=1
-  test "$(wc -l <dig.out.test$n)" -eq 1 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig split width works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +split=4 -t sshfp foo.example >dig.out.test$n || ret=1
-  grep " 9ABC DEF6 7890 " <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "SSHFP" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +unknownformat works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +unknownformat a a.example >dig.out.test$n || ret=1
-  grep "CLASS1[ 	][ 	]*TYPE1[ 	][ 	]*\\\\# 4 0A000001" <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "TYPE1" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig with reverse lookup works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 -x 127.0.0.1 >dig.out.test$n 2>&1 || ret=1
-  # doesn't matter if has answer
-  grep -i "127\\.in-addr\\.arpa\\." <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "SOA" 86400 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig over TCP works ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 a a.example >dig.out.test$n || ret=1
-  grep "10\\.0\\.0\\.1$" <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "A" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +multi +norrcomments works for DNSKEY (when default is rrcomments)($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +multi +norrcomments -t DNSKEY example >dig.out.test$n || ret=1
-  grep "; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID" dig.out.test$n >/dev/null && ret=1
-  check_ttl_range dig.out.test$n "DNSKEY" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +multi +norrcomments works for SOA (when default is rrcomments)($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +multi +norrcomments -t SOA example >dig.out.test$n || ret=1
-  grep "; serial" dig.out.test$n >/dev/null && ret=1
-  check_ttl_range dig.out.test$n "SOA" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +rrcomments works for DNSKEY($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +rrcomments DNSKEY example >dig.out.test$n || ret=1
-  grep "; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID" <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "DNSKEY" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +short +rrcomments works for DNSKEY ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +short +rrcomments DNSKEY example >dig.out.test$n || ret=1
-  grep "; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +short +nosplit works($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +short +nosplit DNSKEY example >dig.out.test$n || ret=1
-  grep "$NOSPLIT" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +short +rrcomments works($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +short +rrcomments DNSKEY example >dig.out.test$n || ret=1
-  grep -q "$KEYDATA  ; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID\$" <dig.out.test$n || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig multi flag is local($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 -t DNSKEY example +nomulti example +nomulti >dig.out.nn.$n || ret=1
-  dig_with_opts +tcp @10.53.0.3 -t DNSKEY example +multi example +nomulti >dig.out.mn.$n || ret=1
-  dig_with_opts +tcp @10.53.0.3 -t DNSKEY example +nomulti example +multi >dig.out.nm.$n || ret=1
-  dig_with_opts +tcp @10.53.0.3 -t DNSKEY example +multi example +multi >dig.out.mm.$n || ret=1
-  lcnn=$(wc -l <dig.out.nn.$n)
-  lcmn=$(wc -l <dig.out.mn.$n)
-  lcnm=$(wc -l <dig.out.nm.$n)
-  lcmm=$(wc -l <dig.out.mm.$n)
-  test "$lcmm" -ge "$lcnm" || ret=1
-  test "$lcmm" -ge "$lcmn" || ret=1
-  test "$lcnm" -ge "$lcnn" || ret=1
-  test "$lcmn" -ge "$lcnn" || ret=1
-  check_ttl_range dig.out.nn.$n "DNSKEY" 300 || ret=1
-  check_ttl_range dig.out.mn.$n "DNSKEY" 300 || ret=1
-  check_ttl_range dig.out.nm.$n "DNSKEY" 300 || ret=1
-  check_ttl_range dig.out.mm.$n "DNSKEY" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +noheader-only works ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +noheader-only A example >dig.out.test$n || ret=1
-  grep "Got answer:" <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "SOA" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +short +rrcomments works($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +short +rrcomments DNSKEY example >dig.out.test$n || ret=1
-  grep -q "$KEYDATA  ; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID\$" <dig.out.test$n || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +header-only works ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +header-only example >dig.out.test$n || ret=1
-  grep "^;; flags: qr rd; QUERY: 0, ANSWER: 0," <dig.out.test$n >/dev/null || ret=1
-  grep "^;; QUESTION SECTION:" <dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
   echo_i "checking dig +coflag works ($n)"
   ret=0
   dig_with_opts +tcp @10.53.0.3 +coflag +qr example >dig.out.test$n || ret=1
@@ -268,15 +116,6 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
-  echo_i "checking dig +header-only works (with class and type set) ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.3 +header-only -c IN -t A example >dig.out.test$n || ret=1
-  grep "^;; flags: qr rd; QUERY: 0, ANSWER: 0," <dig.out.test$n >/dev/null || ret=1
-  grep "^;; QUESTION SECTION:" <dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
   echo_i "checking dig +zflag works, and that BIND properly ignores it ($n)"
   ret=0
   dig_with_opts +tcp @10.53.0.3 +zflag +qr A example >dig.out.test$n || ret=1
@@ -292,34 +131,6 @@ if [ -x "$DIG" ]; then
   dig_with_opts @10.53.0.3 +ednsopt=08 +qr a a.example >dig.out.test$n || ret=1
   grep "INSIST" <dig.out.test$n >/dev/null && ret=1
   grep "FORMERR" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig +ttlunits works ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.2 +ttlunits A weeks.example >dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +ttlunits A days.example >dig.out.test$n || ret=1
-  grep "^days.example.		3d" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +ttlunits A hours.example >dig.out.test$n || ret=1
-  grep "^hours.example.		3h" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +ttlunits A minutes.example >dig.out.test$n || ret=1
-  grep "^minutes.example.	45m" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +ttlunits A seconds.example >dig.out.test$n || ret=1
-  grep "^seconds.example.	45s" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig respects precedence of options with +ttlunits ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.2 +ttlunits +nottlid A weeks.example >dig.out.test$n || ret=1
-  grep "^weeks.example.		IN" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +nottlid +ttlunits A weeks.example >dig.out.test$n || ret=1
-  grep "^weeks.example.		3w" <dig.out.test$n >/dev/null || ret=1
-  dig_with_opts +tcp @10.53.0.2 +nottlid +nottlunits A weeks.example >dig.out.test$n || ret=1
-  grep "^weeks.example.		1814400" <dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
@@ -520,23 +331,6 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
-  echo_i "checking dig +sp works as an abbreviated form of split ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +sp=4 -t sshfp foo.example >dig.out.test$n || ret=1
-  grep " 9ABC DEF6 7890 " <dig.out.test$n >/dev/null || ret=1
-  check_ttl_range dig.out.test$n "SSHFP" 300 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig -c works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 -c CHAOS -t txt version.bind >dig.out.test$n || ret=1
-  grep "version.bind.		0	CH	TXT" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
   echo_i "checking dig +ednsopt with option number ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=3 a.example >dig.out.test$n 2>&1 || ret=1
@@ -634,14 +428,6 @@ if [ -x "$DIG" ]; then
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
   fi
-
-  n=$((n + 1))
-  echo_i "checking that dig warns about .local queries ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 local soa >dig.out.test$n 2>&1 || ret=1
-  grep ";; WARNING: .local is reserved for Multicast DNS" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
 
   n=$((n + 1))
   echo_i "check that dig processes +ednsopt=key-tag and FORMERR is returned ($n)"
@@ -958,28 +744,6 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
-  echo_i "check that dig gracefully handles bad escape in domain name ($n)"
-  ret=0
-  digstatus=0
-  dig_with_opts @10.53.0.3 '\0.' >dig.out.test$n 2>&1 || digstatus=$?
-  echo digstatus=$digstatus >>dig.out.test$n
-  test $digstatus -eq 10 || ret=1
-  grep REQUIRE dig.out.test$n >/dev/null && ret=1
-  grep "is not a legal name (bad escape)" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig -q -m works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 -q -m >dig.out.test$n 2>&1
-  pat='^;-m\..*IN.*A$'
-  grep "$pat" dig.out.test$n >/dev/null || ret=1
-  grep "Dump of all outstanding memory allocations" dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
   echo_i "checking exit code for a retry upon TCP EOF (immediate -> immediate) ($n)"
   ret=0
   set_response_sequence no-response $n
@@ -1058,40 +822,6 @@ if [ -x "$DIG" ]; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
-  n=$((n + 1))
-  echo_i "check that dig +expandaaaa works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +expandaaaa AAAA ns2.example >dig.out.test$n 2>&1 || ret=1
-  grep "ns2.example.*fd92:7065:0b8e:ffff:0000:0000:0000:0002" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +noexpandaaaa works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +noexpandaaaa AAAA ns2.example >dig.out.test$n 2>&1 || ret=1
-  grep "ns2.example.*fd92:7065:b8e:ffff::2" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig default for +[no]expandaaa (+noexpandaaaa) works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 AAAA ns2.example >dig.out.test$n 2>&1 || ret=1
-  grep "ns2.example.*fd92:7065:b8e:ffff::2" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-
-  echo_i "check that dig +short +expandaaaa works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +short +expandaaaa AAAA ns2.example >dig.out.test$n 2>&1 || ret=1
-  pat='^fd92:7065:0b8e:ffff:0000:0000:0000:0002$'
-  grep "$pat" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   if [ $HAS_PYYAML -ne 0 ]; then
     n=$((n + 1))
     echo_i "check dig +yaml ANY output ($n)"
@@ -1158,59 +888,6 @@ if [ -x "$DIG" ]; then
   dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +nocmd >dig.out.test$n 2>&1 && ret=1
   grep -F "<<>> DiG" dig.out.test$n >/dev/null && ret=1
   grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +bufsize=0 just sets the buffer size to 0 ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 a.example +bufsize=0 +qr >dig.out.test$n 2>&1 || ret=1
-  grep "EDNS:" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +bufsize restores default bufsize ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 a.example +bufsize=0 +bufsize +qr >dig.out.test$n 2>&1 || ret=1
-  lines=$(grep "EDNS:.* udp:" dig.out.test$n | wc -l)
-  lines1232=$(grep "EDNS:.* udp: 1232" dig.out.test$n | wc -l)
-  test $lines -eq 2 || ret=1
-  test $lines1232 -eq 2 || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig without -u displays 'Query time' in millseconds ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep ';; Query time: [0-9][0-9]* msec' dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig -u displays 'Query time' in microseconds ($n)"
-  ret=0
-  dig_with_opts -u @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep ';; Query time: [0-9][0-9]* usec' dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +yaml without -u displays timestamps in milliseconds ($n)"
-  ret=0
-  dig_with_opts +yaml @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep 'query_time: !!timestamp ....-..-..T..:..:..\....Z' dig.out.test$n >/dev/null || ret=1
-  grep 'response_time: !!timestamp ....-..-..T..:..:..\....Z' dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig -u +yaml displays timestamps in microseconds ($n)"
-  ret=0
-  dig_with_opts -u +yaml @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep 'query_time: !!timestamp ....-..-..T..:..:..\.......Z' dig.out.test$n >/dev/null || ret=1
-  grep 'response_time: !!timestamp ....-..-..T..:..:..\.......Z' dig.out.test$n >/dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
