@@ -19,10 +19,6 @@ set -e
 status=0
 n=0
 
-mdig_with_opts() {
-  "$MDIG" -p "$PORT" "$@"
-}
-
 # Check if response in file $1 has the correct TTL range.
 # The response record must have RRtype $2 and class IN (CLASS1).
 # Maximum TTL is given by $3.  This works in most cases where TTL is
@@ -62,63 +58,6 @@ NOSPLIT="$(sed <ns2/keydata -e 's/+/[+]/g' -e 's/ //g')"
 
 HAS_PYYAML=0
 $PYTHON -c "import yaml" 2>/dev/null && HAS_PYYAML=1
-
-if [ -x "$MDIG" ]; then
-  n=$((n + 1))
-  echo_i "checking mdig +tcp works with a source address and port ($n)"
-  ret=0
-  # When running more than once in quick succession with a source address#port,
-  # we can get a "response failed with address not available" error because
-  # the address#port is still busy, but we are not interested in that error,
-  # as we are only looking for the unexpected error case, that's why we ignore
-  # the return code from mdig, but we check for the unexpected error message
-  # using grep. See GitLab #4969.
-  mdig_with_opts -b "10.53.0.3#${EXTRAPORT8}" +tcp @10.53.0.3 example >dig.out.test$n 2>&1 || true
-  grep -F "unexpected error" dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that mdig handles malformed option '+ednsopt=:' gracefully ($n)"
-  ret=0
-  mdig_with_opts @10.53.0.3 +ednsopt=: a.example >dig.out.test$n 2>&1 && ret=1
-  grep "ednsopt no code point specified" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking mdig +multi +norrcomments works for DNSKEY (when default is rrcomments)($n)"
-  ret=0
-  mdig_with_opts +tcp @10.53.0.3 +multi +norrcomments -t DNSKEY example >dig.out.test$n || ret=1
-  grep "; ZSK; alg = $DEFAULT_ALGORITHM ; key id = $KEYID" dig.out.test$n && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking mdig +multi +norrcomments works for SOA (when default is rrcomments)($n)"
-  ret=0
-  mdig_with_opts +tcp @10.53.0.3 +multi +norrcomments -t SOA example >dig.out.test$n || ret=1
-  grep "; serial" <dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  if [ $HAS_PYYAML -ne 0 ]; then
-    n=$((n + 1))
-    echo_i "check mdig +yaml output ($n)"
-    ret=0
-    mdig_with_opts +yaml @10.53.0.3 -t any ns2.example >dig.out.test$n 2>&1 || ret=1
-    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data status >yamlget.out.test$n 2>&1 || ret=1
-    read -r value <yamlget.out.test$n
-    [ "$value" = "NOERROR" ] || ret=1
-    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data QUESTION_SECTION 0 >yamlget.out.test$n 2>&1 || ret=1
-    read -r value <yamlget.out.test$n
-    [ "$value" = "ns2.example. IN ANY" ] || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-  fi
-else
-  echo_i "$MDIG is needed, so skipping these mdig tests"
-fi
 
 if [ -x "$DELV" ]; then
   n=$((n + 1))
