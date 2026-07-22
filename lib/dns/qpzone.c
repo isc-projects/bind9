@@ -3560,7 +3560,7 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 */
 			result = find_wildcard(&search, &node, name, nspace);
 			if (result == ISC_R_SUCCESS) {
-				dns_name_copy(name, foundname);
+				dns_name_copy(&node->name, foundname);
 				wild = true;
 				goto found;
 			} else if (result != ISC_R_NOTFOUND) {
@@ -3827,6 +3827,9 @@ found:
 			 *
 			 * Return the delegation.
 			 */
+			if (wild) {
+				foundname->attributes.wildcard = true;
+			}
 			NODE_UNLOCK(nlock, &nlocktype);
 			result = qpzone_setup_delegation(
 				&search, nodep, foundname, rdataset,

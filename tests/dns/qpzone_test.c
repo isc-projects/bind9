@@ -453,6 +453,49 @@ ISC_RUN_TEST_IMPL(diffop_add_sub) {
 	assert_null(db);
 }
 
+ISC_RUN_TEST_IMPL(wildcard_foundname) {
+	static const unsigned char address[] = { 192, 0, 2, 1 };
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fqname, fwild, ffound;
+	dns_name_t *qname = NULL, *wild = NULL, *found = NULL;
+	dns_rdataset_t rdataset;
+
+	result = dns__qpzone_create(isc_g_mctx, &example_org_name,
+				    dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+				    NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(db);
+
+	dns_test_namefromstring("host.example.org.", &fqname);
+	dns_test_namefromstring("*.example.org.", &fwild);
+	qname = dns_fixedname_name(&fqname);
+	wild = dns_fixedname_name(&fwild);
+	found = dns_fixedname_initname(&ffound);
+
+	WITH_NEWVERSION(db, newversion, true) {
+		apply_dns_update(db, newversion, wild, dns_rdatatype_a,
+				 dns_rdataclass_in, 300, address,
+				 sizeof(address), DNS_DIFFOP_ADD);
+	}
+
+	dns_rdataset_init(&rdataset);
+	dns_db_currentversion(db, &version);
+	result = dns_db_find(db, qname, version, dns_rdatatype_a, 0, 0, &node,
+			     found, &rdataset, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_name_equal(found, wild));
+	assert_true(found->attributes.wildcard);
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detachnode(&node);
+	dns_db_closeversion(db, &version, false);
+	dns_db_detach(&db);
+	assert_null(db);
+}
+
 ISC_RUN_TEST_IMPL(diffop_addresign) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -521,6 +564,7 @@ ISC_TEST_ENTRY(ownercase)
 ISC_TEST_ENTRY(setownercase)
 ISC_TEST_ENTRY(resign_sooner_values)
 ISC_TEST_ENTRY(diffop_add_sub)
+ISC_TEST_ENTRY(wildcard_foundname)
 ISC_TEST_ENTRY(diffop_addresign)
 ISC_TEST_LIST_END
 

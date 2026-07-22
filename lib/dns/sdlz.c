@@ -479,6 +479,9 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	char zonestr[DNS_NAME_MAXTEXT + 1];
 	bool isorigin;
 	dns_sdlzauthorityfunc_t authority;
+	dns_fixedname_t wildfixed;
+	dns_name_t *wildname = dns_fixedname_initname(&wildfixed);
+	const dns_name_t *nodename = name;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -572,6 +575,12 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				zonestr, wildstr, sdlz->dlzimp->driverarg,
 				sdlz->dbdata, node, methods, clientinfo);
 			if (result == ISC_R_SUCCESS) {
+				result = dns_name_concatenate(
+					wild, &sdlz->common.origin, wildname);
+				if (result != ISC_R_SUCCESS) {
+					break;
+				}
+				nodename = wildname;
 				break;
 			}
 		}
@@ -603,7 +612,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	}
 
 	if (!dns_name_dynamic(&node->name)) {
-		dns_name_dup(name, sdlz->common.mctx, &node->name);
+		dns_name_dup(nodename, sdlz->common.mctx, &node->name);
 	}
 
 	*nodep = (dns_dbnode_t *)node;
@@ -902,7 +911,19 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	}
 
 	if (foundname != NULL) {
-		dns_name_copy(xname, foundname);
+		if (node != NULL) {
+			dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
+
+			dns_name_copy(&sdlznode->name, foundname);
+			if (dns_name_iswildcard(&sdlznode->name) &&
+			    !dns_name_equal(name, &sdlznode->name) &&
+			    dns_name_matcheswildcard(name, &sdlznode->name))
+			{
+				foundname->attributes.wildcard = true;
+			}
+		} else {
+			dns_name_copy(xname, foundname);
+		}
 	}
 
 	if (nodep != NULL) {
