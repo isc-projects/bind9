@@ -25,3 +25,22 @@ ARTIFACTS = [
     "ns2/example.db",
     "ns2/example.tld.db",
 ]
+
+
+def check_ttl_range(text, rrtype, max_ttl):
+    """Check that a record of the given RR type and class IN (or its
+    unknown-format spelling CLASS1) is present with a TTL not exceeding
+    max_ttl."""
+    for line in text.splitlines():
+        fields = line.split()
+        if len(fields) < 4:
+            continue
+        if fields[2] not in ("IN", "CLASS1") or fields[3] != rrtype:
+            continue
+        try:
+            ttl = int(fields[1])
+        except ValueError:
+            continue
+        if ttl <= max_ttl:
+            return True
+    return False
