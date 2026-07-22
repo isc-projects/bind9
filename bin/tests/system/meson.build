@@ -23,7 +23,6 @@ system_test_binaries += {
     # 'bigkey': files('rsabigexponent' / 'bigkey.c'),
     'feature-test': files('feature-test.c'),
     'pipequeries': files('pipelined' / 'pipequeries.c'),
-    'wire-test': files('wire-test.c'),
 }
 
 system_test_libraries += {

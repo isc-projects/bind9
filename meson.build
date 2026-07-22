@@ -1253,6 +1253,7 @@ nsupdate_src = []
 rndc_confgen_src = []
 rndc_src = []
 tsig_keygen_src = []
+wiretest_src = []
 
 filter_a_src = []
 filter_aaaa_src = []
@@ -1879,6 +1880,19 @@ executable(
         libisc_dep,
         libisccc_dep,
         libisccfg_dep,
+    ],
+)
+
+executable(
+    'wire-test',
+    wiretest_src,
+    export_dynamic: true,
+    implicit_include_directories: false,
+    install: true,
+    sources: default_sanitize_options,
+    dependencies: [
+        libdns_dep,
+        libisc_dep,
     ],
 )
 
