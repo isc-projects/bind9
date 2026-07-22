@@ -430,7 +430,7 @@ expecttofindkey(dns_name_t *name) {
 
 	dns_fixedname_init(&fname);
 	result = dns_db_find(gdb, name, gversion, dns_rdatatype_dnskey, options,
-			     0, NULL, dns_fixedname_name(&fname), NULL, NULL);
+			     0, dns_fixedname_name(&fname), NULL, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
 	case DNS_R_NXDOMAIN:
@@ -1413,7 +1413,7 @@ get_soa_ttls(void) {
 	name = dns_fixedname_initname(&fname);
 	dns_rdataset_init(&soaset);
 	result = dns_db_find(gdb, gorigin, gversion, dns_rdatatype_soa, 0, 0,
-			     NULL, name, &soaset, NULL);
+			     name, &soaset, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fatal("failed to find an SOA at the zone apex: %s",
 		      isc_result_totext(result));

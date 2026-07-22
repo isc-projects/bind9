@@ -217,8 +217,8 @@ ISC_LOOP_TEST_IMPL(servestale_fresh_over_stale_cname) {
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name, NULL, dns_rdatatype_hinfo,
-			     DNS_DBFIND_STALEOK, now, NULL, foundname,
-			     &rdataset, NULL);
+			     DNS_DBFIND_STALEOK, now, foundname, &rdataset,
+			     NULL);
 
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(rdataset.type, dns_rdatatype_hinfo);
@@ -256,8 +256,8 @@ ISC_LOOP_TEST_IMPL(servestale_fresh_cname_over_stale_type) {
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
-			     DNS_DBFIND_STALEOK, now, NULL, foundname,
-			     &rdataset, NULL);
+			     DNS_DBFIND_STALEOK, now, foundname, &rdataset,
+			     NULL);
 
 	assert_int_equal(result, DNS_R_CNAME);
 	assert_int_equal(rdataset.type, dns_rdatatype_cname);

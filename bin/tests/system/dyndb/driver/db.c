@@ -326,9 +326,14 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	return dns__db_find(sampledb->db, name, version, type, options, now,
-			    nodep, foundname, methods, clientinfo, rdataset,
-			    sigrdataset DNS__DB_FLARG_PASS);
+	if (sampledb->db->methods->find == NULL) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	return (sampledb->db->methods->find)(sampledb->db, name, version, type,
+					     options, now, nodep, foundname,
+					     methods, clientinfo, rdataset,
+					     sigrdataset DNS__DB_FLARG_PASS);
 }
 
 static isc_result_t

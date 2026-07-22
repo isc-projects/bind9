@@ -461,7 +461,7 @@ view_find(resctx_t *rctx, dns_db_t **dbp, dns_name_t *foundname) {
 	}
 
 	result = dns_view_find(rctx->view, name, type, 0, 0, false, false, dbp,
-			       NULL, foundname, rctx->rdataset, rctx->sigrdataset);
+			       foundname, rctx->rdataset, rctx->sigrdataset);
 
 	return result;
 }
@@ -662,9 +662,15 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 
 			if (node == NULL) {
 				INSIST(db != NULL);
-				tresult = dns_db_findnode(db, fname, false, &node);
+				tresult = dns_db_findnode(db, fname, false,
+							  &node);
 				if (tresult != ISC_R_SUCCESS) {
 					result = tresult;
+					putrdataset(mctx, &rctx->rdataset);
+					if (rctx->sigrdataset != NULL) {
+						putrdataset(mctx,
+							    &rctx->sigrdataset);
+					}
 					goto done;
 				}
 			}

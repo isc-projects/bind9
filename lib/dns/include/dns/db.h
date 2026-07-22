@@ -810,21 +810,20 @@ dns__db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
  *	implementation used.
  */
 
-#define dns_db_find(db, name, version, type, options, now, nodep, foundname,  \
-		    rdataset, sigrdataset)                                    \
-	dns__db_find(db, name, version, type, options, now, nodep, foundname, \
-		     NULL, NULL, rdataset, sigrdataset DNS__DB_FILELINE)
-#define dns_db_findext(db, name, version, type, options, now, nodep,          \
-		       foundname, methods, clientinfo, rdataset, sigrdataset) \
-	dns__db_find(db, name, version, type, options, now, nodep, foundname, \
-		     methods, clientinfo, rdataset,                           \
+#define dns_db_find(db, name, version, type, options, now, foundname,        \
+		    rdataset, sigrdataset)                                   \
+	dns__db_find(db, name, version, type, options, now, foundname, NULL, \
+		     NULL, rdataset, sigrdataset DNS__DB_FILELINE)
+#define dns_db_findext(db, name, version, type, options, now, foundname, \
+		       methods, clientinfo, rdataset, sigrdataset)       \
+	dns__db_find(db, name, version, type, options, now, foundname,   \
+		     methods, clientinfo, rdataset,                      \
 		     sigrdataset DNS__DB_FILELINE)
 isc_result_t
 dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	     dns_dbnode_t **nodep, dns_name_t *foundname,
-	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	     dns_rdataset_t		*rdataset,
+	     dns_name_t *foundname, dns_clientinfomethods_t *methods,
+	     dns_clientinfo_t *clientinfo, dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 /*%<
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
@@ -892,16 +891,12 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  *
  * \li	'type' is not SIG, or a meta-RR type other than 'ANY' (e.g. 'OPT').
  *
- * \li	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
- *
  * \li	'foundname' is a valid name with a dedicated buffer.
  *
  * \li	'rdataset' is NULL, or is a valid unassociated rdataset.
  *
  * Ensures,
  *	on a non-error completion:
- *
- *	\li	If nodep != NULL, then it is bound to the found node.
  *
  *	\li	If foundname != NULL, then it contains the full name of the
  *		found node.
@@ -1138,9 +1133,9 @@ dns__db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * \li	If 'version' is NULL, then the current version will be used.
  *
  * \li	Care must be used when using this routine to build a DNS response:
- *	'node' should have been found with dns_db_find(), not
- *	dns_db_findnode().  No glue checking is done.  No checking for
- *	pending data is done.
+ *	'node' should correspond to an owner name already found with
+ *	dns_db_find().  No glue checking is done.  No checking for pending
+ *	data is done.
  *
  * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after

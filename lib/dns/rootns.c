@@ -190,7 +190,7 @@ check_hints(dns_db_t *db) {
 
 	dns_rdataset_init(&rootns);
 	(void)dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0, now,
-			  NULL, name, &rootns, NULL);
+			  name, &rootns, NULL);
 	CHECK(dns_db_createiterator(db, 0, &dbiter));
 	DNS_DBITERATOR_FOREACH(dbiter) {
 		CHECK(dns_dbiterator_current(dbiter, &node, name));

@@ -10678,8 +10678,8 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 			 * try with an additional label prepended.
 			 */
 			result = dns_db_find(fctx->cache, &name, NULL,
-					     dns_rdatatype_ns, 0, 0, NULL,
-					     fname, &rdataset, NULL);
+					     dns_rdatatype_ns, 0, 0, fname,
+					     &rdataset, NULL);
 			dns_rdataset_cleanup(&rdataset);
 			switch (result) {
 			case ISC_R_SUCCESS:

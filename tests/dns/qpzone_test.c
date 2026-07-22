@@ -291,7 +291,6 @@ verify_aaaa_records(dns_db_t *db, dns_dbversion_t *version,
 		    const dns_name_t *name, unsigned char (*ips)[16],
 		    ssize_t expected_count, uint32_t expected_ttl) {
 	isc_result_t result;
-	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	bool *found_ips = NULL;
 	dns_fixedname_t found_fname;
@@ -303,7 +302,7 @@ verify_aaaa_records(dns_db_t *db, dns_dbversion_t *version,
 
 	dns_rdataset_init(&rdataset);
 
-	result = dns_db_find(db, name, version, dns_rdatatype_aaaa, 0, 0, &node,
+	result = dns_db_find(db, name, version, dns_rdatatype_aaaa, 0, 0,
 			     found_name, &rdataset, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -339,7 +338,6 @@ verify_aaaa_records(dns_db_t *db, dns_dbversion_t *version,
 	/* Verify we found exactly the expected number of records */
 	assert_int_equal(found_count, expected_count);
 
-	dns_db_detachnode(&node);
 	dns_rdataset_disassociate(&rdataset);
 	isc_mem_cput(isc_g_mctx, found_ips, (size_t)expected_count,
 		     sizeof(bool));
@@ -458,7 +456,6 @@ ISC_RUN_TEST_IMPL(wildcard_foundname) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
-	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fqname, fwild, ffound;
 	dns_name_t *qname = NULL, *wild = NULL, *found = NULL;
 	dns_rdataset_t rdataset;
@@ -483,14 +480,13 @@ ISC_RUN_TEST_IMPL(wildcard_foundname) {
 
 	dns_rdataset_init(&rdataset);
 	dns_db_currentversion(db, &version);
-	result = dns_db_find(db, qname, version, dns_rdatatype_a, 0, 0, &node,
-			     found, &rdataset, NULL);
+	result = dns_db_find(db, qname, version, dns_rdatatype_a, 0, 0, found,
+			     &rdataset, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(dns_name_equal(found, wild));
 	assert_true(found->attributes.wildcard);
 
 	dns_rdataset_disassociate(&rdataset);
-	dns_db_detachnode(&node);
 	dns_db_closeversion(db, &version, false);
 	dns_db_detach(&db);
 	assert_null(db);

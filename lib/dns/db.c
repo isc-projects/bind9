@@ -498,9 +498,8 @@ dns__db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 isc_result_t
 dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	     dns_dbnode_t **nodep, dns_name_t *foundname,
-	     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	     dns_rdataset_t *rdataset,
+	     dns_name_t *foundname, dns_clientinfomethods_t *methods,
+	     dns_clientinfo_t *clientinfo, dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
@@ -509,7 +508,6 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(type != dns_rdatatype_rrsig);
-	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL || (DNS_RDATASET_VALID(rdataset) &&
 				     !dns_rdataset_isassociated(rdataset)));
@@ -519,7 +517,7 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	if (db->methods->find != NULL) {
 		return (db->methods->find)(db, name, version, type, options,
-					   now, nodep, foundname, methods,
+					   now, NULL, foundname, methods,
 					   clientinfo, rdataset,
 					   sigrdataset DNS__DB_FLARG_PASS);
 	}

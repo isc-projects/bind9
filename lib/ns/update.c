@@ -2118,14 +2118,14 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			continue;
 		}
 		result = dns_db_find(db, &mx.mx, newver, dns_rdatatype_a, 0, 0,
-				     NULL, foundname, NULL, NULL);
+				     foundname, NULL, NULL);
 		if (result == ISC_R_SUCCESS) {
 			continue;
 		}
 
 		if (result == DNS_R_NXRRSET) {
 			result = dns_db_find(db, &mx.mx, newver,
-					     dns_rdatatype_aaaa, 0, 0, NULL,
+					     dns_rdatatype_aaaa, 0, 0,
 					     foundname, NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 				continue;

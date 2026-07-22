@@ -787,12 +787,10 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, bool use_hints,
-	      bool use_static_stub, dns_db_t **dbp, dns_dbnode_t **nodep,
-	      dns_name_t *foundname, dns_rdataset_t *rdataset,
-	      dns_rdataset_t *sigrdataset) {
+	      bool use_static_stub, dns_db_t **dbp, dns_name_t *foundname,
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
 	dns_db_t *db = NULL, *zdb = NULL;
-	dns_dbnode_t *node = NULL, *znode = NULL;
 	bool is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone = NULL;
@@ -807,7 +805,6 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(view->frozen);
 	REQUIRE(type != dns_rdatatype_rrsig);
 	REQUIRE(rdataset != NULL); /* XXXBEW - remove this */
-	REQUIRE(nodep == NULL || *nodep == NULL);
 
 	/*
 	 * Initialize.
@@ -856,15 +853,12 @@ db_find:
 	/*
 	 * Now look for an answer in the database.
 	 */
-	result = dns_db_find(db, name, NULL, type, options, now, &node,
-			     foundname, rdataset, sigrdataset);
+	result = dns_db_find(db, name, NULL, type, options, now, foundname,
+			     rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION || result == ISC_R_NOTFOUND) {
 		dns_rdataset_cleanup(rdataset);
 		dns_rdataset_cleanup(sigrdataset);
-		if (node != NULL) {
-			dns_db_detachnode(&node);
-		}
 		if (!is_cache) {
 			dns_db_detach(&db);
 			if (view->cachedb != NULL && !is_staticstub_zone) {
@@ -897,7 +891,6 @@ db_find:
 					dns_db_detach(&db);
 				}
 				dns_db_attach(zdb, &db);
-				dns_db_attachnode(znode, &node);
 				goto cleanup;
 			}
 		}
@@ -918,14 +911,10 @@ db_find:
 		dns_rdataset_cleanup(rdataset);
 		dns_rdataset_cleanup(sigrdataset);
 		if (db != NULL) {
-			if (node != NULL) {
-				dns_db_detachnode(&node);
-			}
 			dns_db_detach(&db);
 		}
 		result = dns_db_find(view->rootdb, name, NULL, type, options,
-				     now, &node, foundname, rdataset,
-				     sigrdataset);
+				     now, foundname, rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE) {
 			/*
 			 * Lazily rearm priming if the rootdb's
@@ -943,13 +932,6 @@ db_find:
 		} else if (result == DNS_R_NXDOMAIN) {
 			result = ISC_R_NOTFOUND;
 		}
-
-		/*
-		 * Cleanup if the rootdb lookup failed.
-		 */
-		if (db == NULL && node != NULL) {
-			dns_db_detachnode(&node);
-		}
 	}
 
 cleanup:
@@ -957,27 +939,15 @@ cleanup:
 	dns_rdataset_cleanup(&zsigrdataset);
 
 	if (zdb != NULL) {
-		if (znode != NULL) {
-			dns_db_detachnode(&znode);
-		}
 		dns_db_detach(&zdb);
 	}
 
 	if (db != NULL) {
-		if (node != NULL) {
-			if (nodep != NULL) {
-				*nodep = node;
-			} else {
-				dns_db_detachnode(&node);
-			}
-		}
 		if (dbp != NULL) {
 			*dbp = db;
 		} else {
 			dns_db_detach(&db);
 		}
-	} else {
-		INSIST(node == NULL);
 	}
 
 	if (zone != NULL) {
@@ -997,8 +967,8 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 	dns_fixedname_init(&foundname);
 	result = dns_view_find(view, name, type, now, options, use_hints, false,
-			       NULL, NULL, dns_fixedname_name(&foundname),
-			       rdataset, sigrdataset);
+			       NULL, dns_fixedname_name(&foundname), rdataset,
+			       sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The rdataset and sigrdataset of the relevant NSEC record
@@ -1054,7 +1024,7 @@ bestzonecut_zone(dns_view_t *view, const dns_name_t *name, dns_name_t *fname,
 	}
 
 	result = dns_db_find(db, name, NULL, dns_rdatatype_ns, options, now,
-			     NULL, fname, rdataset, NULL);
+			     fname, rdataset, NULL);
 	if (result != DNS_R_DELEGATION && result != ISC_R_SUCCESS) {
 		/*
 		 * The zone exists, but there is no delegation. Here again
@@ -1156,7 +1126,7 @@ bestzonecut_rootdb(dns_view_t *view, dns_name_t *fname, dns_name_t *dcname,
 	}
 
 	isc_result_t result = dns_db_find(view->rootdb, dns_rootname, NULL,
-					  dns_rdatatype_ns, 0, now, NULL, fname,
+					  dns_rdatatype_ns, 0, now, fname,
 					  rdataset, NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_rdataset_cleanup(rdataset);
