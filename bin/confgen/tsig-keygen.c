@@ -94,6 +94,7 @@ main(int argc, char **argv) {
 	int keysize = 256;
 	int len = 0;
 	int ch;
+	bool wildcard;
 
 	isc_commandline_init(argc, argv);
 
@@ -213,7 +214,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	makesafe_keyname(keyname, namebuf, sizeof(namebuf));
+	makesafe_keyname(keyname, namebuf, sizeof(namebuf), &wildcard);
 
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
@@ -234,7 +235,10 @@ key \"%s\" {\n\
 	       namebuf, algname, (int)isc_buffer_usedlength(&key_txtbuffer),
 	       (char *)isc_buffer_base(&key_txtbuffer));
 
-	if (!quiet) {
+	if (wildcard && !quiet) {
+		printf("\n\
+# This is a wildcard key, and should not be used in an update-policy.\n");
+	} else if (!quiet) {
 		if (self_domain != NULL) {
 			printf("\n\
 # Then, in the \"zone\" statement for the zone containing the\n\
