@@ -2647,8 +2647,7 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	dns_rdataset_t neg = DNS_RDATASET_INIT, negsig = DNS_RDATASET_INIT;
 	isc_region_t r1 = { .base = NULL }, r2 = { .base = NULL };
 
-	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	CHECK(dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig));
 
 	CHECK(dns_rdataslab_fromrdataset(&neg, mctx, &r1, maxrrperset));
 
@@ -2675,8 +2674,8 @@ cleanup:
 			dns_slabheader_detach(&header);
 		}
 	}
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
+	dns_rdataset_cleanup(&neg);
+	dns_rdataset_cleanup(&negsig);
 
 	return result;
 }

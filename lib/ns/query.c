@@ -6934,7 +6934,8 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 					      qctx->fname);
 		if (result == DNS_R_NAMETOOLONG) {
 			client->message->rcode = dns_rcode_yxdomain;
-		} else if (result != ISC_R_SUCCESS) {
+		}
+		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
 	} else {
@@ -7271,8 +7272,7 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	neg = ns_client_newrdataset(client);
 	negsig = ns_client_newrdataset(client);
 
-	result = dns_rdataset_getnoqname(qctx->noqname, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	CHECK(dns_rdataset_getnoqname(qctx->noqname, fname, neg, negsig));
 
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
@@ -9477,10 +9477,10 @@ query_coveringnsec(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * If NSEC or RRSIG are missing from the type map
-	 * reject the NSEC RRset.
+	 * Check that the NSEC entry is legal.
+	 * (NSEC + RRSIG present and the entry isn't out-of-zone)
 	 */
-	if (!dns_nsec_requiredtypespresent(qctx->rdataset)) {
+	if (!dns_nsec_is_legal(qctx->rdataset, signer)) {
 		goto cleanup;
 	}
 
@@ -9802,7 +9802,7 @@ cleanup:
 }
 
 /*
- * Handle CNAME responses.
+ * Handle CNAME responses of a query which its type is _not_ CNAME.
  */
 static isc_result_t
 query_cname(query_ctx_t *qctx) {
@@ -9816,6 +9816,8 @@ query_cname(query_ctx_t *qctx) {
 	CCTRACE(ISC_LOG_DEBUG(3), "query_cname");
 
 	CALL_HOOK(NS_QUERY_CNAME_BEGIN, qctx);
+
+	REQUIRE(qctx->qtype != dns_rdatatype_cname);
 
 	result = query_zerottl_refetch(qctx);
 	if (result != ISC_R_COMPLETE) {
@@ -9903,9 +9905,6 @@ cleanup:
 	return result;
 }
 
-/*
- * Handle DNAME responses.
- */
 static isc_result_t
 query_dname(query_ctx_t *qctx) {
 	dns_name_t *tname, *prefix;
@@ -9931,6 +9930,11 @@ query_dname(query_ctx_t *qctx) {
 	 */
 	namereln = dns_name_fullcompare(qctx->client->query.qname, qctx->fname,
 					&order, &nlabels);
+
+	/*
+	 * Handling DNAME response is valid as soon as the qname is a subname of
+	 * the DNAME target.
+	 */
 	INSIST(namereln == dns_namereln_subdomain);
 
 	/*

@@ -15,6 +15,7 @@ DNSSEC_PY_MARK = pytest.mark.extra_artifacts(
     [
         "ans*/*.db",
         "ans*/*.run",
+        "ans*/*.pem",
         "ns*/dsset-*",
         "ns*/trusted.conf",
         "ns*/zones/*.db",
