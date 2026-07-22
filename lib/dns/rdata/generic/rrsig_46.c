@@ -21,12 +21,12 @@
 static inline isc_result_t
 fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_token_t token;
-	unsigned char c;
+	unsigned char alg, labels;
 	long i;
 	dns_rdatatype_t covered;
-	char *e;
+	char *e = NULL;
 	isc_result_t result;
-	dns_name_t name;
+	dns_name_t signer;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
 
@@ -57,8 +57,8 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
-	RETERR(mem_tobuffer(target, &c, 1));
+	RETTOK(dns_secalg_fromtext(&alg, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &alg, 1));
 
 	/*
 	 * Labels.
@@ -67,8 +67,8 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
-	c = (unsigned char)token.value.as_ulong;
-	RETERR(mem_tobuffer(target, &c, 1));
+	labels = (unsigned char)token.value.as_ulong;
+	RETERR(mem_tobuffer(target, &labels, 1));
 
 	/*
 	 * Original ttl.
@@ -131,11 +131,19 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	dns_name_init(&name, NULL);
+	dns_name_init(&signer, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL)
 		origin = dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	RETTOK(dns_name_fromtext(&signer, &buffer, origin, options, target));
+
+	/*
+	 * (RRSIG labels doesn't include the root label, so add one
+	 * to normalize it before checking against the signer.)
+	 */
+	if ((unsigned int)(labels + 1) < dns_name_countlabels(&signer)) {
+		RETTOK(ISC_R_RANGE);
+	}
 
 	/*
 	 * Sig.
@@ -260,6 +268,7 @@ static inline isc_result_t
 fromwire_rrsig(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
+	unsigned char labels;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -281,6 +290,8 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	if (sr.length < 18)
 		return (ISC_R_UNEXPECTEDEND);
 
+	labels = sr.base[3];
+
 	isc_buffer_forward(source, 18);
 	RETERR(mem_tobuffer(target, sr.base, 18));
 
@@ -289,6 +300,14 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	 */
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+
+	/*
+	 * (RRSIG labels doesn't include the root label, so add one
+	 * to normalize it before checking against the signer.)
+	 */
+	if ((unsigned int)(labels + 1) < dns_name_countlabels(&name)) {
+		RETERR(DNS_R_FORMERR);
+	}
 
 	/*
 	 * Sig.

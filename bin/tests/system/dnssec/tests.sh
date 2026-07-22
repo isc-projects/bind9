@@ -1793,6 +1793,7 @@ echo_i "checking TTLs are capped by dnssec-signzone -M ($n)"
 ret=0
 (
 cd signer
+cp example.db.in example.db
 $SIGNER -O full -f signer.out.8 -S -M 30 -o example example.db > /dev/null 2>&1
 ) || ret=1
 awk '/^;/ { next; } $2 > 30 { exit 1; }' signer/signer.out.8 || ret=1
