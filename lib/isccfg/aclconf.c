@@ -11,12 +11,14 @@
  * information regarding copyright ownership.
  */
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -537,7 +539,20 @@ parse_geoip_element(const cfg_obj_t *obj, cfg_aclconfctx_t *ctx,
 		strlcpy(de.geoip_elem.as_string, search,
 			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "asnum") == 0) {
+		const char *s = search;
+		uint32_t val;
+
+		/* check asnum validity */
 		subtype = dns_geoip_as_asnum;
+		if (strncasecmp(s, "AS", 2) == 0) {
+			s += 2;
+		}
+		if (isc_parse_uint32(&val, s, 10) != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, ISC_LOG_ERROR, "invalid asnum '%s'",
+				    search);
+			return ISC_R_UNEXPECTEDTOKEN;
+		}
+
 		strlcpy(de.geoip_elem.as_string, search,
 			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "org") == 0) {
