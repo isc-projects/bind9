@@ -473,6 +473,7 @@ class Zone:
 
         data = {
             "zone": self,
+            "ns": self.ns,
             "delegations": self.delegations,
         }
         templates.render(str(output), data, template=template)
