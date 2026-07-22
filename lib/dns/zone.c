@@ -21575,6 +21575,7 @@ checkds_send_toaddr(void *arg) {
 	unsigned int options, timeout;
 	bool have_checkdssource = false;
 	bool canceled = checkds->rlevent->canceled;
+	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
 
@@ -21687,15 +21688,21 @@ checkds_send_toaddr(void *arg) {
 
 	timeout = 5;
 	options |= DNS_REQUESTOPT_TCP;
+
+	zmgr_tlsctx_attach(checkds->zone->zmgr, &zmgr_tlsctx_cache);
+
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		NULL, NULL, options, key, timeout * 3 + 1, timeout, 2,
-		checkds->zone->loop, checkds_done, checkds, &checkds->request);
+		checkds->transport, zmgr_tlsctx_cache, options, key,
+		timeout * 3 + 1, timeout, 2, checkds->zone->loop, checkds_done,
+		checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 			     "checkds: dns_request_create() to %s failed: %s",
 			     addrbuf, isc_result_totext(result));
 	}
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
 cleanup_key:
 	if (key != NULL) {
@@ -21755,11 +21762,6 @@ checkds_send_tons(dns_checkds_t *checkds) {
 		default:
 			UNREACHABLE();
 		}
-		/*
-		 * XXXWMM: Should we attach key and transport here?
-		 * Probably not, because we expect the name servers to be
-		 * publicly available on the default transport protocol.
-		 */
 
 		result = isc_ratelimiter_enqueue(
 			newcheckds->zone->zmgr->checkdsrl,
@@ -21817,11 +21819,24 @@ checkds_send(dns_zone_t *zone) {
 		if (dns_remote_tlsname(&zone->parentals) != NULL) {
 			dns_name_t *tlsname =
 				dns_remote_tlsname(&zone->parentals);
-			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
-						    tlsname, &transport);
-			dns_zone_logc(
-				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
-				"got TLS configuration for zone transfer");
+			result = dns_view_gettransport(view, DNS_TRANSPORT_TLS,
+						       tlsname, &transport);
+			if (result == ISC_R_SUCCESS) {
+				dns_zone_logc(
+					zone, DNS_LOGCATEGORY_XFER_IN,
+					ISC_LOG_INFO,
+					"got TLS configuration for checkds");
+			} else {
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "could not get TLS configuration "
+					      "for checkds: %s",
+					      isc_result_totext(result));
+				if (key != NULL) {
+					dns_tsigkey_detach(&key);
+				}
+				goto next;
+			}
 		}
 
 		dst = dns_remote_curraddr(&zone->parentals);
