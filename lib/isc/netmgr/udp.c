@@ -372,7 +372,7 @@ static isc_result_t
 route_socket(uv_os_sock_t *fdp) {
 	uv_os_sock_t fd = -1;
 #ifdef USE_NETLINK
-	struct sockaddr_nl sa;
+	struct sockaddr_nl sa = { 0 };
 	int r;
 #endif
 
