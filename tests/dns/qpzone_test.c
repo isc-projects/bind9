@@ -492,6 +492,56 @@ ISC_RUN_TEST_IMPL(wildcard_foundname) {
 	assert_null(db);
 }
 
+ISC_RUN_TEST_IMPL(wildcard_delegation_foundname) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_fixedname_t fqname, fwild, ffound;
+	dns_name_t *qname = NULL, *wild = NULL, *found = NULL;
+	dns_rdata_t ns = DNS_RDATA_INIT;
+	dns_rdataset_t rdataset;
+	unsigned char ns_data[256];
+
+	result = dns__qpzone_create(isc_g_mctx, &example_org_name,
+				    dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+				    NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(db);
+
+	dns_test_namefromstring("host.example.org.", &fqname);
+	dns_test_namefromstring("*.example.org.", &fwild);
+	qname = dns_fixedname_name(&fqname);
+	wild = dns_fixedname_name(&fwild);
+	found = dns_fixedname_initname(&ffound);
+
+	result = dns_test_rdatafromstring(
+		&ns, dns_rdataclass_in, dns_rdatatype_ns, ns_data,
+		sizeof(ns_data), "ns.child.example.org.", false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	WITH_NEWVERSION(db, newversion, true) {
+		result = apply_dns_update(db, newversion, wild,
+					  dns_rdatatype_ns, dns_rdataclass_in,
+					  300, ns.data, ns.length,
+					  DNS_DIFFOP_ADD);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	dns_rdataset_init(&rdataset);
+	dns_db_currentversion(db, &version);
+	result = dns_db_find(db, qname, version, dns_rdatatype_a, 0, 0, found,
+			     &rdataset, NULL);
+	assert_int_equal(result, DNS_R_DELEGATION);
+	assert_true(dns_name_equal(found, wild));
+	assert_true(found->attributes.wildcard);
+	assert_true(dns_rdataset_isassociated(&rdataset));
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_closeversion(db, &version, false);
+	dns_db_detach(&db);
+	assert_null(db);
+}
+
 ISC_RUN_TEST_IMPL(diffop_addresign) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -561,6 +611,7 @@ ISC_TEST_ENTRY(setownercase)
 ISC_TEST_ENTRY(resign_sooner_values)
 ISC_TEST_ENTRY(diffop_add_sub)
 ISC_TEST_ENTRY(wildcard_foundname)
+ISC_TEST_ENTRY(wildcard_delegation_foundname)
 ISC_TEST_ENTRY(diffop_addresign)
 ISC_TEST_LIST_END
 
