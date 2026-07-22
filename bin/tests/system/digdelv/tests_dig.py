@@ -15,6 +15,7 @@ Tests for the dig tool.
 
 from re import compile as Re
 
+import ipaddress
 import os
 import re
 
@@ -687,3 +688,86 @@ def test_showtruncated(dig, ns2):
     result = dig(f"@{ns2.ip} +qr +showtruncated truncated.example TXT")
     assert Re(r"flags:[^;]* tc[ ;].*ANSWER: 0") in result.out
     assert "ANSWER: 100," in result.out
+
+
+def test_subnet(dig, ns2):
+    """Check that dig +subnet sends the client subnet."""
+    result = dig(f"+tcp @{ns2.ip} +subnet=127.0.0.1 A a.example")
+    assert "CLIENT-SUBNET: 127.0.0.1/32/0" in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+def test_subnet_last_wins(dig, ns2):
+    """Check that the last of multiple +subnet options wins."""
+    result = dig(f"+tcp @{ns2.ip} +subnet=127.0.0.0 +subnet=127.0.0.1 A a.example")
+    assert "CLIENT-SUBNET: 127.0.0.1/32/0" in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+@pytest.mark.parametrize("plen", range(1, 25))
+def test_subnet_prefix_lengths(dig, ns2, plen):
+    """Check that dig +subnet masks the address to various prefix
+    lengths."""
+    result = dig(f"+tcp @{ns2.ip} +subnet=255.255.255.255/{plen} A a.example")
+    addr = ipaddress.ip_address((0xFFFFFFFF << (32 - plen)) & 0xFFFFFFFF)
+    assert "FORMERR" not in result.out
+    assert f"CLIENT-SUBNET: {addr}/{plen}/0" in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+@pytest.mark.parametrize("plen", range(9, 16))
+def test_subnet_prefix_between_byte_boundaries(dig, ns2, plen):
+    """Check dig +subnet with prefix lengths between byte boundaries."""
+    result = dig(f"+tcp @{ns2.ip} +subnet=10.53/{plen} A a.example")
+    assert "FORMERR" not in result.out
+    assert Re(rf"CLIENT-SUBNET.*/{plen}/0") in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+ZERO_SUBNETS = [
+    param("+subnet=0/0", "0.0.0.0/0/0"),
+    param("+subnet=0", "0.0.0.0/0/0"),
+    param("+subnet=::/0", "::/0/0"),
+]
+
+
+@pytest.mark.parametrize("option,subnet", ZERO_SUBNETS)
+def test_subnet_zero(dig, ns2, option, subnet):
+    """Check that a zero-length client subnet is sent and answered."""
+    result = dig(f"+tcp @{ns2.ip} {option} A a.example")
+    assert "status: NOERROR" in result.out
+    assert f"CLIENT-SUBNET: {subnet}" in result.out
+    assert "10.0.0.1" in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+@needs_pyyaml
+@pytest.mark.parametrize("option,subnet", ZERO_SUBNETS)
+def test_subnet_zero_yaml(dig, ns2, option, subnet):
+    """Check that a zero-length client subnet is echoed in the +yaml
+    response."""
+    result = dig(f"+yaml +tcp @{ns2.ip} {option} A a.example")
+    assert edns_yaml(result.out, "response")["CLIENT-SUBNET"] == subnet
+
+
+@needs_pyyaml
+def test_subnet_yaml(dig, ns2):
+    """Check that +subnet=dead::/16 is shown in the +yaml query."""
+    result = dig(f"+yaml +tcp @{ns2.ip} +qr +subnet=dead::/16 A a.example")
+    assert edns_yaml(result.out)["CLIENT-SUBNET"] == "dead::/16/0"
+
+
+def test_subnet_raw_zero(dig, ns2):
+    """Check that a raw zero-length ECS option (family 0, source 0,
+    scope 0) is rejected by the server with FORMERR."""
+    result = dig(f"+tcp @{ns2.ip} +ednsopt=8:00000000 A a.example")
+    assert "status: FORMERR" in result.out
+    assert "CLIENT-SUBNET" not in result.out
+
+
+def test_subnet_raw_unknown_family(dig, ns2):
+    """Check that a raw ECS option with an unknown family (3) is sent
+    as-is and rejected by the server with FORMERR."""
+    result = dig(f"+qr +tcp @{ns2.ip} +ednsopt=8:00030000 A a.example")
+    assert "status: FORMERR" in result.out
+    assert len(result.out.grep("CLIENT-SUBNET: 00 03 00 00")) == 1
