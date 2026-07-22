@@ -5979,7 +5979,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = dns_rdataset_addnoqname(
 			vevent->rdataset,
 			vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS) {
+			goto noanswer_response;
+		}
 		INSIST(vevent->sigrdataset != NULL);
 		vevent->sigrdataset->ttl = vevent->rdataset->ttl;
 		if (vevent->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {

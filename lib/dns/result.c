@@ -148,7 +148,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"covering NSEC record returned",       /*%< 101 DNS_R_COVERINGNSEC */
 	"MX is an address",		       /*%< 102 DNS_R_MXISADDRESS */
 	"duplicate query",		       /*%< 103 DNS_R_DUPLICATE */
-	"invalid NSEC3 owner name (wildcard)", /*%< 104 DNS_R_INVALIDNSEC3 */
+	"invalid NSEC3 owner name",	       /*%< 104 DNS_R_INVALIDNSEC3 */
 
 	"not master",	      /*%< 105 DNS_R_NOTMASTER */
 	"broken trust chain", /*%< 106 DNS_R_BROKENCHAIN */
