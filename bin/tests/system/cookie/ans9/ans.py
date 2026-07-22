@@ -15,9 +15,6 @@ import sys
 import signal
 import socket
 import select
-from datetime import datetime, timedelta
-import time
-import functools
 
 import dns
 import dns.edns
@@ -257,9 +254,9 @@ else:
 while running:
     try:
         inputready, outputready, exceptready = select.select(input, [], [])
-    except select.error as e:
+    except select.error:
         break
-    except socket.error as e:
+    except socket.error:
         break
     except KeyboardInterrupt:
         break

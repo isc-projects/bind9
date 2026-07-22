@@ -130,11 +130,11 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 	isc_buffer_t b;
 	isc_region_t r;
 
-	INSIST(name != NULL);
-	INSIST(rdata != NULL);
-	INSIST(mctx != NULL);
-	INSIST(key != NULL);
-	INSIST(*key == NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(rdata != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(key != NULL);
+	REQUIRE(*key == NULL);
 	REQUIRE(rdata->type == dns_rdatatype_key ||
 		rdata->type == dns_rdatatype_dnskey);
 
@@ -187,12 +187,14 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_result_t ret;
 	isc_buffer_t *databuf = NULL;
 	char data[256 + 8];
+	unsigned int labels;
 	unsigned int sigsize;
 	dns_fixedname_t fnewname;
 	dns_fixedname_t fsigner;
 
 	REQUIRE(name != NULL);
-	REQUIRE(dns_name_countlabels(name) <= 255);
+	labels = dns_name_countlabels(name);
+	REQUIRE(labels <= 255 && labels > 0);
 	REQUIRE(set != NULL);
 	REQUIRE(key != NULL);
 	REQUIRE(inception != NULL);
@@ -221,7 +223,7 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	sig.covered = set->type;
 	sig.algorithm = dst_key_alg(key);
-	sig.labels = dns_name_countlabels(name) - 1;
+	sig.labels = labels - 1;
 	if (dns_name_iswildcard(name)) {
 		sig.labels--;
 	}
@@ -355,8 +357,10 @@ isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  bool ignoretime, unsigned int maxbits, isc_mem_t *mctx,
 		  dns_rdata_t *sigrdata, dns_name_t *wild) {
+	dns_rdata_nsec_t nsec;
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_buffer_t envbuf;
 	dns_rdata_t *rdatas;
@@ -365,10 +369,13 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_result_t ret;
 	unsigned char data[300];
 	dst_context_t *ctx = NULL;
-	int labels = 0;
+	unsigned int labels;
+	unsigned int siglabels;
 	bool downcase = false;
 
 	REQUIRE(name != NULL);
+	labels = dns_name_countlabels(name);
+	REQUIRE(labels > 0);
 	REQUIRE(set != NULL);
 	REQUIRE(key != NULL);
 	REQUIRE(mctx != NULL);
@@ -380,6 +387,21 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	if (set->type != sig.covered) {
+		return DNS_R_SIGINVALID;
+	}
+
+	/*
+	 * The RRSIG labels field can't indicate fewer labels than the
+	 * signer.  Also the labels shouldn't be greater than that of
+	 * the owner name.
+	 *
+	 * sig.labels doesn't include the root label, so add 1 to account
+	 * for it.
+	 */
+	siglabels = sig.labels + 1;
+	if (siglabels < dns_name_countlabels(&sig.signer) || siglabels > labels)
+	{
+		inc_stat(dns_dnssecstats_fail);
 		return DNS_R_SIGINVALID;
 	}
 
@@ -404,10 +426,25 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	/*
-	 * NS, SOA and DNSKEY records are signed by their owner.
-	 * DS records are signed by the parent.
+	 * NS, SOA and DNSKEY records are signed by their owners.
+	 * NSEC3 records are signed by the apex, exactly one level up
+	 * from their owner names.
+	 * DS records are signed by the parent zone.
 	 */
 	switch (set->type) {
+	case dns_rdatatype_nsec3: {
+		dns_name_t apex = DNS_NAME_INITEMPTY;
+		labels = dns_name_countlabels(name);
+		if (labels <= 1) {
+			inc_stat(dns_dnssecstats_fail);
+			return DNS_R_INVALIDNSEC3;
+		}
+		dns_name_split(name, labels - 1, NULL, &apex);
+		if (!dns_name_equal(&apex, &sig.signer)) {
+			inc_stat(dns_dnssecstats_fail);
+			return DNS_R_SIGINVALID;
+		}
+	} break;
 	case dns_rdatatype_ns:
 	case dns_rdatatype_soa:
 	case dns_rdatatype_dnskey:
@@ -429,6 +466,17 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		}
 		break;
 	}
+	/*
+	 * Check for out of zone NSEC entries.
+	 */
+	if (set->type == dns_rdatatype_nsec) {
+		RETERR(dns_rdataset_first(set));
+		dns_rdataset_current(set, &rdata);
+		RETERR(dns_rdata_tostruct(&rdata, &nsec, NULL));
+		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
+			return DNS_R_NOVALIDNSEC;
+		}
+	}
 
 again:
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
@@ -449,10 +497,9 @@ again:
 	 * If the name is an expanded wildcard, use the wildcard name.
 	 */
 	dns_fixedname_init(&fnewname);
-	labels = dns_name_countlabels(name) - 1;
 	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
 					NULL) == ISC_R_SUCCESS);
-	if (labels - sig.labels > 0) {
+	if (labels > siglabels) {
 		dns_name_split(dns_fixedname_name(&fnewname), sig.labels + 1,
 			       NULL, dns_fixedname_name(&fnewname));
 	}
@@ -463,7 +510,7 @@ again:
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
 	 */
 	isc_buffer_init(&envbuf, data, sizeof(data));
-	if (labels - sig.labels > 0) {
+	if (labels > siglabels) {
 		isc_buffer_putuint8(&envbuf, 1);
 		isc_buffer_putuint8(&envbuf, '*');
 		memmove(data + 2, r.base, r.length);
@@ -559,7 +606,7 @@ cleanup_struct:
 		inc_stat(dns_dnssecstats_fail);
 	}
 
-	if (ret == ISC_R_SUCCESS && labels - sig.labels > 0) {
+	if (ret == ISC_R_SUCCESS && labels > siglabels) {
 		if (wild != NULL) {
 			RUNTIME_CHECK(dns_name_concatenate(
 					      dns_wildcardname,

@@ -88,3 +88,15 @@ softhsm2_environment = pytest.mark.skipif(
     ),
     reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
 )
+
+ecdsa_deterministic = False
+try:
+    from cryptography.hazmat.backends import default_backend
+
+    ecdsa_deterministic = default_backend().ecdsa_deterministic_supported()
+except Exception:  # pylint: disable=broad-except
+    pass
+
+with_ecdsa_deterministic = pytest.mark.skipif(
+    not ecdsa_deterministic, reason="ECDSA deterministic signing is not supported"
+)
