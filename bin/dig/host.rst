@@ -51,8 +51,7 @@ Options
 
 .. option:: -a
 
-   The :option:`-a` ("all") option is normally equivalent to :option:`-v` :option:`-t ANY <-t>`. It
-   also affects the behavior of the :option:`-l` list zone option.
+   The :option:`-a` ("all") option is equivalent to :option:`-v` :option:`-t ANY <-t>`.
 
 .. option:: -A
 
