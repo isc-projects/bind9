@@ -944,3 +944,60 @@ def test_source_address_both_families_no_crash(dig, ns1):
     by a signal) is an error.  See GL #5609 for more information."""
     result = dig(f"@localhost example -b {ns1.ip}", raise_on_exception=False)
     assert result.rc >= 0
+
+
+@needs_pyyaml
+def test_yaml_any_output(dig, ns3):
+    """Check the structure of dig +yaml output for an ANY query."""
+    result = dig(f"+qr +yaml @{ns3.ip} any ns2.example")
+    messages = parse_yaml(result.out)
+    query = messages[0]["message"]["query_message_data"]
+    assert query["status"] == "NOERROR"
+    response = messages[1]["message"]["response_message_data"]
+    assert response["status"] == "NOERROR"
+    assert response["QUESTION_SECTION"][0] == "ns2.example. IN ANY"
+
+
+@needs_pyyaml
+def test_yaml_ipv6_trailing_zeroes(dig, ns3):
+    """Check dig +yaml output of an IPv6 address ending in zeroes."""
+    result = dig(f"+qr +yaml @{ns3.ip} aaaa d.example")
+    response = parse_yaml(result.out)[1]["message"]["response_message_data"]
+    answer = response["ANSWER_SECTION"][0]
+    assert answer == "d.example. 300 IN AAAA fd92:7065:b8e:ffff::0"
+
+
+@needs_pyyaml
+@pytest.mark.parametrize(
+    "qname", ["yaml", "'.yaml", "[.yaml", "{.yaml", "&.yaml", "#.yaml"]
+)
+def test_yaml_special_characters_in_qname(dig, ns3, qname):
+    """Check that qnames containing characters special to YAML are quoted
+    correctly in dig +yaml output."""
+    result = dig(f"@{ns3.ip} +yaml {qname}.example TXT +qr")
+    query = parse_yaml(result.out)[0]["message"]["query_message_data"]
+    question = query["QUESTION_SECTION"][0]
+    assert question == f"{qname}.example. IN TXT"
+    response = parse_yaml(result.out)[1]["message"]["response_message_data"]
+    answer = response["ANSWER_SECTION"][0]
+    assert answer == f'{qname}.example. 300 IN TXT "a: b"'
+
+
+@needs_pyyaml
+def test_yaml_character_values(dig, ns3):
+    """Check the quoting of all 256 character values in dig +yaml TXT
+    output."""
+
+    def quoted(i):
+        char = chr(i)
+        if char in ('"', "\\"):
+            return f'"\\{char}"'
+        if 32 <= i <= 126:
+            return f'"{char}"'
+        return f'"\\{i:03d}"'
+
+    result = dig(f"@{ns3.ip} +yaml all.yaml.example TXT +qr")
+    response = parse_yaml(result.out)[1]["message"]["response_message_data"]
+    answer = response["ANSWER_SECTION"][0]
+    strings = " ".join(quoted(i) for i in range(256))
+    assert answer == f"all.yaml.example. 300 IN TXT {strings}"
