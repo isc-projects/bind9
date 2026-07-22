@@ -25,6 +25,7 @@ from digdelv.common import ARTIFACTS, check_ttl_range, needs_pyyaml, parse_yaml
 from isctest.util import param
 
 import isctest
+import isctest.mark
 
 pytestmark = [
     pytest.mark.skipif(
@@ -701,3 +702,245 @@ def test_subnet_raw_unknown_family(dig, ns2):
     result = dig(f"+qr +tcp @{ns2.ip} +ednsopt=8:00030000 A a.example")
     assert "status: FORMERR" in result.out
     assert len(result.out.grep("CLIENT-SUBNET: 00 03 00 00")) == 1
+
+
+def test_origin_preserved_on_tcp_retries(dig, ans4):
+    """Check that dig preserves the search origin when retrying over
+    TCP."""
+    result = dig(
+        f"-d +tcp @{ans4.ip} +retry=1 +time=1 +domain=bar foo",
+        raise_on_exception=False,
+    )
+    assert result.rc != 0
+    assert len(result.err.grep("trying origin bar")) == 2
+    assert "using root origin" not in result.err
+
+
+def test_4_and_6_mutually_exclusive(dig, ns2):
+    """Check that dig rejects -4 combined with -6."""
+    result = dig(f"+tcp @{ns2.ip} -4 -6 A a.example", raise_on_exception=False)
+    assert result.rc != 0
+    assert "only one of -4 and -6 allowed" in result.err
+
+
+@isctest.mark.with_ipv6
+def test_ipv6_server_with_ipv4_only(dig):
+    """Check that dig -4 rejects an IPv6 server address."""
+    result = dig("+tcp @fd92:7065:b8e:ffff::2 -4 A a.example", raise_on_exception=False)
+    assert result.rc != 0
+    assert "address family not supported" in result.err
+
+
+@isctest.mark.with_ipv6
+@pytest.mark.parametrize("option", ["+tcp", "+notcp"])
+def test_ipv4_server_with_ipv6_only(dig, ns2, option):
+    """Check that dig -6 does not use a mapped form of an IPv4 server
+    address."""
+    result = dig(f"{option} @{ns2.ip} -6 A a.example")
+    assert f"SERVER: ::ffff:{ns2.ip}#" not in result.out
+
+
+@pytest.fixture(name="set_response_sequence")
+def set_response_sequence_fixture(dig, ans5):
+    """Arm the sequence of AXFR responses served by ans5."""
+
+    def _set(sequence):
+        dig(f"@{ans5.ip} {sequence}.response-sequence._control TXT")
+
+    return _set
+
+
+@pytest.mark.parametrize(
+    "sequence,tries,expect_failure,eof_errors",
+    [
+        param("no-response", 2, True, 2, id="immediate-immediate"),
+        param("partial-axfr", 2, True, 2, id="partial-partial"),
+        param("no-response.partial-axfr", 2, True, 2, id="immediate-partial"),
+        param("partial-axfr.no-response", 2, True, 2, id="partial-immediate"),
+        param("no-response.complete-axfr", 2, False, 1, id="immediate-complete"),
+        param("partial-axfr.complete-axfr", 2, False, 1, id="partial-complete"),
+        param("no-response", 1, True, 1, id="tries-1-no-second-retry"),
+    ],
+)
+def test_axfr_retry_upon_tcp_eof(
+    dig, ans5, set_response_sequence, sequence, tries, expect_failure, eof_errors
+):
+    """Check the exit code and the number of retries for an AXFR retried
+    upon TCP EOF."""
+    set_response_sequence(sequence)
+    result = dig(f"@{ans5.ip} example AXFR +tries={tries}", raise_on_exception=False)
+    assert (result.rc != 0) == expect_failure
+    # Sanity check: ensure ans5 behaves as expected.
+    eof_pattern = Re("communications error.*end of file")
+    assert len(result.out.grep(eof_pattern)) == eof_errors
+
+
+def test_axfr_no_retry_with_retry_0(dig, ans5, set_response_sequence):
+    """Check that +retry=0 does not retry upon TCP EOF."""
+    set_response_sequence("no-response")
+    result = dig(f"@{ans5.ip} example AXFR +retry=0", raise_on_exception=False)
+    assert result.rc != 0
+    # Sanity check: ensure ans5 behaves as expected.
+    eof_pattern = Re("communications error.*end of file")
+    assert len(result.out.grep(eof_pattern)) == 1
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        param("", id="udp"),
+        param("+tcp", id="tcp"),
+    ],
+)
+def test_timeout_then_servfail(dig, ans7, option):
+    """Check that dig handles a timeout followed by a SERVFAIL
+    correctly.  See GL #3020 for more information."""
+    result = dig(f"+timeout=1 +nofail {option} @{ans7.ip} silent-then-servfail.example")
+    assert "status: SERVFAIL" in result.out
+
+
+def test_comments_retry_comment(dig, ans7):
+    """Check that dig +comments emits the retry comment."""
+    result = dig(
+        f"+timeout=1 +nofail +comments @{ans7.ip} silent-then-servfail.example"
+    )
+    assert ";; Got SERVFAIL reply from" in result.out
+
+
+def test_short_comments_suppresses_retry_comment(dig, ans7):
+    """Check that dig +short +comments does not leak the ";; " comments
+    into the short-form output.  +short normally turns comments off, but
+    "+short +comments" re-enables them while short form is still in
+    effect; the comment output then belongs to the verbose form and
+    would corrupt the short output."""
+    result = dig(
+        f"+timeout=1 +nofail +short +comments @{ans7.ip} silent-then-servfail.example"
+    )
+    assert ";; Got SERVFAIL reply from" not in result.out
+
+
+ERROR_PATTERN = Re("connection refused|timed out|network unreachable|host unreachable")
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        param("", id="udp"),
+        param("+tcp", id="tcp"),
+    ],
+)
+def test_next_server_after_network_unreachable(dig, ns3, option):
+    """Check that dig tries the next server after a socket network
+    unreachable error."""
+    result = dig(f"{option} @192.0.2.128 @{ns3.ip} a.example")
+    assert len(result.out.grep(ERROR_PATTERN)) == 3
+    assert "status: NOERROR" in result.out
+
+
+def test_next_server_after_udp_read_error(dig, ns3):
+    """Check that dig tries the next server after a UDP socket read
+    error."""
+    result = dig(f"@10.53.0.99 @{ns3.ip} a.example")
+    assert "status: NOERROR" in result.out
+
+
+def test_next_server_after_tcp_read_error(dig, ans7, ns3):
+    """Check that dig tries the next server after a TCP socket read
+    error."""
+    result = dig(f"+tcp @{ans7.ip} @{ns3.ip} close.example")
+    assert "status: NOERROR" in result.out
+
+
+def test_next_server_after_tcp_connection_error(dig, ns3):
+    """Check that dig tries the next server after a TCP socket connection
+    error/timeout.  The connection error and timeout cases are combined,
+    because it is not trivial to simulate the timeout case in a system
+    test in Linux without a firewall, but the code which handles error
+    cases during connection establishment does not differentiate between
+    timeout and other types of errors (unlike during reading), so this
+    one check should be sufficient for both cases."""
+    result = dig(f"+tcp @10.53.0.99 @{ns3.ip} a.example")
+    assert len(result.out.grep(ERROR_PATTERN)) == 3
+    assert "status: NOERROR" in result.out
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        param("", id="udp"),
+        param("+tcp", id="tcp"),
+    ],
+)
+def test_next_server_after_read_timeout(dig, ans7, ns3, option):
+    """Check that dig tries the next server after socket read timeouts."""
+    result = dig(f"+timeout=1 {option} @{ans7.ip} @{ns3.ip} silent.example")
+    assert "status: NOERROR" in result.out
+
+
+def test_mapped_ipv6_server_refused(dig, ans7):
+    """Check that dig refuses to use a server with an IPv4-mapped IPv6
+    address after failing with the regular IP address.  See GL #3248
+    for more information."""
+    result = dig(f"@{ans7.ip} @::ffff:{ans7.ip} silent.example")
+    assert ";; Skipping mapped address" in result.out
+    assert ";; No acceptable nameservers" in result.out
+
+
+def test_qr_and_y_with_failed_query(dig, ns3):
+    """Check that dig handles printing query information with +qr and +y
+    when multiple queries are involved, including a failed one.  See
+    GL #3244 for more information."""
+    result = dig(f"+timeout=1 +qr +y @127.0.0.1 @{ns3.ip} a.example")
+    assert "IN A 10.0.0.1" in result.out
+
+
+def test_startup_banner_default(dig, ans7):
+    """Check that dig prints the startup banner by default, including on
+    the error path.  This makes the absence check with +nocmd
+    meaningful."""
+    result = dig(
+        f"silent.example @{ans7.ip} +notcp +timeout=1 +tries=1",
+        raise_on_exception=False,
+    )
+    assert result.rc != 0
+    assert "<<>> DiG" in result.out
+    assert "no servers could be reached" in result.out
+
+
+def test_nocmd_after_query_name(dig, ans7):
+    """Check that +nocmd placed after the query name suppresses the
+    startup banner, including on the error path.  This regressed because
+    the banner was built as soon as the query name was seen, before
+    +nocmd had been parsed."""
+    result = dig(
+        f"silent.example @{ans7.ip} +notcp +timeout=1 +tries=1 +nocmd",
+        raise_on_exception=False,
+    )
+    assert result.rc != 0
+    assert "<<>> DiG" not in result.out
+    assert "no servers could be reached" in result.out
+
+
+@needs_pyyaml
+def test_yaml_valid_when_no_server_reached(dig, ans7):
+    """Check that dig +yaml produces valid YAML when no servers could be
+    reached; the ";"-prefixed startup banner must not precede the
+    DIG_ERROR block.  The query name is deliberately placed before +yaml
+    on the command line: that is what makes dig build the banner (while
+    +cmd is still in effect) before switching to YAML output, which is
+    the ordering that regressed."""
+    result = dig(
+        f"silent.example @{ans7.ip} +notcp +timeout=1 +tries=1 +yaml",
+        raise_on_exception=False,
+    )
+    assert result.rc != 0
+    assert parse_yaml(result.out)[0]["type"] == "DIG_ERROR"
+
+
+def test_source_address_both_families_no_crash(dig, ns1):
+    """Check that dig with an IPv4 source address and a server with both
+    IPv4 and IPv6 addresses does not crash.  @localhost is not really
+    expected to have an answer for the query; only a crash (termination
+    by a signal) is an error.  See GL #5609 for more information."""
+    result = dig(f"@localhost example -b {ns1.ip}", raise_on_exception=False)
+    assert result.rc >= 0

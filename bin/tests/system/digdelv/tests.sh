@@ -74,138 +74,6 @@ HAS_PYYAML=0
 $PYTHON -c "import yaml" 2>/dev/null && HAS_PYYAML=1
 
 if [ -x "$DIG" ]; then
-  n=$((n + 1))
-  echo_i "checking dig preserves origin on TCP retries ($n)"
-  ret=0
-  dig_with_opts -d +tcp @10.53.0.4 +retry=1 +time=1 +domain=bar foo >dig.out.test$n 2>&1 && ret=1
-  test "$(grep -c "trying origin bar" dig.out.test$n)" -eq 2 || ret=1
-  grep "using root origin" <dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig -6 -4 ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.2 -4 -6 A a.example >dig.out.test$n 2>&1 && ret=1
-  grep "only one of -4 and -6 allowed" <dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking dig @IPv6addr -4 A a.example ($n)"
-  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null; then
-    ret=0
-    dig_with_opts +tcp @fd92:7065:b8e:ffff::2 -4 A a.example >dig.out.test$n 2>&1 && ret=1
-    grep "address family not supported" <dig.out.test$n >/dev/null || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-  else
-    echo_i "IPv6 unavailable; skipping"
-  fi
-
-  n=$((n + 1))
-  echo_i "checking dig +tcp @IPv4addr -6 A a.example ($n)"
-  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null; then
-    ret=0
-    dig_with_opts +tcp @10.53.0.2 -6 A a.example >dig.out.test$n 2>&1 || ret=1
-    grep "SERVER: ::ffff:10.53.0.2#$PORT" <dig.out.test$n >/dev/null && ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-  else
-    echo_i "IPv6 unavailable; skipping"
-  fi
-  n=$((n + 1))
-
-  echo_i "checking dig +notcp @IPv4addr -6 A a.example ($n)"
-  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null; then
-    ret=0
-    dig_with_opts +notcp @10.53.0.2 -6 A a.example >dig.out.test$n 2>&1 || ret=1
-    grep "SERVER: ::ffff:10.53.0.2#$PORT" <dig.out.test$n >/dev/null && ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-  else
-    echo_i "IPv6 unavailable; skipping"
-  fi
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (immediate -> immediate) ($n)"
-  ret=0
-  set_response_sequence no-response $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> partial AXFR) ($n)"
-  ret=0
-  set_response_sequence partial-axfr $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (immediate -> partial AXFR) ($n)"
-  ret=0
-  set_response_sequence no-response.partial-axfr $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> immediate) ($n)"
-  ret=0
-  set_response_sequence partial-axfr.no-response $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (immediate -> complete AXFR) ($n)"
-  ret=0
-  set_response_sequence no-response.complete-axfr $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 || ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> complete AXFR) ($n)"
-  ret=0
-  set_response_sequence partial-axfr.complete-axfr $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=2 >dig.out.test$n 2>&1 || ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking +tries=1 won't retry twice upon TCP EOF ($n)"
-  ret=0
-  set_response_sequence no-response $n
-  dig_with_opts @10.53.0.5 example AXFR +tries=1 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking +retry=0 won't retry twice upon TCP EOF ($n)"
-  ret=0
-  dig_with_opts @10.53.0.5 example AXFR +retry=0 >dig.out.test$n 2>&1 && ret=1
-  # Sanity check: ensure ans5 behaves as expected.
-  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   if [ $HAS_PYYAML -ne 0 ]; then
     n=$((n + 1))
     echo_i "check dig +yaml ANY output ($n)"
@@ -240,15 +108,6 @@ if [ -x "$DIG" ]; then
     # command line: that is what makes dig build the banner (while +cmd is
     # still in effect) before switching to YAML output, which is the ordering
     # that regressed.
-    n=$((n + 1))
-    echo_i "check that dig +yaml produces valid YAML when no servers could be reached ($n)"
-    ret=0
-    dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +yaml >dig.out.test$n 2>&1 && ret=1
-    $PYTHON yamlget.py dig.out.test$n 0 type >yamlget.out.test$n 2>&1 || ret=1
-    read -r value <yamlget.out.test$n
-    [ "$value" = "DIG_ERROR" ] || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
   fi
 
   # +nocmd placed after the query name must suppress the startup banner
@@ -257,157 +116,22 @@ if [ -x "$DIG" ]; then
   # +nocmd had been parsed; it is now built after the whole command line has
   # been processed.  The default (+cmd) case is checked first so the absence
   # check below is meaningful.
-  n=$((n + 1))
-  echo_i "check that dig prints the startup banner by default ($n)"
-  ret=0
-  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 >dig.out.test$n 2>&1 && ret=1
-  grep -F "<<>> DiG" dig.out.test$n >/dev/null || ret=1
-  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +nocmd after the query name suppresses the startup banner ($n)"
-  ret=0
-  dig_with_opts silent.example @10.53.0.7 +notcp +timeout=1 +tries=1 +nocmd >dig.out.test$n 2>&1 && ret=1
-  grep -F "<<>> DiG" dig.out.test$n >/dev/null && ret=1
-  grep -F "no servers could be reached" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # See [GL #3020] for more information
-  n=$((n + 1))
-  echo_i "check that dig handles UDP timeout followed by a SERVFAIL correctly ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +nofail @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig handles TCP timeout followed by a SERVFAIL correctly ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +nofail +tcp @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # With +short, dig must not emit the ";; " progress/error comments (here:
   # the "Got SERVFAIL reply from ..." note printed while retrying).  +short
   # normally turns comments off, but "+short +comments" re-enables them while
   # short form is still in effect; the comment output then belongs to the
   # verbose form and would corrupt the short output.  The "+comments" case
   # (without +short) is checked first so the absence check below is meaningful.
-  n=$((n + 1))
-  echo_i "check that dig +comments emits the retry comment ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +nofail +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
-  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig +short +comments suppresses the retry comment ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +nofail +short +comments @10.53.0.7 silent-then-servfail.example >dig.out.test$n 2>&1 || ret=1
-  grep -F ";; Got SERVFAIL reply from" dig.out.test$n >/dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after a UDP socket network unreachable error ($n)"
-  ret=0
-  dig_with_opts @192.0.2.128 @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" -e "host unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after a TCP socket network unreachable error ($n)"
-  ret=0
-  dig_with_opts +tcp @192.0.2.128 @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" -e "host unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after a UDP socket read error ($n)"
-  ret=0
-  dig_with_opts @10.53.0.99 @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after a TCP socket read error ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.7 @10.53.0.3 close.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # Note that we combine TCP socket "connection error" and "timeout" cases in
   # one, because it is not trivial to simulate the timeout case in a system test
   # in Linux without a firewall, but the code which handles error cases during
   # the connection establishment time does not differentiate between timeout and
   # other types of errors (unlike during reading), so this one check should be
   # sufficient for both cases.
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after a TCP socket connection error/timeout ($n)"
-  ret=0
-  dig_with_opts +tcp @10.53.0.99 @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" -e "host unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after UDP socket read timeouts ($n)"
-  ret=0
-  dig_with_opts +timeout=1 @10.53.0.7 @10.53.0.3 silent.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "check that dig tries the next server after TCP socket read timeouts ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +tcp @10.53.0.7 @10.53.0.3 silent.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # See [GL #3248] for more information
-  n=$((n + 1))
-  echo_i "check that dig correctly refuses to use a server with a IPv4 mapped IPv6 address after failing with a regular IP address ($n)"
-  ret=0
-  dig_with_opts @10.53.0.7 @::ffff:10.53.0.7 silent.example >dig.out.test$n 2>&1 || ret=1
-  grep -F ";; Skipping mapped address" dig.out.test$n >/dev/null || ret=1
-  grep -F ";; No acceptable nameservers" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # See [GL #3244] for more information
-  n=$((n + 1))
-  echo_i "check that dig handles printing query information with +qr and +y when multiple queries are involved (including a failed query) ($n)"
-  ret=0
-  dig_with_opts +timeout=1 +qr +y @127.0.0.1 @10.53.0.3 a.example >dig.out.test$n 2>&1 || ret=1
-  grep -F "IN A 10.0.0.1" dig.out.test$n >/dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
   # See GL#5609
-  n=$((n + 1))
-  echo_i "check dig with a IPv4 source address and a server with both IPv4 and IPv6 addresses doesn't crash ($n)"
-  ret=0
-  dig_with_opts @localhost example -b 10.53.0.1 >dig.out.test$n 2>&1 || ret=1
-  # We only care about an assertion failure, otherwise reset 'ret' to 0, because
-  # @localhost is't really expected to have an answer for our query.
-  grep -F "core dumped" dig.out.test$n >/dev/null || ret=0
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
