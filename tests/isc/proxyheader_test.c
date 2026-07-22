@@ -504,6 +504,18 @@ ISC_RUN_TEST_IMPL(proxyheader_direct_test) {
 	assert_true(cbarg.no_more_calls == 0);
 	verify_proxy_v2_header(NULL, &cbarg, 0);
 
+	uint8_t proxy_v2_header_misaligned[sizeof(proxy_v2_header) + 1];
+	memmove(&proxy_v2_header_misaligned[1], proxy_v2_header,
+		sizeof(proxy_v2_header));
+	cbarg = (dummy_handler_cbarg_t){ 0 };
+	region.base = (uint8_t *)&proxy_v2_header_misaligned[1];
+	region.length = sizeof(proxy_v2_header);
+	result = isc_proxy2_header_handle_directly(
+		&region, proxy2_handler_dummy, &cbarg);
+	assert_true(result == ISC_R_SUCCESS);
+	assert_true(cbarg.no_more_calls == 0);
+	verify_proxy_v2_header(NULL, &cbarg, 0);
+
 	cbarg = (dummy_handler_cbarg_t){ 0 };
 	region.base = (uint8_t *)proxy_v2_header_with_TLS;
 	region.length = sizeof(proxy_v2_header_with_TLS);
