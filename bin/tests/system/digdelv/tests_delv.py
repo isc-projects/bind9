@@ -258,3 +258,71 @@ def test_yaml_negative(delv, ns3, qtype, qname, status):
     assert data["query_name"] == qname
     answer = data["records"][0]["negative_response_answer_not_validated"][0]
     assert len(str(answer).split()) == 5
+
+
+@pytest.mark.usefixtures("ns1")
+def test_ns_output(delv):
+    """Check the NS records in delv +ns output."""
+    result = delv(
+        "-i +ns +nortrace +nostrace +nomtrace +novtrace +hint=root.hint ns example"
+    )
+    ns_lines = [
+        fields
+        for fields in (line.split() for line in result.out.splitlines())
+        if len(fields) >= 4 and fields[0] == "example." and fields[3] == "NS"
+    ]
+    assert len(ns_lines) == 2
+
+
+@pytest.mark.parametrize(
+    "args,marker,expect_no_qmin_labels",
+    [
+        param(
+            "-i +ns +hint=root.hint",
+            "; authoritative",
+            True,
+            id="no-validation",
+        ),
+        param(
+            "-i +ns +qmin +hint=root.hint",
+            "; authoritative",
+            False,
+            id="no-validation-qmin",
+        ),
+        param(
+            "-a ns1/anchor.dnskey +root +ns +hint=root.hint",
+            "; fully validated",
+            True,
+            id="validation",
+        ),
+        param(
+            "-a ns1/anchor.dnskey +root +ns +qmin +hint=root.hint",
+            "; fully validated",
+            False,
+            id="validation-qmin",
+        ),
+    ],
+)
+@pytest.mark.usefixtures("ns1")
+def test_ns_lookup(delv, args, marker, expect_no_qmin_labels):
+    """Check delv +ns lookups with and without validation and query name
+    minimization."""
+    result = delv(f"{args} a a.example")
+    assert marker in result.out
+    if expect_no_qmin_labels:
+        assert "_.example" not in result.out
+
+
+@isctest.mark.with_ipv6
+@pytest.mark.parametrize("family", ["-4", "-6"])
+@pytest.mark.usefixtures("ns1")
+def test_ns_address_family(delv, family):
+    """Check that delv +ns with -4/-6 uses only the selected address
+    family."""
+    ipv4_packet = "sending packet to 10.53"
+    ipv6_packet = "sending packet to fd92:7065"
+    result = delv(
+        f"-a ns1/anchor.dnskey +root {family} +ns +hint=root.hint a a.example"
+    )
+    assert (ipv4_packet in result.out) == (family == "-4")
+    assert (ipv6_packet in result.out) == (family == "-6")
