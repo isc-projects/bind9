@@ -15,9 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "delv.out.*",
         "dig.out.*",
-        "host.out.*",
-        "nslookup.out.*",
-        "nsupdate.out.*",
         "yamlget.out.*",
         "ans*/ans.run",
         "ns*/anchor.*",
