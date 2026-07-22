@@ -20,7 +20,7 @@ import re
 
 import pytest
 
-from digdelv.common import ARTIFACTS, check_ttl_range
+from digdelv.common import ARTIFACTS, check_ttl_range, needs_pyyaml, parse_yaml
 from isctest.util import param
 
 import isctest
@@ -37,6 +37,13 @@ pytestmark = [
 @pytest.fixture(name="dig")
 def dig_fixture(named_port):
     return isctest.run.EnvCmd("DIG", f"-p {named_port}")
+
+
+def edns_yaml(text, direction="query"):
+    """Get the EDNS OPT pseudosection mapping of the first message in
+    dig +yaml output."""
+    message = parse_yaml(text)[0]["message"]
+    return message[f"{direction}_message_data"]["OPT_PSEUDOSECTION"]["EDNS"]
 
 
 def test_update_response(dig, ans6):
@@ -300,3 +307,313 @@ def test_nocrypto(dig, ns1):
     assert Re(r"RRSIG.* \[omitted]") in result.out
     result = dig(f"+norec +nocrypto DS example @{ns1.ip}")
     assert Re(r"DS.* \d+ [12] \[omitted]") in result.out
+
+
+def test_coflag(dig, ns3):
+    """Check that dig +coflag sets the EDNS CO flag in the sent query."""
+    result = dig(f"+tcp @{ns3.ip} +coflag +qr example")
+    assert Re(r"^; EDNS: version: 0, flags: co;") in result.out
+    assert check_ttl_range(result.out, "SOA", 300)
+
+
+@needs_pyyaml
+def test_coflag_yaml(dig, ns3):
+    """Check that dig +coflag +yaml shows the CO flag in the sent query."""
+    result = dig(f"+yaml +tcp @{ns3.ip} +coflag +qr example")
+    assert edns_yaml(result.out)["flags"] == "co"
+
+
+@pytest.mark.parametrize(
+    "option,sent_flags",
+    [
+        param("+raflag", "rd ra ad"),
+        param("+tcflag", "tc rd ad"),
+    ],
+)
+def test_header_flag_options(dig, ns3, option, sent_flags):
+    """Check that +raflag/+tcflag set the flag in the sent query and that
+    the response is unaffected."""
+    result = dig(f"+tcp @{ns3.ip} {option} +qr example")
+    assert Re(rf"^;; flags: {sent_flags}; QUERY: 1, ANSWER: 0") in result.out
+    assert Re(r"^;; flags: qr rd ra; QUERY: 1, ANSWER: 0,") in result.out
+    assert check_ttl_range(result.out, "SOA", 300)
+
+
+def test_zflag(dig, ns3):
+    """Check that dig +zflag sets the MBZ bit and that named ignores it."""
+    result = dig(f"+tcp @{ns3.ip} +zflag +qr A example")
+    assert Re(r"^;; flags: rd ad; MBZ: 0x4;") in result.out
+    assert Re(r"^;; flags: qr rd ra; QUERY: 1") in result.out
+    assert check_ttl_range(result.out, "SOA", 300)
+
+
+def test_ednsopt_08_no_insist(dig, ns3):
+    """Check that +qr +ednsopt=08 does not cause an INSIST failure."""
+    result = dig(f"@{ns3.ip} +ednsopt=08 +qr a a.example")
+    assert "INSIST" not in result.out
+    assert "FORMERR" in result.out
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        param("3", id="number"),
+        param("nsid", id="name"),
+    ],
+)
+def test_ednsopt_nsid(dig, ns3, option):
+    """Check that +ednsopt accepts an option number as well as a name."""
+    result = dig(f"@{ns3.ip} +ednsopt={option} a.example")
+    assert Re(r'NSID: .* \("ns3"\)') in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+def test_ednsopt_update_lease(dig, ns3):
+    """Check that a single-lease UPDATE-LEASE option prints as expected."""
+    result = dig(f"@{ns3.ip} +ednsopt=UPDATE-LEASE:00000e10 +qr a.example")
+    assert "UPDATE-LEASE: 3600 (1 hour)" in result.out
+
+
+@needs_pyyaml
+def test_ednsopt_update_lease_yaml(dig, ns3):
+    """Check that a single-lease UPDATE-LEASE option prints as expected
+    with +yaml."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt=UPDATE-LEASE:00000e10 +qr a.example")
+    assert edns_yaml(result.out)["UPDATE-LEASE"]["LEASE"] == 3600
+    assert "LEASE: 3600 # 1 hour" in result.out
+
+
+def test_ednsopt_update_lease_split(dig, ns3):
+    """Check that a split-lease UPDATE-LEASE option prints as expected."""
+    result = dig(f"@{ns3.ip} +ednsopt=UPDATE-LEASE:00000e1000127500 +qr a.example")
+    assert "UPDATE-LEASE: 3600/1209600 (1 hour/2 weeks)" in result.out
+
+
+@needs_pyyaml
+def test_ednsopt_update_lease_split_yaml(dig, ns3):
+    """Check that a split-lease UPDATE-LEASE option prints as expected
+    with +yaml."""
+    result = dig(
+        f"@{ns3.ip} +yaml +ednsopt=UPDATE-LEASE:00000e1000127500 +qr a.example"
+    )
+    update_lease = edns_yaml(result.out)["UPDATE-LEASE"]
+    assert update_lease["LEASE"] == 3600
+    assert update_lease["KEY-LEASE"] == 1209600
+    assert "LEASE: 3600 # 1 hour" in result.out
+    assert "KEY-LEASE: 1209600 # 2 weeks" in result.out
+
+
+def test_ednsopt_llq(dig, ns3):
+    """Check that the LLQ option prints as expected."""
+    result = dig(
+        f"@{ns3.ip} +ednsopt=llq:0001000200001234567812345678fefefefe +qr a.example"
+    )
+    pattern = (
+        r"LLQ: Version: 1, Opcode: 2, Error: 0, "
+        r"Identifier: 1311768465173141112, Lifetime: 4278124286$"
+    )
+    assert Re(pattern) in result.out
+
+
+@needs_pyyaml
+def test_ednsopt_llq_yaml(dig, ns3):
+    """Check that the LLQ option prints as expected with +yaml."""
+    result = dig(
+        f"@{ns3.ip} +yaml +ednsopt=llq:0001000200001234567812345678fefefefe "
+        "+qr a.example"
+    )
+    llq = edns_yaml(result.out)["LLQ"]
+    assert llq["LLQ-VERSION"] == 1
+    assert llq["LLQ-OPCODE"] == 2
+    assert llq["LLQ-ERROR"] == 0
+    assert llq["LLQ-ID"] == 1311768465173141112
+    assert llq["LLQ-LEASE"] == 4278124286
+
+
+def test_ednsopt_key_tag_empty(dig, ns3):
+    """Check that an empty key-tag option is sent and FORMERR is returned."""
+    result = dig(f"@{ns3.ip} +ednsopt=key-tag a.example +qr")
+    assert Re(r"; KEY-TAG: *$") in result.out
+    assert "status: FORMERR" in result.out
+
+
+def test_ednsopt_key_tag(dig, ns3):
+    """Check that a key-tag value list is sent and accepted."""
+    result = dig(f"@{ns3.ip} +ednsopt=key-tag:00010002 a.example +qr")
+    assert Re(r"; KEY-TAG: 1, 2$") in result.out
+    assert "status: FORMERR" not in result.out
+    assert check_ttl_range(result.out, "A", 300)
+
+
+@needs_pyyaml
+def test_ednsopt_key_tag_yaml(dig, ns3):
+    """Check that a key-tag value list prints as a list with +yaml."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt=key-tag:00010002 a.example +qr")
+    assert edns_yaml(result.out)["KEY-TAG"] == [1, 2]
+
+
+def test_ednsopt_key_tag_malformed(dig, ns3):
+    """Check that a malformed key-tag value list is sent as raw data and
+    FORMERR is returned."""
+    result = dig(f"@{ns3.ip} +ednsopt=key-tag:0001000201 a.example +qr")
+    assert "; KEY-TAG: 00 01 00 02 01" in result.out
+    assert "status: FORMERR" in result.out
+
+
+@pytest.mark.parametrize("tag", ["client-tag", "server-tag"])
+def test_ednsopt_tag(dig, ns3, tag):
+    """Check that a valid client/server-tag value is sent and accepted."""
+    result = dig(f"@{ns3.ip} +ednsopt={tag}:0001 a.example +qr")
+    assert Re(rf"; {tag.upper()}: 1$") in result.out
+    assert "status: FORMERR" not in result.out
+
+
+@needs_pyyaml
+@pytest.mark.parametrize("tag", ["client-tag", "server-tag"])
+def test_ednsopt_tag_yaml(dig, ns3, tag):
+    """Check that a client/server-tag value prints as expected with +yaml."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt={tag}:0001 a.example +qr")
+    assert edns_yaml(result.out)[tag.upper()] == 1
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        param("01", id="too-short"),
+        param("000001", id="too-long"),
+    ],
+)
+@pytest.mark.parametrize("tag", ["client-tag", "server-tag"])
+def test_ednsopt_tag_bad_length(dig, ns3, tag, value):
+    """Check that FORMERR is returned for a client/server-tag value of the
+    wrong length."""
+    result = dig(f"@{ns3.ip} +ednsopt={tag}:{value} a.example +qr")
+    assert f"; {tag.upper()}" in result.out
+    assert "status: FORMERR" in result.out
+
+
+def test_ednsopt_chain(dig, ns3):
+    """Check that the CHAIN option prints special characters escaped."""
+    result = dig(rf'@{ns3.ip} +ednsopt=chain:02002200 a.\000" +qr')
+    assert r'; CHAIN: "\000\""' in result.out
+
+
+@needs_pyyaml
+def test_ednsopt_chain_yaml(dig, ns3):
+    """Check that the CHAIN option prints special characters escaped
+    with +yaml."""
+    result = dig(rf'@{ns3.ip} +yaml +ednsopt=chain:02002200 a.\000" +qr')
+    assert edns_yaml(result.out)["CHAIN"] == r"\000\""
+
+
+def test_expire(dig, ns1):
+    """Check that dig processes +expire."""
+    result = dig(f"@{ns1.ip} +expire . soa")
+    assert "; EXPIRE: 1200 (20 minutes)" in result.out
+
+
+@needs_pyyaml
+def test_expire_yaml(dig, ns1):
+    """Check that dig processes +expire with +yaml."""
+    result = dig(f"@{ns1.ip} +yaml +expire . soa")
+    assert edns_yaml(result.out, "response")["EXPIRE"] == 1200
+    assert "EXPIRE: 1200 # 20 minutes" in result.out
+
+
+def test_keepalive(dig, ns1):
+    """Check that dig processes +keepalive."""
+    result = dig(f"@{ns1.ip} +keepalive . soa +tcp")
+    assert "; TCP-KEEPALIVE: 30.0 secs" in result.out
+
+
+@needs_pyyaml
+def test_keepalive_yaml(dig, ns1):
+    """Check that dig processes +keepalive with +yaml."""
+    result = dig(f"@{ns1.ip} +yaml +keepalive . soa +tcp")
+    assert edns_yaml(result.out, "response")["TCP-KEEPALIVE"] == "30.0 secs"
+
+
+@pytest.mark.parametrize(
+    "payload,expected",
+    [
+        param("ede:0000666f6f", "; EDE: 0 (Other): (foo)", id="first-defined-code"),
+        param("ede:0018", "; EDE: 24 (Invalid Data)", id="last-defined-code"),
+        param("ede:0019666f6f", "; EDE: 25: (foo)", id="undefined-code"),
+        param("ede", "; EDE:", id="empty"),
+        param("ede:00", '; EDE: 00 (".")', id="too-short"),
+    ],
+)
+def test_ednsopt_ede(dig, ns3, payload, expected):
+    """Check that Extended DNS Error options, including invalid ones with
+    a too short payload, are printed correctly."""
+    result = dig(f"@{ns3.ip} +ednsopt={payload} a.example +qr")
+    assert Re("^" + re.escape(expected) + "$") in result.out
+
+
+@needs_pyyaml
+@pytest.mark.parametrize(
+    "payload,info_code,extra_text",
+    [
+        param("ede:0000666f6f", "0 (Other)", "foo", id="first-defined-code"),
+        param("ede:0018", "24 (Invalid Data)", None, id="last-defined-code"),
+        param("ede:0019666f6f", 25, "foo", id="undefined-code"),
+    ],
+)
+def test_ednsopt_ede_yaml(dig, ns3, payload, info_code, extra_text):
+    """Check that Extended DNS Error options are printed correctly
+    with +yaml."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt={payload} a.example +qr")
+    ede = edns_yaml(result.out)["EDE"]
+    assert ede["INFO-CODE"] == info_code
+    if extra_text is None:
+        assert "EXTRA-TEXT" not in ede
+    else:
+        assert ede["EXTRA-TEXT"] == extra_text
+
+
+@needs_pyyaml
+def test_ednsopt_ede_yaml_specials(dig, ns3):
+    """Check that EDE extra text with '"' and '\\' specials survives YAML
+    quoting."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt=ede:0000666f6f225c a.example +qr")
+    assert edns_yaml(result.out)["EDE"]["EXTRA-TEXT"] == 'foo"\\'
+
+
+@needs_pyyaml
+@pytest.mark.parametrize(
+    "payload,expected",
+    [
+        param("ede", None, id="empty"),
+        param("ede:00", '00 (".")', id="too-short"),
+    ],
+)
+def test_ednsopt_ede_yaml_invalid(dig, ns3, payload, expected):
+    """Check that invalid Extended DNS Error options with a too short
+    payload are printed correctly with +yaml."""
+    result = dig(f"@{ns3.ip} +yaml +ednsopt={payload} a.example +qr")
+    assert edns_yaml(result.out)["EDE"] == expected
+
+
+def test_ednsopt_malformed(dig, ns3):
+    """Check that dig handles the malformed option '+ednsopt=:'
+    gracefully."""
+    result = dig(f"@{ns3.ip} +ednsopt=: a.example", raise_on_exception=False)
+    assert result.rc != 0
+    assert "ednsopt no code point specified" in result.err
+
+
+def test_ednsflags_reenables_edns(dig, ns3):
+    """Check that +noedns +ednsflags=<nonzero> re-enables EDNS."""
+    result = dig(f"@{ns3.ip} +qr +noedns +ednsflags=0x70 a.example")
+    assert "; EDNS: version: 0, flags:; MBZ: 0x0070, udp: 1232" in result.out
+    assert "; EDNS: version: 0, flags:; udp: 1232" in result.out
+
+
+def test_showbadvers(dig, ns3):
+    """Check that +showbadvers displays the BADVERS response as well as
+    the retry without EDNS version 1."""
+    result = dig(f"@{ns3.ip} +edns=1 +qr +showbadvers a.example")
+    assert "; EDNS: version: 1, flags:; udp: 1232" in result.out
+    assert "; EDNS: version: 0, flags:; udp: 1232" in result.out
+    assert "status: BADVERS" in result.out
+    assert "status: NOERROR" in result.out
