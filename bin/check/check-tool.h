@@ -44,4 +44,5 @@ extern bool nomerge;
 extern bool docheckmx;
 extern bool docheckns;
 extern bool dochecksrv;
+extern bool docheckrpz;
 extern dns_zoneopt_t zone_options;

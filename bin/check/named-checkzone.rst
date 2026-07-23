@@ -174,6 +174,10 @@ Options
    This option writes the zone output to ``filename``. If ``filename`` is ``-``, then
    the zone output is written to standard output.
 
+.. option:: -P
+
+   This option checks the zone for RPZ errors.
+
 .. option:: -r mode
 
    This option checks for records that are treated as different by DNSSEC but are

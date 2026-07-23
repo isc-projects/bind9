@@ -421,3 +421,6 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 dns_rpz_zbits_t
 dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		  dns_rpz_zbits_t zbits, dns_name_t *trig_name);
+
+isc_result_t
+dns_rpz_checkdb(dns_db_t *db, isc_mem_t *mctx);
