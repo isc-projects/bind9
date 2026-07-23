@@ -38,9 +38,6 @@ server 10.53.1.1 { tcp-only true; };
 server 10.53.1.2 { tcp-only true; };
 server 10.53.2.1 { tcp-only true; };
 
-zone "." {
-	type hint;
-	file "root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 {% include "_common/controls.conf.j2" %}

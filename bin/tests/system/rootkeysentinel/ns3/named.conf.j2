@@ -6,9 +6,6 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "hint.db";
-};
+{% include "_common/root.hint.conf" %}
 
 include "trusted.conf";

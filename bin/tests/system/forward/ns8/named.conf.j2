@@ -7,10 +7,7 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "root.db";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "sub.local.tld" {
 	type primary;
