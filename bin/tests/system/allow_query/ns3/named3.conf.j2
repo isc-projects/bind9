@@ -19,7 +19,6 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.3; 10.53.1.2; };
 	listen-on-v6 { none; };
-	recursion yes;
 	allow-recursion { any; };
 	allow-query-cache { any; };
 	allow-query-cache-on { 10.53.0.3; }; # allow-recursion-on inherits
