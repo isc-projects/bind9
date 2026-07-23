@@ -19,15 +19,9 @@ tls local {
 };
 
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port @PORT@;
+	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
 	listen-on tls local { 10.53.0.2; };             // DoT
-	listen-on-v6 { none; };
 	recursion no;
 	notify no;
 	ixfr-from-differences yes;

@@ -24,22 +24,16 @@ http local {
 };
 
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port @PORT@;
+	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
 	https-port @HTTPSPORT@;
 	http-port @HTTPPORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
 	listen-on tls local { 10.53.0.2; };             // DoT
 	listen-on-v6 tls local { fd92:7065:b8e:ffff::2; };
 	listen-on tls local http local { 10.53.0.2; };  // DoH
 	listen-on-v6 tls local http local { fd92:7065:b8e:ffff::2; };
 	listen-on tls none http local { 10.53.0.2; };   // unencrypted DoH
 	listen-on-v6 tls none http local { fd92:7065:b8e:ffff::2; };
-	listen-on-v6 { none; };
 	allow-recursion { any; };
 	allow-query-cache { any; };
 	allow-recursion-on { 10.53.0.2; }; # allow-query-cache-on inherits;

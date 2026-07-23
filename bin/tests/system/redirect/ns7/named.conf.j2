@@ -1,13 +1,7 @@
 // NS7
 
 options {
-	query-source address 10.53.0.7;
-	notify-source 10.53.0.7;
-	transfer-source 10.53.0.7;
-	port @PORT@;
-	listen-on { 10.53.0.7; };
-	listen-on-v6 { none; };
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	nxdomain-redirect redirect;
 	dnssec-validation no;
 	dns64 64:ff9b::/96 {

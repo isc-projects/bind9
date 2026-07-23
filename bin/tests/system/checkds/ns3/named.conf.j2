@@ -14,13 +14,7 @@
 // NS3
 
 options {
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
-	query-source address 10.53.0.3;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.3; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation yes;
 	session-keyfile "session.key";
 };

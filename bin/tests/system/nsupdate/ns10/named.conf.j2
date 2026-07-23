@@ -12,16 +12,10 @@
  */
 
 options {
-	query-source address 10.53.0.10;
-	notify-source 10.53.0.10;
-	transfer-source 10.53.0.10;
-	port @PORT@;
+	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	pid-file "named.pid";
 	session-keyfile "session.key";
-	listen-on { 10.53.0.10; };
 	listen-on tls ephemeral { 10.53.0.10; };
-	listen-on-v6 { none; };
 	recursion no;
 	minimal-responses no;
 	dnssec-validation no;

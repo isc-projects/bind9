@@ -1,13 +1,7 @@
 // NS2
 
 options {
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	query-source address 10.53.0.2;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	allow-recursion { any; };
 	dnssec-validation no;
 	qname-minimization off;
