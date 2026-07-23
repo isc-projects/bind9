@@ -548,6 +548,9 @@ foreach fn, header : {
     'sched_getaffinity': '#include <sched.h>',
     'sched_yield': '#include <sched.h>',
 
+    # CSPRNG
+    'arc4random': '#include <stdlib.h>',
+
     # Misc.
     'chroot': '#include <unistd.h>',
     'clock_gettime': '#include <time.h>',
