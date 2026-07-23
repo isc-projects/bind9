@@ -20,7 +20,7 @@ import re
 
 import pytest
 
-from digdelv.common import ARTIFACTS, check_ttl_range, needs_pyyaml, parse_yaml
+from digdelv.common import ARTIFACTS, check_ttl_range, parse_yaml
 from isctest.util import param
 
 import isctest
@@ -231,7 +231,6 @@ def test_refused_chasing_ds(delv, ns2):
     assert ";; resolution failed: broken trust chain" in result.err
 
 
-@needs_pyyaml
 def test_yaml_any(delv, ns3):
     """Check the structure of delv +yaml output."""
     result = delv(f"+yaml @{ns3.ip} any ns2.example")
@@ -242,7 +241,6 @@ def test_yaml_any(delv, ns3):
     assert len(str(answer).split()) == 5
 
 
-@needs_pyyaml
 @pytest.mark.parametrize(
     "qtype,qname,status",
     [
