@@ -6,6 +6,7 @@ options {
 	transfer-source 10.53.0.7;
 	port @PORT@;
 	listen-on { 10.53.0.7; };
+	listen-on-v6 { none; };
 	pid-file "named.pid";
 	nxdomain-redirect redirect;
 	dnssec-validation no;

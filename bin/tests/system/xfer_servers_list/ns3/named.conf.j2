@@ -3,6 +3,7 @@ options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
 	listen-on { 10.53.0.3; };
+	listen-on-v6 { none; };
 	transfer-source 10.53.0.3;
 	pid-file "named.pid";
 	recursion no;
