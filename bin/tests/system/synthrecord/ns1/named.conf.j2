@@ -2,6 +2,8 @@
 {% set toolongprefix = toolongprefix | default(False) %}
 
 options {
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
 	query-source address 10.53.0.1;
 	port @PORT@;
 	pid-file "named.pid";

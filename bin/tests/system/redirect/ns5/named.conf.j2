@@ -1,6 +1,9 @@
 // NS5
 
 options {
+	query-source address 10.53.0.5;
+	notify-source 10.53.0.5;
+	transfer-source 10.53.0.5;
 	port @PORT@;
 	listen-on port @PORT@ { 10.53.0.5; };
 	pid-file "named.pid";

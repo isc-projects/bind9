@@ -1,6 +1,9 @@
 // NS8
 
 options {
+	query-source address 10.53.0.8;
+	notify-source 10.53.0.8;
+	transfer-source 10.53.0.8;
 	port @PORT@;
 	listen-on port @PORT@ { 10.53.0.8; };
 	pid-file "named.pid";

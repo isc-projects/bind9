@@ -2,6 +2,9 @@
 // (synth-from-dnssec path)
 
 options {
+	query-source address 10.53.0.9;
+	notify-source 10.53.0.9;
+	transfer-source 10.53.0.9;
 	port @PORT@;
 	listen-on port @PORT@ { 10.53.0.9; };
 	pid-file "named.pid";

@@ -33,6 +33,9 @@ tls tls-pfs-chacha20 {
 };
 
 options {
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
 	port @PORT@;
 	tls-port @TLSPORT@;
 	pid-file "named.pid";

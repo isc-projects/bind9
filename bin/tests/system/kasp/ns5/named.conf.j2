@@ -24,6 +24,8 @@ dnssec-policy "test" {
 };
 
 options {
+	notify-source 10.53.0.5;
+	transfer-source 10.53.0.5;
 	query-source address 10.53.0.5;
 	port @PORT@;
 	pid-file "named.pid";

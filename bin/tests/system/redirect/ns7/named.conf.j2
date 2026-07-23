@@ -1,6 +1,9 @@
 // NS7
 
 options {
+	query-source address 10.53.0.7;
+	notify-source 10.53.0.7;
+	transfer-source 10.53.0.7;
 	port @PORT@;
 	listen-on port @PORT@ { 10.53.0.7; };
 	pid-file "named.pid";

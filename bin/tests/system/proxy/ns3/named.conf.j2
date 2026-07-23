@@ -6,6 +6,9 @@ tls self-signed {
 };
 
 options {
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
 	pid-file "named.pid";
 	##
 	# generic test

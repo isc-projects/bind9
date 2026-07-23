@@ -1,4 +1,7 @@
 options {
+	query-source address 10.53.0.2;
+	notify-source 10.53.0.2;
+	transfer-source 10.53.0.2;
 	new-zones-directory "./nope";
 	port @PORT@;
 	pid-file "named.pid";
