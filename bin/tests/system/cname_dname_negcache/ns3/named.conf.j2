@@ -1,5 +1,7 @@
 options {
     query-source address @ns.ip@;
+    notify-source @ns.ip@;
+    transfer-source @ns.ip@;
     port @PORT@;
     pid-file "named.pid";
     listen-on { @ns.ip@; };
