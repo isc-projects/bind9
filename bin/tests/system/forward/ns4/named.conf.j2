@@ -20,6 +20,8 @@ options {
 
 };
 
+{% include "_common/controls.conf.j2" %}
+
 {% if FEATURE_JSON_C == "1" %}
 statistics-channels { inet 10.53.0.4 port @EXTRAPORT1@ allow { localhost; }; };
 {% endif %}

@@ -14,6 +14,8 @@ options {
 	minimal-responses no;
 };
 
+{% include "_common/controls.conf.j2" %}
+
 zone "." {
 	type primary;
 	file "example.db";

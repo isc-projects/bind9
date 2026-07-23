@@ -12,6 +12,8 @@ options {
 	send-report-channel "example.rad";
 };
 
+{% include "_common/controls.conf.j2" %}
+
 view main in {
 	allow-transfer { any; };
 

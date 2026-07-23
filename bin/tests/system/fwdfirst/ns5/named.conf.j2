@@ -15,11 +15,7 @@ options {
 	forwarders { 10.53.0.2 port @PORT@; };
 };
 
-controls {
-	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
-
-include "../../_common/rndc.key";
+{% include "_common/controls.conf.j2" %}
 
 zone "." {
 	type hint;
