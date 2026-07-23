@@ -1,11 +1,5 @@
 options {
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	query-source address @ns.ip@;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { @ns.ip@; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	qname-minimization off;
 	servfail-ttl 5;

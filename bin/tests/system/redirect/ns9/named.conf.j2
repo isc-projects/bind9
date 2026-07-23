@@ -2,13 +2,7 @@
 // (synth-from-dnssec path)
 
 options {
-	query-source address 10.53.0.9;
-	notify-source 10.53.0.9;
-	transfer-source 10.53.0.9;
-	port @PORT@;
-	listen-on { 10.53.0.9; };
-	listen-on-v6 { none; };
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	recursion no;
 };

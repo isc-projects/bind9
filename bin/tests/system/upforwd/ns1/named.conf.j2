@@ -4,15 +4,9 @@ key "update.example." {
 };
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	port @PORT@;
+	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
 	listen-on tls ephemeral { 10.53.0.1; };
-	listen-on-v6 { none; };
 	allow-transfer { any; };
 	dnssec-validation no;
 };

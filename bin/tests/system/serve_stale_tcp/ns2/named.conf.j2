@@ -14,14 +14,8 @@
 {% include "_common/controls.conf.j2" %}
 
 options {
-	port @PORT@;
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
 
 	dnssec-validation no;
 	qname-minimization off;

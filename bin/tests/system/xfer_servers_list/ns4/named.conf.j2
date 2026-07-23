@@ -1,11 +1,5 @@
 options {
-	port @PORT@;
-	query-source address 10.53.0.4;
-	notify-source 10.53.0.4;
-	listen-on { 10.53.0.4; };
-	listen-on-v6 { none; };
-	transfer-source 10.53.0.4;
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 };
 

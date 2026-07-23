@@ -1,11 +1,5 @@
 options {
-	query-source address 10.53.0.3;
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.3; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	dnstap-identity "ns3";
 	dnstap-version "xxx";
 	dnstap-output file "dnstap.out";

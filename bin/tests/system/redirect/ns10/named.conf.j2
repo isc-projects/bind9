@@ -3,13 +3,7 @@
 // locally, then nxdomain-redirect+dns64 hit the same buggy path as ns7).
 
 options {
-	query-source address 10.53.0.10;
-	notify-source 10.53.0.10;
-	transfer-source 10.53.0.10;
-	port @PORT@;
-	listen-on { 10.53.0.10; };
-	listen-on-v6 { none; };
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	nxdomain-redirect redirect;
 	dnssec-validation yes;
 	synth-from-dnssec yes;

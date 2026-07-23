@@ -6,14 +6,9 @@ tls self-signed {
 };
 
 options {
-	port @PORT@;
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	##
 	# generic test
-	listen-on { 10.53.0.1; };
 	listen-on port @TLSPORT@ tls self-signed { 10.53.0.1; };
 	# test #1
 	listen-on port @EXTRAPORT1@ { 10.53.0.1; };
@@ -47,7 +42,6 @@ options {
 	# test #8
 	listen-on port @EXTRAPORT8@ { 10.53.0.1; };
 	##
-	listen-on-v6 { none; };
 	recursion no;
 	notify explicit;
 	statistics-file "named.stats";

@@ -5,15 +5,9 @@
 {% set bad_dlz = bad_dlz | default(False) %}
 
 options {
-	query-source address 10.53.0.3;
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
-	port @PORT@;
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	statistics-file	"named.stats";
 	session-keyfile "session.key";
-	listen-on { 10.53.0.3; };
-	listen-on-v6 { none; };
 	allow-transfer { any; };
 	minimal-any no;
 	minimal-responses no;
