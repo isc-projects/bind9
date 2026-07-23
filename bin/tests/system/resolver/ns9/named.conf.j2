@@ -8,7 +8,6 @@ options {
 	pid-file "named.pid";
 	listen-on { none; };
 	listen-on-v6 { fd92:7065:b8e:ffff::9; };
-	recursion yes;
 	recursive-clients 0; // regression test for [GL #4987]
 	dnssec-validation no;
 	dual-stack-servers { fd92:7065:b8e:ffff::7; };

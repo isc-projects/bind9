@@ -6,7 +6,6 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
-	recursion yes;
 	allow-query { any; };
 	forwarders { 10.53.0.3 port @PORT@; };
 	forward only;

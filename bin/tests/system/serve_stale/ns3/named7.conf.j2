@@ -13,7 +13,6 @@ options {
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	dnssec-validation no;
-	recursion yes;
 	/*
 	 * stale-answer-enable is not strictly required because serving
 	 * stale answers is enabled in the test via rndc.

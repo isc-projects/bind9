@@ -27,7 +27,6 @@ options {
 	listen-on tls none http local { 10.53.0.2; };   // unencrypted DoH
 	listen-on-v6 tls none http local { fd92:7065:b8e:ffff::2; };
 	listen-on-v6 { none; };
-	recursion yes;
 	allow-recursion { any; };
 	allow-query-cache { any; };
 	allow-recursion-on { 10.53.0.2; }; # allow-query-cache-on inherits;
