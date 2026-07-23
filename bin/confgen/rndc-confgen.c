@@ -208,7 +208,7 @@ main(int argc, char **argv) {
 		usage(EXIT_FAILURE);
 	}
 
-	makesafe_keyname(keyname, namebuf, sizeof(namebuf));
+	makesafe_keyname(keyname, namebuf, sizeof(namebuf), NULL);
 
 	if (alg == DST_ALG_HMACMD5) {
 		fprintf(stderr, "warning: use of hmac-md5 for RNDC keys "
