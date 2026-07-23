@@ -12,12 +12,10 @@
  */
 
 options {
-	port @PORT@;
+	{% include_indented "_common/options/server.conf.j2" %}
+	{% include_indented "_common/options/listen.conf.j2" %}
 	query-source address 10.53.0.1;
-	listen-on { 10.53.0.1; };
-	listen-on-v6 { none; };
 	transfer-source 10.53.0.1;
-	pid-file "named.pid";
 	recursion no;
 	/*
 	 * Notifications are sent from 10.53.1.1. This, the `notify

@@ -19,11 +19,8 @@ tls self-signed {
 };
 
 options {
-	port @PORT@;
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	pid-file "named.pid";
+	{% include_indented "_common/options/sources.conf.j2" %}
+	{% include_indented "_common/options/server.conf.j2" %}
 	##
 	# generic
 	listen-on { 10.53.0.1; };
