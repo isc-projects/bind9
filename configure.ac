@@ -662,7 +662,7 @@ AS_IF([test "$enable_pthread_rwlock" = "yes"],
       ])
 AM_CONDITIONAL([USE_ISC_RWLOCK], [test "$enable_pthread_rwlock" != "yes"])
 
-CRYPTO=OpenSSL
+AC_CHECK_FUNCS_ONCE([arc4random])
 
 #
 # OpenSSL/LibreSSL is mandatory
