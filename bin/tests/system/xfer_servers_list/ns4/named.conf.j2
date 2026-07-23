@@ -12,9 +12,10 @@
  */
 
 options {
+	port @PORT@;
 	query-source address 10.53.0.4;
 	notify-source 10.53.0.4;
-	listen-on port @PORT@ { 10.53.0.4; };
+	listen-on { 10.53.0.4; };
 	transfer-source 10.53.0.4;
 	pid-file "named.pid";
 	recursion no;
