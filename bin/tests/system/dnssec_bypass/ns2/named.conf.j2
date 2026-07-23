@@ -20,6 +20,8 @@ options {
 	dnssec-validation no;
 };
 
+{% include "_common/controls.conf.j2" %}
+
 zone "victim.test." {
 	type primary;
 	file "victim.db.signed";
