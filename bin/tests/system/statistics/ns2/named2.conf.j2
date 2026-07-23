@@ -8,7 +8,6 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	dnssec-validation no;
-	notify yes;
 };
 
 {% if FEATURE_LIBXML2 == "1" or FEATURE_JSON_C == "1" %}

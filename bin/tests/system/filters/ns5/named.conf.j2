@@ -11,7 +11,6 @@ options {
 	listen-on-v6 { fd92:7065:b8e:ffff::5; };
 	recursion yes;
 	dnssec-validation no;
-	notify yes;
 	dns64 64:ff9b::/96 {
 		clients { any; };
 		exclude { ::1/128; };
