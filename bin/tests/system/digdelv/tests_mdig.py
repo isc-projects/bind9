@@ -17,7 +17,7 @@ import os
 
 import pytest
 
-from digdelv.common import ARTIFACTS, needs_pyyaml, parse_yaml
+from digdelv.common import ARTIFACTS, parse_yaml
 
 import isctest
 
@@ -72,7 +72,6 @@ def test_soa_norrcomments(mdig, ns3):
     assert "; serial" not in result.out
 
 
-@needs_pyyaml
 def test_yaml_output(mdig, ns3):
     """Check the structure of mdig +yaml output."""
     result = mdig(f"+yaml @{ns3.ip} -t any ns2.example")

@@ -21,7 +21,7 @@ import re
 
 import pytest
 
-from digdelv.common import ARTIFACTS, check_ttl_range, needs_pyyaml, parse_yaml
+from digdelv.common import ARTIFACTS, check_ttl_range, parse_yaml
 from isctest.util import param
 
 import isctest
@@ -327,7 +327,6 @@ def test_coflag(dig, ns3):
     assert check_ttl_range(result.out, "SOA", 300)
 
 
-@needs_pyyaml
 def test_coflag_yaml(dig, ns3):
     """Check that dig +coflag +yaml shows the CO flag in the sent query."""
     result = dig(f"+yaml +tcp @{ns3.ip} +coflag +qr example")
@@ -385,7 +384,6 @@ def test_ednsopt_update_lease(dig, ns3):
     assert "UPDATE-LEASE: 3600 (1 hour)" in result.out
 
 
-@needs_pyyaml
 def test_ednsopt_update_lease_yaml(dig, ns3):
     """Check that a single-lease UPDATE-LEASE option prints as expected
     with +yaml."""
@@ -400,7 +398,6 @@ def test_ednsopt_update_lease_split(dig, ns3):
     assert "UPDATE-LEASE: 3600/1209600 (1 hour/2 weeks)" in result.out
 
 
-@needs_pyyaml
 def test_ednsopt_update_lease_split_yaml(dig, ns3):
     """Check that a split-lease UPDATE-LEASE option prints as expected
     with +yaml."""
@@ -426,7 +423,6 @@ def test_ednsopt_llq(dig, ns3):
     assert Re(pattern) in result.out
 
 
-@needs_pyyaml
 def test_ednsopt_llq_yaml(dig, ns3):
     """Check that the LLQ option prints as expected with +yaml."""
     result = dig(
@@ -456,7 +452,6 @@ def test_ednsopt_key_tag(dig, ns3):
     assert check_ttl_range(result.out, "A", 300)
 
 
-@needs_pyyaml
 def test_ednsopt_key_tag_yaml(dig, ns3):
     """Check that a key-tag value list prints as a list with +yaml."""
     result = dig(f"@{ns3.ip} +yaml +ednsopt=key-tag:00010002 a.example +qr")
@@ -479,7 +474,6 @@ def test_ednsopt_tag(dig, ns3, tag):
     assert "status: FORMERR" not in result.out
 
 
-@needs_pyyaml
 @pytest.mark.parametrize("tag", ["client-tag", "server-tag"])
 def test_ednsopt_tag_yaml(dig, ns3, tag):
     """Check that a client/server-tag value prints as expected with +yaml."""
@@ -509,7 +503,6 @@ def test_ednsopt_chain(dig, ns3):
     assert r'; CHAIN: "\000\""' in result.out
 
 
-@needs_pyyaml
 def test_ednsopt_chain_yaml(dig, ns3):
     """Check that the CHAIN option prints special characters escaped
     with +yaml."""
@@ -523,7 +516,6 @@ def test_expire(dig, ns1):
     assert "; EXPIRE: 1200 (20 minutes)" in result.out
 
 
-@needs_pyyaml
 def test_expire_yaml(dig, ns1):
     """Check that dig processes +expire with +yaml."""
     result = dig(f"@{ns1.ip} +yaml +expire . soa")
@@ -537,7 +529,6 @@ def test_keepalive(dig, ns1):
     assert "; TCP-KEEPALIVE: 30.0 secs" in result.out
 
 
-@needs_pyyaml
 def test_keepalive_yaml(dig, ns1):
     """Check that dig processes +keepalive with +yaml."""
     result = dig(f"@{ns1.ip} +yaml +keepalive . soa +tcp")
@@ -561,7 +552,6 @@ def test_ednsopt_ede(dig, ns3, payload, expected):
     assert Re("^" + re.escape(expected) + "$") in result.out
 
 
-@needs_pyyaml
 @pytest.mark.parametrize(
     "payload,info_code,extra_text",
     [
@@ -582,7 +572,6 @@ def test_ednsopt_ede_yaml(dig, ns3, payload, info_code, extra_text):
         assert ede["EXTRA-TEXT"] == extra_text
 
 
-@needs_pyyaml
 def test_ednsopt_ede_yaml_specials(dig, ns3):
     """Check that EDE extra text with '"' and '\\' specials survives YAML
     quoting."""
@@ -590,7 +579,6 @@ def test_ednsopt_ede_yaml_specials(dig, ns3):
     assert edns_yaml(result.out)["EDE"]["EXTRA-TEXT"] == 'foo"\\'
 
 
-@needs_pyyaml
 @pytest.mark.parametrize(
     "payload,expected",
     [
@@ -627,7 +615,6 @@ def test_zoneversion_disabled(dig, ns2):
     assert "; ZONEVERSION:" not in result.out
 
 
-@needs_pyyaml
 def test_zoneversion_yaml(dig, ns2):
     """Check +yaml +zoneversion against an authoritative server."""
     result = dig(f"@{ns2.ip} +yaml +zoneversion a.example")
@@ -659,7 +646,6 @@ def test_zoneversion_non_serial(dig, ns2):
     )
 
 
-@needs_pyyaml
 def test_zoneversion_non_serial_yaml(dig, ns2):
     """Check the display of a non SOA-SERIAL type zoneversion with +yaml."""
     result = dig(f"@{ns2.ip} +qr +ednsopt=ZONEVERSION:0100000007DA a.example +yaml")
@@ -742,7 +728,6 @@ def test_subnet_zero(dig, ns2, option, subnet):
     assert check_ttl_range(result.out, "A", 300)
 
 
-@needs_pyyaml
 @pytest.mark.parametrize("option,subnet", ZERO_SUBNETS)
 def test_subnet_zero_yaml(dig, ns2, option, subnet):
     """Check that a zero-length client subnet is echoed in the +yaml
@@ -751,7 +736,6 @@ def test_subnet_zero_yaml(dig, ns2, option, subnet):
     assert edns_yaml(result.out, "response")["CLIENT-SUBNET"] == subnet
 
 
-@needs_pyyaml
 def test_subnet_yaml(dig, ns2):
     """Check that +subnet=dead::/16 is shown in the +yaml query."""
     result = dig(f"+yaml +tcp @{ns2.ip} +qr +subnet=dead::/16 A a.example")
@@ -991,7 +975,6 @@ def test_nocmd_after_query_name(dig, ans7):
     assert "no servers could be reached" in result.out
 
 
-@needs_pyyaml
 def test_yaml_valid_when_no_server_reached(dig, ans7):
     """Check that dig +yaml produces valid YAML when no servers could be
     reached; the ";"-prefixed startup banner must not precede the
@@ -1016,7 +999,6 @@ def test_source_address_both_families_no_crash(dig, ns1):
     assert result.rc >= 0
 
 
-@needs_pyyaml
 def test_yaml_any_output(dig, ns3):
     """Check the structure of dig +yaml output for an ANY query."""
     result = dig(f"+qr +yaml @{ns3.ip} any ns2.example")
@@ -1028,7 +1010,6 @@ def test_yaml_any_output(dig, ns3):
     assert response["QUESTION_SECTION"][0] == "ns2.example. IN ANY"
 
 
-@needs_pyyaml
 def test_yaml_ipv6_trailing_zeroes(dig, ns3):
     """Check dig +yaml output of an IPv6 address ending in zeroes."""
     result = dig(f"+qr +yaml @{ns3.ip} aaaa d.example")
@@ -1037,7 +1018,6 @@ def test_yaml_ipv6_trailing_zeroes(dig, ns3):
     assert answer == "d.example. 300 IN AAAA fd92:7065:b8e:ffff::0"
 
 
-@needs_pyyaml
 @pytest.mark.parametrize(
     "qname", ["yaml", "'.yaml", "[.yaml", "{.yaml", "&.yaml", "#.yaml"]
 )
@@ -1053,7 +1033,6 @@ def test_yaml_special_characters_in_qname(dig, ns3, qname):
     assert answer == f'{qname}.example. 300 IN TXT "a: b"'
 
 
-@needs_pyyaml
 def test_yaml_character_values(dig, ns3):
     """Check the quoting of all 256 character values in dig +yaml TXT
     output."""

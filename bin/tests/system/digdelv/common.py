@@ -13,12 +13,7 @@
 Helpers shared by the digdelv test modules.
 """
 
-import pytest
-
-try:
-    import yaml  # type: ignore[import-untyped]
-except ImportError:
-    yaml = None  # type: ignore[assignment]
+import yaml
 
 ARTIFACTS = [
     "ans*/ans.run",
@@ -32,8 +27,6 @@ ARTIFACTS = [
     "ns2/example.db",
     "ns2/example.tld.db",
 ]
-
-needs_pyyaml = pytest.mark.skipif(yaml is None, reason="PyYAML is not installed")
 
 
 def parse_yaml(text):
