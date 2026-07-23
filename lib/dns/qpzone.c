@@ -586,6 +586,7 @@ free_db_rcu(struct rcu_head *rcu_head) {
 static void
 qpzone_destroy(qpzonedb_t *qpdb) {
 	REQUIRE(qpdb->future_version == NULL);
+	REQUIRE(qpdb->current_version != NULL);
 
 	isc_refcount_decrementz(&qpdb->current_version->references);
 

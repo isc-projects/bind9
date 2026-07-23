@@ -1012,5 +1012,15 @@ isccc_cc_checkdup(isc_symtab_t *symtab, isccc_sexpr_t *message,
 		return result;
 	}
 
+#ifdef __clang_analyzer__
+	/*
+	 * On success the symtab owns 'key' and frees it via
+	 * symtab_undefine().  scan-build cannot see that ownership pass
+	 * through the const key parameter of isc_symtab_define(), so free
+	 * it here under analysis only to avoid a false-positive leak report.
+	 */
+	free(key);
+#endif
+
 	return ISC_R_SUCCESS;
 }

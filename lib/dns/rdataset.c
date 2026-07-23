@@ -369,7 +369,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		    bool partial, unsigned int options, unsigned int *countp) {
 	isc_result_t result;
 	isc_buffer_t savedbuffer = *target;
-	isc_buffer_t rrbuffer;
+	isc_buffer_t rrbuffer = *target;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
 

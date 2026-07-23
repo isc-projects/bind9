@@ -920,24 +920,26 @@ coccinelle:
 
 # Jobs for scan-build builds on Debian 13 "trixie" (amd64)
 
-.scan_build: &scan_build
-  - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
-                  --keep-cc
-                  --status-bugs
-                  --keep-going
-                  -o scan-build.reports ninja -C build
-
 scan-build:
   <<: *other_checks_job
   variables:
-    CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "-Didn=enabled --native-file ci/clang-trixie.ini"
   before_script:
     - *list_installed_package_versions
   script:
-    - *configure
-    - *scan_build
+    # --exclude build drops findings in Meson's feature-probe programs,
+    # which are the only thing analyzed during setup.
+    - ${SCAN_BUILD} --use-cc=${CLANG}
+                    --exclude build
+                    meson setup --libdir=lib -Dcmocka=enabled -Ddeveloper=enabled
+                    -Dleak-detection=enabled -Doptimization=1 -Didn=enabled
+                    -Dnamed-lto=disabled build
+    # Gate on the full set of default checkers.
+    - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
+                    --use-cc=${CLANG}
+                    --status-bugs
+                    --keep-going
+                    -o scan-build.reports ninja -C build
   artifacts:
     paths:
       - scan-build.reports/

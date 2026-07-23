@@ -154,12 +154,12 @@ plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
 			goto cleanup;
 		}
 
-		result = dns_name_fromstring(&example2com, "example2.com.",
-					     NULL, 0, isc_g_mctx);
-		result = dns_name_fromstring(&example3com, "example3.com.",
-					     NULL, 0, isc_g_mctx);
-		result = dns_name_fromstring(&example4com, "example4.com.",
-					     NULL, 0, isc_g_mctx);
+		CHECK(dns_name_fromstring(&example2com, "example2.com.", NULL,
+					  0, isc_g_mctx));
+		CHECK(dns_name_fromstring(&example3com, "example3.com.", NULL,
+					  0, isc_g_mctx));
+		CHECK(dns_name_fromstring(&example4com, "example4.com.", NULL,
+					  0, isc_g_mctx));
 
 		if (!dns_name_equal(ctx->origin, &example2com) &&
 		    !dns_name_equal(ctx->origin, &example3com) &&
