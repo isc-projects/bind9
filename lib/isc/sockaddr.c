@@ -264,7 +264,8 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port) {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin.sin_family = AF_INET;
-	sockaddr->type.sin.sin_addr = *ina;
+	/* Use memmove to avoid possible misaligned access. */
+	memmove(&sockaddr->type.sin.sin_addr, ina, sizeof(*ina));
 	sockaddr->type.sin.sin_port = htons(port);
 	sockaddr->length = sizeof(sockaddr->type.sin);
 	ISC_LINK_INIT(sockaddr, link);
@@ -289,7 +290,8 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 		     in_port_t port) {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-	sockaddr->type.sin6.sin6_addr = *ina6;
+	/* Use memmove to avoid possible misaligned access. */
+	memmove(&sockaddr->type.sin6.sin6_addr, ina6, sizeof(*ina6));
 	sockaddr->type.sin6.sin6_port = htons(port);
 	sockaddr->length = sizeof(sockaddr->type.sin6);
 	ISC_LINK_INIT(sockaddr, link);
