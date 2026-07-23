@@ -741,6 +741,9 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 				lookup->rdtype = dns_rdatatype_any;
 			}
 			list_type = dns_rdatatype_any;
+			if (!lookup->tcp_mode_set) {
+				lookup->tcp_mode = true;
+			}
 			list_addresses = false;
 			lookup->rdtypeset = true;
 			short_form = false;
