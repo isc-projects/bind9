@@ -3,6 +3,8 @@
 {% set dns64 = dns64 | default(False) %}
 
 options {
+	{% include_indented "_common/options/server.conf.j2" %}
+	{% include_indented "_common/options/listen-dual.conf.j2" %}
 {% if disablev4 %}
 	query-source address none;
 {% else %}
@@ -17,14 +19,10 @@ options {
 
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	listen-on { 10.53.0.2; };
 
 	notify-source-v6 fd92:7065:b8e:ffff::2;
 	transfer-source-v6 fd92:7065:b8e:ffff::2;
-	listen-on-v6 { fd92:7065:b8e:ffff::2; };
 
-	port @PORT@;
-	pid-file "named.pid";
 	dnssec-validation no;
 
 {% if dns64 %}

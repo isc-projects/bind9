@@ -4,11 +4,8 @@
 {% set broken_key = broken_key | default(False) %}
 {% set many_anchors = many_anchors | default(False) %}
 options {
-	query-source address 10.53.0.5;
-	notify-source 10.53.0.5;
-	transfer-source 10.53.0.5;
-	port @PORT@;
-	pid-file "named.pid";
+	{% include_indented "_common/options/sources.conf.j2" %}
+	{% include_indented "_common/options/server.conf.j2" %}
 	listen-on { 10.53.0.5; 127.0.0.1; };
 	listen-on-v6 { none; };
 	minimal-any no;
