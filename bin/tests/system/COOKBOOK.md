@@ -69,36 +69,35 @@ demo/
 ```
 
 `demo/ns1/named.conf.j2` — the config template; the runner renders it to
-`named.conf` at setup time, filling in the assigned ports.  Templates inside
-an `nsN`/`ansN` subdirectory also get an `ns` variable describing that
-server, so the config doesn't hardcode its own address (`@ns.ip@` renders to
-10.53.0.1 in ns1, 10.53.0.2 in ns2, ...):
+`named.conf` at setup time, filling in the assigned ports:
 
 ```jinja
 options {
-    query-source address @ns.ip@;
-    notify-source @ns.ip@;
-    transfer-source @ns.ip@;
-    port @PORT@;
-    pid-file "named.pid";
-    listen-on { @ns.ip@; };
-    listen-on-v6 { none; };
-    recursion no;
-    dnssec-validation no;
+	{% include_indented "_common/options.conf.j2" %}
+	recursion no;
+	dnssec-validation no;
 };
 
 {% include "_common/controls.conf.j2" %}
 
 zone "example" {
-    type primary;
-    file "example.db";
+	type primary;
+	file "example.db";
 };
 ```
 
+The `_common/options.conf.j2` include expands to the standard plumbing
+(configuring interfaces, source addresses, port and pid file).  Write only the
+options your test actually cares about below the include.  When the standard
+block doesn't fit, compose the pieces from `_common/options/` instead and put
+anything nonstandard inline.
+
 The `_common/controls.conf.j2` include sets up the rndc control channel, so
-the test (and the runner's shutdown sequence) can use `rndc`.  Inside an
-indented section such as a view statement, use `{% include_indented "..." %}`
-instead of `{% include %}` — it aligns the inserted block with the tag's own
+the test (and the runner's shutdown sequence) can use `rndc`.  A resolver
+instance would also include `_common/root.hint.conf` to get the standard
+root hints (ns1 is the root server by convention).  Inside an indented
+section such as a view statement, use `{% include_indented "..." %}` instead
+of `{% include %}` — it aligns the inserted block with the tag's own
 indentation.
 
 `demo/ns1/example.db` — a plain zone file:
