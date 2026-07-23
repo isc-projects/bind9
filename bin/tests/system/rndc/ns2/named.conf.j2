@@ -30,7 +30,7 @@ key secondkey {
 
 /* deliberately not _common/controls.conf.j2: multi-key control channel is the test subject */
 controls {
-	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; secondkey; };
+	inet @ns.ip@ port @CONTROLPORT@ allow { any; } keys { rndc_key; secondkey; };
 };
 
 

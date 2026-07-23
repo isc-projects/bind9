@@ -16,8 +16,8 @@
 options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
-	listen-on { 127.0.0.1; 10.53.0.2; };
-	listen-on-v6 { ::1; fd92:7065:b8e:ffff::2; };
+	listen-on { 127.0.0.1; @ns.ip@; };
+	listen-on-v6 { ::1; @ns.ip6@; };
 	recursion no;
 	dnssec-validation no;
 	geoip-directory "../data";

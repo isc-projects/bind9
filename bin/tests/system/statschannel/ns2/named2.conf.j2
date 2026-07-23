@@ -21,7 +21,7 @@ options {
 	sig-signing-signatures 100;
 };
 
-statistics-channels { inet 10.53.0.2 port @EXTRAPORT1@ allow { localhost; }; };
+statistics-channels { inet @ns.ip@ port @EXTRAPORT1@ allow { localhost; }; };
 
 {% include "_common/controls.conf.j2" %}
 

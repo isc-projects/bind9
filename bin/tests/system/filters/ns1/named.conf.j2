@@ -24,10 +24,10 @@ options {
 {% if family == "v6" %}
         plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
                 filter-@filtertype@-on-v6 yes;
-                filter-@filtertype@ { fd92:7065:b8e:ffff::1; };
+                filter-@filtertype@ { @ns.ip6@; };
         };
 {% else %}
-        acl filterees { 10.53.0.1; };
+        acl filterees { @ns.ip@; };
 
         plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
                 filter-@filtertype@-on-v4 yes;

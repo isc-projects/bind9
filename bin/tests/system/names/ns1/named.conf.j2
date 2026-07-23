@@ -22,7 +22,7 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 view compress {
-	match-clients { 10.53.0.1/32; };
+	match-clients { @ns.ip@/32; };
 	zone "example" {
 		type primary;
 		file "example.db";

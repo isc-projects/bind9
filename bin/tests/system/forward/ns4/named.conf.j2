@@ -28,7 +28,7 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
-statistics-channels { inet 10.53.0.4 port @EXTRAPORT1@ allow { localhost; }; };
+statistics-channels { inet @ns.ip@ port @EXTRAPORT1@ allow { localhost; }; };
 
 zone "." {
 	type hint;

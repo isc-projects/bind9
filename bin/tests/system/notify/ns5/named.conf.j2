@@ -38,7 +38,7 @@ view "a" {
 	match-clients { key "a"; };
 	zone "x21" {
 		type primary;
-		also-notify { 10.53.0.5 key "b"; 10.53.0.5 key "c"; };
+		also-notify { @ns.ip@ key "b"; @ns.ip@ key "c"; };
 		file "x21.db";
 		allow-update { any; };
 	};
@@ -48,7 +48,7 @@ view "b" {
 	match-clients { key "b"; };
 	zone "x21" {
 		type secondary;
-		primaries { 10.53.0.5 key "a"; };
+		primaries { @ns.ip@ key "a"; };
 		file "x21.bk-b";
 		notify no;
 	};
@@ -58,7 +58,7 @@ view "c" {
 	match-clients { key "c"; };
 	zone "x21" {
 		type secondary;
-		primaries { 10.53.0.5 key "a"; };
+		primaries { @ns.ip@ key "a"; };
 		file "x21.bk-c";
 		notify no;
 	};

@@ -11,7 +11,7 @@
  * information regarding copyright ownership.
  */
 
-acl accept { 10.53.0.2; };
+acl accept { @ns.ip@; };
 
 options {
 	{% include_indented "_common/options.conf.j2" %}

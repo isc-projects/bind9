@@ -41,7 +41,7 @@ acl reject {
 };
 
 acl accept {
-	10.53.0.1; 10.53.0.2;
+	10.53.0.1; @ns.ip@;
 };
 
 {% include "_common/root.hint.conf" %}

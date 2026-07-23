@@ -24,7 +24,7 @@ key rndc_key {
 
 /* deliberately not _common/controls.conf.j2: read-only control channel is the test subject */
 controls {
-	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; } read-only yes;
+	inet @ns.ip@ port @CONTROLPORT@ allow { any; } keys { rndc_key; } read-only yes;
 };
 
 {% include "_common/root.hint.conf" %}

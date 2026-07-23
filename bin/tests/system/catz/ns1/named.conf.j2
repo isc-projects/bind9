@@ -17,8 +17,8 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
 	allow-new-zones yes;
-	listen-on port @EXTRAPORT1@ { 10.53.0.1; };
-	listen-on tls ephemeral { 10.53.0.1; };
+	listen-on port @EXTRAPORT1@ { @ns.ip@; };
+	listen-on tls ephemeral { @ns.ip@; };
 	notify no;
 	notify-delay 0;
 	recursion no;

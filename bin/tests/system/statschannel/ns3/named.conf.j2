@@ -24,7 +24,7 @@ options {
 	allow-new-zones yes;
 };
 
-statistics-channels { inet 10.53.0.3 port @EXTRAPORT1@ allow { localhost; }; };
+statistics-channels { inet @ns.ip@ port @EXTRAPORT1@ allow { localhost; }; };
 
 {% include "_common/controls.conf.j2" %}
 

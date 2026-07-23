@@ -21,7 +21,7 @@ options {
 	{% include_indented "_common/options/listen-dual.conf.j2" %}
 	port @EXTRAPORT1@;
 	pid-file "named.pid";
-	listen-on port @PORT@ { 10.53.0.3; };	// for start.pl
+	listen-on port @PORT@ { @ns.ip@; };	// for start.pl
 	dnssec-validation no;
 	allow-recursion { any; };
 	resolver-use-dns64 yes;

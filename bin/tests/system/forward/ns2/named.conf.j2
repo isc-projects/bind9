@@ -22,10 +22,10 @@ options {
 
 {% if FEATURE_FIPS_DH == "1" %}
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.2; };
-	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.2; };
-	listen-on port @EXTRAPORT2@ tls tls-forward-secrecy-mutual-tls { 10.53.0.2; };
-	listen-on port @EXTRAPORT3@ tls tls-expired { 10.53.0.2; };
+	listen-on tls ephemeral { @ns.ip@; };
+	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { @ns.ip@; };
+	listen-on port @EXTRAPORT2@ tls tls-forward-secrecy-mutual-tls { @ns.ip@; };
+	listen-on port @EXTRAPORT3@ tls tls-expired { @ns.ip@; };
 {% endif %}
 
 };

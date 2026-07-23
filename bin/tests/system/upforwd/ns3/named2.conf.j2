@@ -14,7 +14,7 @@
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.3; };
+	listen-on tls ephemeral { @ns.ip@; };
 	allow-transfer { any; };
 	recursion no;
 	dnssec-validation no;

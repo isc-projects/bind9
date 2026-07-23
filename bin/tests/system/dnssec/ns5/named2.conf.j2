@@ -18,7 +18,7 @@
 options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
-	listen-on { 10.53.0.5; 127.0.0.1; };
+	listen-on { @ns.ip@; 127.0.0.1; };
 	listen-on-v6 { none; };
 	dnssec-validation yes;
 };

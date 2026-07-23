@@ -35,7 +35,7 @@ options {
 	;
 
 	include "../dnsrps.conf";
-	also-notify { 10.53.0.8 port @EXTRAPORT1@; };
+	also-notify { @ns.ip@ port @EXTRAPORT1@; };
 	notify-delay 0;
 };
 

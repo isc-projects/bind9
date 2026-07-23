@@ -21,7 +21,7 @@ options {
 
 view "internal" {
 
-	allow-query {! 10.53.0.2; };
+	allow-query {! @ns.ip@; };
 
 	{% include_indented "_common/root.hint.conf" %}
 
