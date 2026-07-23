@@ -922,11 +922,14 @@ def test_yaml_valid_when_no_server_reached(dig, ans7):
     assert parse_yaml(result.out)[0]["type"] == "DIG_ERROR"
 
 
+@isctest.mark.with_ipv6
 def test_source_address_both_families_no_crash(dig, ns1):
     """Check that dig with an IPv4 source address and a server with both
     IPv4 and IPv6 addresses does not crash.  @localhost is not really
     expected to have an answer for the query; only a crash (termination
-    by a signal) is an error.  See GL #5609 for more information."""
+    by a signal) is an error.  Without IPv6, @localhost resolves to the
+    IPv4 address only and the address-family mismatch under test never
+    happens.  See GL #5609 for more information."""
     result = dig(f"@localhost example -b {ns1.ip}", raise_on_exception=False)
     assert result.rc >= 0
 
