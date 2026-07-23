@@ -941,6 +941,13 @@ if cap_dep.found()
     config.set('HAVE_LIBCAP', 1)
 endif
 
+## libscf (Solaris SMF)
+scf_dep = null_dep
+if host_machine.system() == 'sunos'
+    scf_dep = cc.find_library('scf', has_headers: 'libscf.h', required: false)
+    config.set('HAVE_LIBSCF', scf_dep.found())
+endif
+
 ## IDN
 idn2_dep = null_dep
 if idn_opt.allowed()
@@ -1758,6 +1765,7 @@ executable(
         lmdb_dep,
         nghttp2_dep,
         ngtcp2_dep,
+        scf_dep,
         xml2_dep,
         zlib_dep,
 
@@ -2175,6 +2183,7 @@ summary(
         'libcap': cap_dep.version(),
         'libedit': edit_dep.version(),
         'libidn2': idn2_dep.version(),
+        'libscf': scf_dep.found(),
         'libxml2': xml2_dep.version(),
         'LMDB': lmdb_dep.version(),
         'MaxMindDB': maxminddb_dep.version(),
