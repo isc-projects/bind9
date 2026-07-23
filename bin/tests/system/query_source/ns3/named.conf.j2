@@ -21,7 +21,4 @@ options {
 	query-source 10.53.0.3;
 };
 
-zone "." {
-	type hint;
-	file "root.hint";
-};
+{% include "_common/root.hint.conf" %}

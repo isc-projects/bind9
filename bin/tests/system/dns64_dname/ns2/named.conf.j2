@@ -11,7 +11,4 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "root.hint";
-};
+{% include "_common/root.hint.conf" %}

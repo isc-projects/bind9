@@ -25,10 +25,7 @@ server 10.53.0.10 {
 	edns no;
 };
 
-zone "." {
-	type hint;
-	file "root.db";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "local.net." {
 	type primary;

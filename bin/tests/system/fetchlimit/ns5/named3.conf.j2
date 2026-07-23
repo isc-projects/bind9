@@ -29,7 +29,4 @@ server 10.53.0.4 {
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "root.hint";
-};
+{% include "_common/root.hint.conf" %}

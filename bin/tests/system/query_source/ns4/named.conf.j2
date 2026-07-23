@@ -21,7 +21,4 @@ options {
 	query-source-v6 fd92:7065:b8e:ffff::4;
 };
 
-zone "." {
-	type hint;
-	file "root.hint";
-};
+{% include "_common/root.hint.conf" %}

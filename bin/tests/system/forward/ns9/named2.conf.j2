@@ -27,10 +27,7 @@ server 10.53.0.11 {
 	edns no;
 };
 
-zone "." {
-	type hint;
-	file "root.db";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "attacksecuredomain.net." {
 	type forward;
