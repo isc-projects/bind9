@@ -1253,7 +1253,7 @@ nsupdate_src = []
 rndc_confgen_src = []
 rndc_src = []
 tsig_keygen_src = []
-wiretest_src = []
+wireformat_src = []
 
 filter_a_src = []
 filter_aaaa_src = []
@@ -1884,8 +1884,8 @@ executable(
 )
 
 executable(
-    'wire-test',
-    wiretest_src,
+    'named-wireformat',
+    wireformat_src,
     export_dynamic: true,
     implicit_include_directories: false,
     install: true,
