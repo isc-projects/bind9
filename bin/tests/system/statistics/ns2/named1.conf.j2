@@ -5,7 +5,7 @@ options {
 
 {% if FEATURE_LIBXML2 == "1" or FEATURE_JSON_C == "1" %}
 statistics-channels {
-	inet 10.53.0.2 port @EXTRAPORT1@ allow { any; };
+	inet @ns.ip@ port @EXTRAPORT1@ allow { any; };
 };
 {% endif %}
 

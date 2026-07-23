@@ -11,12 +11,12 @@ options {
 {% if family == "v6" %}
 	plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 		filter-@filtertype@-on-v6 break-dnssec;
-		filter-@filtertype@ { fd92:7065:b8e:ffff::4; };
+		filter-@filtertype@ { @ns.ip6@; };
 	};
 {% else %}
 	plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 		filter-@filtertype@-on-v4 break-dnssec;
-		filter-@filtertype@ { 10.53.0.4; };
+		filter-@filtertype@ { @ns.ip@; };
 	};
 {% endif %}
 
@@ -30,12 +30,12 @@ zone "signed" {
 	{% if family == "v6" %}
 		plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 			filter-@filtertype@-on-v6 break-dnssec;
-			filter-@filtertype@ { fd92:7065:b8e:ffff::4; };
+			filter-@filtertype@ { @ns.ip6@; };
 		};
 	{% else %}
 		plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 			filter-@filtertype@-on-v4 break-dnssec;
-			filter-@filtertype@ { 10.53.0.4; };
+			filter-@filtertype@ { @ns.ip@; };
 		};
 	{% endif %}
 };
@@ -46,12 +46,12 @@ zone "unsigned" {
 	{% if family == "v6" %}
 		plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 			filter-@filtertype@-on-v6 break-dnssec;
-			filter-@filtertype@ { fd92:7065:b8e:ffff::4; };
+			filter-@filtertype@ { @ns.ip6@; };
 		};
 	{% else %}
 		plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
 			filter-@filtertype@-on-v4 break-dnssec;
-			filter-@filtertype@ { 10.53.0.4; };
+			filter-@filtertype@ { @ns.ip@; };
 		};
 	{% endif %}
 };

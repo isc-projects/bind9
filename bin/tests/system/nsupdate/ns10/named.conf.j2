@@ -2,7 +2,7 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
 	session-keyfile "session.key";
-	listen-on tls ephemeral { 10.53.0.10; };
+	listen-on tls ephemeral { @ns.ip@; };
 	recursion no;
 	minimal-responses no;
 	dnssec-validation no;

@@ -6,7 +6,7 @@ options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
 	session-keyfile "session.key";
-	listen-on { 10.53.0.1; 127.0.0.1; };
+	listen-on { @ns.ip@; 127.0.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
 	minimal-responses no;
@@ -15,10 +15,10 @@ options {
 
 {% if FEATURE_FIPS_DH == "1" %}
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.1; };
-	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.1; };
-	listen-on port @EXTRAPORT2@ tls tls-forward-secrecy-mutual-tls { 10.53.0.1; };
-	listen-on port @EXTRAPORT3@ tls tls-expired { 10.53.0.1; };
+	listen-on tls ephemeral { @ns.ip@; };
+	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { @ns.ip@; };
+	listen-on port @EXTRAPORT2@ tls tls-forward-secrecy-mutual-tls { @ns.ip@; };
+	listen-on port @EXTRAPORT3@ tls tls-expired { @ns.ip@; };
 {% endif %}
 
 };
@@ -76,7 +76,7 @@ zone "other.nil" {
 	check-mx warn;
 	update-policy local;
 	allow-query { !10.53.0.2; any; };
-	allow-query-on { 10.53.0.1; 127.0.0.1; };
+	allow-query-on { @ns.ip@; 127.0.0.1; };
 	allow-transfer { any; };
 };
 

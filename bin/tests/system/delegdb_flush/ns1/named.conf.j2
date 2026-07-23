@@ -4,7 +4,7 @@ options {
 };
 
 statistics-channels {
-	inet 10.53.0.1 port @EXTRAPORT1@;
+	inet @ns.ip@ port @EXTRAPORT1@;
 };
 
 {% include "_common/controls.conf.j2" %}

@@ -4,7 +4,7 @@ include "named-tls.conf";
 
 options {
 	{% include_indented "_common/options.conf.j2" %}
-	notify-source-v6 fd92:7065:b8e:ffff::2;
+	notify-source-v6 @ns.ip6@;
 	allow-transfer { any; };
 	recursion no;
 	startup-notify-rate 5;
@@ -12,10 +12,10 @@ options {
 
 {% if FEATURE_FIPS_DH == "1" %}
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.2; };
-	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.2; };
-	listen-on port @EXTRAPORT3@ tls tls-forward-secrecy-mutual-tls { 10.53.0.2; };
-	listen-on port @EXTRAPORT4@ tls tls-expired { 10.53.0.2; };
+	listen-on tls ephemeral { @ns.ip@; };
+	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { @ns.ip@; };
+	listen-on port @EXTRAPORT3@ tls tls-forward-secrecy-mutual-tls { @ns.ip@; };
+	listen-on port @EXTRAPORT4@ tls tls-expired { @ns.ip@; };
 {% endif %}
 
 };
@@ -38,7 +38,7 @@ zone x1 {
 	type primary;
 	file "generic.db";
 	also-notify { 10.53.0.3; };
-	notify-source 10.53.0.2;
+	notify-source @ns.ip@;
 	notify primary-only;
 };
 zone x2 {

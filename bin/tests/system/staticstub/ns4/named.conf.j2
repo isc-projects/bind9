@@ -1,7 +1,7 @@
 options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
-	listen-on { 10.53.0.4; };
+	listen-on { @ns.ip@; };
 	listen-on-v6 { ::1; };
 	recursion no;
 	dnssec-validation no;

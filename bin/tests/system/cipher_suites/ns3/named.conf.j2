@@ -8,7 +8,7 @@ tls local {
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	listen-on tls local { 10.53.0.3; };             // DoT
+	listen-on tls local { @ns.ip@; };             // DoT
 	recursion no;
 	notify no;
 	ixfr-from-differences yes;

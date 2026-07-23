@@ -47,7 +47,7 @@ options {
 	servfail-until-ready yes
 	;
 
-	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
+	also-notify { @ns.ip@ port @EXTRAPORT1@; };
 	notify-delay 0;
 };
 

@@ -5,7 +5,7 @@ options {
 	{% include_indented "_common/options/listen-dual.conf.j2" %}
 	dnssec-validation no;
 	query-source none;
-	query-source-v6 fd92:7065:b8e:ffff::2;
+	query-source-v6 @ns.ip6@;
 };
 
 zone "." {

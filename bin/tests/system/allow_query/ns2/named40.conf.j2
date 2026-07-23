@@ -1,4 +1,4 @@
-acl accept { 10.53.0.2; };
+acl accept { @ns.ip@; };
 
 acl badaccept { 10.53.0.1; };
 
@@ -42,7 +42,7 @@ zone "none.example" {
 zone "addrallow.example" {
 	type primary;
 	file "generic.db";
-	allow-query { 10.53.0.2; };
+	allow-query { @ns.ip@; };
 };
 
 zone "addrnotallow.example" {
@@ -54,7 +54,7 @@ zone "addrnotallow.example" {
 zone "addrdisallow.example" {
 	type primary;
 	file "generic.db";
-	allow-query { ! 10.53.0.2; };
+	allow-query { ! @ns.ip@; };
 };
 
 zone "aclallow.example" {

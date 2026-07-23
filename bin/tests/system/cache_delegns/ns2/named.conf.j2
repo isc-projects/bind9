@@ -8,20 +8,20 @@ options {
 {% if disablev4 %}
 	query-source address none;
 {% else %}
-	query-source address 10.53.0.2;
+	query-source address @ns.ip@;
 {% endif %}
 
 {% if disablev6 %}
 	query-source-v6 none;
 {% else %}
-	query-source-v6 address fd92:7065:b8e:ffff::2;
+	query-source-v6 address @ns.ip6@;
 {% endif %}
 
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
+	notify-source @ns.ip@;
+	transfer-source @ns.ip@;
 
-	notify-source-v6 fd92:7065:b8e:ffff::2;
-	transfer-source-v6 fd92:7065:b8e:ffff::2;
+	notify-source-v6 @ns.ip6@;
+	transfer-source-v6 @ns.ip6@;
 
 	dnssec-validation no;
 

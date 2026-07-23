@@ -48,12 +48,12 @@ include "trusted.conf";
 
 		zone secure.example {
 			type static-stub;
-			server-addresses { 10.53.0.4; };
+			server-addresses { @ns.ip@; };
 		};
 
 		zone insecure.secure.example {
 			type static-stub;
-			server-addresses { 10.53.0.4; };
+			server-addresses { @ns.ip@; };
 		};
 	};
 

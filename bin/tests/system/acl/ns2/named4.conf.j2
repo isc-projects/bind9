@@ -23,12 +23,12 @@ acl rejectkeys {
 };
 
 acl rejectaddrs {
-	!10.53.0.1; !10.53.0.2; any;
+	!10.53.0.1; !@ns.ip@; any;
 };
 
 acl check1 { !key one; 10.53.0.1; };
 
-acl check2 { !key two; 10.53.0.2; };
+acl check2 { !key two; @ns.ip@; };
 
 {% include "_common/root.hint.conf" %}
 

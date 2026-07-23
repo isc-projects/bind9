@@ -2,7 +2,7 @@ options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
 	session-keyfile "session.key";
-	listen-on { 10.53.0.1; 127.0.0.1; };
+	listen-on { @ns.ip@; 127.0.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
 	dnssec-validation no;

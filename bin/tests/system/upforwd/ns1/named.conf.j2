@@ -6,7 +6,7 @@ key "update.example." {
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	tls-port @TLSPORT@;
-	listen-on tls ephemeral { 10.53.0.1; };
+	listen-on tls ephemeral { @ns.ip@; };
 	allow-transfer { any; };
 	dnssec-validation no;
 };

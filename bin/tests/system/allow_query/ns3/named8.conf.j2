@@ -1,7 +1,7 @@
 options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
-	listen-on { 10.53.0.3; 10.53.0.4; 10.53.1.2; };
+	listen-on { @ns.ip@; 10.53.0.4; 10.53.1.2; };
 	listen-on-v6 { none; };
 	recursion no;
 	allow-query-cache { none; };
@@ -14,6 +14,6 @@ view internal {
 	{% include_indented "_common/root.hint.conf" %}
 
         recursion yes;
-        allow-query-cache { 10.53.0.3; 10.53.0.4; };
+        allow-query-cache { @ns.ip@; 10.53.0.4; };
 	allow-query { 10.53.0.4; };
 };

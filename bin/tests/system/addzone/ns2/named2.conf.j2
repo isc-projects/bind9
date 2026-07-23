@@ -4,7 +4,7 @@
 options {
 	{% include_indented "_common/options/sources.conf.j2" %}
 	{% include_indented "_common/options/server.conf.j2" %}
-	listen-on { 10.53.0.2; 10.53.0.4; };
+	listen-on { @ns.ip@; 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion no;
 	dnssec-validation no;
@@ -17,7 +17,7 @@ template primary {
 };
 
 view internal {
-	match-clients { 10.53.0.2; };
+	match-clients { @ns.ip@; };
 	allow-new-zones no;
 	recursion yes;
 

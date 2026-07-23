@@ -22,8 +22,8 @@ options {
 	tls-port @TLSPORT@;
 	https-port @HTTPSPORT@;
 	http-port @HTTPPORT@;
-	listen-on tls local { 10.53.0.4; };             // DoT
-	listen-on tls local http local { 10.53.0.4; };  // DoH
+	listen-on tls local { @ns.ip@; };             // DoT
+	listen-on tls local http local { @ns.ip@; };  // DoH
 	recursion no;
 	notify no;
 	ixfr-from-differences yes;
