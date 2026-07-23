@@ -12033,9 +12033,16 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
  */
 isc_result_t
 named_smf_add_message(isc_buffer_t *text) {
+	isc_result_t result;
+
 	REQUIRE(text != NULL);
 
-	return putstr(text, "use svcadm(1M) to manage named");
+	CHECK(putstr(text, "use svcadm(1M) to manage named"));
+	CHECK(putnull(text));
+
+	return ISC_R_SUCCESS;
+cleanup:
+	return result;
 }
 #endif /* HAVE_LIBSCF */
 
