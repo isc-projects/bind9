@@ -11,10 +11,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import NamedTuple
 
 import abc
+import contextlib
 import os
 import re
 
@@ -24,6 +26,7 @@ import dns.update
 
 from .log import WatchLogFromHere, WatchLogFromStart, debug
 from .query import udp
+from .rndc import RNDCClient
 from .run import CmdResult, EnvCmd, perl
 from .text import TextFile
 
@@ -190,6 +193,21 @@ class NamedInstance(ServerInstance):
         isctest.cmd.run().
         """
         return self._rndc(command, timeout=timeout, **kwargs)
+
+    @contextlib.contextmanager
+    def rndc_client(self, timeout: float = 10) -> Iterator[RNDCClient]:
+        """
+        Connect a Python RNDC client to this instance's control channel;
+        a fast alternative to `rndc()` which does not spawn the rndc
+        binary. Only usable as a context manager:
+
+        ```python
+        with ns1.rndc_client() as client:
+            client.call("status")
+        ```
+        """
+        with RNDCClient(self.ip, self.ports.rndc, timeout=timeout) as client:
+            yield client
 
     def nsupdate(
         self, update_msg: dns.update.UpdateMessage, expected_rcode=dns.rcode.NOERROR
