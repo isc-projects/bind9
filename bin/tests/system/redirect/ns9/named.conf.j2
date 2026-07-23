@@ -6,7 +6,7 @@ options {
 	notify-source 10.53.0.9;
 	transfer-source 10.53.0.9;
 	port @PORT@;
-	listen-on port @PORT@ { 10.53.0.9; };
+	listen-on { 10.53.0.9; };
 	pid-file "named.pid";
 	dnssec-validation no;
 	recursion no;

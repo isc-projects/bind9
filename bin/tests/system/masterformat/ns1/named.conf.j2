@@ -5,7 +5,7 @@ options {
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
 	pid-file "named.pid";
-	listen-on port @PORT@ { 10.53.0.1; };
+	listen-on { 10.53.0.1; };
 	port @PORT@;
 	listen-on-v6 { none; };
 	recursion no;

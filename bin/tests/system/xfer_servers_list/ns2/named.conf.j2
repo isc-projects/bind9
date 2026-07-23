@@ -1,7 +1,8 @@
 options {
+	port @PORT@;
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
-	listen-on port @PORT@ { 10.53.0.2; };
+	listen-on { 10.53.0.2; };
 	transfer-source 10.53.0.2;
 	pid-file "named.pid";
 	recursion no;

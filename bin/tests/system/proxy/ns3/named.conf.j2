@@ -6,13 +6,14 @@ tls self-signed {
 };
 
 options {
+	port @PORT@;
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
 	transfer-source 10.53.0.3;
 	pid-file "named.pid";
 	##
 	# generic test
-	listen-on port @PORT@ { 10.53.0.3; };
+	listen-on { 10.53.0.3; };
 
 	listen-on port @EXTRAPORT1@ proxy plain { 10.53.0.3; };
 	listen-on port @TLSPORT@ proxy encrypted tls self-signed { 10.53.0.3; };

@@ -5,7 +5,7 @@ options {
 	notify-source 10.53.0.7;
 	transfer-source 10.53.0.7;
 	port @PORT@;
-	listen-on port @PORT@ { 10.53.0.7; };
+	listen-on { 10.53.0.7; };
 	pid-file "named.pid";
 	nxdomain-redirect redirect;
 	dnssec-validation no;
