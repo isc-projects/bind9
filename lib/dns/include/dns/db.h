@@ -1242,8 +1242,9 @@ dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	existing rdataset of the same type.  If not merging and the
  *	#DNS_DBADD_FORCE option is set, then the data will update the database
  *	without regard to trust levels.  If not forcing the data, then the
- *	rdataset will only be added if its trust level is >= the trust level of
- *	any existing rdataset.  Forcing is only meaningful for cache databases.
+ *	rdataset will only be added if its trust level is >= the trust level
+ *	of any existing active (not expired) rdataset of the same type.
+ *	Forcing is only meaningful for cache databases.
  *	If #DNS_DBADD_EXACT is set then there must be no rdata in common between
  *	the old and new rdata sets.  If #DNS_DBADD_EXACTTTL is set then both
  *	the old and new rdata sets must have the same ttl.
@@ -1251,6 +1252,11 @@ dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * \li  If the #DNS_DBADD_EQUALOK option is set, and the database is not
  *      changed, compare the old and new rdatasets; if they are equal,
  *      return #ISC_R_SUCCESS instead of #DNS_R_UNCHANGED.
+ *
+ * \li	If the #DNS_DBADD_PREFETCH option is set, the rdataset is being
+ *	added as the result of a prefetch.  In a cache database this allows
+ *	equal but less trusted data to refresh the TTL of existing address
+ *	(A/AAAA) and DS records, which would otherwise be kept unchanged.
  *
  * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than
@@ -1353,9 +1359,11 @@ dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * Notes:
  *
- * \li	If 'type' is dns_rdatatype_any, then no rdatasets will exist in
- *	'version' (provided that the dns_db_deleterdataset() isn't followed
- *	by one or more dns_db_addrdataset() calls).
+ * \li	In a cache database, a negative cache entry is stored under the
+ *	type it covers.  Passing 'type' == dns_rdatatype_none with 'covers'
+ *	set (the shape in which rdataset iterators return negative entries)
+ *	deletes the cache entry for the covered type, whether it is positive
+ *	or negative.
  *
  * Requires:
  *
@@ -1367,16 +1375,16 @@ dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *	read-write version, or the database has cache semantics
  *	and version is NULL.
  *
- * \li	'type' is not a meta-RR type, except for dns_rdatatype_any, which is
- *	allowed.
- *
- * \li	If 'covers' != 0, 'type' must be SIG.
+ * \li	If 'covers' != 0, 'type' must be RRSIG or dns_rdatatype_none.
  *
  * Returns:
  *
  * \li	#ISC_R_SUCCESS
- * \li	#DNS_R_UNCHANGED			No rdatasets of 'type' existed
- * before the operation was attempted.
+ * \li	#DNS_R_UNCHANGED	No rdatasets of 'type' existed before
+ *				the operation was attempted.
+ * \li	#ISC_R_NOTIMPLEMENTED	'type' is dns_rdatatype_any; or the
+ *				database has zone semantics and 'type'
+ *				is RRSIG with 'covers' == 0.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
