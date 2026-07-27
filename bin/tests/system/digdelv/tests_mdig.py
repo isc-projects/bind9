@@ -22,10 +22,6 @@ from digdelv.common import ARTIFACTS, parse_yaml
 import isctest
 
 pytestmark = [
-    pytest.mark.skipif(
-        not os.access(os.environ.get("MDIG", ""), os.X_OK),
-        reason="mdig executable not available",
-    ),
     pytest.mark.extra_artifacts(ARTIFACTS),
 ]
 

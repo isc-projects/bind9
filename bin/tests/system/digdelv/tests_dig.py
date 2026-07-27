@@ -28,10 +28,6 @@ import isctest
 import isctest.mark
 
 pytestmark = [
-    pytest.mark.skipif(
-        not os.access(os.environ.get("DIG", ""), os.X_OK),
-        reason="dig executable not available",
-    ),
     pytest.mark.extra_artifacts(ARTIFACTS),
 ]
 

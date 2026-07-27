@@ -16,8 +16,6 @@ host and nsupdate.
 
 from textwrap import dedent
 
-import os
-
 import pytest
 
 from digdelv.common import ARTIFACTS
@@ -27,10 +25,6 @@ import isctest
 pytestmark = pytest.mark.extra_artifacts(ARTIFACTS)
 
 
-@pytest.mark.skipif(
-    not os.access(os.environ.get("NSLOOKUP", ""), os.X_OK),
-    reason="nslookup executable not available",
-)
 def test_nslookup_update_response(named_port, ans6):
     """Check that nslookup rejects a response with the UPDATE opcode."""
     nslookup = isctest.run.EnvCmd("NSLOOKUP")
@@ -42,10 +36,6 @@ def test_nslookup_update_response(named_port, ans6):
     assert "Opcode mismatch" in result.out
 
 
-@pytest.mark.skipif(
-    not os.access(os.environ.get("HOST", ""), os.X_OK),
-    reason="host executable not available",
-)
 def test_host_update_response(named_port, ans6):
     """Check that host rejects a response with the UPDATE opcode."""
     host = isctest.run.EnvCmd("HOST")
@@ -56,10 +46,6 @@ def test_host_update_response(named_port, ans6):
     assert "Opcode mismatch" in result.out
 
 
-@pytest.mark.skipif(
-    not os.access(os.environ.get("NSUPDATE", ""), os.X_OK),
-    reason="nsupdate executable not available",
-)
 def test_nsupdate_update_response(named_port, ans6):
     """Check that nsupdate rejects an UPDATE response to its SOA query."""
     nsupdate = isctest.run.EnvCmd("NSUPDATE")

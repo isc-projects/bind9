@@ -15,7 +15,6 @@ Tests for the delv tool.
 
 from re import compile as Re
 
-import os
 import re
 
 import pytest
@@ -27,10 +26,6 @@ import isctest
 import isctest.mark
 
 pytestmark = [
-    pytest.mark.skipif(
-        not os.access(os.environ.get("DELV", ""), os.X_OK),
-        reason="delv executable not available",
-    ),
     pytest.mark.extra_artifacts(ARTIFACTS),
 ]
 
