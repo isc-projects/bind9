@@ -28,6 +28,9 @@ for db in zones/good*.db; do
     zones/good-dns-sd-reverse.db)
       $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || ret=1
       ;;
+    zones/good-rpz-prefix.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || ret=1
+      ;;
     *)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || ret=1
       ;;
@@ -47,6 +50,10 @@ for db in zones/bad*.db; do
     bad-cname-and*.db)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
       grep "CNAME and other data" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-rpz-prefix.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep 'invalid rpz IP address "128.2.0.0.0.0.3.2.2001.rpz-ip.db" is not in canonical form 128.2.zz.3.2.2001.rpz-nsdname.db' test.out.$n >/dev/null || ret=1
       ;;
     *)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
