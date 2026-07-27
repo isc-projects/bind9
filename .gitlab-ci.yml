@@ -684,20 +684,13 @@ stages:
 misc:
   <<: *quick_checks_job
   script:
-    - sh util/checklibs.sh > checklibs.out
-    - sh util/check-categories.sh
-    - sh util/check-gitignore.sh
-    - sh util/check-trailing-whitespace.sh
-    - bash util/unused-headers.sh
-    # Check that every rdata source file is registered for header generation
     - meson setup build
-    - bash util/check-rdata-registration.sh build
-    # Check dangling symlinks in the repository
-    - if find . -xtype l | grep .; then exit 1; fi
+    - meson test -C build --suite lint --no-rebuild
     - muon-meson analyze -Werror
   artifacts:
     paths:
-      - checklibs.out
+      - build/meson-logs/testlog.json
+      - build/meson-logs/testlog.txt
     when: on_failure
 
 black:
