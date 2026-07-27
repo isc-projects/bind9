@@ -44,9 +44,12 @@ def parse_yaml(text):
 def check_ttl_range(text, rrtype, max_ttl):
     """Check that a record of the given RR type and class IN (or its
     unknown-format spelling CLASS1) is present with a TTL not exceeding
-    max_ttl."""
+    max_ttl.  A leading ";" token is ignored so that delv's commented
+    records ("; name ttl class type ...") are checked too."""
     for line in text.splitlines():
         fields = line.split()
+        if fields and fields[0] == ";":
+            fields = fields[1:]
         if len(fields) < 4:
             continue
         if fields[2] not in ("IN", "CLASS1") or fields[3] != rrtype:
