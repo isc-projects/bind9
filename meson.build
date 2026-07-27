@@ -2209,10 +2209,10 @@ if git.found()
         )
     endif
 
-    if bash.found() and grep.found() and sed.found()
+    if grep.found() and sed.found() and sort.found()
         test(
             'unused-headers',
-            bash,
+            sh,
             suite: 'lint',
             args: ['util/unused-headers.sh'],
             verbose: true,
