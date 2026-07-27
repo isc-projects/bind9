@@ -277,10 +277,10 @@ ubsan_options = 'halt_on_error=1:abort_on_error=1:disable_coredump=0'
 # Refer to sanitize.c.in for the justification
 config_sanitize = configuration_data()
 
-config_sanitize.set10('BIND_ASAN_ENABLED', 'address' in sanitizer)
-config_sanitize.set10('BIND_LSAN_ENABLED', 'leak' in sanitizer)
-config_sanitize.set10('BIND_TSAN_ENABLED', 'thread' in sanitizer)
-config_sanitize.set10('BIND_UBSAN_ENABLED', 'undefined' in sanitizer)
+config_sanitize.set10('BIND_ASAN_ENABLED', sanitizer.contains('address'))
+config_sanitize.set10('BIND_LSAN_ENABLED', sanitizer.contains('leak'))
+config_sanitize.set10('BIND_TSAN_ENABLED', sanitizer.contains('thread'))
+config_sanitize.set10('BIND_UBSAN_ENABLED', sanitizer.contains('undefined'))
 config_sanitize.set('BIND_ASAN_OPTIONS', asan_options)
 config_sanitize.set('BIND_TSAN_OPTIONS', tsan_options)
 config_sanitize.set('BIND_UBSAN_OPTIONS', ubsan_options)
