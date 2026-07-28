@@ -1036,6 +1036,10 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 
 	m = frame->message;
 
+	if (m == NULL) {
+		CLEANUP(DNS_R_BADDNSTAP);
+	}
+
 	/* Message type */
 	switch (m->type) {
 	case DNSTAP__MESSAGE__TYPE__AUTH_QUERY:
