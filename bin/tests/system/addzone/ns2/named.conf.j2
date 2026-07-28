@@ -23,10 +23,7 @@ template bad {
 	min-retry-time 0;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "normal.example" {
 	type primary;

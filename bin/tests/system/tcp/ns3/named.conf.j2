@@ -7,7 +7,4 @@ server 10.53.0.1 { tcp-only yes; };
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}

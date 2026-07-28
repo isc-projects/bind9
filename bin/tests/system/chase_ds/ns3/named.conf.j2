@@ -3,10 +3,7 @@ options {
 	dnssec-validation yes;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 {% include "_common/controls.conf.j2" %}
 

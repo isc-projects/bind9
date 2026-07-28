@@ -14,7 +14,4 @@ controls {
 	inet 10.53.0.5 port @CONTROLPORT@ allow { any; } keys { rndc_key; } read-only yes;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}

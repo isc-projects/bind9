@@ -28,7 +28,4 @@ options {
 	stale-answer-client-timeout off;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}

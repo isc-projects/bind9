@@ -7,10 +7,7 @@ options {
 	dnssec-validation no;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "example" {
 	type primary;

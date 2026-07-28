@@ -18,9 +18,6 @@ zone "model2.secondary." {
 	file "model2.secondary.db";
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 include "trusted.conf";
