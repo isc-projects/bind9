@@ -4,10 +4,10 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	attach-cache "globalcache";
-        max-zone-ttl unlimited;
-        resolver-query-timeout 5000; # 5 seconds
-        max-recursion-queries 100;
-        request-zoneversion yes;
+	max-zone-ttl unlimited;
+	resolver-query-timeout 5000; # 5 seconds
+	max-recursion-queries 100;
+	request-zoneversion yes;
 };
 
 view "default" {

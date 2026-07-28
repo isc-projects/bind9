@@ -6,18 +6,18 @@ options {
 
 logging {
 	channel default_log {
-	  buffered no;
-	  file "named_unlimited" versions unlimited size 1000;
-	  severity debug 100;
-	  print-time yes;
+		buffered no;
+		file "named_unlimited" versions unlimited size 1000;
+		severity debug 100;
+		print-time yes;
 	};
 	category default { default_log; default_debug; };
 	category lame-servers { null; };
 
 	channel query_log {
-	  file "query_log";
-	  print-time yes;
-	  buffered no;
+		file "query_log";
+		print-time yes;
+		buffered no;
 	};
 	category queries { query_log; };
 };

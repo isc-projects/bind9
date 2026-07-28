@@ -42,7 +42,7 @@ key "internal" {
 };
 
 view "ext" {
-        match-clients { key "external"; };
+	match-clients { key "external"; };
 
 	zone "view-rsasha256.kasp" {
 		type primary;
@@ -54,7 +54,7 @@ view "ext" {
 };
 
 view "int" {
-        match-clients { key "internal"; };
+	match-clients { key "internal"; };
 
 	zone "view-rsasha256.kasp" {
 		type primary;

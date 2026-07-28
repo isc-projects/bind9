@@ -8,15 +8,15 @@ options {
 };
 
 {% if family == "v6" %}
-        plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
-                filter-@filtertype@-on-v6 yes;
-                filter-@filtertype@ { @ns.ip6@; };
-        };
+plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
+	filter-@filtertype@-on-v6 yes;
+	filter-@filtertype@ { @ns.ip6@; };
+};
 {% else %}
-        plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
-                filter-@filtertype@-on-v4 yes;
-                filter-@filtertype@ { @ns.ip@; };
-        };
+plugin query "@TOP_BUILDDIR@/filter-@filtertype@.@DYLIB@" {
+	filter-@filtertype@-on-v4 yes;
+	filter-@filtertype@ { @ns.ip@; };
+};
 {% endif %}
 
 {% include "_common/controls.conf.j2" %}

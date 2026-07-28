@@ -4,8 +4,8 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	response-policy { zone "policy"; }
-                nsip-wait-recurse no
-                nsdname-wait-recurse no
+		nsip-wait-recurse no
+		nsdname-wait-recurse no
 		qname-wait-recurse yes
 		nsip-enable yes
 		nsdname-enable yes;

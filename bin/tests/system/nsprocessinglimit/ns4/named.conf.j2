@@ -6,7 +6,7 @@ options {
 	dnstap { resolver query; };
 	dnstap-output file "dnstap.out";
 	{% if maxdelegationservers %}
-        @maxdelegationservers@
+	@maxdelegationservers@
 	{% endif %}
 };
 

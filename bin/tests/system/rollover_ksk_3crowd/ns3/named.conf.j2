@@ -2,9 +2,9 @@ include "kasp.conf";
 include "named.common.conf";
 
 zone "three-is-a-crowd.kasp" {
-        type primary;
-        file "three-is-a-crowd.kasp.db";
-        inline-signing yes;
-        /* Use same policy as KSK rollover test zones. */
-        dnssec-policy "ksk-doubleksk-autosign";
+	type primary;
+	file "three-is-a-crowd.kasp.db";
+	inline-signing yes;
+	/* Use same policy as KSK rollover test zones. */
+	dnssec-policy "ksk-doubleksk-autosign";
 };

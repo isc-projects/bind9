@@ -4,9 +4,9 @@
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	allow-transfer { any; };
-        recursion no;
-        dnssec-validation no;
-        ixfr-from-differences yes;
+	recursion no;
+	dnssec-validation no;
+	ixfr-from-differences yes;
 	sig-signing-nodes 900;
 	sig-signing-signatures 900;
 };

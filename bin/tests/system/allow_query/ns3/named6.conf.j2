@@ -8,8 +8,8 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 view internal {
-        match-destinations { @ns.ip@; };
-        {% include_indented "_common/root.hint.conf" %}
-        recursion yes;
+	match-destinations { @ns.ip@; };
+	{% include_indented "_common/root.hint.conf" %}
+	recursion yes;
 	allow-recursion{ any; };
 };

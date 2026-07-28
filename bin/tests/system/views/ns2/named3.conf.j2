@@ -12,9 +12,9 @@ options {
 
 {% for name in zone_names %}
 zone "@name@" {
-    type primary;
-    file "@name@.db";
-    dnssec-policy default;
-    inline-signing yes;
+	type primary;
+	file "@name@.db";
+	dnssec-policy default;
+	inline-signing yes;
 };
 {% endfor %}

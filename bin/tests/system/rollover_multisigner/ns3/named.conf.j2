@@ -3,10 +3,10 @@ include "named.common.conf";
 
 /* RFC 8901 Multi-signer Model 2. */
 zone "multisigner-model2.kasp" {
-        type primary;
-        file "multisigner-model2.kasp.db";
-        dnssec-policy "multisigner-model2";
-        allow-update { any; };
+	type primary;
+	file "multisigner-model2.kasp.db";
+	dnssec-policy "multisigner-model2";
+	allow-update { any; };
 };
 
 /*
@@ -14,8 +14,8 @@ zone "multisigner-model2.kasp" {
  * outside of the desired multi-signer key tag range.
  */
 zone "single-to-multisigner.kasp" {
-        type primary;
-        file "single-to-multisigner.kasp.db";
-        dnssec-policy "multisigner-model2";
-        allow-update { any; };
+	type primary;
+	file "single-to-multisigner.kasp.db";
+	dnssec-policy "multisigner-model2";
+	allow-update { any; };
 };

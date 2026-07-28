@@ -26,8 +26,8 @@ zone "." {
 
 {% if ns4_as_secondary_for_nil %}
 zone "nil" {
-    type secondary;
-    file "nil.db";
-    primaries { 10.53.0.5 key tsig_key; };
+	type secondary;
+	file "nil.db";
+	primaries { 10.53.0.5 key tsig_key; };
 };
 {% endif %}

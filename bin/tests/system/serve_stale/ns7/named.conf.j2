@@ -23,13 +23,13 @@ zone "." {
 
 // Authoritative zone: nonexist.target.stale -> NXDOMAIN
 zone "target.stale" {
-    type primary;
-    file "target.stale.db";
+	type primary;
+	file "target.stale.db";
 };
 
 // Forward source.stale queries to ans2
 zone "source.stale" {
-    type forward;
-    forward only;
-    forwarders { 10.53.0.2 port @PORT@; };
+	type forward;
+	forward only;
+	forwarders { 10.53.0.2 port @PORT@; };
 };

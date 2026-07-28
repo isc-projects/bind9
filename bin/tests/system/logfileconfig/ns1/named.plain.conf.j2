@@ -6,16 +6,16 @@ options {
 
 logging {
 	channel default_log {
-	  file "named_log";
-	  print-time yes;
+		file "named_log";
+		print-time yes;
 	};
 	category default { default_log; default_debug; };
 	category lame-servers { null; };
 
 	channel query_log {
-	  file "query_log";
-	  print-time yes;
-	  buffered yes;
+		file "query_log";
+		print-time yes;
+		buffered yes;
 	};
 	category queries { query_log; };
 };
