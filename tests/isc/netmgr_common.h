@@ -125,6 +125,7 @@ extern isc_refcount_t active_sreads;
 
 extern isc_nmsocket_t *listen_sock;
 extern isc_nm_udplistener_t *udp_listen_sock;
+extern isc_nm_proxyudplistener_t *proxyudp_listen_sock;
 
 extern isc_quota_t listener_quota;
 extern atomic_bool check_listener_quota;

@@ -67,29 +67,29 @@
 #define NS_INTERFACEFLAG_LISTENING 0x02U /*%< listening */
 /*% The nameserver interface structure */
 struct ns_interface {
-	unsigned int	      magic; /*%< Magic number. */
-	ns_interfacemgr_t    *mgr;   /*%< Interface manager. */
-	isc_mutex_t	      lock;
-	unsigned int	      generation; /*%< Generation number. */
-	isc_sockaddr_t	      addr;	  /*%< Address and port. */
-	unsigned int	      flags;	  /*%< Interface flags */
-	char		      name[32];	  /*%< Null terminated. */
-	isc_nm_udplistener_t *udplistener;
-	isc_nmsocket_t	     *proxyudplistensocket;
-	isc_nmsocket_t	     *tcplistensocket;
-	isc_nmsocket_t	     *tlslistensocket;
-	isc_nmsocket_t	     *http_listensocket;
-	isc_nmsocket_t	     *http_secure_listensocket;
-	isc_quota_t	     *http_quota;
-	isc_refcount_t	      ntcpaccepting; /*%< Number of clients
-					      *   ready to accept new
-					      *   TCP connections on this
-					      *   interface */
-	isc_refcount_t ntcpactive;	     /*%< Number of clients
-					      *   servicing TCP queries
-					      *   (whether accepting or
-					      *   connected) */
-	ns_clientmgr_t	   *clientmgr;	     /*%< Client manager. */
+	unsigned int		   magic; /*%< Magic number. */
+	ns_interfacemgr_t	  *mgr;	  /*%< Interface manager. */
+	isc_mutex_t		   lock;
+	unsigned int		   generation; /*%< Generation number. */
+	isc_sockaddr_t		   addr;       /*%< Address and port. */
+	unsigned int		   flags;      /*%< Interface flags */
+	char			   name[32];   /*%< Null terminated. */
+	isc_nm_udplistener_t	  *udplistener;
+	isc_nm_proxyudplistener_t *proxyudplistener;
+	isc_nmsocket_t		  *tcplistensocket;
+	isc_nmsocket_t		  *tlslistensocket;
+	isc_nmsocket_t		  *http_listensocket;
+	isc_nmsocket_t		  *http_secure_listensocket;
+	isc_quota_t		  *http_quota;
+	isc_refcount_t		   ntcpaccepting; /*%< Number of clients
+						   *   ready to accept new
+						   *   TCP connections on this
+						   *   interface */
+	isc_refcount_t ntcpactive;		  /*%< Number of clients
+						   *   servicing TCP queries
+						   *   (whether accepting or
+						   *   connected) */
+	ns_clientmgr_t	   *clientmgr;		  /*%< Client manager. */
 	isc_nm_proxy_type_t proxy_type;
 	ISC_LINK(ns_interface_t) link;
 };

@@ -143,13 +143,6 @@ udp_listener_destroy(isc_nm_udplistener_t *listener) {
 
 ISC_REFCOUNT_IMPL(isc_nm_udplistener, udp_listener_destroy);
 
-uint32_t
-isc__nm_udplistener_nchildren(const isc_nm_udplistener_t *listener) {
-	REQUIRE(VALID_UDP_LISTENER(listener));
-
-	return listener->nchildren;
-}
-
 static uv_os_sock_t
 isc__nm_udp_lb_socket(sa_family_t sa_family) {
 	isc_result_t result;

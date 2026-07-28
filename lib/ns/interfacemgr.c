@@ -485,7 +485,7 @@ ns_interface_listenudp(ns_interface_t *ifp, isc_nm_proxy_type_t proxy) {
 		INSIST(proxy == ISC_NM_PROXY_PLAIN);
 		result = isc_nm_listenproxyudp(ISC_NM_LISTEN_ALL, &ifp->addr,
 					       ns_client_request, ifp,
-					       &ifp->proxyudplistensocket);
+					       &ifp->proxyudplistener);
 	}
 	return result;
 }
@@ -734,9 +734,9 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 		isc_nm_udplistener_stop(ifp->udplistener);
 		isc_nm_udplistener_detach(&ifp->udplistener);
 	}
-	if (ifp->proxyudplistensocket != NULL) {
-		isc_nm_stoplistening(ifp->proxyudplistensocket);
-		isc_nmsocket_close(&ifp->proxyudplistensocket);
+	if (ifp->proxyudplistener != NULL) {
+		isc_nm_proxyudplistener_stop(ifp->proxyudplistener);
+		isc_nm_proxyudplistener_detach(&ifp->proxyudplistener);
 	}
 	if (ifp->tcplistensocket != NULL) {
 		isc_nm_stoplistening(ifp->tcplistensocket);
@@ -1014,8 +1014,7 @@ same_listener_type(ns_interface_t *ifp, ns_listenelt_t *new_le) {
 		/* TLS/DoT */
 		same_transport_type = true;
 	} else if (new_le->sslctx == NULL &&
-		   (ifp->udplistener != NULL ||
-		    ifp->proxyudplistensocket != NULL ||
+		   (ifp->udplistener != NULL || ifp->proxyudplistener != NULL ||
 		    ifp->tcplistensocket != NULL))
 	{
 		/* "plain" DNS/Do53 */

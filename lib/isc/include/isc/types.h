@@ -55,20 +55,21 @@ typedef struct isc_mempool	 isc_mempool_t;	      /*%< Memory Pool */
 typedef struct isc_netaddr	 isc_netaddr_t;	      /*%< Net Address */
 typedef struct isc_netaddrlink	 isc_netaddrlink_t; /*%< Linkable Net Address */
 typedef ISC_LIST(isc_netaddrlink_t) isc_netaddrlist_t; /*%< Net Address List */
-typedef struct isc_netprefix	  isc_netprefix_t;     /*%< Net Prefix */
-typedef struct isc_nmsocket	  isc_nmsocket_t; /*%< Network manager socket */
-typedef struct isc_nmhandle	  isc_nmhandle_t; /*%< Network manager handle */
-typedef struct isc_nm_udplistener isc_nm_udplistener_t;
-typedef struct isc_portset	  isc_portset_t;     /*%< Port Set */
-typedef struct isc_quota	  isc_quota_t;	     /*%< Quota */
-typedef struct isc_ratelimiter	  isc_ratelimiter_t; /*%< Rate Limiter */
-typedef struct isc_region	  isc_region_t;	     /*%< Region */
-typedef struct isc_rlevent	  isc_rlevent_t;     /*%< Rate Limiter Event */
-typedef struct isc_signal	  isc_signal_t;	     /*%< Signal handler */
-typedef struct isc_sockaddr	  isc_sockaddr_t;    /*%< Socket Address */
-typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List
-						      * */
-typedef struct isc_stats      isc_stats_t;	     /*%< Statistics */
+typedef struct isc_netprefix isc_netprefix_t;	       /*%< Net Prefix */
+typedef struct isc_nmsocket  isc_nmsocket_t; /*%< Network manager socket */
+typedef struct isc_nmhandle  isc_nmhandle_t; /*%< Network manager handle */
+typedef struct isc_nm_proxyudplistener isc_nm_proxyudplistener_t;
+typedef struct isc_nm_udplistener      isc_nm_udplistener_t;
+typedef struct isc_portset	       isc_portset_t;	  /*%< Port Set */
+typedef struct isc_quota	       isc_quota_t;	  /*%< Quota */
+typedef struct isc_ratelimiter	       isc_ratelimiter_t; /*%< Rate Limiter */
+typedef struct isc_region	       isc_region_t;	  /*%< Region */
+typedef struct isc_rlevent	       isc_rlevent_t; /*%< Rate Limiter Event */
+typedef struct isc_signal	       isc_signal_t;  /*%< Signal handler */
+typedef struct isc_sockaddr	       isc_sockaddr_t; /*%< Socket Address */
+typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;   /*%< Socket Address List
+							* */
+typedef struct isc_stats      isc_stats_t;	       /*%< Statistics */
 typedef int_fast64_t	      isc_statscounter_t;
 typedef atomic_int_fast64_t   isc_atomic_statscounter_t;
 typedef struct isc_symtab     isc_symtab_t;	/*%< Symbol Table */
@@ -111,8 +112,7 @@ typedef enum isc_nmsocket_type {
 	isc_nm_tlslistener,
 	isc_nm_httplistener,
 	isc_nm_streamdnslistener,
-	isc_nm_proxystreamlistener,
-	isc_nm_proxyudplistener
+	isc_nm_proxystreamlistener
 } isc_nmsocket_type;
 
 typedef isc_nmsocket_type isc_nmsocket_type_t;

@@ -149,7 +149,6 @@ ns_client_transport_type(const ns_client_t *client) {
 	switch (isc_nm_socket_type(client->inner.handle)) {
 	case isc_nm_udpsocket:
 	case isc_nm_proxyudpsocket:
-	case isc_nm_proxyudplistener:
 		return DNS_TRANSPORT_UDP;
 	case isc_nm_tlssocket:
 	case isc_nm_tlslistener:

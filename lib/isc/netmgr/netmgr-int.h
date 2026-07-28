@@ -571,7 +571,6 @@ struct isc_nmsocket {
 
 	struct {
 		isc_nmsocket_t *sock;
-		isc_nm_udplistener_t *udp_listener;
 		bool reading;
 		size_t nsending;
 		void *send_req;
@@ -581,8 +580,6 @@ struct isc_nmsocket {
 		} proxy2;
 		bool header_processed;
 		bool extra_processed; /* data arrived past header processed */
-		isc_nmsocket_t **udp_server_socks; /* UDP sockets */
-		size_t udp_server_socks_num;
 	} proxy;
 
 	/*%
@@ -893,9 +890,6 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock);
  * Called during the shutdown process to close and clean up connected
  * sockets.
  */
-
-uint32_t
-isc__nm_udplistener_nchildren(const isc_nm_udplistener_t *listener);
 
 void
 isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
@@ -1278,9 +1272,6 @@ isc__nmhandle_proxystream_get_selected_alpn(isc_nmhandle_t *handle,
 void
 isc__nm_proxyudp_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result,
 				const bool async);
-
-void
-isc__nm_proxyudp_stoplistening(isc_nmsocket_t *listener);
 
 void
 isc__nm_proxyudp_cleanup_data(isc_nmsocket_t *sock);

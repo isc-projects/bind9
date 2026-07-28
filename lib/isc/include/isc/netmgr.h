@@ -321,10 +321,23 @@ isc_nm_routeconnect(isc_nm_cb_t cb, void *cbarg);
 
 isc_result_t
 isc_nm_listenproxyudp(uint32_t workers, isc_sockaddr_t *iface,
-		      isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp);
+		      isc_nm_recv_cb_t cb, void *cbarg,
+		      isc_nm_proxyudplistener_t **listenerp);
 /*%<
  * The same as `isc_nm_listenudp()`, but PROXYv2 headers are
  * expected at the beginning of the received datagrams.
+ */
+
+void
+isc_nm_proxyudplistener_stop(isc_nm_proxyudplistener_t *listener);
+/*%<
+ * Stop a PROXY UDP listener and close its per-worker sockets. This must be
+ * called before detaching the final listener reference.
+ */
+
+ISC_REFCOUNT_DECL(isc_nm_proxyudplistener);
+/*%<
+ * Increment or decrement a PROXY UDP listener reference.
  */
 
 void

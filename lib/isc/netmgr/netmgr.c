@@ -693,8 +693,7 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 		(*sockp)->type == isc_nm_streamdnslistener ||
 		(*sockp)->type == isc_nm_tlslistener ||
 		(*sockp)->type == isc_nm_httplistener ||
-		(*sockp)->type == isc_nm_proxystreamlistener ||
-		(*sockp)->type == isc_nm_proxyudplistener);
+		(*sockp)->type == isc_nm_proxystreamlistener);
 
 	isc__nmsocket_detach(sockp);
 }
@@ -1825,9 +1824,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	case isc_nm_proxystreamlistener:
 		isc__nm_proxystream_stoplistening(sock);
 		break;
-	case isc_nm_proxyudplistener:
-		isc__nm_proxyudp_stoplistening(sock);
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1841,8 +1837,7 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(listener->type == isc_nm_httplistener ||
 		listener->type == isc_nm_tlslistener ||
 		listener->type == isc_nm_streamdnslistener ||
-		listener->type == isc_nm_proxystreamlistener ||
-		listener->type == isc_nm_proxyudplistener);
+		listener->type == isc_nm_proxystreamlistener);
 	REQUIRE(!listener->closing);
 
 	listener->closing = true;
@@ -2954,8 +2949,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return "isc_nm_proxystreamlistener";
 	case isc_nm_proxystreamsocket:
 		return "isc_nm_proxystreamsocket";
-	case isc_nm_proxyudplistener:
-		return "isc_nm_proxyudplistener";
 	case isc_nm_proxyudpsocket:
 		return "isc_nm_proxyudpsocket";
 	default:
