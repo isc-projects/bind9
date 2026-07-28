@@ -203,7 +203,6 @@ dns_delegdb_create(dns_delegdb_t **delegdbp) {
 	isc_mem_t *mctx = NULL;
 	dns_delegdb_t *delegdb = NULL;
 
-	REQUIRE(isc_loop_get(isc_tid()) == isc_loop_main());
 	REQUIRE(delegdbp != NULL && *delegdbp == NULL);
 
 	isc_mem_create("dns_delegdb", &mctx);
