@@ -8,6 +8,7 @@ hypothesis>=4.41.2
 jinja2
 pytest>=7.0.0
 pytest-xdist
+pyyaml
 requests
 
 ### Optional packages
