@@ -167,15 +167,6 @@ stages:
     - runner-manager
     - aarch64
 
-.freebsd-autoscaler-13-amd64-tags: &freebsd_autoscaler_13_amd64_tags
-  tags:
-    - amd64
-    - autoscaler
-    - aws
-    - bsd-stress-test-1
-    - shell
-    - stress-test
-
 .freebsd-autoscaler-14-amd64-tags: &freebsd_autoscaler_14_amd64_tags
   tags:
     - amd64
@@ -1809,39 +1800,6 @@ unit:clang:trixie:amd64:
   needs:
     - job: clang:trixie:amd64
       artifacts: true
-
-# Jobs for Clang builds on FreeBSD 13 (amd64)
-
-clang:freebsd13:amd64:
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON}"
-    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
-    # incompatibility; see https://bugs.freebsd.org/275241.
-    EXTRA_CONFIGURE: "${WITH_LIBEDIT} -Doptimization=g --native-file ci/freebsd.ini"
-  <<: *build_job
-  <<: *freebsd_autoscaler_13_amd64_tags
-
-system:clang:freebsd13:amd64:
-  variables:
-    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-  needs:
-    - job: clang:freebsd13:amd64
-      artifacts: true
-  <<: *system_test_job
-  <<: *freebsd_autoscaler_13_amd64_tags
-  <<: *extra_system_tests_triggering_rules
-
-unit:clang:freebsd13:amd64:
-  variables:
-    GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-  needs:
-    - job: clang:freebsd13:amd64
-      artifacts: true
-  <<: *unit_test_job
-  <<: *freebsd_autoscaler_13_amd64_tags
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
 
 # Jobs for Clang builds on FreeBSD 14 (amd64)
 
