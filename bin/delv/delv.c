@@ -102,7 +102,6 @@ static ns_server_t *sctx = NULL;
 static ns_interface_t *ifp = NULL;
 static dns_dispatch_t *dispatch4 = NULL;
 static dns_dispatch_t *dispatch6 = NULL;
-static dns_db_t *roothints = NULL;
 static isc_stats_t *resstats = NULL;
 static isc_statsmulti_t *resquerystats = NULL;
 static FILE *logfp = NULL;
@@ -2165,11 +2164,6 @@ run_server(void *arg) {
 
 	dns_delegdb_create(&view->deleg);
 	CHECK(dns_rootns_filldelegdb(isc_g_mctx, hintfile, view->deleg));
-
-	CHECK(dns_rootns_create(isc_g_mctx, dns_rdataclass_in, hintfile,
-				&roothints));
-	dns_view_setrootdb(view, roothints);
-	dns_db_detach(&roothints);
 
 	view->qminimization = qmin;
 	view->qmin_strict = qmin_strict;

@@ -1054,9 +1054,6 @@ static void
 rctx_done(respctx_t *rctx, isc_result_t result);
 
 static void
-update_rootdb(dns_view_t *view, dns_message_t *message);
-
-static void
 rctx_logpacket(respctx_t *rctx);
 
 static void
@@ -8185,13 +8182,11 @@ resquery_response_continue(void *arg, isc_result_t result) {
 
 		/*
 		 * For a priming response, copy the '.' NS answer and
-		 * root-server glue straight from the wire into
-		 * view->rootdb so bestzonecut and ADB see the refreshed
-		 * set without a cache round trip.
+		 * root-server glue straight from the wire into the delegdb so
+		 * bestzonecut and ADB see the refreshed set without a cache
+		 * round trip.
 		 */
 		if ((fctx->options & DNS_FETCHOPT_PRIMING) != 0) {
-			update_rootdb(fctx->res->view, query->rmessage);
-
 			dns_rdataset_t *nsset = NULL;
 			tresult = dns_message_findname(
 				query->rmessage, DNS_SECTION_ANSWER,
@@ -10370,123 +10365,6 @@ dns_resolver_create(dns_view_t *view, unsigned int options,
 	*resp = res;
 
 	return ISC_R_SUCCESS;
-}
-
-/*
- * Copy the A or AAAA rdataset at 'target' out of 'message's ADDITIONAL
- * section into 'rootdb' under 'ver', replacing any existing record of
- * that type.  Returns ISC_R_SUCCESS if the glue was stored or if the
- * response did not carry glue for this target (both benign); any other
- * result indicates a zone-DB failure that the caller should roll back
- * on.  Shrinks '*minttlp' to the TTL of the stored rdataset.
- */
-static isc_result_t
-update_rootdb_glue(dns_db_t *rootdb, dns_dbversion_t *ver,
-		   dns_message_t *message, const dns_name_t *target,
-		   dns_rdatatype_t type, isc_stdtime_t now,
-		   dns_ttl_t *minttlp) {
-	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset = NULL;
-	dns_dbnode_t *node = NULL;
-	isc_result_t result;
-
-	result = dns_message_findname(message, DNS_SECTION_ADDITIONAL, target,
-				      type, 0, &name, &rdataset);
-	if (result != ISC_R_SUCCESS) {
-		/* No glue for this target in the response. */
-		return ISC_R_SUCCESS;
-	}
-
-	RETERR(dns_db_findnode(rootdb, name, true, &node));
-
-	(void)dns_db_deleterdataset(rootdb, node, ver, type, 0);
-	result = dns_db_addrdataset(rootdb, node, ver, now, rdataset, 0, NULL);
-	dns_db_detachnode(&node);
-	if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
-		return result;
-	}
-
-	if (rdataset->ttl < *minttlp) {
-		*minttlp = rdataset->ttl;
-	}
-	return ISC_R_SUCCESS;
-}
-
-/*
- * Refresh 'view->rootdb' from a priming response message.  The '.' NS
- * rdataset is replaced with the fetched one and, for each nameserver
- * it lists, the matching A/AAAA glue from the response's ADDITIONAL
- * section is copied in.  Only glue for names that actually appear as
- * NS targets is accepted; arbitrary ADDITIONAL records are ignored so
- * a hostile response cannot inject unrelated data into rootdb.  Glue
- * the response did not carry is left untouched, so the hints-file
- * records loaded at startup remain as a fallback.
- *
- * The version is committed only if every write succeeded; any failure
- * rolls the whole update back so rootdb never ends up with a '.' NS
- * rdataset that was deleted but not re-added.
- *
- * Called synchronously from response processing while the message is
- * still live, so records go straight from the wire into rootdb.
- */
-static void
-update_rootdb(dns_view_t *view, dns_message_t *message) {
-	dns_db_t *rootdb = view->rootdb;
-	dns_dbversion_t *ver = NULL;
-	dns_dbnode_t *node = NULL;
-	dns_rdataset_t *nsset = NULL;
-	isc_stdtime_t now = isc_stdtime_now();
-	dns_ttl_t minttl = UINT32_MAX;
-	isc_result_t result;
-
-	if (rootdb == NULL) {
-		return;
-	}
-
-	result = dns_message_findname(message, DNS_SECTION_ANSWER, dns_rootname,
-				      dns_rdatatype_ns, 0, NULL, &nsset);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
-
-	result = dns_db_newversion(rootdb, &ver);
-	if (result != ISC_R_SUCCESS) {
-		return;
-	}
-
-	CHECK(dns_db_findnode(rootdb, dns_rootname, true, &node));
-
-	(void)dns_db_deleterdataset(rootdb, node, ver, dns_rdatatype_ns, 0);
-	result = dns_db_addrdataset(rootdb, node, ver, now, nsset, 0, NULL);
-	dns_db_detachnode(&node);
-	if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
-		goto cleanup;
-	}
-	result = ISC_R_SUCCESS;
-	minttl = nsset->ttl;
-
-	DNS_RDATASET_FOREACH(nsset) {
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		dns_rdata_ns_t ns;
-
-		dns_rdataset_current(nsset, &rdata);
-		if (dns_rdata_tostruct(&rdata, &ns, NULL) != ISC_R_SUCCESS) {
-			continue;
-		}
-
-		CHECK(update_rootdb_glue(rootdb, ver, message, &ns.name,
-					 dns_rdatatype_a, now, &minttl));
-		CHECK(update_rootdb_glue(rootdb, ver, message, &ns.name,
-					 dns_rdatatype_aaaa, now, &minttl));
-	}
-
-	atomic_store_relaxed(&view->rootdb_expires, (uint32_t)(now + minttl));
-
-cleanup:
-	if (node != NULL) {
-		dns_db_detachnode(&node);
-	}
-	dns_db_closeversion(rootdb, &ver, result == ISC_R_SUCCESS);
 }
 
 static void

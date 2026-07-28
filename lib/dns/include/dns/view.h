@@ -88,20 +88,18 @@ typedef struct MDB_env MDB_env;
 
 struct dns_view {
 	/* Unlocked. */
-	unsigned int	     magic;
-	isc_mem_t	    *mctx;
-	dns_rdataclass_t     rdclass;
-	char		    *name;
-	dns_zt_t	    *zonetable;
-	dns_resolver_t	    *resolver;
-	dns_adb_t	    *adb;
-	dns_requestmgr_t    *requestmgr;
-	dns_dispatchmgr_t   *dispatchmgr;
-	dns_cache_t	    *cache;
-	dns_db_t	    *cachedb;
-	dns_db_t	    *rootdb;
-	atomic_uint_fast32_t rootdb_expires;
-	dns_delegdb_t	    *deleg;
+	unsigned int	   magic;
+	isc_mem_t	  *mctx;
+	dns_rdataclass_t   rdclass;
+	char		  *name;
+	dns_zt_t	  *zonetable;
+	dns_resolver_t	  *resolver;
+	dns_adb_t	  *adb;
+	dns_requestmgr_t  *requestmgr;
+	dns_dispatchmgr_t *dispatchmgr;
+	dns_cache_t	  *cache;
+	dns_db_t	  *cachedb;
+	dns_delegdb_t	  *deleg;
 
 	/*
 	 * security roots and negative trust anchors.
@@ -417,28 +415,6 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache, bool shared);
  *
  *\li	If this is not the first call to dns_view_setcache() for this
  *	view, then previously set cache is detached.
- */
-
-void
-dns_view_setrootdb(dns_view_t *view, dns_db_t *rootdb);
-/*%<
- * Set the view's root delegation database.
- *
- * This seeds the rootdb at cold start from a root hints file; it is then
- * overwritten by the resolver when priming succeeds (see
- * dns_resolver_prime()).  Callers consult the rootdb via dns_view_find()
- * and bestzonecut to obtain the root NS set regardless of TTL.
- *
- * Requires:
- *
- *\li	'view' is a valid, unfrozen view, whose root database has not been
- *	set.
- *
- *\li	'rootdb' is a valid zone database.
- *
- * Ensures:
- *
- * \li    	The root database of 'view' is 'rootdb'.
  */
 
 void

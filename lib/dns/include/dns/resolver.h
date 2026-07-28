@@ -141,11 +141,11 @@ enum {
 	DNS_FETCHOPT_TRYNOCD = 1 << 18,
 	DNS_FETCHOPT_TRYCD = 1 << 19,
 
-	DNS_FETCHOPT_PRIMING = 1 << 20, /*%< Root priming fetch.
-					 * Copies the '.' NS answer
-					 * and root-server glue from
-					 * the response into
-					 * view->rootdb. */
+	/*
+	 * Root priming fetch. Copies the '.' NS answer and root-server glue
+	 * from the response into delegdb.
+	 */
+	DNS_FETCHOPT_PRIMING = 1 << 20,
 
 	/*% EDNS version bits: */
 	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,

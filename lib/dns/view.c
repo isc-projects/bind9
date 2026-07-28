@@ -83,31 +83,6 @@
 #define UNREACH_HOLD_TIME_MAX_SEC     (UNREACH_HOLD_TIME_INITIAL_SEC << 6)
 #define UNREACH_BACKOFF_ELIGIBLE_SEC  ((uint16_t)120)
 
-/*
- * True when rootdb has never been primed, or when its stored TTL has
- * elapsed.  A stale rootdb still serves records; this is just the
- * signal that the resolver should kick off a fresh priming fetch.
- */
-static inline bool
-rootdb_stale(dns_view_t *view) {
-	uint32_t exp = atomic_load_relaxed(&view->rootdb_expires);
-	return exp == 0 || exp <= (uint32_t)isc_stdtime_now();
-}
-
-static inline void
-maybe_prime(dns_view_t *view) {
-	dns_resolver_t *res = NULL;
-
-	if (!rootdb_stale(view)) {
-		return;
-	}
-	if (dns_view_getresolver(view, &res) != ISC_R_SUCCESS) {
-		return;
-	}
-	dns_resolver_prime(res);
-	dns_resolver_detach(&res);
-}
-
 void
 dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		dns_rdataclass_t rdclass, const char *name,
@@ -284,9 +259,6 @@ destroy(dns_view_t *view) {
 	ISC_LIST_FOREACH(view->dlz_unsearched, dlzdb, link) {
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
-	}
-	if (view->rootdb != NULL) {
-		dns_db_detach(&view->rootdb);
 	}
 	if (view->cachedb != NULL) {
 		dns_db_detach(&view->cachedb);
@@ -625,16 +597,6 @@ dns_view_iscacheshared(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	return view->cacheshared;
-}
-
-void
-dns_view_setrootdb(dns_view_t *view, dns_db_t *rootdb) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-	REQUIRE(view->rootdb == NULL);
-	REQUIRE(dns_db_iszone(rootdb));
-
-	dns_db_attach(rootdb, &view->rootdb);
 }
 
 void

@@ -456,9 +456,6 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		     const cfg_obj_t *alternates);
 
 static isc_result_t
-configure_rootdb(dns_view_t *view, const char *filename);
-
-static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
@@ -4588,16 +4585,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	}
 
 	/*
-	 * We have default root hints for class IN if we need them.
-	 * Each view gets its own rootdb so a priming response only
-	 * writes into that view's copy.  Other classes don't support
-	 * recursion and don't need hints.
-	 */
-	if (view->rdclass == dns_rdataclass_in && view->rootdb == NULL) {
-		CHECK(configure_rootdb(view, NULL));
-	}
-
-	/*
 	 * Configure the view's transports (DoT/DoH)
 	 */
 	CHECK(named_transports_fromconfig(config, vconfig, view->mctx,
@@ -5574,21 +5561,6 @@ cleanup:
 }
 
 static isc_result_t
-configure_rootdb(dns_view_t *view, const char *filename) {
-	isc_result_t result;
-	dns_db_t *db;
-
-	db = NULL;
-	result = dns_rootns_create(view->mctx, view->rdclass, filename, &db);
-	if (result == ISC_R_SUCCESS) {
-		dns_view_setrootdb(view, db);
-		dns_db_detach(&db);
-	}
-
-	return result;
-}
-
-static isc_result_t
 configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		     const cfg_obj_t *alternates) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -6116,10 +6088,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			CLEANUP(ISC_R_FAILURE);
 		}
 		if (dns_name_isroot(origin)) {
-			const char *hintsfile = cfg_obj_asstring(fileobj);
-
-			CHECK(configure_rootdb(view, hintsfile));
-			*hintsfilename = hintsfile;
+			*hintsfilename = cfg_obj_asstring(fileobj);
 		} else {
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,

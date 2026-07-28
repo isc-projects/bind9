@@ -31,6 +31,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/deleg.h>
 #include <dns/fixedname.h>
 #include <dns/lib.h>
 #include <dns/name.h>
@@ -108,21 +109,31 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 
 static isc_result_t
 configure_hint(const char *zfile, const char *zclass) {
-	dns_db_t *db = NULL;
+	dns_delegdb_t *delegdb = NULL;
 	dns_rdataclass_t rdclass;
 	isc_textregion_t r;
+	isc_result_t result = ISC_R_FAILURE;
 
 	if (zfile == NULL) {
-		return ISC_R_FAILURE;
+		goto cleanup;
 	}
 
 	r.base = UNCONST(zclass);
 	r.length = strlen(zclass);
-	RETERR(dns_rdataclass_fromtext(&rdclass, &r));
-	RETERR(dns_rootns_create(isc_g_mctx, rdclass, zfile, &db));
+	CHECK(dns_rdataclass_fromtext(&rdclass, &r));
+	if (rdclass != dns_rdataclass_in) {
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
 
-	dns_db_detach(&db);
-	return ISC_R_SUCCESS;
+	dns_delegdb_create(&delegdb);
+	CHECK(dns_rootns_filldelegdb(isc_g_mctx, zfile, delegdb));
+
+cleanup:
+	if (delegdb != NULL) {
+		dns_delegdb_detach(&delegdb);
+	}
+	return result;
 }
 
 /*% configure the zone */
