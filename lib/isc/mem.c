@@ -303,15 +303,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 		goto unlock;
 	}
 
-#ifdef __COVERITY__
-	/*
-	 * Use simple conversion from pointer to hash to avoid
-	 * tainting 'ptr' due to byte swap in isc_hash32.
-	 */
-	hash = (uintptr_t)ptr >> 3;
-#else
 	hash = isc_hash32(&ptr, sizeof(ptr), true);
-#endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = mallocx(dlsize, mctx->jemalloc_flags);
@@ -348,15 +340,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 		goto unlock;
 	}
 
-#ifdef __COVERITY__
-	/*
-	 * Use simple conversion from pointer to hash to avoid
-	 * tainting 'ptr' due to byte swap in isc_hash32.
-	 */
-	hash = (uintptr_t)ptr >> 3;
-#else
 	hash = isc_hash32(&ptr, sizeof(ptr), true);
-#endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);
@@ -406,7 +390,6 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 /*!
  * Perform a free, doing memory filling and overrun detection as necessary.
  */
-/* coverity[+free : arg-1] */
 static void
 mem_put(isc_mem_t *ctx, void *mem, size_t size, int flags) {
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
@@ -1194,7 +1177,6 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 	return item;
 }
 
-/* coverity[+free : arg-1] */
 void
 isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	element *restrict item = NULL;
