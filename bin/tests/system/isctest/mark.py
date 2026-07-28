@@ -74,10 +74,6 @@ def is_host_freebsd(*_):
     return platform.system() == "FreeBSD"
 
 
-def is_host_freebsd_13(*_):
-    return platform.system() == "FreeBSD" and platform.release().startswith("13")
-
-
 def with_algorithm(name: str):
     key = f"{name}_SUPPORTED"
     assert key in os.environ, f"{key} env variable undefined"
