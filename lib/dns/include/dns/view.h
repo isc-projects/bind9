@@ -634,8 +634,8 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 isc_result_t
 dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 		    dns_rdatatype_t type, isc_stdtime_t now,
-		    unsigned int options, bool use_hints,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+		    unsigned int options, dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset);
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -651,12 +651,6 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
  *	and 'type' are appropriate for glue retrieval.
  *
  *\li	If 'now' is zero, then the current time will be used.
- *
- *\li	If 'use_hints' is true, and the view has a hints database, then
- *	it will be searched last.  If the answer is found in the hints
- *	database, the result code will be DNS_R_HINT.  If the name is found
- *	in the hints database but not the type, the result code will be
- *	DNS_R_HINTNXRRSET.
  *
  *\li	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
  *	covers 'type', then 'sigrdataset' will be bound to it.

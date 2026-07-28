@@ -960,13 +960,13 @@ cleanup:
 isc_result_t
 dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 		    dns_rdatatype_t type, isc_stdtime_t now,
-		    unsigned int options, bool use_hints,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+		    unsigned int options, dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
 	dns_fixedname_t foundname;
 
 	dns_fixedname_init(&foundname);
-	result = dns_view_find(view, name, type, now, options, use_hints, false,
+	result = dns_view_find(view, name, type, now, options, false, false,
 			       NULL, dns_fixedname_name(&foundname), rdataset,
 			       sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {

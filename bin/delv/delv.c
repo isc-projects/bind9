@@ -2017,8 +2017,7 @@ recvresponse(void *arg) {
 				options |= DNS_DBFIND_PENDINGOK;
 			}
 			result = dns_view_simplefind(view, name, rdataset->type,
-						     0, options, false, &rds,
-						     &sigs);
+						     0, options, &rds, &sigs);
 			if (result == ISC_R_SUCCESS) {
 				printdata(&rds, name);
 				dns_rdataset_disassociate(&rds);
