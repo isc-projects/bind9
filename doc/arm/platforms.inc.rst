@@ -49,7 +49,7 @@ following systems:
 -  Ubuntu LTS 22.04, 24.04, 26.04
 -  Fedora 44
 -  Red Hat Enterprise Linux / CentOS / AlmaLinux 8, 9, 10
--  FreeBSD 13, 14, 15
+-  FreeBSD 14, 15
 -  Alpine Linux 3.23
 
 The amd64 CPU architecture is fully supported and regularly tested.
@@ -94,7 +94,7 @@ supported platforms.
    -  Debian 8 Jessie, 9 Stretch, 10 Buster, 11 Bullseye
    -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster
-   -  FreeBSD 10.x, 11.x, 12.x
+   -  FreeBSD 10.x, 11.x, 12.x, 13.x
 
 -  Less common CPU architectures (i386, i686, mips, mipsel, sparc, ppc, and others)
 
