@@ -182,6 +182,11 @@ LLM_SIGNED_OFF_BY_RE = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 COAUTHORED_BY_RE = re.compile(r"^Co-Authored-By:.*$", re.IGNORECASE | re.MULTILINE)
+# A trailer pointing at an @isc.org address is a human co-author; there
+# is no point in asking for confirmation.
+HUMAN_COAUTHORED_BY_RE = re.compile(
+    r"^Co-Authored-By:\s+.*<[^<>@\s]+@isc\.org>$", re.IGNORECASE
+)
 # CONTRIBUTING.md documents the trailer format as
 # `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`.  Match every
 # `Assisted-by:` line, then check it against the expected shape.
@@ -242,6 +247,8 @@ for commit in danger.git.commits:
         )
     else:
         for coauthor_line in COAUTHORED_BY_RE.findall(commit.message):
+            if HUMAN_COAUTHORED_BY_RE.match(coauthor_line.strip()):
+                continue
             message(
                 f"Commit {commit.sha} contains a `Co-Authored-By` trailer: "
                 f"```{coauthor_line}```. Ensure the named co-author is a "
