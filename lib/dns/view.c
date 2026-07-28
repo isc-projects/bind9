@@ -786,9 +786,9 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, bool use_hints,
-	      bool use_static_stub, dns_db_t **dbp, dns_name_t *foundname,
-	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	      isc_stdtime_t now, unsigned int options, bool use_static_stub,
+	      dns_db_t **dbp, dns_name_t *foundname, dns_rdataset_t *rdataset,
+	      dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
 	dns_db_t *db = NULL, *zdb = NULL;
 	bool is_cache, is_staticstub_zone;
@@ -905,35 +905,6 @@ db_find:
 		result = ISC_R_SUCCESS;
 	}
 
-	if (result == ISC_R_NOTFOUND && !is_staticstub_zone && use_hints &&
-	    view->rootdb != NULL)
-	{
-		dns_rdataset_cleanup(rdataset);
-		dns_rdataset_cleanup(sigrdataset);
-		if (db != NULL) {
-			dns_db_detach(&db);
-		}
-		result = dns_db_find(view->rootdb, name, NULL, type, options,
-				     now, foundname, rdataset, sigrdataset);
-		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE) {
-			/*
-			 * Lazily rearm priming if the rootdb's
-			 * stored TTL has elapsed.  The stale
-			 * record is still returned; it is better
-			 * than nothing until the fresh priming
-			 * fetch completes.
-			 */
-			maybe_prime(view);
-			dns_db_attach(view->rootdb, &db);
-			result = DNS_R_HINT;
-		} else if (result == DNS_R_NXRRSET) {
-			dns_db_attach(view->rootdb, &db);
-			result = DNS_R_HINTNXRRSET;
-		} else if (result == DNS_R_NXDOMAIN) {
-			result = ISC_R_NOTFOUND;
-		}
-	}
-
 cleanup:
 	dns_rdataset_cleanup(&zrdataset);
 	dns_rdataset_cleanup(&zsigrdataset);
@@ -966,8 +937,8 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 	dns_fixedname_t foundname;
 
 	dns_fixedname_init(&foundname);
-	result = dns_view_find(view, name, type, now, options, false, false,
-			       NULL, dns_fixedname_name(&foundname), rdataset,
+	result = dns_view_find(view, name, type, now, options, false, NULL,
+			       dns_fixedname_name(&foundname), rdataset,
 			       sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*

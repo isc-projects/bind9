@@ -2585,7 +2585,6 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 		options |= DNS_DBFIND_PENDINGOK;
 	}
 	result = dns_view_find(adb->view, adbname->name, rdtype, now, options,
-			       false,
 			       (adbname->type & DNS_ADBFIND_STARTATZONE) != 0,
 			       NULL, fname, &rdataset, NULL);
 
