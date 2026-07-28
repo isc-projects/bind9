@@ -27,10 +27,14 @@
 #include <isc/lib.h>
 #include <isc/util.h>
 
+#include <dns/db.h>
+#include <dns/keyvalues.h>
 #include <dns/lib.h>
 #include <dns/nsec3.h>
 #include <dns/private.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 
 #include <dst/dst.h>
@@ -57,19 +61,24 @@ typedef struct {
 } nsec3_testcase_t;
 
 static void
-make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
-	     unsigned char *buf, size_t len) {
+make_private(dns_rdata_t *private, unsigned char *buf, size_t len) {
 	dns_rdata_init(private);
 
+	private->data = buf;
+	private->length = len;
+	private->type = privatetype;
+	private->rdclass = dns_rdataclass_in;
+}
+
+static void
+make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
+	     unsigned char *buf, size_t len) {
 	buf[0] = testcase->alg;
 	buf[1] = (testcase->keyid & 0xff00) >> 8;
 	buf[2] = (testcase->keyid & 0xff);
 	buf[3] = testcase->remove;
 	buf[4] = testcase->complete;
-	private->data = buf;
-	private->length = len;
-	private->type = privatetype;
-	private->rdclass = dns_rdataclass_in;
+	make_private(private, buf, len);
 }
 
 static void
@@ -191,9 +200,149 @@ ISC_RUN_TEST_IMPL(private_nsec3_totext) {
 	}
 }
 
+/*
+ * Run dns_private_chains() over a zone database whose apex holds the
+ * given private-type records (and no NSEC/NSEC3PARAM RRsets) and check
+ * the reported chain-building requirements.
+ */
+static void
+check_private_chains(dns_rdata_t *privates, size_t nprivates,
+		     bool expected_nsec, bool expected_nsec3) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *ver = NULL;
+	bool build_nsec = !expected_nsec;
+	bool build_nsec3 = !expected_nsec3;
+
+	result = dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+			       &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_db_newversion(db, &ver);
+	assert_non_null(ver);
+
+	if (nprivates > 0) {
+		dns_dbnode_t *node = NULL;
+		dns_rdatalist_t rdatalist;
+		dns_rdataset_t rdataset;
+
+		dns_rdatalist_init(&rdatalist);
+		rdatalist.rdclass = dns_rdataclass_in;
+		rdatalist.type = privatetype;
+		for (size_t i = 0; i < nprivates; i++) {
+			ISC_LIST_APPEND(rdatalist.rdata, &privates[i], link);
+		}
+		dns_rdataset_init(&rdataset);
+		dns_rdatalist_tordataset(&rdatalist, &rdataset);
+
+		result = dns_db_getoriginnode(db, &node);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		result = dns_db_addrdataset(db, node, ver, 0, &rdataset, 0,
+					    NULL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_rdataset_disassociate(&rdataset);
+		dns_db_detachnode(&node);
+	}
+
+	result = dns_private_chains(db, ver, privatetype, &build_nsec,
+				    &build_nsec3);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(build_nsec, expected_nsec);
+	assert_int_equal(build_nsec3, expected_nsec3);
+
+	dns_db_closeversion(db, &ver, false);
+	dns_db_detach(&db);
+}
+
+/* detect chain building requirements from private signing records */
+ISC_RUN_TEST_IMPL(private_chains) {
+	UNUSED(state);
+
+	/* No private RRset at the apex. */
+	check_private_chains(NULL, 0, false, false);
+
+	{
+		/* Old form signing record, signing in progress. */
+		signing_testcase_t testcase = { DST_ALG_RSASHA256, 12345, 0,
+						0 };
+		unsigned char data[5];
+		dns_rdata_t private;
+
+		make_signing(&testcase, &private, data, sizeof(data));
+		check_private_chains(&private, 1, true, false);
+	}
+
+	{
+		/* New form signing record for a PRIVATEOID algorithm. */
+		unsigned char data[7] = { DNS_KEYALG_PRIVATEOID,
+					  0x30,
+					  0x39,
+					  0,
+					  0,
+					  DST_ALG_RSASHA256PRIVATEOID >> 8,
+					  DST_ALG_RSASHA256PRIVATEOID & 0xff };
+		dns_rdata_t private;
+
+		make_private(&private, data, sizeof(data));
+		check_private_chains(&private, 1, true, false);
+	}
+
+	{
+		/*
+		 * New form record whose DNSSEC algorithm octet doesn't
+		 * match its DST algorithm.
+		 */
+		unsigned char data[7] = { DNS_KEYALG_PRIVATEDNS,
+					  0x30,
+					  0x39,
+					  0,
+					  0,
+					  DST_ALG_RSASHA256PRIVATEOID >> 8,
+					  DST_ALG_RSASHA256PRIVATEOID & 0xff };
+		dns_rdata_t private;
+
+		make_private(&private, data, sizeof(data));
+		check_private_chains(&private, 1, false, false);
+	}
+
+	{
+		/* New form signing record, signing already complete. */
+		unsigned char data[7] = { DNS_KEYALG_PRIVATEOID,
+					  0x30,
+					  0x39,
+					  0,
+					  1,
+					  DST_ALG_RSASHA256PRIVATEOID >> 8,
+					  DST_ALG_RSASHA256PRIVATEOID & 0xff };
+		dns_rdata_t private;
+
+		make_private(&private, data, sizeof(data));
+		check_private_chains(&private, 1, false, false);
+	}
+
+	{
+		/* New form signing record plus NSEC3 chain creation. */
+		unsigned char sbuf[7] = { DNS_KEYALG_PRIVATEOID,
+					  0x30,
+					  0x39,
+					  0,
+					  0,
+					  DST_ALG_RSASHA256PRIVATEOID >> 8,
+					  DST_ALG_RSASHA256PRIVATEOID & 0xff };
+		unsigned char nbuf[DNS_PRIVATE_BUFFERSIZE];
+		nsec3_testcase_t nsec3case = { 1, 0, 10, 0xbeef, 0, 0, 0 };
+		dns_rdata_t privates[2];
+
+		make_private(&privates[0], sbuf, sizeof(sbuf));
+		make_nsec3(&nsec3case, &privates[1], nbuf, sizeof(nbuf));
+		check_private_chains(privates, 2, false, true);
+	}
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(private_signing_totext)
 ISC_TEST_ENTRY(private_nsec3_totext)
+ISC_TEST_ENTRY(private_chains)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
