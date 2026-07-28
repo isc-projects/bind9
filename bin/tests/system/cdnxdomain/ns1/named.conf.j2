@@ -11,10 +11,7 @@ options {
 // Trust anchor for "example" (static-ds of NS2's KSK).
 include "trusted.conf";
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 // Resolve "example" only via the signed authoritative server.  The static
 // trust anchor above lets the forwarded answers validate to dns_trust_secure.

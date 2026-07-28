@@ -44,10 +44,7 @@ acl accept {
 	10.53.0.1; 10.53.0.2;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "example" {
 	type primary;

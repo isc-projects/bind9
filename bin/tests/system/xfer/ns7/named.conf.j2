@@ -22,10 +22,7 @@ options {
 	check-integrity no;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "primary2" {
 	type primary;

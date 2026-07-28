@@ -28,10 +28,7 @@ remote-servers "ns8" port @PORT@ {
 	10.53.0.8;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 /*
  * 1.     Enabling DNSSEC

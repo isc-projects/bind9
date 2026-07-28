@@ -46,10 +46,7 @@ options {
 	transfers-out 100;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 tls tls-example-primary-wrong-ca {
 	remote-hostname "srv01.crt01.example.com"; // enable Strict TLS

@@ -34,10 +34,7 @@ options {
 };
 
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 # Let's reuse the same entry multiple times to see if transfers will succeed
 

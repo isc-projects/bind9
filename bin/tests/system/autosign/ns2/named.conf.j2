@@ -57,10 +57,7 @@ dnssec-policy "optout" {
 	nsec3param iterations 0 optout yes salt-length 0;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "example" {
 	type primary;

@@ -24,10 +24,7 @@ key tsigzone. {
 	secret "1234abcd8765";
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "example" {
 	type secondary;
