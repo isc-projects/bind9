@@ -22,17 +22,17 @@ options {
 };
 
 {% if family == "v6" %}
-        plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
-                filter-@filtertype@-on-v6 yes;
-                filter-@filtertype@ { @ns.ip6@; };
-        };
+plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
+	filter-@filtertype@-on-v6 yes;
+	filter-@filtertype@ { @ns.ip6@; };
+};
 {% else %}
-        acl filterees { @ns.ip@; };
+acl filterees { @ns.ip@; };
 
-        plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
-                filter-@filtertype@-on-v4 yes;
-                filter-@filtertype@ { filterees; };
-        };
+plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
+	filter-@filtertype@-on-v4 yes;
+	filter-@filtertype@ { filterees; };
+};
 {% endif %}
 
 {% include "_common/controls.conf.j2" %}

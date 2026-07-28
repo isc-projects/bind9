@@ -17,7 +17,7 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	response-policy { zone "policy"; } nsdname-wait-recurse no
-		nsdname-enable yes;
+	nsdname-enable yes;
 
 	include "../dnsrps.conf";
 };

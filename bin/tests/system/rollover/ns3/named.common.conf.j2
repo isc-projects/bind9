@@ -20,9 +20,9 @@ include "trusted.conf";
 
 
 options {
-        {% include_indented "_common/options.conf.j2" %}
-        allow-transfer { any; };
-        dnssec-validation @dnssec_validation@;
+	{% include_indented "_common/options.conf.j2" %}
+	allow-transfer { any; };
+	dnssec-validation @dnssec_validation@;
 };
 
 {% include "_common/controls.conf.j2" %}

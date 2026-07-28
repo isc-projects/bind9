@@ -7,8 +7,8 @@ options {
 view chaos ch {
 	match-clients { any; };
 	recursion yes;
-        dnssec-validation no;
-        forward only;
-        forwarders port @PORT@ { 10.53.0.2; };
-        deny-answer-addresses { 0.0.0.0/0; ::/0; };
+	dnssec-validation no;
+	forward only;
+	forwarders port @PORT@ { 10.53.0.2; };
+	deny-answer-addresses { 0.0.0.0/0; ::/0; };
 };

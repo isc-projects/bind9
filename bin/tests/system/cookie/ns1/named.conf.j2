@@ -26,10 +26,12 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	deny-answer-addresses { 192.0.2.0/24; 2001:db8:beef::/48; }
-		 except-from { "example.org"; };
+		except-from { "example.org"; };
 	deny-answer-aliases { "example.org"; }
-		except-from { "goodcname.example.net";
-			      "gooddname.example.net"; };
+		except-from {
+			"goodcname.example.net";
+			"gooddname.example.net";
+		};
 	allow-query {!10.53.0.8; any; };
 	send-cookie yes;
 	nocookie-udp-size 512;

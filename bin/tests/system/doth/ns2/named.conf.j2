@@ -158,7 +158,7 @@ zone "example8" {
 };
 
 tls tls-example-primary-mutual-tls {
-    remote-hostname "srv01.crt01.example.com";
+	remote-hostname "srv01.crt01.example.com";
 	ca-file "../CA/CA.pem";
 	cert-file "../CA/certs/srv01.client02-ns2.example.com.pem";
 	key-file "../CA/certs/srv01.client02-ns2.example.com.key";
@@ -179,7 +179,7 @@ zone "example10" {
 };
 
 tls tls-example-primary-mutual-tls-expired {
-    remote-hostname "srv01.crt01.example.com";
+	remote-hostname "srv01.crt01.example.com";
 	ca-file "../CA/CA.pem";
 	cert-file "../CA/certs/srv01.client03-ns2-expired.example.com.pem";
 	key-file "../CA/certs/srv01.client03-ns2-expired.example.com.key";

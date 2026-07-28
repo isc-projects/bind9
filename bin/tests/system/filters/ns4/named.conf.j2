@@ -22,15 +22,15 @@ options {
 };
 
 {% if family == "v6" %}
-        plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
-                filter-@filtertype@-on-v6 break-dnssec;
-                filter-@filtertype@ { @ns.ip6@; };
-        };
+plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
+	filter-@filtertype@-on-v6 break-dnssec;
+	filter-@filtertype@ { @ns.ip6@; };
+};
 {% else %}
-        plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
-                filter-@filtertype@-on-v4 break-dnssec;
-                filter-@filtertype@ { @ns.ip@; };
-        };
+plugin query "../../../../plugins/.libs/filter-@filtertype@.so" {
+	filter-@filtertype@-on-v4 break-dnssec;
+	filter-@filtertype@ { @ns.ip@; };
+};
 {% endif %}
 
 {% include "_common/controls.conf.j2" %}

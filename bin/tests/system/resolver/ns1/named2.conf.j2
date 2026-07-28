@@ -16,9 +16,9 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	attach-cache "globalcache";
-        max-zone-ttl unlimited;
-        resolver-query-timeout 5000; # 5 seconds
-        max-recursion-queries 100;
+	max-zone-ttl unlimited;
+	resolver-query-timeout 5000; # 5 seconds
+	max-recursion-queries 100;
 };
 
 view "default" {
@@ -26,9 +26,9 @@ view "default" {
 		type hint;
 		file "root.hint";
 	};
-{% if wrongoption %}
+	{% if wrongoption %}
 	forwarders port 9999999 { 127.0.0.1; };
-{% endif %}
+	{% endif %}
 };
 
 {% include "_common/controls.conf.j2" %}

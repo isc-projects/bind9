@@ -13,12 +13,12 @@ options {
 
 {% if PARENT_DNSKEY is defined and PARENT_DNSKEY|length %}
 zone "f045.test" {
-        type static-stub;
-        server-addresses { 10.53.0.1; };
+	type static-stub;
+	server-addresses { 10.53.0.1; };
 };
 
 trust-anchors {
-        f045.test. static-key 257 3 13 "@PARENT_DNSKEY@";
+	f045.test. static-key 257 3 13 "@PARENT_DNSKEY@";
 };
 {% else %}
 zone "f043.test" {

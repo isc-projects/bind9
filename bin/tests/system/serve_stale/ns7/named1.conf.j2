@@ -36,14 +36,14 @@ zone "." {
 
 // Forward source.stale queries to ans2
 zone "source.stale" {
-    type forward;
-    forward only;
-    forwarders { 10.53.0.2 port @PORT@; };
+	type forward;
+	forward only;
+	forwarders { 10.53.0.2 port @PORT@; };
 };
 
 // Forward target.stale queries to ans8
 zone "target.stale" {
-    type forward;
-    forward only;
-    forwarders { 10.53.0.8 port @PORT@; };
+	type forward;
+	forward only;
+	forwarders { 10.53.0.8 port @PORT@; };
 };
