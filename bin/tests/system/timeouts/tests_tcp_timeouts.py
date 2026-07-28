@@ -64,7 +64,6 @@ def test_initial_timeout(named_port):
                 raise EOFError from e
 
 
-@pytest.mark.flaky(max_runs=2, rerun_filter=isctest.mark.is_host_freebsd_13)
 def test_idle_timeout(named_port):
     #
     # The idle timeout is 5 seconds, so the third message should fail
