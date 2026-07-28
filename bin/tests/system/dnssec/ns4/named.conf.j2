@@ -44,10 +44,7 @@ include "trusted.conf";
 
 		include "trusted.conf";
 
-		zone "." {
-			type hint;
-			file "../../_common/root.hint";
-		};
+		{% include_indented "_common/root.hint.conf" %}
 
 		zone secure.example {
 			type static-stub;
@@ -65,10 +62,7 @@ include "trusted.conf";
 		allow-recursion { none; };
 		dnssec-validation no;
 
-		zone "." {
-			type hint;
-			file "../../_common/root.hint";
-		};
+		{% include_indented "_common/root.hint.conf" %}
 
 		zone secure.example {
 			type secondary;
@@ -81,8 +75,5 @@ include "trusted.conf";
 		};
 	};
 {% else %}
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 {% endif %}

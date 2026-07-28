@@ -12,10 +12,7 @@ options {
 
 view internal {
         match-destinations { 10.53.0.3; };
-        zone "." {
-                type hint;
-                file "../../_common/root.hint";
-        };
+        {% include_indented "_common/root.hint.conf" %}
 
         recursion yes;
         allow-recursion { any; };

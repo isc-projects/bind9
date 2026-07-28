@@ -11,10 +11,7 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 view internal {
-        zone "." {
-                type hint;
-                file "../../_common/root.hint";
-        };
+	{% include_indented "_common/root.hint.conf" %}
 
         recursion yes;
         allow-query-cache { 10.53.0.3; 10.53.0.4; };

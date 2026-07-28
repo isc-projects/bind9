@@ -9,15 +9,9 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 view view1 {
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 };
 
 view view2 {
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 };

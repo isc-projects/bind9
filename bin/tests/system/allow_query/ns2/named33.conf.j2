@@ -11,10 +11,7 @@ view "internal" {
 
 	allow-query { any; };
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	zone "normal.example" {
 		type primary;
