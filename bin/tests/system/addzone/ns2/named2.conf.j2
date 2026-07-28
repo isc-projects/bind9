@@ -29,10 +29,7 @@ view internal {
 
 	response-policy { zone "policy"; };
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	zone "policy" {
 		type primary;
@@ -44,10 +41,7 @@ view external {
 	match-clients { any; };
 	allow-new-zones yes;
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 };
 
 # This view is only here to test that configuration context is cleaned

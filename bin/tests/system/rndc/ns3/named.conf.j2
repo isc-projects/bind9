@@ -28,10 +28,7 @@ view all {
 
 	recursion no;
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 };
 
 view none {

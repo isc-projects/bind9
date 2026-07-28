@@ -39,10 +39,7 @@ view rec {
 	dnssec-accept-expired yes;
 	minimal-responses no;
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	zone secure.example {
 		type static-stub;
@@ -59,10 +56,7 @@ view auth {
 	recursion no;
 	allow-recursion { none; };
 
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	zone secure.example {
 		type secondary;
