@@ -2163,7 +2163,9 @@ run_server(void *arg) {
 	dns_view_setmaxrestarts(view, restarts);
 	dns_view_setmaxqueries(view, maxtotal);
 	dns_view_setmaxdelegationservers(view, DEFAULT_MAX_DELEGATION_SERVERS);
+
 	dns_delegdb_create(&view->deleg);
+	CHECK(dns_rootns_filldelegdb(isc_g_mctx, hintfile, view->deleg));
 
 	CHECK(dns_rootns_create(isc_g_mctx, dns_rdataclass_in, hintfile,
 				&roothints));
