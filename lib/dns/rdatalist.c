@@ -33,8 +33,6 @@ static dns_rdatasetmethods_t methods = {
 	.count = dns__rdatalist_count,
 	.addnoqname = dns__rdatalist_addnoqname,
 	.getnoqname = dns__rdatalist_getnoqname,
-	.addclosest = dns__rdatalist_addclosest,
-	.getclosest = dns__rdatalist_getclosest,
 	.setownercase = dns__rdatalist_setownercase,
 	.getownercase = dns__rdatalist_getownercase,
 };
@@ -257,99 +255,6 @@ dns__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	}
 
 	dns_name_clone(noqname, name);
-	dns_rdataset_clone(tneg, neg);
-	dns_rdataset_clone(tnegsig, negsig);
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t
-dns__rdatalist_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
-	dns_rdataset_t *neg = NULL;
-	dns_rdataset_t *negsig = NULL;
-	dns_ttl_t ttl;
-
-	REQUIRE(rdataset != NULL);
-
-	ISC_LIST_FOREACH(name->list, rdset, link) {
-		if (rdset->rdclass != rdataset->rdclass) {
-			continue;
-		}
-		if (dns_rdatatype_isnsec(rdset->type)) {
-			neg = rdset;
-		}
-	}
-	if (neg == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	ISC_LIST_FOREACH(name->list, rdset, link) {
-		if (rdset->type == dns_rdatatype_rrsig &&
-		    rdset->covers == neg->type)
-		{
-			negsig = rdset;
-		}
-	}
-
-	if (negsig == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-	/*
-	 * Minimise ttl.
-	 */
-	ttl = rdataset->ttl;
-	if (neg->ttl < ttl) {
-		ttl = neg->ttl;
-	}
-	if (negsig->ttl < ttl) {
-		ttl = negsig->ttl;
-	}
-	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
-	rdataset->attributes.closest = true;
-	rdataset->rdlist.closest = name;
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t
-dns__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			  dns_rdataset_t *neg,
-			  dns_rdataset_t *negsig DNS__DB_FLARG) {
-	dns_rdataclass_t rdclass;
-	dns_rdataset_t *tneg = NULL;
-	dns_rdataset_t *tnegsig = NULL;
-	dns_name_t *closest = NULL;
-
-	REQUIRE(rdataset != NULL);
-	REQUIRE(rdataset->attributes.closest);
-
-	rdclass = rdataset->rdclass;
-	closest = rdataset->rdlist.closest;
-
-	(void)dns_name_dynamic(closest); /* Sanity Check. */
-
-	ISC_LIST_FOREACH(closest->list, rdset, link) {
-		if (rdset->rdclass != rdclass) {
-			continue;
-		}
-		if (dns_rdatatype_isnsec(rdset->type)) {
-			tneg = rdset;
-		}
-	}
-	if (tneg == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	ISC_LIST_FOREACH(closest->list, rdset, link) {
-		if (rdset->type == dns_rdatatype_rrsig &&
-		    rdset->covers == tneg->type)
-		{
-			tnegsig = rdset;
-		}
-	}
-	if (tnegsig == NULL) {
-		return ISC_R_NOTFOUND;
-	}
-
-	dns_name_clone(closest, name);
 	dns_rdataset_clone(tneg, neg);
 	dns_rdataset_clone(tnegsig, negsig);
 	return ISC_R_SUCCESS;

@@ -7261,7 +7261,6 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname = NULL;
 	dns_rdataset_t *neg = NULL, *negsig = NULL;
-	isc_result_t result;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addnoqnameproof");
 
@@ -7274,48 +7273,11 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	neg = ns_client_newrdataset(client);
 	negsig = ns_client_newrdataset(client);
 
-	CHECK(dns_rdataset_getnoqname(qctx->noqname, fname, neg, negsig));
+	RUNTIME_CHECK(dns_rdataset_getnoqname(qctx->noqname, fname, neg,
+					      negsig) == ISC_R_SUCCESS);
 
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
-
-	if (!qctx->noqname->attributes.closest) {
-		goto cleanup;
-	}
-
-	if (fname == NULL) {
-		dbuf = ns_client_getnamebuf(client);
-		fname = ns_client_newname(client, dbuf, &b);
-	}
-
-	if (neg == NULL) {
-		neg = ns_client_newrdataset(client);
-	} else {
-		dns_rdataset_cleanup(neg);
-	}
-
-	if (negsig == NULL) {
-		negsig = ns_client_newrdataset(client);
-	} else {
-		dns_rdataset_cleanup(negsig);
-	}
-
-	result = dns_rdataset_getclosest(qctx->noqname, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
-		       DNS_SECTION_AUTHORITY);
-
-cleanup:
-	if (neg != NULL) {
-		ns_client_putrdataset(client, &neg);
-	}
-	if (negsig != NULL) {
-		ns_client_putrdataset(client, &negsig);
-	}
-	if (fname != NULL) {
-		ns_client_releasename(client, &fname);
-	}
 }
 
 /*%

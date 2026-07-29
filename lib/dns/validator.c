@@ -2868,8 +2868,8 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 		    !FOUNDNODATA(val) && !FOUNDNOWILDCARD(val) &&
 		    dns_nsec3_noexistnodata(
 			    val->type, wild, name, rdataset, zonename, &exists,
-			    &data, NULL, NULL, NULL, NULL, NULL, NULL,
-			    validator_log, val) == ISC_R_SUCCESS)
+			    &data, NULL, NULL, NULL, NULL, NULL, validator_log,
+			    val) == ISC_R_SUCCESS)
 		{
 			dns_name_t **proofs = val->proofs;
 			if (exists && !data) {
@@ -2913,8 +2913,7 @@ findnsec3proofs(dns_validator_t *val) {
 	dns_name_t *zonename = dns_fixedname_initname(&fzonename);
 	dns_name_t *closestp = NULL;
 	dns_name_t **proofs = val->proofs;
-	bool exists, data, optout, unknown;
-	bool setclosest, setnearest, *setclosestp = NULL;
+	bool exists, data, optout, unknown, setnearest;
 
 	for (result = val_rdataset_first(val, &name, &rdataset);
 	     result == ISC_R_SUCCESS;
@@ -2926,10 +2925,9 @@ findnsec3proofs(dns_validator_t *val) {
 			continue;
 		}
 
-		result = dns_nsec3_noexistnodata(val->type, val->name, name,
-						 rdataset, zonename, NULL, NULL,
-						 NULL, NULL, NULL, NULL, NULL,
-						 NULL, validator_log, val);
+		result = dns_nsec3_noexistnodata(
+			val->type, val->name, name, rdataset, zonename, NULL,
+			NULL, NULL, NULL, NULL, NULL, NULL, validator_log, val);
 		if (result != ISC_R_IGNORE && result != ISC_R_SUCCESS) {
 			CLEANUP(result);
 		}
@@ -2952,10 +2950,8 @@ findnsec3proofs(dns_validator_t *val) {
 			      namebuf);
 		dns_name_copy(dns_fixedname_name(&val->closest), closest);
 		closestp = NULL;
-		setclosestp = NULL;
 	} else {
 		closestp = closest;
-		setclosestp = &setclosest;
 	}
 
 	for (result = val_rdataset_first(val, &name, &rdataset);
@@ -2972,13 +2968,13 @@ findnsec3proofs(dns_validator_t *val) {
 		 * We process all NSEC3 records to find the closest
 		 * encloser and nearest name to the closest encloser.
 		 */
-		setclosest = setnearest = false;
+		setnearest = false;
 		optout = false;
 		unknown = false;
 		result = dns_nsec3_noexistnodata(
 			val->type, val->name, name, rdataset, zonename, &exists,
-			&data, &optout, &unknown, setclosestp, &setnearest,
-			closestp, nearest, validator_log, val);
+			&data, &optout, &unknown, &setnearest, closestp,
+			nearest, validator_log, val);
 		if (unknown) {
 			val->attributes |= VALATTR_FOUNDUNKNOWN;
 		}
@@ -2991,8 +2987,6 @@ findnsec3proofs(dns_validator_t *val) {
 			    proofs[DNS_VALIDATOR_NOQNAMEPROOF] == NULL)
 			{
 				proofs[DNS_VALIDATOR_NOQNAMEPROOF] = name;
-			} else if (setclosest) {
-				proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
 			} else if (NEEDNODATA(val) &&
 				   proofs[DNS_VALIDATOR_NODATAPROOF] == NULL)
 			{
@@ -3007,10 +3001,6 @@ findnsec3proofs(dns_validator_t *val) {
 		}
 		if (result != ISC_R_SUCCESS) {
 			continue;
-		}
-
-		if (setclosest) {
-			proofs[DNS_VALIDATOR_CLOSESTENCLOSER] = name;
 		}
 		if (exists && !data && NEEDNODATA(val)) {
 			val->attributes |= VALATTR_FOUNDNODATA;

@@ -85,7 +85,6 @@ struct dns_slabheader {
 	dns_typepair_t typepair;
 
 	dns_slabheader_proof_t *noqname;
-	dns_slabheader_proof_t *closest;
 
 	dns_slabheader_t *related;
 

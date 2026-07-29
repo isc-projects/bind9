@@ -76,10 +76,6 @@ struct dns_rdatasetmethods {
 	isc_result_t (*getnoqname)(dns_rdataset_t *rdataset, dns_name_t *name,
 				   dns_rdataset_t	 *neg,
 				   dns_rdataset_t *negsig DNS__DB_FLARG);
-	isc_result_t (*addclosest)(dns_rdataset_t *rdataset, dns_name_t *name);
-	isc_result_t (*getclosest)(dns_rdataset_t *rdataset, dns_name_t *name,
-				   dns_rdataset_t	 *neg,
-				   dns_rdataset_t *negsig DNS__DB_FLARG);
 	void (*settrust)(dns_rdataset_t *rdataset, dns_trust_t trust);
 	void (*expire)(dns_rdataset_t *rdataset DNS__DB_FLARG);
 	void (*clearprefetch)(dns_rdataset_t *rdataset);
@@ -133,7 +129,6 @@ struct dns_rdataset {
 		bool	       checknames   : 1; /*%< Used by resolver. */
 		bool	       required	    : 1;
 		bool	       resign	    : 1;
-		bool	       closest	    : 1;
 		bool	       optout	    : 1; /*%< OPTOUT proof */
 		bool	       negative	    : 1;
 		bool	       prefetch	    : 1;
@@ -188,15 +183,15 @@ struct dns_rdataset {
 		 * a QP database, 'raw' will generally point to the
 		 * memory immediately following a slabheader. (There
 		 * is an exception in the case of rdatasets returned by
-		 * the `getnoqname` and `getclosest` methods; see
-		 * comments in rdataslab.c for details.)
+		 * the `getnoqname` method; see comments in
+		 * rdataslab.c for details.)
 		 */
 		struct {
 			dns_dbnode_t	       *node;
 			unsigned char	       *raw;
 			unsigned char	       *iter_pos;
 			unsigned int		iter_count;
-			dns_slabheader_proof_t *noqname, *closest;
+			dns_slabheader_proof_t *noqname;
 		} slab;
 
 		/*
@@ -219,8 +214,8 @@ struct dns_rdataset {
 		 * A vec rdataset provides access to an rdatavec. In
 		 * a QP database, 'header' points to the vecheader
 		 * structure. (There is an exception in the case of
-		 * rdatasets returned by the `getnoqname` and `getclosest`
-		 * methods; see comments in rdatavec.c for details.)
+		 * rdatasets returned by the `getnoqname` method;
+		 * see comments in rdatavec.c for details.)
 		 */
 		struct {
 			dns_vecheader_t *header;
@@ -236,10 +231,10 @@ struct dns_rdataset {
 			struct dns_rdata     *iter;
 
 			/*
-			 * These refer to names passed in by the caller of
-			 * dns_rdataset_addnoqname() and _addclosest()
+			 * Refers to the name passed in by the caller of
+			 * dns_rdataset_addnoqname().
 			 */
-			struct dns_name *noqname, *closest;
+			struct dns_name *noqname;
 			dns_dbnode_t	*node;
 		} rdlist;
 	};
@@ -555,34 +550,6 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
  *\li	'rdataset' to be valid and 'noqname' attribute to be set.
  *\li	'name' to be valid and have NSEC or NSEC3 and associated RRSIG
  *	 rdatasets.
- */
-
-#define dns_rdataset_getclosest(rdataset, name, nsec, nsecsig) \
-	dns__rdataset_getclosest(rdataset, name, nsec, nsecsig DNS__DB_FILELINE)
-isc_result_t
-dns__rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			 dns_rdataset_t		*nsec,
-			 dns_rdataset_t *nsecsig DNS__DB_FLARG);
-/*%<
- * Return the closest encloser for this record.
- *
- * Requires:
- *\li	'rdataset' to be valid and 'closest' attribute to be set.
- *\li	'name' to be valid.
- *\li	'nsec' and 'nsecsig' to be valid and not associated.
- */
-
-isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name);
-/*%<
- * Associate a closest encloset proof with this record.
- * Sets 'closest' attribute if successful.
- * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
- * the 'nsec' and 'rrsig(nsec)' ttl.
- *
- * Requires:
- *\li	'rdataset' to be valid and 'closest' attribute to be set.
- *\li	'name' to be valid and have NSEC3 and RRSIG(NSEC3) rdatasets.
  */
 
 void

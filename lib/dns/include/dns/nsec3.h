@@ -265,6 +265,6 @@ isc_result_t
 dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			const dns_name_t *nsec3name, dns_rdataset_t *nsec3set,
 			dns_name_t *zonename, bool *exists, bool *data,
-			bool *optout, bool *unknown, bool *setclosest,
-			bool *setnearest, dns_name_t *closest,
-			dns_name_t *nearest, dns_nseclog_t logit, void *arg);
+			bool *optout, bool *unknown, bool *setnearest,
+			dns_name_t *closest, dns_name_t *nearest,
+			dns_nseclog_t logit, void *arg);

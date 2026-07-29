@@ -5995,12 +5995,6 @@ validated(void *arg) {
 			val->proofs[DNS_VALIDATOR_NOQNAMEPROOF]));
 		INSIST(val->sigrdataset != NULL);
 		val->sigrdataset->ttl = val->rdataset->ttl;
-		if (val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
-			result = dns_rdataset_addclosest(
-				val->rdataset,
-				val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		}
 	} else if (gettrust(val->rdataset) == dns_trust_answer) {
 		findnoqname(fctx, message, val->name, val->rdataset,
 			    val->sigrdataset);
@@ -6154,7 +6148,6 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 		ISC_LIST_FOREACH(nsec->list, nrdataset, link) {
 			bool data = false, exists = false;
 			bool optout = false, unknown = false;
-			bool setclosest = false;
 			bool setnearest = false;
 
 			if (!dns_rdatatype_isnsec(nrdataset->type)) {
@@ -6176,8 +6169,8 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 			    NXND(dns_nsec3_noexistnodata(
 				    type, name, nsec, nrdataset, zonename,
 				    &exists, &data, &optout, &unknown,
-				    &setclosest, &setnearest, closest, nearest,
-				    fctx_log, fctx)))
+				    &setnearest, closest, nearest, fctx_log,
+				    fctx)))
 			{
 				if (!exists && setnearest) {
 					noqname = nsec;
