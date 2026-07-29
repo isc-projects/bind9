@@ -253,6 +253,18 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 			    private.data[3] == 0 && private.data[4] == 0)
 			{
 				signing = true;
+			} else if (private.length == 7 &&
+				   private.data[0] != 0 &&
+				   private.data[3] == 0 && private.data[4] == 0)
+			{
+				dst_algorithm_t alg = private.data[6] |
+						      (private.data[5] << 8);
+
+				if (dst_algorithm_tosecalg(alg) ==
+				    private.data[0])
+				{
+					signing = true;
+				}
 			}
 		} else {
 			if (CREATE(rdata.data[1])) {
