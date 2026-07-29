@@ -1594,6 +1594,17 @@ AS_CASE([$with_cachedb],
 AC_DEFINE_UNQUOTED([CACHEDB_DEFAULT], ["$cachedb"], [Default cache database type])
 
 #
+# In solaris 10, SMF can manage named service
+#
+LIBSCF_LIBS=
+AC_CHECK_HEADER([libscf.h],
+		[AC_CHECK_LIB([scf], [smf_enable_instance],
+			      [AC_DEFINE([HAVE_LIBSCF], [1],
+					 [Define to 1 if libscf was found])
+			       LIBSCF_LIBS="-lscf"])])
+AC_SUBST([LIBSCF_LIBS])
+
+#
 # Files to configure.  These are listed here because we used to
 # specify them as arguments to AC_OUTPUT.
 #
