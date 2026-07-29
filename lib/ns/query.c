@@ -5013,6 +5013,13 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		return ISC_R_NOTFOUND;
 	}
 
+	result = ns_client_checkaclsilent(
+		client, NULL, dns_zone_getqueryonacl(client->view->redirect),
+		true);
+	if (result != ISC_R_SUCCESS) {
+		return ISC_R_NOTFOUND;
+	}
+
 	result = dns_zone_getdb(client->view->redirect, &db);
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_NOTFOUND;
