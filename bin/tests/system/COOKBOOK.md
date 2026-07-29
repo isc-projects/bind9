@@ -92,6 +92,13 @@ options your test actually cares about below the include.  When the standard
 block doesn't fit, compose the pieces from `_common/options/` instead and put
 anything nonstandard inline.
 
+The plumbing templates are built on the `ns` variable: templates inside an
+`nsN`/`ansN` subdirectory automatically get one describing that server, so a
+config never hardcodes its own address — `@ns.ip@` renders to 10.53.0.1 in
+ns1, 10.53.0.2 in ns2, ..., and `@ns.ip6@` to the matching
+fd92:7065:b8e:ffff::N address.  Use it wherever a config refers to the
+instance's own address; references to *other* servers stay literal.
+
 The `_common/controls.conf.j2` include sets up the rndc control channel, so
 the test (and the runner's shutdown sequence) can use `rndc`.  A resolver
 instance would also include `_common/root.hint.conf` to get the standard
