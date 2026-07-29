@@ -78,7 +78,7 @@ if config.has('HAVE_LIBNGHTTP2') and not is_el8
     isc_test += 'doh'
 endif
 
-if config.has('HAVE_LIBNGTCP2')
+if ngtcp2_dep.found()
     isc_test += 'quic'
 endif
 
