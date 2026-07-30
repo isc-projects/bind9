@@ -82,3 +82,4 @@ ContinuationIndentWidth: 8
 RemoveParentheses: ReturnStatement
 RemoveSemicolon: true
 SpaceBeforeParens: ControlStatementsExceptControlMacros
+AttributeMacros: ['ISC_ATTR_COUNTED_BY', 'ISC_ATTR_COUNTED_BY_PTR', 'ISC_ATTR_SIZED_BY_PTR']

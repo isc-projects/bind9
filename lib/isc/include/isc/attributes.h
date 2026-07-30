@@ -25,6 +25,10 @@
 #define __has_attribute(x) 0
 #endif /* __has_attribute */
 
+#ifndef __clang_major__
+#define __clang_major__ 0
+#endif
+
 #if __has_c_attribute(noreturn) && __STDC_VERSION__ >= 202311L
 #define ISC_NORETURN [[noreturn]]
 #else
@@ -117,6 +121,18 @@
 #define ISC_ATTR_COUNTED_BY(x) __attribute__((__counted_by__(x)))
 #else
 #define ISC_ATTR_COUNTED_BY(x)
+#endif
+
+#if __GNUC__ >= 16 || __clang_major__ >= 22
+#define ISC_ATTR_COUNTED_BY_PTR(x) __attribute__((__counted_by__(x)))
+#else
+#define ISC_ATTR_COUNTED_BY_PTR(x)
+#endif
+
+#if __clang_major__ >= 22
+#define ISC_ATTR_SIZED_BY_PTR(x) __attribute__((__sized_by__(x)))
+#else
+#define ISC_ATTR_SIZED_BY_PTR(x)
 #endif
 
 #if __has_attribute(__nonnull__)

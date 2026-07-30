@@ -86,6 +86,8 @@
 
 #include <stdbool.h>
 
+#include <isc/attributes.h>
+
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/types.h>
@@ -105,7 +107,7 @@
  * purpose the client desires.
  */
 struct dns_rdata {
-	unsigned char	*data;
+	unsigned char	*data ISC_ATTR_COUNTED_BY_PTR(length);
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t	 type;
 	uint16_t	 length;

@@ -104,6 +104,7 @@
 #include <stdbool.h>
 
 #include <isc/assertions.h>
+#include <isc/attributes.h>
 #include <isc/endian.h>
 #include <isc/formatcheck.h>
 #include <isc/list.h>
@@ -169,7 +170,7 @@
 
 struct isc_buffer {
 	unsigned int magic;
-	void	    *base;
+	void	    *base ISC_ATTR_SIZED_BY_PTR(length);
 	/*@{*/
 	/*! The following integers are byte offsets from 'base'. */
 	unsigned int length;
