@@ -571,7 +571,6 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	bool first = true;
 	uint32_t current_ttl;
 	bool current_ttl_valid;
-	dns_rdatatype_t type;
 	unsigned int type_start;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
@@ -697,19 +696,12 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		/*
 		 * Type.
 		 */
-
-		if (rdataset->attributes.negative) {
-			type = rdataset->covers;
-		} else {
-			type = rdataset->type;
-		}
-
 		INDENT_TO(type_column);
 		type_start = target->used;
 		if (rdataset->attributes.negative) {
 			RETERR(str_totext("\\-", target));
 		}
-		switch (type) {
+		switch (rdataset->type) {
 		case dns_rdatatype_keydata:
 #define KEYDATA "KEYDATA"
 			if ((ctx->style.flags & DNS_STYLEFLAG_KEYDATA) != 0) {
@@ -726,10 +718,11 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) !=
 			    0)
 			{
-				result = dns_rdatatype_tounknowntext(type,
-								     target);
+				result = dns_rdatatype_tounknowntext(
+					rdataset->type, target);
 			} else {
-				result = dns_rdatatype_totext(type, target);
+				result = dns_rdatatype_totext(rdataset->type,
+							      target);
 			}
 			if (result != ISC_R_SUCCESS) {
 				return result;

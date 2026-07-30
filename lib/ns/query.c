@@ -7367,7 +7367,7 @@ query_respond_any(query_ctx_t *qctx) {
 			dns_rdataset_disassociate(qctx->rdataset);
 		} else if ((qctx->qtype == dns_rdatatype_any ||
 			    qctx->rdataset->type == qctx->qtype) &&
-			   qctx->rdataset->type != 0)
+			   !qctx->rdataset->attributes.negative)
 		{
 			if (qctx->rdataset->attributes.noqname &&
 			    qctx->client->inner.wantdnssec)

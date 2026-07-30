@@ -6546,7 +6546,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 	isc_result_t result;
 	dns_ttl_t minttl = fctx->res->view->minncachettl;
 	dns_ttl_t maxttl = fctx->res->view->maxncachettl;
-	dns_rdatatype_t covers = fctx->type;
+	dns_rdatatype_t rdtype = fctx->type;
 	dns_db_t *cache = fctx->cache;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
@@ -6562,7 +6562,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 	if (message->rcode == dns_rcode_nxdomain &&
 	    fctx->type != dns_rdatatype_ds)
 	{
-		covers = dns_rdatatype_any;
+		rdtype = dns_rdatatype_any;
 	}
 
 	/*
@@ -6570,7 +6570,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 	 * to zero to facilitate locating the containing zone of
 	 * an arbitrary zone.
 	 */
-	if (fctx->type == dns_rdatatype_soa && covers == dns_rdatatype_any &&
+	if (fctx->type == dns_rdatatype_soa && rdtype == dns_rdatatype_any &&
 	    fctx->res->zero_no_soa_ttl)
 	{
 		maxttl = 0;
@@ -6592,7 +6592,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 	 */
 	RETERR(dns_db_findnode(fctx->cache, name, true, &node));
 
-	result = dns_ncache_add(message, cache, node, covers, now, minttl,
+	result = dns_ncache_add(message, cache, node, rdtype, now, minttl,
 				maxttl, optout, secure, added);
 
 	/*
@@ -6605,7 +6605,7 @@ negcache(dns_message_t *message, fetchctx_t *fctx, const dns_name_t *name,
 		 * We got the same negative type that we were adding, everything
 		 * is fine, continue.
 		 */
-		if (NEGATIVE(added) && added->covers == covers) {
+		if (NEGATIVE(added) && added->type == rdtype) {
 			result = ISC_R_SUCCESS;
 		} else {
 			dns_rdataset_disassociate(added);

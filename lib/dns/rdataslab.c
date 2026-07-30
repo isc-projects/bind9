@@ -196,11 +196,12 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 
 	/*
 	 * If there are no rdata then we just need to allocate a header
-	 * with a zero record count.
+	 * with a zero record count.  Only a negative cache entry (e.g.
+	 * an uncacheable NODATA proof) may be empty.
 	 */
 	nitems = dns_rdataset_count(rdataset);
 	if (nitems == 0) {
-		if (rdataset->type != 0) {
+		if (!rdataset->attributes.negative) {
 			return ISC_R_FAILURE;
 		}
 		(void)newslab(rdataset, mctx, region, 0, buflen, func, file,
@@ -301,9 +302,13 @@ makeslab(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	}
 
 	/*
-	 * Ensure that singleton types are actually singletons.
+	 * Ensure that singleton types are actually singletons.  The check
+	 * doesn't apply to a negative cache entry: it stores ncache-encoded
+	 * records rather than RRs of 'rdataset->type'.
 	 */
-	if (nitems > 1 && dns_rdatatype_issingleton(rdataset->type)) {
+	if (nitems > 1 && !rdataset->attributes.negative &&
+	    dns_rdatatype_issingleton(rdataset->type))
+	{
 		/*
 		 * We have a singleton type, but there's more than one
 		 * RR in the rdataset.
@@ -370,18 +375,10 @@ dns_rdataslab__fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	}
 
 	dns_slabheader_t *header = (dns_slabheader_t *)region->base;
-	if (rdataset->attributes.negative) {
-		INSIST(rdataset->type == dns_rdatatype_none);
-		INSIST(rdataset->covers != dns_rdatatype_none);
-		header->typepair = DNS_TYPEPAIR_VALUE(rdataset->covers,
-						      dns_rdatatype_none);
-	} else {
-		INSIST(rdataset->type != dns_rdatatype_none);
-		INSIST(dns_rdatatype_issig(rdataset->type) ||
-		       rdataset->covers == dns_rdatatype_none);
-		header->typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
-						      rdataset->covers);
-	}
+	INSIST(rdataset->type != dns_rdatatype_none);
+	INSIST(dns_rdatatype_issig(rdataset->type) ||
+	       rdataset->covers == dns_rdatatype_none);
+	header->typepair = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers);
 
 	return ISC_R_SUCCESS;
 }
