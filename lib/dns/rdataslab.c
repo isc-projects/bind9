@@ -72,8 +72,6 @@ static void
 rdataset_expire(dns_rdataset_t *rdataset DNS__DB_FLARG);
 static void
 rdataset_clearprefetch(dns_rdataset_t *rdataset);
-static void
-rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
 static dns_slabheader_t *
 rdataset_getheader(const dns_rdataset_t *rdataset);
 
@@ -88,7 +86,6 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.settrust = rdataset_settrust,
 	.expire = rdataset_expire,
 	.clearprefetch = rdataset_clearprefetch,
-	.getownercase = rdataset_getownercase,
 };
 
 static void
@@ -792,34 +789,6 @@ rdataset_clearprefetch(dns_rdataset_t *rdataset) {
 	dns_slabheader_t *header = rdataset_getheader(rdataset);
 
 	DNS_SLABHEADER_CLRATTR(header, DNS_SLABHEADERATTR_PREFETCH);
-}
-
-static void
-rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
-	dns_slabheader_t *header = rdataset_getheader(rdataset);
-	uint8_t mask = (1 << 7);
-	uint8_t bits = 0;
-
-	if (!CASESET(header)) {
-		return;
-	}
-
-	if (CASEFULLYLOWER(header)) {
-		isc_ascii_lowercopy(name->ndata, name->ndata, name->length);
-		return;
-	}
-
-	uint8_t *nd = name->ndata;
-	for (size_t i = 0; i < name->length; i++) {
-		if (mask == (1 << 7)) {
-			bits = header->upper[i / 8];
-			mask = 1;
-		} else {
-			mask <<= 1;
-		}
-		nd[i] = (bits & mask) ? isc_ascii_toupper(nd[i])
-				      : isc_ascii_tolower(nd[i]);
-	}
 }
 
 static dns_slabheader_t *

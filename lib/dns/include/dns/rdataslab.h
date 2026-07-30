@@ -95,13 +95,6 @@ struct dns_slabheader {
 	 */
 	dns_dbnode_t *node;
 
-	/*%
-	 * Case vector.  If the bit is set then the corresponding
-	 * character in the owner name needs to be AND'd with 0x20,
-	 * rendering that character upper case.
-	 */
-	unsigned char upper[32];
-
 	/* Used for stale refresh */
 	_Atomic(isc_stdtime_t) last_refresh_fail_ts;
 
