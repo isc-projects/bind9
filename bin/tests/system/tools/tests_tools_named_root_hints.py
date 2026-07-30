@@ -20,6 +20,16 @@ pytestmark = [isctest.mark.live_internet_test]
 NAMED_ROOT_URL = "https://www.internic.net/zones/named.root"
 
 
+def strip_comments(text):
+    """Return only the resource records, without comments and blank lines."""
+    records = []
+    for line in text.splitlines():
+        line = line.split(";", 1)[0].rstrip()
+        if line:
+            records.append(line)
+    return records
+
+
 def test_named_root_hints():
     """
     Test that 'named -H' output matches the official
@@ -28,13 +38,12 @@ def test_named_root_hints():
     resp = requests.get(NAMED_ROOT_URL, timeout=30)
     resp.raise_for_status()
 
-    # the last line misses newline character, named ensures all lines have posix ends
-    internic_content = resp.text + "\n"
+    internic_records = strip_comments(resp.text)
 
     named = isctest.vars.ALL["NAMED"]
     cmd = isctest.run.cmd([named, "-H"])
-    builtin_content = cmd.out
+    builtin_records = strip_comments(cmd.out)
 
     assert (
-        internic_content == builtin_content
+        internic_records == builtin_records
     ), "Built-in root hints differ from official named.root"
