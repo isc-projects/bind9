@@ -16,7 +16,7 @@
 #include <isc/safe.h>
 
 int
-isc_safe_memequal(const void *s1, const void *s2, size_t len) {
+isc_safe_memequal(const void *const s1, const void *const s2, size_t len) {
 	return !CRYPTO_memcmp(s1, s2, len);
 }
 

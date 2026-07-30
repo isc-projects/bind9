@@ -146,3 +146,9 @@
 #else /* if __GNUC__ >= 8 && !defined(__clang__) */
 #define ISC_NONSTRING
 #endif /* __GNUC__ */
+
+#if __has_attribute(access)
+#define ISC_ATTR_ACCESS(...) __attribute__((access(__VA_ARGS__)))
+#else
+#define ISC_ATTR_ACCESS(...)
+#endif

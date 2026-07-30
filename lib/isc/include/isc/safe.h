@@ -13,10 +13,13 @@
 
 #pragma once
 
+#include <isc/attributes.h>
+
 /*! \file isc/safe.h */
 
 int
-isc_safe_memequal(const void *, const void *, size_t);
+isc_safe_memequal(const void *const, const void *const, size_t)
+	ISC_ATTR_ACCESS(read_only, 1, 3) ISC_ATTR_ACCESS(read_only, 2, 3);
 
 /*%<
  * Returns true iff. two blocks of memory are equal, otherwise
@@ -25,7 +28,7 @@ isc_safe_memequal(const void *, const void *, size_t);
  */
 
 void
-isc_safe_memwipe(void *, size_t);
+isc_safe_memwipe(void *, size_t) ISC_ATTR_ACCESS(write_only, 1, 2);
 
 /*%<
  * Clear the memory of length `len` pointed to by `ptr`.

@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include <isc/attributes.h>
 #include <isc/types.h>
 
 /*
@@ -127,7 +128,8 @@ struct isc_time {
 extern const isc_time_t *const isc_time_epoch;
 
 void
-isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
+isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds)
+	ISC_ATTR_ACCESS(write_only, 1);
 /*%<
  * Set 't' to a value which represents the given number of seconds and
  * nanoseconds since 00:00:00 January 1, 1970, UTC.
@@ -146,7 +148,7 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds);
  */
 
 void
-isc_time_settoepoch(isc_time_t *t);
+isc_time_settoepoch(isc_time_t *t) ISC_ATTR_ACCESS(write_only, 1);
 /*%<
  * Set 't' to the time of the epoch.
  *
@@ -257,7 +259,9 @@ isc_time_compare(const isc_time_t *t1, const isc_time_t *t2);
  */
 
 isc_result_t
-isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result);
+isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result)
+	ISC_ATTR_ACCESS(read_only, 1) ISC_ATTR_ACCESS(read_only, 2)
+	ISC_ATTR_ACCESS(write_only, 3);
 /*%<
  * Add 'i' to 't', storing the result in 'result'.
  *
