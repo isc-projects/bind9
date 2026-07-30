@@ -381,7 +381,7 @@ ISC_RUN_TEST_IMPL(dnsasm_multiple_messages_test) {
 	verify_cbdata_t cbdata = { 0 };
 	size_t verified = 0;
 
-	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_initnull(&dnsbuf);
 	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
 	isc_buffer_putmem(&dnsbuf, (void *)response, sizeof(response));
@@ -463,7 +463,7 @@ ISC_RUN_TEST_IMPL(dnsasm_error_data_test) {
 	isc_buffer_t dnsbuf;
 	uint16_t bad_data = 0;
 
-	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_initnull(&dnsbuf);
 	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
@@ -517,7 +517,7 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 	};
 	const size_t npackets = sizeof(packets) / sizeof(packets[0]);
 
-	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_initnull(&dnsbuf);
 	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	for (size_t i = 0; i < npackets; i++) {
@@ -599,7 +599,7 @@ ISC_RUN_TEST_IMPL(dnsasm_clear_buffer_within_cb_test) {
 	size_t verified = 0;
 	isc_buffer_t dnsbuf;
 
-	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_initnull(&dnsbuf);
 	isc_buffer_setmctx(&dnsbuf, isc_g_mctx);
 
 	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));

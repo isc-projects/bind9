@@ -152,3 +152,9 @@
 #else
 #define ISC_ATTR_ACCESS(...)
 #endif
+
+#if __has_attribute(diagnose_if)
+#define ISC_ATTR_DIAGNOSE_IF(...) __attribute__((diagnose_if(__VA_ARGS__)))
+#else
+#define ISC_ATTR_DIAGNOSE_IF(...)
+#endif
