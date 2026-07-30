@@ -114,13 +114,12 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	memset(buffer, 0, DNS_NSEC_BUFFERSIZE);
 	dns_name_toregion(nextname, &r);
 	memmove(buffer, r.base, r.length);
-	r.base = buffer;
 	/*
 	 * Use the end of the space for a raw bitmap leaving enough
 	 * space for the window identifiers and length octets.
 	 */
-	bm = r.base + r.length + 512;
-	nsec_bits = r.base + r.length;
+	bm = buffer + r.length + 512;
+	nsec_bits = buffer + r.length;
 	dns_nsec_setbit(bm, dns_rdatatype_rrsig, 1);
 	dns_nsec_setbit(bm, dns_rdatatype_nsec, 1);
 	max_type = dns_rdatatype_nsec;
@@ -158,7 +157,10 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 	nsec_bits += dns_nsec_compressbitmap(nsec_bits, bm, max_type);
 
-	r.length = (unsigned int)(nsec_bits - r.base);
+	r = (isc_region_t){
+		.base = buffer,
+		.length = (unsigned int)(nsec_bits - buffer),
+	};
 	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata, dns_db_class(db), dns_rdatatype_nsec, &r);
 

@@ -95,15 +95,17 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	memmove(p, nexthash, hash_length);
 	p += hash_length;
 
-	r.length = (unsigned int)(p - buffer);
-	r.base = buffer;
+	r = (isc_region_t){
+		.base = buffer,
+		.length = (unsigned int)(p - buffer),
+	};
 
 	/*
 	 * Use the end of the space for a raw bitmap leaving enough
 	 * space for the window identifiers and length octets.
 	 */
-	bm = r.base + r.length + 512;
-	nsec_bits = r.base + r.length;
+	bm = buffer + r.length + 512;
+	nsec_bits = buffer + r.length;
 	max_type = 0;
 	if (node == NULL) {
 		goto collapse_bitmap;

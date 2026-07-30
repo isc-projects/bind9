@@ -179,15 +179,16 @@ get_direction(isc_lex_t *lexer, isc_token_t *token, const char *directions,
 	      int *direction) {
 	RETERR(isc_lex_getmastertoken(lexer, token, isc_tokentype_string,
 				      false));
+
 	if (DNS_AS_STR(*token)[0] == directions[1] &&
-	    DNS_AS_STR(*token)[1] == 0)
+	    token->value.as_textregion.length == 1)
 	{
 		*direction = DNS_AS_STR(*token)[0];
 		return ISC_R_SUCCESS;
 	}
 
 	if (DNS_AS_STR(*token)[0] == directions[0] &&
-	    DNS_AS_STR(*token)[1] == 0)
+	    token->value.as_textregion.length == 1)
 	{
 		*direction = DNS_AS_STR(*token)[0];
 		return ISC_R_SUCCESS;

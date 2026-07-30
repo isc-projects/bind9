@@ -34,7 +34,7 @@ fromtext_in_dhcid(ARGS_FROMTEXT) {
 
 static isc_result_t
 totext_in_dhcid(ARGS_TOTEXT) {
-	isc_region_t sr, sr2;
+	isc_region_t sr;
 	/* " ; 64000 255 64000" */
 	char buf[5 + 3 * 11 + 1];
 
@@ -43,7 +43,6 @@ totext_in_dhcid(ARGS_TOTEXT) {
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
-	sr2 = sr;
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext("( " /*)*/, target));
@@ -58,8 +57,8 @@ totext_in_dhcid(ARGS_TOTEXT) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {
 			snprintf(buf, sizeof(buf), " ; %u %u %u",
-				 sr2.base[0] * 256U + sr2.base[1], sr2.base[2],
-				 rdata->length - 3U);
+				 rdata->data[0] * 256U + rdata->data[1],
+				 rdata->data[2], rdata->length - 3U);
 			RETERR(str_totext(buf, target));
 		}
 	}

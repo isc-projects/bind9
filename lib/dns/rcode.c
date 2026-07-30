@@ -369,16 +369,14 @@ dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
 void
 dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
 	isc_buffer_t b;
-	isc_region_t r;
 	isc_result_t result;
 
 	REQUIRE(cp != NULL && size > 0);
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_secalg_totext(alg, &b);
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[isc_buffer_usedlength(&b)] = 0;
 	if (result != ISC_R_SUCCESS) {
-		r.base[0] = 0;
+		cp[0] = 0;
 	}
 }
 
@@ -405,7 +403,7 @@ dns_privatedns_format(dst_algorithm_t alg, char *cp, unsigned int size) {
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_privatedns_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
 		r.base[0] = 0;
 	}
@@ -434,7 +432,7 @@ dns_privateoid_format(dst_algorithm_t alg, char *cp, unsigned int size) {
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_privateoid_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
 		r.base[0] = 0;
 	}
@@ -538,7 +536,7 @@ dns_dsdigest_format(dns_dsdigest_t typ, char *cp, unsigned int size) {
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_dsdigest_totext(typ, &b);
 	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
 		r.base[0] = 0;
 	}
@@ -573,7 +571,7 @@ dns_dsyncscheme_format(dns_dsyncscheme_t scheme, char *cp, unsigned int size) {
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_dsyncscheme_totext(scheme, &b);
 	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
 		r.base[0] = 0;
 	}
@@ -725,7 +723,7 @@ dst_algorithm_format(dst_algorithm_t alg, char *cp, unsigned int size) {
 	isc_buffer_init(&b, cp, size - 1);
 	result = dst_algorithm_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
+	cp[r.length] = 0;
 	if (result != ISC_R_SUCCESS) {
 		r.base[0] = 0;
 	}
