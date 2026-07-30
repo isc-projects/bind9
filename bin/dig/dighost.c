@@ -4703,6 +4703,7 @@ idn_filter(isc_buffer_t *buffer, unsigned int start) {
 	char *dst = NULL;
 	size_t srclen, dstlen;
 	int res;
+	isc_result_t result;
 
 	/*
 	 * Copy name from 'buffer' to 'src' and terminate it with NULL.
@@ -4722,7 +4723,7 @@ idn_filter(isc_buffer_t *buffer, unsigned int start) {
 	}
 	resetlocale(LC_ALL);
 	if (res != IDN2_OK) {
-		return ISC_R_SUCCESS;
+		CLEANUP(ISC_R_SUCCESS);
 	}
 
 	/*
@@ -4730,14 +4731,18 @@ idn_filter(isc_buffer_t *buffer, unsigned int start) {
 	 */
 	dstlen = strlen(dst);
 	if (isc_buffer_length(buffer) < start + dstlen) {
-		return ISC_R_NOSPACE;
+		CLEANUP(ISC_R_NOSPACE);
 	}
 	isc_buffer_subtract(buffer, srclen);
 	memmove(isc_buffer_used(buffer), dst, dstlen);
 	isc_buffer_add(buffer, dstlen);
 
-	idn2_free(dst);
-	return ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
+cleanup:
+	if (dst != NULL) {
+		idn2_free(dst);
+	}
+	return result;
 }
 
 /*%
