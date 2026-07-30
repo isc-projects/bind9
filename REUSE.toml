@@ -173,6 +173,7 @@ path = [
 	".readthedocs.yaml",
 	".tsan-suppress",
 	".uncrustify.cfg",
+	"ci/*.ini",
 	"contrib/gitchangelog/changelog.rc.py",
 	"contrib/gitchangelog/relnotes.rc.py",
 	"doc/misc/**.zoneopt",

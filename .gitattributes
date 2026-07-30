@@ -19,7 +19,10 @@ dangerfile.py			 export-ignore
 /.mailmap			 export-ignore
 /.reuse				 export-ignore
 /.reuse/**			 export-ignore
-/ci				 export-ignore
+/ci/**				 export-ignore
+/ci/common.ini			-export-ignore
+/ci/tarball.ini			-export-ignore
+/ci/tarball-nosphinx.ini	-export-ignore
 /cocci				 export-ignore
 /cocci/**			 export-ignore
 /conftools			 export-ignore
