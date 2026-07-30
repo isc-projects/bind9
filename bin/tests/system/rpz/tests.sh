@@ -581,8 +581,8 @@ ckstats $ns5 test1 ns5 0
 ckstats $ns6 test1 ns6 0
 
 start_group "IP rewrites" test2
-msg='rpz IP address "128.2.0.0.0.0.3.2.2001" is not the canonical "128.2.zz.3.2.2001"'
-grep "$msg" ns3/named.run >/dev/null || setret "expected 'is not the canonical' message not logged"
+msg='invalid rpz IP address "128.2.0.0.0.0.3.2.2001.rpz-ip.bl" is not in canonical form 128.2.zz.3.2.2001.rpz-nsdname.bl'
+grep "$msg" ns3/named.run >/dev/null || setret "expected 'not in canonical form' message not logged"
 nodata a3-1.tld2                    # 1 NODATA
 nochange a3-2.tld2                  # 2 no policy record so no change
 nochange a4-1.tld2                  # 3 obsolete PASSTHRU record style

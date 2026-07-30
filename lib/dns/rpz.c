@@ -1010,29 +1010,24 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	}
 
 	/*
-	 * Complain about bad names but be generous and accept them.
+	 * Convert the address back to a canonical domain name
+	 * to ensure that the original name is in canonical form.
 	 */
-	if (log_level < DNS_RPZ_DEBUG_QUIET &&
-	    isc_log_wouldlog(dns_lctx, log_level))
-	{
-		/*
-		 * Convert the address back to a canonical domain name
-		 * to ensure that the original name is in canonical form.
-		 */
-		dns_name_t *ip_name2 = dns_fixedname_initname(&ip_name2f);
-		result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num, NULL,
-				 ip_name2);
-		if (result != ISC_R_SUCCESS ||
-		    !dns_name_equal(&ip_name, ip_name2))
-		{
-			char ip2_str[DNS_NAME_FORMATSIZE];
-			dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-				      DNS_LOGMODULE_RBTDB, log_level,
-				      "rpz IP address \"%s\""
-				      " is not the canonical \"%s\"",
-				      ip_str, ip2_str);
+	dns_name_t *ip_name2 = dns_fixedname_initname(&ip_name2f);
+	result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num, NULL, ip_name2);
+	if (result != ISC_R_SUCCESS || !dns_name_equal(&ip_name, ip_name2)) {
+		char ip2_str[DNS_NAME_FORMATSIZE];
+		if (rpz_type == DNS_RPZ_TYPE_QNAME) {
+			dns_name_concatenate(ip_name2, &rpz->origin, ip_name2,
+					     NULL);
+		} else {
+			dns_name_concatenate(ip_name2, &rpz->nsdname, ip_name2,
+					     NULL);
 		}
+		dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
+		badname(log_level, src_name, " is not in canonical form ",
+			ip2_str);
+		return ISC_R_FAILURE;
 	}
 
 	return ISC_R_SUCCESS;
