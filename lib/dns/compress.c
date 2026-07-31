@@ -346,6 +346,7 @@ dns_decompress_init(dns_decompress_t *dctx, int edns,
 	dctx->allowed = DNS_COMPRESS_NONE;
 	dctx->edns = edns;
 	dctx->type = type;
+	dctx->budget = UINT32_MAX;
 	dctx->magic = DCTX_MAGIC;
 }
 
