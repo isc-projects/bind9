@@ -92,6 +92,7 @@ struct dns_decompress {
 	unsigned int	     allowed; /*%< Allowed methods. */
 	int		     edns;    /*%< Edns version or -1. */
 	dns_decompresstype_t type;    /*%< Strict checking */
+	uint32_t budget; /*%< Compression pointers left to follow. */
 };
 
 isc_result_t
@@ -242,6 +243,8 @@ dns_decompress_init(dns_decompress_t *dctx, int edns,
 /*%<
  *	Initializes 'dctx'.
  *	Records 'edns' and 'type' into the structure.
+ *	Initializes the pointer budget to UINT32_MAX; message parsing
+ *	sets a budget based on the message length.
  *
  *	Requires:
  *\li		'dctx' to be a valid pointer.
