@@ -92,7 +92,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
+	       dns_rdatatype_t rdtype, isc_stdtime_t now, dns_ttl_t minttl,
 	       dns_ttl_t maxttl, bool optout, bool secure,
 	       dns_rdataset_t *addedrdataset) {
 	isc_buffer_t buffer;
@@ -126,7 +126,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	 */
 	dns_rdatalist_init(&ncrdatalist);
 	ncrdatalist.rdclass = dns_db_class(cache);
-	ncrdatalist.covers = covers;
+	ncrdatalist.type = rdtype;
+	ncrdatalist.covers = dns_rdatatype_none;
 	ncrdatalist.ttl = maxttl;
 
 	/*
@@ -257,7 +258,8 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 	 */
 
 	REQUIRE(rdataset != NULL);
-	REQUIRE(rdataset->type == dns_rdatatype_none);
+	REQUIRE(rdataset->type != dns_rdatatype_none);
+	REQUIRE(rdataset->covers == dns_rdatatype_none);
 	REQUIRE(rdataset->attributes.negative);
 
 	savedbuffer = *target;
@@ -474,7 +476,8 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(DNS_RDATASET_VALID(ncacherdataset));
-	REQUIRE(ncacherdataset->type == dns_rdatatype_none);
+	REQUIRE(ncacherdataset->type != dns_rdatatype_none);
+	REQUIRE(ncacherdataset->covers == dns_rdatatype_none);
 	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
@@ -540,7 +543,8 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	unsigned int count;
 
 	REQUIRE(ncacherdataset != NULL);
-	REQUIRE(ncacherdataset->type == dns_rdatatype_none);
+	REQUIRE(ncacherdataset->type != dns_rdatatype_none);
+	REQUIRE(ncacherdataset->covers == dns_rdatatype_none);
 	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
@@ -625,7 +629,8 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 	unsigned char *raw;
 
 	REQUIRE(ncacherdataset != NULL);
-	REQUIRE(ncacherdataset->type == dns_rdatatype_none);
+	REQUIRE(ncacherdataset->type != dns_rdatatype_none);
+	REQUIRE(ncacherdataset->covers == dns_rdatatype_none);
 	REQUIRE(ncacherdataset->attributes.negative);
 	REQUIRE(found != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));

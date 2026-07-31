@@ -1360,10 +1360,9 @@ dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  * Notes:
  *
  * \li	In a cache database, a negative cache entry is stored under the
- *	type it covers.  Passing 'type' == dns_rdatatype_none with 'covers'
- *	set (the shape in which rdataset iterators return negative entries)
- *	deletes the cache entry for the covered type, whether it is positive
- *	or negative.
+ *	type whose nonexistence it proves (dns_rdatatype_any for NXDOMAIN
+ *	and NODATA(QTYPE=ANY) entries), so deleting 'type' removes the
+ *	cache entry for that type whether it is positive or negative.
  *
  * Requires:
  *

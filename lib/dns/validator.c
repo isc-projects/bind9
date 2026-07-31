@@ -902,21 +902,21 @@ validator_callback_ds(void *arg) {
 	}
 
 	switch (result) {
-	case ISC_R_SUCCESS:
-		validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
-			      val->frdataset.type == dns_rdatatype_ds
-				      ? "dsset"
-				      : "ds non-existence",
-			      dns_trust_totext(val->frdataset.trust));
-		bool have_dsset = (val->frdataset.type == dns_rdatatype_ds);
+	case ISC_R_SUCCESS: {
+		bool have_dsset = !NEGATIVE(&val->frdataset) &&
+				  val->frdataset.type == dns_rdatatype_ds;
 		dns_name_t *name = dns_fixedname_name(&val->fname);
+
+		validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
+			      have_dsset ? "dsset" : "ds non-existence",
+			      dns_trust_totext(val->frdataset.trust));
 
 		if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			bool crossed = false;
 			bool insecure = false;
 
-			if (val->frdataset.covers == dns_rdatatype_ds &&
-			    NEGATIVE(&val->frdataset))
+			if (NEGATIVE(&val->frdataset) &&
+			    val->frdataset.type == dns_rdatatype_ds)
 			{
 				insecure = is_insecure_referral(
 					val, name, &val->frdataset,
@@ -942,6 +942,7 @@ validator_callback_ds(void *arg) {
 			result = validate_async_run(val, validate_dnskey);
 		}
 		break;
+	}
 	case ISC_R_CANCELED:	 /* Validation was canceled */
 	case ISC_R_SHUTTINGDOWN: /* Server shutting down */
 	case ISC_R_QUOTA:	 /* Validation fails quota reached */
@@ -3931,7 +3932,7 @@ validator_start(void *arg) {
 		default:
 			UNREACHABLE();
 		}
-	} else if (val->rdataset != NULL && val->rdataset->type != 0) {
+	} else if (val->rdataset != NULL && !NEGATIVE(val->rdataset)) {
 		/*
 		 * This is either an unsecure subdomain or a response
 		 * from a broken server.

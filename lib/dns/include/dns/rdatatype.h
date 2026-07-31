@@ -18,9 +18,8 @@
 #include <dns/types.h>
 
 #if DNS_TYPEPAIR_CHECK
-#define DNS__TYPEPAIR_CHECK(base, covers)                                      \
-	INSIST((dns_rdatatype_issig(base) && covers != dns_rdatatype_none) ||  \
-	       (base == dns_rdatatype_none && covers != dns_rdatatype_none) || \
+#define DNS__TYPEPAIR_CHECK(base, covers)                                     \
+	INSIST((dns_rdatatype_issig(base) && covers != dns_rdatatype_none) || \
 	       (base != dns_rdatatype_none && covers == dns_rdatatype_none))
 #else
 #define DNS__TYPEPAIR_CHECK(base, covers) (void)(base), (void)(covers)

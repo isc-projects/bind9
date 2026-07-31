@@ -677,7 +677,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 			while (tresult == ISC_R_SUCCESS) {
 				dns_rdatasetiter_current(rdsiter,
 							 rctx->rdataset);
-				if (rctx->rdataset->type != 0) {
+				if (!rctx->rdataset->attributes.negative) {
 					ISC_LIST_APPEND(ansname->list,
 							rctx->rdataset, link);
 					n++;

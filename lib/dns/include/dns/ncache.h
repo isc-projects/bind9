@@ -53,7 +53,7 @@
 
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t minttl,
+	       dns_rdatatype_t rdtype, isc_stdtime_t now, dns_ttl_t minttl,
 	       dns_ttl_t maxttl, bool optout, bool secure,
 	       dns_rdataset_t *addedrdataset);
 /*%<
@@ -67,7 +67,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
  * \li If 'secure' is false, the negative cache entry's trust level
  *     will be capped at answer.
  *
- * The 'covers' argument is the RR type whose nonexistence we are caching,
+ * The 'rdtype' argument is the RR type whose nonexistence we are caching,
  * or dns_rdatatype_any when caching a NXDOMAIN response.
  *
  * 'optout' parameter indicates if 'optout' attribute should be set.  This only

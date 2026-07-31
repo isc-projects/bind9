@@ -352,27 +352,19 @@ dns_rdatavec_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	result = makevec(rdataset, mctx, region, maxrrperset);
 	if (result == ISC_R_SUCCESS) {
 		dns_vecheader_t *new = (dns_vecheader_t *)region->base;
-		dns_typepair_t typepair;
 
-		if (rdataset->attributes.negative) {
-			INSIST(rdataset->type == dns_rdatatype_none);
-			INSIST(rdataset->covers != dns_rdatatype_none);
-			typepair = DNS_TYPEPAIR_VALUE(rdataset->covers,
-						      dns_rdatatype_none);
-		} else {
-			INSIST(rdataset->type != dns_rdatatype_none);
-			INSIST(dns_rdatatype_issig(rdataset->type) ||
-			       rdataset->covers == dns_rdatatype_none);
-			typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
-						      rdataset->covers);
-		}
+		INSIST(!rdataset->attributes.negative);
+		INSIST(rdataset->type != dns_rdatatype_none);
+		INSIST(dns_rdatatype_issig(rdataset->type) ||
+		       rdataset->covers == dns_rdatatype_none);
 
 		/*
 		 * Reset the vecheader content, but keep the refcount and mctx.
 		 */
 		*new = (dns_vecheader_t){
 			.next_header = ISC_SLINK_INITIALIZER,
-			.typepair = typepair,
+			.typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
+						       rdataset->covers),
 			.trust = rdataset->trust,
 			.ttl = rdataset->ttl,
 			.references = atomic_load_acquire(&new->references),

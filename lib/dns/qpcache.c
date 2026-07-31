@@ -920,19 +920,8 @@ bindrdataset(qpcache_t *qpdb, qpcnode_t *node, dns_slabheader_t *header,
 
 	rdataset->methods = &dns_rdataslab_rdatasetmethods;
 	rdataset->rdclass = qpdb->common.rdclass;
-	if (NEGATIVE(header)) {
-		/*
-		 * Convert the internal represetation of a negative record
-		 * to the rdataset representation (type=0, covers=type).
-		 */
-		rdataset->type = dns_rdatatype_none;
-		rdataset->covers = DNS_TYPEPAIR_TYPE(header->typepair);
-		INSIST(DNS_TYPEPAIR_COVERS(header->typepair) ==
-		       dns_rdatatype_none);
-	} else {
-		rdataset->type = DNS_TYPEPAIR_TYPE(header->typepair);
-		rdataset->covers = DNS_TYPEPAIR_COVERS(header->typepair);
-	}
+	rdataset->type = DNS_TYPEPAIR_TYPE(header->typepair);
+	rdataset->covers = DNS_TYPEPAIR_COVERS(header->typepair);
 	rdataset->ttl = !ZEROTTL(header) ? header->expire - now : 0;
 	rdataset->trust = header_trust(header);
 	rdataset->resign = 0;
@@ -1433,8 +1422,14 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_slabheader_t *nsecheader = NULL, *nsecsig = NULL;
 	dns_typepair_t typepair = DNS_TYPEPAIR(type);
 
-	if (type == dns_rdatatype_none) {
-		/* We can't search negative cache directly */
+	/*
+	 * Meta-types can't exist in the cache, with the sole exception
+	 * of ANY, which matches any type at the node (both ANY and
+	 * RRSIG queries are looked up as ANY).
+	 */
+	if (type == dns_rdatatype_none ||
+	    (dns_rdatatype_ismeta(type) && type != dns_rdatatype_any))
+	{
 		return ISC_R_NOTFOUND;
 	}
 
@@ -1739,7 +1734,10 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	qpcache_t *qpdb = (qpcache_t *)db;
 	qpcnode_t *qpnode = (qpcnode_t *)node;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
-	dns_typepair_t typepair, sigpair;
+	dns_typepair_t typepair = DNS_TYPEPAIR_VALUE(type, covers);
+	dns_typepair_t sigpair = !dns_rdatatype_issig(type)
+					 ? DNS_SIGTYPEPAIR(type)
+					 : dns_typepair_none;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_rwlock_t *nlock = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -1752,17 +1750,18 @@ qpcache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(version == NULL);
 	REQUIRE(type != dns_rdatatype_any);
 
-	if (type == dns_rdatatype_none) {
-		/* We can't search negative cache directly */
+	/*
+	 * Meta-types can't exist in the cache, with the sole
+	 * exception of ANY, which records the nonexistence of all
+	 * types at the node (NXDOMAIN or NODATA(QTYPE=ANY) proof),
+	 * but can't be looked up using this function.
+	 */
+	if (type == dns_rdatatype_none || dns_rdatatype_ismeta(type)) {
 		return ISC_R_NOTFOUND;
 	}
 
 	nlock = &qpdb->buckets[qpnode->locknum].lock;
 	NODE_RDLOCK(nlock, &nlocktype);
-
-	typepair = DNS_TYPEPAIR_VALUE(type, covers);
-	sigpair = (type != dns_rdatatype_rrsig) ? DNS_SIGTYPEPAIR(type)
-						: dns_typepair_none;
 
 	DNS_SLABHEADER_FOREACH(tmp, &qpnode->headers) {
 		dns_slabheader_t *header = NULL, *sigheader = NULL;
@@ -2649,6 +2648,20 @@ qpcache_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_QPDB(qpdb));
 	REQUIRE(version == NULL);
 
+	/*
+	 * Meta-types can't be added to the cache, with the sole
+	 * exception of a negative ANY entry, which records the
+	 * nonexistence of all types at the node (NXDOMAIN or
+	 * NODATA(QTYPE=ANY) proof).
+	 */
+	if (rdataset->type == dns_rdatatype_none ||
+	    (dns_rdatatype_ismeta(rdataset->type) &&
+	     !(rdataset->type == dns_rdatatype_any &&
+	       rdataset->attributes.negative)))
+	{
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
 	result = dns_rdataslab_fromrdataset(rdataset, qpnode->mctx, &region,
 					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
@@ -2774,19 +2787,15 @@ qpcache_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 	REQUIRE(VALID_QPDB(qpdb));
 	REQUIRE(version == NULL);
 
-	/* Positive ANY type can't be in the cache. */
-	if (type == dns_rdatatype_any) {
-		return ISC_R_NOTIMPLEMENTED;
-	}
-
 	/*
-	 * Convert the rdataset representation of a negative record
-	 * (type=0, covers=type) to the internal representation (the
-	 * other way around).
+	 * Type none can't exist in the cache; note that type ANY is
+	 * a valid argument here because it matches the negative cache
+	 * entry left behind by an NXDOMAIN or NODATA(QTYPE=ANY) response.
 	 */
-	if (type == dns_rdatatype_none && covers != dns_rdatatype_none) {
-		type = covers;
-		covers = dns_rdatatype_none;
+	if (type == dns_rdatatype_none ||
+	    (dns_rdatatype_ismeta(type) && type != dns_rdatatype_any))
+	{
+		return ISC_R_NOTIMPLEMENTED;
 	}
 
 	typepair = DNS_TYPEPAIR_VALUE(type, covers);
