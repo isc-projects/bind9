@@ -86,7 +86,7 @@
 
 #define ARGS_FROMWIRE                                            \
 	int rdclass, dns_rdatatype_t type, isc_buffer_t *source, \
-		dns_decompress_t dctx, isc_buffer_t *target
+		dns_decompress_t *dctx, isc_buffer_t *target
 
 #define CALL_FROMWIRE rdclass, type, source, dctx, target
 
@@ -591,7 +591,7 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 		dns_fixedname_t fixed;
 
 		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
-					 DNS_DECOMPRESS_NEVER, NULL));
+					 NULL, NULL));
 	} else if (alg == DNS_KEYALG_PRIVATEOID) {
 		/*
 		 * Check that we can extract the OID from the start of the
@@ -949,7 +949,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t dctx, isc_buffer_t *target) {
+		   dns_decompress_t *dctx, isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
@@ -974,6 +974,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	activelength = isc_buffer_activelength(source);
 	INSIST(activelength < 65536);
+
+	/* types that allow compression will reset this below */
+	dns_decompress_setpermitted(dctx, false);
 
 	FROMWIRESWITCH
 
@@ -1067,8 +1070,7 @@ rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 	isc_result_t result;
 
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
-	result = dns_rdata_fromwire(NULL, rdclass, type, src,
-				    DNS_DECOMPRESS_NEVER, dest);
+	result = dns_rdata_fromwire(NULL, rdclass, type, src, NULL, dest);
 
 	return result;
 }
