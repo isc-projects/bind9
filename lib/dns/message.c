@@ -119,6 +119,21 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 #define RDATASET_FREEMAX   8 * RDATASET_FILLCOUNT
 
 /*%
+ * How many compression pointers one message may make us follow, per byte
+ * of that message.
+ *
+ * A per-name limit does not bound this on its own: thousands of names can
+ * each stay well inside it while all pointing into one shared chain. The
+ * budget scales with the message rather than being fixed, so that the
+ * messages which legitimately carry very many names - UPDATE, AXFR and
+ * IXFR - are accommodated by construction, since they use about one
+ * pointer per name and the message length already bounds how many names
+ * they can hold. Real traffic stays far below one follow per byte; the
+ * packets in our own test suite peak at a tenth of that.
+ */
+#define DNS_MESSAGE_MAXHOPSPERBYTE 4
+
+/*%
  * Text representation of the different items, for message_totext
  * functions.
  */
@@ -879,6 +894,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	isc_buffer_t *scratch;
 	isc_result_t result;
 	unsigned int tries;
+	uint32_t budget = dctx->budget;
 
 	scratch = currentbuffer(msg);
 
@@ -891,6 +907,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		result = dns_name_fromwire(name, source, dctx, 0, scratch);
 
 		if (result == ISC_R_NOSPACE) {
+			dctx->budget = budget;
 			tries++;
 
 			result = newbuffer(msg, SCRATCHPAD_SIZE);
@@ -916,6 +933,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	isc_result_t result;
 	unsigned int tries;
 	unsigned int trysize;
+	uint32_t budget = dctx->budget;
 
 	scratch = currentbuffer(msg);
 
@@ -936,6 +954,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 					    dctx, 0, scratch);
 
 		if (result == ISC_R_NOSPACE) {
+			dctx->budget = budget;
 			if (tries == 0) {
 				trysize = 2 * rdatalen;
 				if (trysize < SCRATCHPAD_SIZE) {
@@ -1770,6 +1789,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	 * -1 means no EDNS.
 	 */
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dctx.budget = DNS_MESSAGE_MAXHOPSPERBYTE *
+		      isc_buffer_usedlength(&origsource);
 
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 

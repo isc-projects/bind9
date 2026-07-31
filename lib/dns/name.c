@@ -1758,7 +1758,11 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	 *
 	 * The key word is "prior". This says that compression pointers must
 	 * point strictly earlier in the message (before our "marker" variable),
-	 * which is enough to prevent DoS attacks due to compression loops.
+	 * which is enough to prevent compression loops. It is not enough to
+	 * prevent a denial of service, because a pointer that refers to another
+	 * pointer adds no octets to the name, so a chain of them can be walked
+	 * over and over without ever reaching the length limits. The pointer
+	 * branch below therefore also limits how many hops one name may take.
 	 *
 	 * The next important sentence is:
 	 *
@@ -1838,6 +1842,8 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	const uint8_t *marker = start;
 	const uint8_t *cursor = start;
 	const uint8_t *consumed = NULL;
+	uint32_t hops = 0;
+	uint32_t indirects = 0;
 
 	/*
 	 * One iteration per label.
@@ -1855,6 +1861,7 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 			/* and then a step to the ri-i-i-i-i-ight */
 			cursor += label_len;
 			name_len += label_len + 1;
+			indirects = 0;
 			if (name_len > name_max) {
 				return name_max == DNS_NAME_MAXWIRE
 					       ? DNS_R_NAMETOOLONG
@@ -1866,7 +1873,19 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 			return DNS_R_BADLABELTYPE;
 		} else if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) == 0) {
 			return DNS_R_DISALLOWED;
+		} else if (hops++ >= DNS_NAME_MAXHOPS || dctx->budget == 0) {
+			/*
+			 * This name has followed as many pointers as any
+			 * conforming encoder could need, or the message it
+			 * belongs to has: see the note on DNS_NAME_MAXHOPS.
+			 * Pointing backwards is enough to make decompression
+			 * terminate, but not enough to make it cheap, since a
+			 * pointer that refers to another pointer adds no
+			 * octets and so is never caught by the length limits.
+			 */
+			return DNS_R_BADPOINTER;
 		} else if (cursor < source_max) {
+			dctx->budget--;
 			/*
 			 * Compression pointer. Ensure it does not loop.
 			 *
@@ -1879,6 +1898,17 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 			const uint32_t lo = *cursor++;
 			const uint8_t *pointer = source_buf + (256 * hi + lo);
 			if (pointer >= marker) {
+				return DNS_R_BADPOINTER;
+			}
+			/*
+			 * A pointer that lands on another pointer is never
+			 * necessary: see the note on DNS_NAME_MAXINDIRECTS.
+			 * The target is in bounds because it is below the
+			 * marker, which never leaves the active region.
+			 */
+			if (*pointer < 192) {
+				indirects = 0;
+			} else if (++indirects > DNS_NAME_MAXINDIRECTS) {
 				return DNS_R_BADPOINTER;
 			}
 			const uint32_t copy_len = (cursor - 2) - marker;
