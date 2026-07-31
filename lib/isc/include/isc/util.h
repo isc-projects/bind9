@@ -404,6 +404,15 @@ mock_assert(const int result, const char *const expression,
 	} while (0)
 
 /*
+ * Unconditionally jump to the cleanup tag with 'result' set to 'r'.
+ */
+#define CLEANUP(r)            \
+	{                     \
+		result = (r); \
+		goto cleanup; \
+	}
+
+/*
  * Check for ISC_R_SUCCESS and continue if found. For any other
  * result, return the result.
  */
