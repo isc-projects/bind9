@@ -531,42 +531,9 @@ dns_slabheader__reset(dns_slabheader_t *h, dns_dbnode_t *node, const char *func,
 #endif
 }
 
-dns_slabheader_t *
-dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
-		    const char *file, const unsigned int line) {
-	dns_slabheader_t *h = NULL;
-
-	h = isc_mem_get(mctx, sizeof(*h));
-	*h = (dns_slabheader_t){
-		.headers_link = CDS_LIST_HEAD_INIT(h->headers_link),
-		.node = node,
-		.references = ISC_REFCOUNT_INITIALIZER(1),
-		.mctx = isc_mem_ref(mctx),
-		.lrulink = ISC_LINK_INITIALIZER,
-	};
-
-#if DNS_SLABHEADER_TRACE
-	fprintf(stderr,
-		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
-		__func__, func, file, line, isc_tid(), h, h->references);
-#else
-	UNUSED(func);
-	UNUSED(file);
-	UNUSED(line);
-#endif
-
-	return h;
-}
-
 static void
 slabheader_destroy(dns_slabheader_t *header) {
-	unsigned int size;
-
-	if (EXISTS(header)) {
-		size = dns_rdataslab_size(header);
-	} else {
-		size = sizeof(*header);
-	}
+	unsigned int size = dns_rdataslab_size(header);
 
 	if (header->noqname != NULL) {
 		dns_slabheader_freeproof(header->mctx, &header->noqname);

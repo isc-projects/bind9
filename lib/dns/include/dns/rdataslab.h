@@ -128,7 +128,6 @@ ISC_REFCOUNT_DECL(dns_slabheader);
 #endif
 
 enum {
-	DNS_SLABHEADERATTR_NONEXISTENT = 1 << 0,
 	DNS_SLABHEADERATTR_STALE = 1 << 1,
 	DNS_SLABHEADERATTR_IGNORE = 1 << 2,
 	DNS_SLABHEADERATTR_NXDOMAIN = 1 << 3,
@@ -247,16 +246,6 @@ dns_slabheader__reset(dns_slabheader_t *h, dns_dbnode_t *node, const char *func,
 /*%<
  * Reset an rdataslab header 'h' so it can be used to store data in
  * database node 'node'.
- */
-
-#define dns_slabheader_new(mctx, node) \
-	dns_slabheader__new(mctx, node, __func__, __FILE__, __LINE__)
-dns_slabheader_t *
-dns_slabheader__new(isc_mem_t *mctx, dns_dbnode_t *node, const char *func,
-		    const char *file, const unsigned int line);
-/*%<
- * Allocate memory for an rdataslab header and initialize it for use
- * in database node 'node'.
  */
 
 void
