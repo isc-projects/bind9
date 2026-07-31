@@ -108,8 +108,6 @@ fromwire_opt(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	isc_buffer_activeregion(source, &sregion);
 	if (sregion.length == 0) {
 		return ISC_R_SUCCESS;

@@ -269,7 +269,7 @@ fromwire_sig(ARGS_FROMWIRE) {
 	 * RFC 3597 section 4 asks receivers to decompress this type,
 	 * even though senders must not compress it.
 	 */
-	dctx = dns_decompress_setpermitted(dctx, true);
+	dns_decompress_setpermitted(dctx, true);
 
 	isc_buffer_activeregion(source, &sr);
 	/*

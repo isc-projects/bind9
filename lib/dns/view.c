@@ -1998,8 +1998,8 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
 	dns_rdata_init(&rdata);
 	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
-	CHECK(dns_rdata_fromwire(&rdata, view->rdclass, rdtype, databuf,
-				 DNS_DECOMPRESS_NEVER, &b));
+	CHECK(dns_rdata_fromwire(&rdata, view->rdclass, rdtype, databuf, NULL,
+				 &b));
 
 	if (rdtype == dns_rdatatype_ds) {
 		CHECK(dns_rdata_tostruct(&rdata, &ds));

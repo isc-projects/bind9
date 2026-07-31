@@ -17,5 +17,6 @@
  * For verifying no functional change in the rewrite of dns_name_fromwire()
  */
 isc_result_t
-old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
-		  unsigned int options, isc_buffer_t *target);
+old_name_fromwire(dns_name_t *name, isc_buffer_t *source,
+		  dns_decompress_t *dctx, unsigned int options,
+		  isc_buffer_t *target);

@@ -196,35 +196,33 @@ security area and must be paranoid about its input.
         fromwire_typename(dns_rdataclass_t class,
                            dns_rdatatype_t type,
                            isc_buffer_t *source,
-                           dns_decompress_t dctx,
-                           bool downcase,
+                           dns_decompress_t *dctx,
                            isc_buffer_t *target);
 
         static dns_result_t
         fromwire_classname_typename(dns_rdataclass_t class,
                                     dns_rdatatype_t type,
                                     isc_buffer_t *source,
-                                    dns_decompress_t dctx,
-                                    bool downcase,
+                                    dns_decompress_t *dctx,
                                     isc_buffer_t *target);
 
-`fromwire_classname_typename()` is required to set whether
-name compression is allowed, according to RFC 3597.
+`dns_rdata_fromwire()` forbids name compression before it dispatches to
+`fromwire_typename()`, as RFC 3597 requires for every type not defined
+in RFC 1035. A handler for a type whose specification does permit
+compressed names opts back in before extracting them:
 
-        dctx = dns_decompress_setpermitted(dctx, true); /* or false */
+        dns_decompress_setpermitted(dctx, true);
 
-It is allowed for the types defined in RFC 1035, and for the older
-types that RFC 3597 section 4 asks receivers to decompress (RP, AFSDB,
-RT, SIG, PX, NXT, NAPTR and SRV) even though their `towire_typename()`
-must not compress them.
+So do the older types that RFC 3597 section 4 asks receivers to
+decompress (RP, AFSDB, RT, SIG, PX, NXT, NAPTR and SRV), even though
+their `towire_typename()` must not compress them.
 
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
 |`type`|This should be tested with a `REQUIRE(type == <value>)` statement at the beginning of the function.|
 |`source`|This is a `BINARY` buffer with the `active` region containing a resource record in wire format.|
-|`dctx`|This is the decompression context and is passed to `dns_name_fromwire()`, along with `downcase`, to enable a compressed domain name to be extracted from the source.|
-|`downcase`|This is passed to `dns_name_fromwire()` to say whether the extracted domain name should be downcased during the extraction.|
+|`dctx`|This is the decompression context and is passed to `dns_name_fromwire()` to extract a domain name, compressed or not, from the source.|
 |`target`|This is a `BINARY` buffer into which the decompressed and checked resource record is written.|
 
 `fromwire_typename()` is a security sensitive routine
