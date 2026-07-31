@@ -2211,6 +2211,15 @@ if git.found()
         workdir: meson.project_source_root(),
     )
 
+    test(
+        'jinja-include-indentation',
+        sh,
+        suite: 'lint',
+        args: ['util/check-jinja-include-indentation.sh'],
+        verbose: true,
+        workdir: meson.project_source_root(),
+    )
+
     if grep.found() and xargs.found()
         test(
             'checklibs',
