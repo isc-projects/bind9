@@ -11,6 +11,8 @@
 
 import pytest
 
+import isctest.mark
+
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
@@ -23,7 +25,10 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     ]
 )
 
-pytestmark = EXTRA_ARTIFACTS
+pytestmark = [
+    isctest.mark.with_ipv6,
+    EXTRA_ARTIFACTS,
+]
 
 
 # The reclimit is known to be quite unstable. GL #1587
