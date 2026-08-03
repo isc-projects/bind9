@@ -370,6 +370,10 @@ struct dns_zone {
 	isc_mem_t *mctx;
 	__attribute__((
 		aligned(ISC_OS_CACHELINE_SIZE))) isc_refcount_t references;
+	char *masterfile;
+	char *initfile;
+	const FILE *stream;		  /* loading from a stream? */
+	ISC_LIST(dns_include_t) includes; /* Include files */
 
 	__attribute__((aligned(ISC_OS_CACHELINE_SIZE))) isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
@@ -383,10 +387,6 @@ struct dns_zone {
 	isc_refcount_t irefs;
 	dns_name_t origin;
 	dns_rad_t *rad;
-	char *masterfile;
-	char *initfile;
-	const FILE *stream;		     /* loading from a stream? */
-	ISC_LIST(dns_include_t) includes;    /* Include files */
 	ISC_LIST(dns_include_t) newincludes; /* Loading */
 	unsigned int nincludes;
 	dns_masterformat_t masterformat;
