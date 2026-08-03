@@ -67,14 +67,14 @@ usage(int ret);
 static void
 usage(int ret) {
 	fprintf(stderr,
-		"usage: %s [-djqvD] [-c class] "
+		"usage: %s [-djqvDP] [-c class] "
 		"[-f inputformat] [-F outputformat] [-J filename] "
 		"[-s (full|relative)] [-t directory] [-w directory] "
 		"[-k (ignore|warn|fail)] [-m (ignore|warn|fail)] "
 		"[-n (ignore|warn|fail)] [-r (ignore|warn|fail)] "
 		"[-i (full|full-sibling|local|local-sibling|none)] "
-		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
-		"[-W (ignore|warn)] "
+		"[-M (ignore|warn|fail)] [-R (ignore|fail)] "
+		"[-S (ignore|warn|fail)] [-W (ignore|warn)] "
 		"%s zonename [ (filename|-) ]\n",
 		isc_commandline_progname,
 		progmode == progmode_check ? "[-o filename]" : "-o filename");
@@ -137,7 +137,7 @@ main(int argc, char **argv) {
 
 	while ((c = isc_commandline_parse(argc, argv,
 					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:C:"
-					  "DF:M:R:S:T:W:")) != EOF)
+					  "DF:M:PR:S:T:W:")) != EOF)
 	{
 		switch (c) {
 		case 'c':
@@ -279,6 +279,10 @@ main(int argc, char **argv) {
 
 		case 'o':
 			output_filename = isc_commandline_argument;
+			break;
+
+		case 'P':
+			docheckrpz = true;
 			break;
 
 		case 'q':

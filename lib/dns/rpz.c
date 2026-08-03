@@ -194,7 +194,7 @@ ISC_REFCOUNT_DECL(nmdata);
 #endif
 
 static isc_result_t
-rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name);
+rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name, bool fail);
 static void
 rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name);
 
@@ -1301,7 +1301,7 @@ search(dns_rpz_zones_t *rpzs, const dns_rpz_cidr_key_t *tgt_ip,
  */
 static isc_result_t
 add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
-	 const dns_name_t *src_name) {
+	 const dns_name_t *src_name, bool fail) {
 	dns_rpz_cidr_key_t tgt_ip;
 	dns_rpz_prefix_t tgt_prefix;
 	dns_rpz_addr_zbits_t set;
@@ -1314,7 +1314,7 @@ add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	 * Log complaints about bad owner names but let the zone load.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		return ISC_R_SUCCESS;
+		return fail ? result : ISC_R_SUCCESS;
 	}
 
 	RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
@@ -1689,6 +1689,82 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 	dns_rpz_zones_unref(rpz->rpzs);
 }
 
+isc_result_t
+dns_rpz_checkdb(dns_db_t *db, isc_mem_t *mctx) {
+	dns_dbiterator_t *dbit = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixedname;
+	dns_name_t *name = dns_fixedname_initname(&fixedname);
+	dns_rdatasetiter_t *rdsiter = NULL;
+	dns_rpz_zone_t *rpz = NULL;
+	dns_rpz_zones_t *rpzs = NULL;
+	dns_view_t *view = NULL;
+	isc_result_t result, aresult = ISC_R_SUCCESS;
+
+	dns_view_create(mctx, NULL, dns_rdataclass_in, "view", &view);
+	CHECK(dns_rpz_new_zones(view, &rpzs, true));
+	CHECK(dns_rpz_new_zone(rpzs, &rpz));
+
+	dns_name_dup(dns_db_origin(db), mctx, &rpz->origin);
+
+	CHECK(dns_name_fromstring(&rpz->client_ip, DNS_RPZ_CLIENT_IP_ZONE,
+				  &rpz->origin, DNS_NAME_DOWNCASE, mctx));
+	CHECK(dns_name_fromstring(&rpz->ip, DNS_RPZ_IP_ZONE, &rpz->origin,
+				  DNS_NAME_DOWNCASE, mctx));
+	CHECK(dns_name_fromstring(&rpz->nsdname, DNS_RPZ_NSDNAME_ZONE,
+				  &rpz->origin, DNS_NAME_DOWNCASE, mctx));
+	CHECK(dns_name_fromstring(&rpz->nsip, DNS_RPZ_NSIP_ZONE, &rpz->origin,
+				  DNS_NAME_DOWNCASE, mctx));
+
+	CHECK(dns_name_fromstring(&rpz->passthru, DNS_RPZ_PASSTHRU_NAME,
+				  dns_rootname, DNS_NAME_DOWNCASE, mctx));
+	CHECK(dns_name_fromstring(&rpz->drop, DNS_RPZ_DROP_NAME, dns_rootname,
+				  DNS_NAME_DOWNCASE, mctx));
+	CHECK(dns_name_fromstring(&rpz->tcp_only, DNS_RPZ_TCP_ONLY_NAME,
+				  dns_rootname, DNS_NAME_DOWNCASE, mctx));
+
+	CHECK(dns_db_createiterator(db, DNS_DB_NONSEC3, &dbit));
+	DNS_DBITERATOR_FOREACH(dbit) {
+		CHECK(dns_dbiterator_current(dbit, &node, name));
+		CHECK(dns_db_allrdatasets(db, node, NULL, 0, 0, &rdsiter));
+		result = dns_rdatasetiter_first(rdsiter);
+		if (result == ISC_R_SUCCESS) {
+			result = rpz_add(rpz, name, true);
+			/* Remember rpz_add errors. */
+			if (result != ISC_R_SUCCESS) {
+				aresult = result;
+			}
+		}
+		dns_rdatasetiter_destroy(&rdsiter);
+		dns_db_detachnode(&node);
+	}
+
+	result = ISC_R_SUCCESS;
+
+cleanup:
+	if (rdsiter != NULL) {
+		dns_rdatasetiter_destroy(&rdsiter);
+	}
+	if (node != NULL) {
+		dns_db_detachnode(&node);
+	}
+	if (dbit != NULL) {
+		dns_dbiterator_destroy(&dbit);
+	}
+	if (rpzs != NULL) {
+		dns_rpz_zones_shutdown(rpzs);
+		dns_rpz_zones_detach(&rpzs);
+	}
+	if (view != NULL) {
+		dns_view_detach(&view);
+	}
+	/* Report rpz_add errors */
+	if (aresult != ISC_R_SUCCESS) {
+		result = aresult;
+	}
+	return result;
+}
+
 static isc_result_t
 update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 	isc_result_t result;
@@ -1800,7 +1876,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		 * different rpz zones at the same time
 		 */
 		LOCK(&rpz->rpzs->maint_lock);
-		result = rpz_add(rpz, name);
+		result = rpz_add(rpz, name, false);
 		UNLOCK(&rpz->rpzs->maint_lock);
 
 		if (result != ISC_R_SUCCESS) {
@@ -2116,7 +2192,7 @@ ISC_REFCOUNT_IMPL(dns_rpz_zones, dns__rpz_zones_destroy);
  * Add an IP address to the radix tree or a name to the summary database.
  */
 static isc_result_t
-rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
+rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name, bool fail) {
 	dns_rpz_type_t rpz_type;
 	isc_result_t result = ISC_R_FAILURE;
 	dns_rpz_zones_t *rpzs = NULL;
@@ -2138,7 +2214,7 @@ rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 	case DNS_RPZ_TYPE_CLIENT_IP:
 	case DNS_RPZ_TYPE_IP:
 	case DNS_RPZ_TYPE_NSIP:
-		result = add_cidr(rpz, rpz_type, src_name);
+		result = add_cidr(rpz, rpz_type, src_name, fail);
 		break;
 	case DNS_RPZ_TYPE_BAD:
 		break;

@@ -78,6 +78,7 @@ bool docheckmx = false;
 bool dochecksrv = false;
 bool docheckns = false;
 #endif /* if CHECK_LOCAL */
+bool docheckrpz = false;
 dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_CHECKMX |
 			     DNS_ZONEOPT_CHECKDUPRR | DNS_ZONEOPT_CHECKSPF |
 			     DNS_ZONEOPT_MANYERRORS | DNS_ZONEOPT_CHECKNAMES |
@@ -677,6 +678,14 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	}
 
 	CHECK(dns_zone_load(zone, false));
+
+	if (docheckrpz) {
+		dns_db_t *db = NULL;
+		dns_zone_getdb(zone, &db);
+		result = dns_rpz_checkdb(db, mctx);
+		dns_db_detach(&db);
+		CHECK(result);
+	}
 
 	if (zonep != NULL) {
 		*zonep = zone;
