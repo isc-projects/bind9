@@ -132,6 +132,9 @@ struct dns_rpz_zone {
 	unsigned int magic;
 	isc_loop_t  *loop;
 
+	/* Protect this zone's database, timer, and update state. */
+	isc_mutex_t update_lock;
+
 	dns_rpz_num_t	 num;	    /* ordinal in list of policy zones */
 	dns_name_t	 origin;    /* Policy zone name */
 	dns_name_t	 client_ip; /* DNS_RPZ_CLIENT_IP_ZONE.origin. */
@@ -158,11 +161,8 @@ struct dns_rpz_zone {
 	bool		 updaterunning; /* there is an update running */
 	dns_db_t	*db;		/* zones database */
 	dns_dbversion_t *dbversion;	/* version we will be updating to */
-	dns_db_t	*updb;		/* zones database we're working on */
-	dns_dbversion_t *updbversion;	/* version we're currently working
-					 * on */
-	bool	     addsoa;		/* add soa to the additional section */
-	isc_timer_t *updatetimer;
+	bool		 addsoa;	/* add soa to the additional section */
+	isc_timer_t	*updatetimer;
 };
 
 /*
@@ -257,17 +257,15 @@ struct dns_rpz_zones {
 	 */
 	dns_rpz_triggers_t total_triggers;
 
-	/*
-	 * One lock for short term read-only search that guarantees the
-	 * consistency of the pointers.
-	 * A second lock for maintenance that guarantees no other thread
-	 * is adding or deleting nodes.
-	 */
+	/* Protect query readers against changes to the CIDR tree. */
 	isc_rwlock_t search_lock;
-	isc_mutex_t  maint_lock;
+
+	/* Serialize summary QP and CIDR updates and their derived state. */
+	isc_mutex_t data_lock;
 
 	bool first_time;
-	bool shuttingdown;
+	/* Publish shutdown without waiting for an update or data lock. */
+	atomic_bool shuttingdown;
 
 	dns_rpz_cidr_node_t *cidr;
 	dns_qpmulti_t	    *table;
