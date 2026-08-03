@@ -14,6 +14,7 @@
 /*! \file */
 
 #include <isc/async.h>	/* WMM: remove include */
+#include <isc/dir.h>	/* Required on GNU/Hurd */
 #include <isc/random.h> /* WMM: remove include */
 
 #include <dns/kasp.h>

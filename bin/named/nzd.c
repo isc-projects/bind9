@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <isc/dir.h> /* Required on GNU/Hurd */
 #include <isc/file.h>
 
 #include <dns/fixedname.h>
