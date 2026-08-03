@@ -32,6 +32,13 @@ ans8_control() {
   grep "status: NOERROR" dig.out.ans8_control >/dev/null || return 1
 }
 
+ans9_control() {
+  control_name=$1
+  shift
+  $DIG -p "${PORT}" @10.53.0.9 "${control_name}._control" TXT "$@" >dig.out.ans9_control || return 1
+  grep "status: NOERROR" dig.out.ans9_control >/dev/null || return 1
+}
+
 max_stale_ttl=$(sed -ne 's,^[[:space:]]*max-stale-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
 stale_answer_ttl=$(sed -ne 's,^[[:space:]]*stale-answer-ttl \([[:digit:]]*\).*,\1,p' $TOP_SRCDIR/bin/named/config.c)
 
@@ -2127,7 +2134,7 @@ while [ $ret -eq 0 ] && [ $attempt -lt 2 ]; do
   n=$((n + 1))
   echo_i "slow down response from authoritative server ($n)"
   ret=0
-  ans2_control slowdown || ret=1
+  ans9_control slowdown || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
 
