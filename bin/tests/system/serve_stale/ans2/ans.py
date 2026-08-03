@@ -33,19 +33,8 @@ from ..serve_stale_ans import (
     rrset,
     soa,
     soa_handler,
-    txt,
     txt_handler,
 )
-
-
-class ModeHandler(ResponseHandler):
-    def __init__(self, mode: Ans2Mode) -> None:
-        self._mode = mode
-        super().__init__()
-
-    @property
-    def delay(self) -> float:
-        return 3.0 if self._mode == "slowdown" else 0.0
 
 
 class NxdomainExampleHandler(QnameHandler, StaticResponseHandler):
@@ -79,17 +68,6 @@ class OthertypeExampleCaaHandler(QnameQtypeHandler, StaticResponseHandler):
             '0 issue "ca1.example.net"',
         )
     ]
-
-
-class DataSlowTxtHandler(ModeHandler, QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["data.slow."]
-    qtypes = [dns.rdatatype.TXT]
-    answer = [txt("data.slow.", "A slow text record with a 2 second ttl", ttl=2)]
-
-
-class DataSlowFallbackHandler(ModeHandler, QnameHandler, StaticResponseHandler):
-    qnames = ["data.slow."]
-    authority = [soa("slow.", ttl=2)]
 
 
 class SourceStaleFallbackHandler(QnameHandler, StaticResponseHandler):
@@ -181,13 +159,6 @@ def handlers() -> list[ResponseHandler]:
             "delegated.serve.stale.",
             ttl=2,
         ),
-        a_handler("NsSlow", "ns.slow."),
-        other_types_handler("NsSlow", "ns.slow.", "slow."),
-        ns_handler("SlowZone", "slow.", "ns.slow."),
-        soa_handler("SlowZone", "slow."),
-        other_types_handler("SlowZone", "slow.", "slow."),
-        DataSlowTxtHandler(mode),
-        DataSlowFallbackHandler(mode),
         soa_handler("SourceStale", "source.stale."),
         ns_handler("SourceStale", "source.stale.", "ns.source.stale.", in_answer=True),
         SourceStaleFallbackHandler(),
