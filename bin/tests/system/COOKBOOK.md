@@ -96,7 +96,10 @@ zone "example" {
 ```
 
 The `_common/controls.conf.j2` include sets up the rndc control channel, so
-the test (and the runner's shutdown sequence) can use `rndc`.
+the test (and the runner's shutdown sequence) can use `rndc`.  Inside an
+indented section such as a view statement, use `{% include_indented "..." %}`
+instead of `{% include %}` — it aligns the inserted block with the tag's own
+indentation.
 
 `demo/ns1/example.db` — a plain zone file:
 
