@@ -31,14 +31,6 @@ ns3_flush() {
   $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush | sed 's/^/I:ns3 /'
 }
 
-ns3_sends_aaaa_queries() {
-  if grep "started AAAA fetch" ns3/named.run >/dev/null; then
-    return 0
-  else
-    return 1
-  fi
-}
-
 set_limit() {
   IP=$1
   LIMIT=$2
@@ -46,24 +38,15 @@ set_limit() {
   dig_with_opts @${IP} $LIMIT.limit._control TXT >dig.out.limit.${LOGID}
 }
 
-# Check whether the number of queries ans2 received from ns3 (this value is
-# read from dig output stored in file $1) is as expected.  The expected query
-# count is variable:
-#   - if ns3 sends AAAA queries, the query count should equal $2,
-#   - if ns3 does not send AAAA queries, the query count should equal $3.
+# Check whether the total number of queries ans2 and ans4 received from ns3
+# (read from the dig outputs stored in files $1 and $2) equals the expected
+# count ($3).
 check_query_count() {
   count1=$(sed 's/[^0-9]//g;' $1)
   count2=$(sed 's/[^0-9]//g;' $2)
   count=$((count1 + count2))
   #echo_i "count1=$count1 count2=$count2 count=$count"
-  expected_count_with_aaaa=$3
-  expected_count_without_aaaa=$4
-
-  if ns3_sends_aaaa_queries; then
-    expected_count=$expected_count_with_aaaa
-  else
-    expected_count=$expected_count_without_aaaa
-  fi
+  expected_count=$3
 
   if [ $count -ne $expected_count ]; then
     echo_i "count $count (actual) != $expected_count (expected)"
@@ -84,7 +67,7 @@ dig_with_opts @10.53.0.3 indirect1.example.org >dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 dig_with_opts +short @10.53.0.4 count txt >dig.out.4.test$n || ret=1
-check_query_count dig.out.2.test$n dig.out.4.test$n 27 14
+check_query_count dig.out.2.test$n dig.out.4.test$n 27
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -100,7 +83,7 @@ dig_with_opts @10.53.0.3 indirect2.example.org >dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 dig_with_opts +short @10.53.0.4 count txt >dig.out.4.test$n || ret=1
-check_query_count dig.out.2.test$n dig.out.4.test$n 50 26
+check_query_count dig.out.2.test$n dig.out.4.test$n 50
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -118,7 +101,7 @@ dig_with_opts @10.53.0.3 indirect3.example.org >dig.out.1.test$n || ret=1
 grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 dig_with_opts +short @10.53.0.4 count txt >dig.out.4.test$n || ret=1
-check_query_count dig.out.2.test$n dig.out.4.test$n 13 7
+check_query_count dig.out.2.test$n dig.out.4.test$n 13
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -134,7 +117,7 @@ dig_with_opts @10.53.0.3 indirect4.example.org >dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 dig_with_opts +short @10.53.0.4 count txt >dig.out.4.test$n || ret=1
-check_query_count dig.out.2.test$n dig.out.4.test$n 22 12
+check_query_count dig.out.2.test$n dig.out.4.test$n 22
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -150,9 +133,7 @@ ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.4 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.3 indirect5.example.org >dig.out.1.test$n || ret=1
-if ns3_sends_aaaa_queries; then
-  grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
-fi
+grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 dig_with_opts +short @10.53.0.4 count txt >dig.out.4.test$n || ret=1
 eval count=$(cat dig.out.2.test$n)
@@ -190,9 +171,7 @@ cp ns3/named4.conf ns3/named.conf
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.3 indirect7.example.org >dig.out.1.test$n || ret=1
-if ns3_sends_aaaa_queries; then
-  grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
-fi
+grep "status: SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
 dig_with_opts +short @10.53.0.2 count txt >dig.out.2.test$n || ret=1
 eval count=$(cat dig.out.2.test$n)
 [ $count -le 40 ] || {
