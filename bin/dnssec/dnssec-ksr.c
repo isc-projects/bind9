@@ -18,6 +18,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/dir.h> /* Required on GNU/Hurd */
 #include <isc/fips.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
