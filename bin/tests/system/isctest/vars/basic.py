@@ -44,7 +44,7 @@ BASIC_VARS = {
     "SIGNER": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-signzone",
     "TSIGKEYGEN": f"{BUILD_VARS['TOP_BUILDDIR']}/tsig-keygen",
     "VERIFY": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-verify",
-    "WIRETEST": f"{BUILD_VARS['TOP_BUILDDIR']}/wire-test",
+    "WIREFORMAT": f"{BUILD_VARS['TOP_BUILDDIR']}/named-wireformat",
     "BIGKEY": f"{BUILD_VARS['TOP_BUILDDIR']}/bigkey",
     "PIPEQUERIES": f"{BUILD_VARS['TOP_BUILDDIR']}/pipequeries",
     "TMPDIR": os.getenv("TMPDIR", "/tmp"),
