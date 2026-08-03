@@ -1374,7 +1374,7 @@ status=$((status + ret))
 sleep 2
 
 # Note: the "notincache.example TXT times out" step (the original test
-# 120) has been moved to the pytest suite in serve_stale_tcp/, since
+# 120) has been moved to the pytest suite in tests_serve_stale_tcp.py, since
 # the resolver now legitimately escalates to TCP after repeated UDP
 # timeouts and the perl mock ans2 only listens on UDP.
 
@@ -1425,7 +1425,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 # Note: the "notfound.example TXT" SERVFAIL+EDE 22 step (the original
-# test 125) has been moved to the pytest suite in serve_stale_tcp/;
+# test 125) has been moved to the pytest suite in tests_serve_stale_tcp.py;
 # see the comment above where test 120 was removed.
 
 #
@@ -1886,7 +1886,7 @@ check_server_responds() {
 # Test for stale-answer-client-timeout off and CNAME record. #
 ##############################################################
 # The standalone "stale-answer-client-timeout off" test (the original
-# test 163) has been moved to the pytest suite in serve_stale_tcp/;
+# test 163) has been moved to the pytest suite in tests_serve_stale_tcp.py;
 # see the comment where test 120 was removed.  Its configuration
 # (named3.conf) is still used as the base for the CNAME case below.
 echo_i "test stale-answer-client-timeout (0) and CNAME record"
