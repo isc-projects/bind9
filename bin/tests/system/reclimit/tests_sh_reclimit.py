@@ -26,8 +26,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
 )
 
 pytestmark = [
-    isctest.mark.requires_net_dns,
-    isctest.mark.requires_net_dns_nameserver,
+    isctest.mark.with_ipv6,
     EXTRA_ARTIFACTS,
 ]
 
