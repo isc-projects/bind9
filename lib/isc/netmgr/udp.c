@@ -408,7 +408,6 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 	UNUSED(mgr);
 	UNUSED(cb);
 	UNUSED(cbarg);
-	UNUSED(extrahandlesize);
 	return ISC_R_NOTIMPLEMENTED;
 #endif /* USE_ROUTE_SOCKET */
 }
