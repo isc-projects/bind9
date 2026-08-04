@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include <isc/commandline.h>
+#include <isc/dir.h> /* Required on GNU/Hurd */
 #include <isc/hash.h>
 #include <isc/lib.h>
 #include <isc/log.h>

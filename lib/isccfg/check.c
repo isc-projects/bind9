@@ -1247,6 +1247,14 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 						"dns64-server", "dns64-contact",
 						NULL };
 
+#ifndef IOV_MAX
+/*
+ * FSTRM_IOTHR_INPUT_QUEUE_SIZE_MAX is defined as IOV_MAX, but IOV_MAX can be
+ * undefined.
+ */
+#define IOV_MAX 1024
+#endif /* ifndef IOV_MAX */
+
 #ifdef HAVE_DNSTAP
 	static fstrmtable fstrm[] = {
 		{ "fstrm-set-buffer-hint", FSTRM_IOTHR_BUFFER_HINT_MIN,

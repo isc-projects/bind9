@@ -19,6 +19,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/crypto.h>
+#include <isc/dir.h> /* Required on GNU/Hurd */
 #include <isc/lex.h>
 #include <isc/lib.h>
 #include <isc/mem.h>

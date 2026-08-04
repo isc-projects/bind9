@@ -25,6 +25,7 @@
 #include <cmocka.h>
 
 #include <isc/atomic.h>
+#include <isc/dir.h> /* Required on GNU/Hurd */
 #include <isc/lib.h>
 
 #include <dns/lib.h>
