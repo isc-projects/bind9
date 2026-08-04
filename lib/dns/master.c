@@ -2441,7 +2441,8 @@ load_raw(dns_loadctx_t *lctx) {
 			dns_rdata_init(&rdata[i]);
 
 			if (sequential_read &&
-			    isc_buffer_availablelength(&target) < MINTSIZ)
+			    isc_buffer_availablelength(&target) <
+				    sizeof(uint16_t) + MINTSIZ)
 			{
 				unsigned int j;
 
@@ -2473,6 +2474,9 @@ load_raw(dns_loadctx_t *lctx) {
 					     sizeof(rdlen), lctx->f,
 					     &totallen));
 			rdlen = isc_buffer_getuint16(&target);
+			if (rdlen > MINTSIZ) {
+				CLEANUP(ISC_R_RANGE);
+			}
 
 			/* rdata */
 			CHECK(read_and_check(sequential_read, &target, rdlen,
