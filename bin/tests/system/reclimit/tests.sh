@@ -76,7 +76,7 @@ echo_i "set max-recursion-depth=12"
 n=$((n + 1))
 echo_i "attempt excessive-depth lookup ($n)"
 ret=0
-echo "1000" >ans2/ans.limit
+set_limit 10.53.0.2 1000 $n
 set_limit 10.53.0.4 1000 $n
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.4 reset >/dev/null || ret=1
@@ -91,7 +91,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
-echo "12" >ans2/ans.limit
+set_limit 10.53.0.2 12 $n
 set_limit 10.53.0.4 12 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
@@ -109,7 +109,7 @@ echo_i "set max-recursion-depth=5"
 n=$((n + 1))
 echo_i "attempt excessive-depth lookup ($n)"
 ret=0
-echo "12" >ans2/ans.limit
+set_limit 10.53.0.2 12 $n
 cp ns3/named2.conf ns3/named.conf
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
@@ -125,7 +125,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
-echo "5" >ans2/ans.limit
+set_limit 10.53.0.2 5 $n
 set_limit 10.53.0.4 5 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
@@ -143,7 +143,7 @@ echo_i "set max-recursion-depth=100, max-recursion-queries=50"
 n=$((n + 1))
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
-echo "13" >ans2/ans.limit
+set_limit 10.53.0.2 13 $n
 set_limit 10.53.0.4 13 $n
 cp ns3/named3.conf ns3/named.conf
 ns3_reset
@@ -166,7 +166,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
-echo "12" >ans2/ans.limit
+set_limit 10.53.0.2 12 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.3 indirect6.example.org >dig.out.1.test$n || ret=1
@@ -185,7 +185,7 @@ echo_i "set max-recursion-depth=100, max-recursion-queries=40"
 n=$((n + 1))
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
-echo "11" >ans2/ans.limit
+set_limit 10.53.0.2 11 $n
 cp ns3/named4.conf ns3/named.conf
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
@@ -205,7 +205,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
-echo "9" >ans2/ans.limit
+set_limit 10.53.0.2 9 $n
 ns3_reset
 dig_with_opts @10.53.0.2 reset >/dev/null || ret=1
 dig_with_opts @10.53.0.3 indirect8.example.org >dig.out.1.test$n || ret=1
