@@ -15,8 +15,11 @@
 
 options {
 	notify-source 10.53.0.1;
+	notify-source-v6 fd92:7065:b8e:ffff::1;
 	transfer-source 10.53.0.1;
+	transfer-source-v6 fd92:7065:b8e:ffff::1;
 	query-source address 10.53.0.1;
+	query-source-v6 address fd92:7065:b8e:ffff::1;
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
