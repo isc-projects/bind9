@@ -639,7 +639,7 @@ stages:
   <<: *system_test_job
   after_script:
     - *display_pytest_failures
-    - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
+    - find bin/tests/system -name "*dig.*" ! -name "*.py" ! -name "*.pyc" | xargs grep "error" || true
     - *parse_tsan
 
 .unit_test_common: &unit_test_job

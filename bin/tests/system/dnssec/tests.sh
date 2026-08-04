@@ -3323,19 +3323,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "check dig's +nocrypto flag ($n)"
-ret=0
-dig_with_opts +norec +nocrypto DNSKEY . \
-  @10.53.0.1 >dig.out.dnskey.ns1.test$n || ret=1
-grep -E "256 [0-9]+ $DEFAULT_ALGORITHM_NUMBER \\[key id = [1-9][0-9]*]" dig.out.dnskey.ns1.test$n >/dev/null || ret=1
-grep -E "RRSIG.* \\[omitted]" dig.out.dnskey.ns1.test$n >/dev/null || ret=1
-dig_with_opts +norec +nocrypto DS example \
-  @10.53.0.1 >dig.out.ds.ns1.test$n || ret=1
-grep -E "DS.* [0-9]+ [12] \[omitted]" dig.out.ds.ns1.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 echo_i "check that increasing the signatures-validity resigning triggers re-signing ($n)"
 ret=0
 before=$($DIG axfr siginterval.example -p "$PORT" @10.53.0.3 | grep RRSIG.SOA)
