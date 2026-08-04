@@ -95,8 +95,8 @@ ISC_RUN_TEST_IMPL(isc_time_now_test) {
 	nanosleep(&(struct timespec){ 1, 0 }, NULL);
 	t2 = isc_time_now();
 
-	assert_true(t1.seconds >= tm);
-	assert_true(t2.seconds >= tm);
+	assert_true(t1.seconds >= (unsigned int)tm);
+	assert_true(t2.seconds >= (unsigned int)tm);
 
 	assert_int_not_equal(t1.seconds, 0);
 	assert_int_not_equal(t2.seconds, 0);
@@ -108,8 +108,8 @@ ISC_RUN_TEST_IMPL(isc_time_now_test) {
 	nanosleep(&(struct timespec){ 0, NS_PER_US }, NULL);
 	t2 = isc_time_now_hires();
 
-	assert_true(t1.seconds >= tm);
-	assert_true(t2.seconds >= tm);
+	assert_true(t1.seconds >= (unsigned int)tm);
+	assert_true(t2.seconds >= (unsigned int)tm);
 	assert_true(isc_time_microdiff(&t2, &t1) >= 1);
 	assert_true(isc_time_microdiff(&t2, &t1) < US_PER_SEC);
 }
