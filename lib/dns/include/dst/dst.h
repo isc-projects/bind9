@@ -118,7 +118,13 @@ typedef enum dst_algorithm {
 	 */
 	DST_ALG_RSASHA256PRIVATEOID = 256, /* 1.2.840.113549.1.1.11 */
 	DST_ALG_RSASHA512PRIVATEOID = 257, /* 1.2.840.113549.1.1.13 */
+#ifdef TEST_PRIVATEDNS
+	DST_ALG_RSASHA256PRIVATEDNS = 258, /* rsasha256.example.org. */
+	DST_ALG_RSASHA512PRIVATEDNS = 259, /* rsasha512.example.org. */
+	DST_MAX_ALGS = 260,
+#else
 	DST_MAX_ALGS = 258,
+#endif
 } dst_algorithm_t;
 
 /*% 'Type' for dst_read_key() */
@@ -226,10 +232,13 @@ dst_algorithm_fromprivateoid(isc_buffer_t *buffer);
  */
 
 dst_algorithm_t
-dst_algorithm_fromprivatedns(isc_buffer_t *buf);
+dst_algorithm_fromprivatedns(isc_buffer_t *buffer);
 /*
  * Extract the dst algorithm identifier that matches
  * the DNS name found at the start of 'buffer'.
+ *
+ * The active region needs to be set on 'buffer' as
+ * dns_name_fromwire is called.
  */
 
 bool

@@ -2099,6 +2099,7 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 
 	if (alg == DNS_KEYALG_PRIVATEDNS) {
 		isc_buffer_t b = *source;
+		isc_buffer_setactive(&b, isc_buffer_remaininglength(&b));
 		alg = dst_algorithm_fromprivatedns(&b);
 		if (alg == 0) {
 			return DST_R_UNSUPPORTEDALG;
@@ -2603,6 +2604,10 @@ dst_algorithm_tosecalg(dst_algorithm_t dst_alg) {
 	static dns_secalg_t dns_alg[DST_MAX_ALGS] = {
 		[DST_ALG_RSASHA256PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
 		[DST_ALG_RSASHA512PRIVATEOID] = DNS_KEYALG_PRIVATEOID,
+#if TEST_PRIVATEDNS
+		[DST_ALG_RSASHA256PRIVATEDNS] = DNS_KEYALG_PRIVATEDNS,
+		[DST_ALG_RSASHA512PRIVATEDNS] = DNS_KEYALG_PRIVATEDNS,
+#endif
 	};
 
 	if (dst_alg < 256) {
