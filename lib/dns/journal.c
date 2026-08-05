@@ -2246,12 +2246,11 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 	for (;;) {
 		for (i = 0; i < 2; i++) {
 			if (!have[i] && itresult[i] == ISC_R_SUCCESS) {
-				CHECK(get_name_diff(
-					db[i], ver[i], 0, dbit[i],
-					dns_fixedname_name(&fixname[i]),
-					i == 0 ? DNS_DIFFOP_ADD
-					       : DNS_DIFFOP_DEL,
-					&diff[i]));
+				CHECK(get_name_diff(db[i], ver[i], 0, dbit[i],
+						    dns_name(&fixname[i]),
+						    i == 0 ? DNS_DIFFOP_ADD
+							   : DNS_DIFFOP_DEL,
+						    &diff[i]));
 				itresult[i] = dns_dbiterator_next(dbit[i]);
 				have[i] = true;
 			}

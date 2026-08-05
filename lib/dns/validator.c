@@ -451,8 +451,8 @@ trynsec3:
 	 * Iterate over the ncache entry.
 	 */
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed));
-	name = dns_fixedname_name(&fixed);
+	dns_name_downcase(name, dns_name(&fixed));
+	name = dns_name(&fixed);
 	unsigned int nlabels = dns_name_countlabels(name);
 
 	DNS_RDATASET_FOREACH(rdataset) {
@@ -996,7 +996,7 @@ validator_callback_ds(void *arg) {
 	case ISC_R_SUCCESS: {
 		bool have_dsset = !NEGATIVE(&val->frdataset) &&
 				  val->frdataset.type == dns_rdatatype_ds;
-		dns_name_t *name = dns_fixedname_name(&val->fname);
+		dns_name_t *name = dns_name(&val->fname);
 
 		validator_log(val, ISC_LOG_DEBUG(3), "%s with trust %s",
 			      have_dsset ? "dsset" : "ds non-existence",
@@ -1143,7 +1143,7 @@ validator_callback_nsec(void *arg) {
 	switch (result) {
 	case ISC_R_SUCCESS: {
 		dns_linkedname_t **proofs = val->proofs;
-		dns_name_t *wild = dns_fixedname_name(&val->wild);
+		dns_name_t *wild = dns_name(&val->wild);
 
 		if (rdataset->type == dns_rdatatype_nsec &&
 		    rdataset->trust == dns_trust_secure &&
@@ -1175,7 +1175,7 @@ validator_callback_nsec(void *arg) {
 							&val->nseczone));
 				}
 
-				closest = dns_fixedname_name(&val->closest);
+				closest = dns_name(&val->closest);
 				clabels = dns_name_countlabels(closest);
 				/*
 				 * If we are validating a wildcard response
@@ -1891,7 +1891,7 @@ again:
 	}
 	if (result == DNS_R_FROMWILDCARD) {
 		if (!dns_name_equal(val->name, wild)) {
-			dns_name_t *closest = dns_fixedname_name(&val->closest);
+			dns_name_t *closest = dns_name(&val->closest);
 
 			/*
 			 * Compute the closest encloser in case we need it
@@ -1901,8 +1901,7 @@ again:
 			dns_name_getlabelsequence(
 				closest, 1, dns_name_countlabels(closest) - 1,
 				closest);
-			dns_name_copy(wildsigner,
-				      dns_fixedname_name(&val->wildsigner));
+			dns_name_copy(wildsigner, dns_name(&val->wildsigner));
 			val->attributes |= VALATTR_NEEDNOQNAME;
 		}
 		result = ISC_R_SUCCESS;
@@ -2994,7 +2993,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	      dns_name_t *zonename) {
 	dns_linkedname_t *name;
 	dns_linkedname_t tname_wl = DNS_LINKEDNAME_INITEMPTY;
-	dns_name_t *wild = dns_fixedname_name(&val->wild);
+	dns_name_t *wild = dns_name(&val->wild);
 	isc_result_t result;
 	bool exists, data;
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -3212,7 +3211,7 @@ findnsec3proofs(dns_validator_t *val) {
 	 * have a valid closest encloser.  Otherwise we could still be looking
 	 * at proofs from the parent zone.
 	 */
-	dns_name_t *wildsigner = dns_fixedname_name(&val->wildsigner);
+	dns_name_t *wildsigner = dns_name(&val->wildsigner);
 	if (!dns_name_empty(closest) &&
 	    dns_name_countlabels(nearest) ==
 		    dns_name_countlabels(closest) + 1 &&
@@ -3222,7 +3221,7 @@ findnsec3proofs(dns_validator_t *val) {
 	{
 		val->attributes |= VALATTR_FOUNDCLOSEST;
 		result = dns_name_concatenate(dns_wildcardname, closest,
-					      dns_fixedname_name(&val->wild));
+					      dns_name(&val->wild));
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	} else {
 		val->attributes &= ~VALATTR_FOUNDNOQNAME;
@@ -3980,7 +3979,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool have_dnskey,
 		    (have_ds && val->frdataset.trust >= dns_trust_secure))
 		{
 			dns_rdataset_t *dssetp = NULL, *keysetp = NULL;
-			dns_name_t *fname = dns_fixedname_name(&val->fname);
+			dns_name_t *fname = dns_name(&val->fname);
 			if (have_dnskey) {
 				dssetp = &val->dsrdataset;
 				keysetp = &val->frdataset;

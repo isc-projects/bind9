@@ -256,8 +256,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
 		str = cfg_obj_asstring(identity);
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
-		result = dns_name_fromtext(dns_fixedname_name(&fident), &b,
-					   dns_rootname, 0);
+		result = dns_name_fromtext(dns_name(&fident), &b, dns_rootname,
+					   0);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
@@ -280,13 +280,13 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
 		dns_fixedname_init(&fname);
 		if (usezone) {
 			dns_name_copy(dns_zone_getorigin(zone),
-				      dns_fixedname_name(&fname));
+				      dns_name(&fname));
 		} else {
 			str = cfg_obj_asstring(dname);
 			isc_buffer_constinit(&b, str, strlen(str));
 			isc_buffer_add(&b, strlen(str));
-			result = dns_name_fromtext(dns_fixedname_name(&fname),
-						   &b, dns_rootname, 0);
+			result = dns_name_fromtext(dns_name(&fname), &b,
+						   dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
@@ -351,9 +351,9 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, const cfg_obj_t *tconfig,
 		INSIST(i == n);
 
 		isc_buffer_putuint8(&dbuf, '\0');
-		dns_ssutable_addrule(table, grant, dns_fixedname_name(&fident),
-				     mtype, dns_fixedname_name(&fname), n,
-				     types, isc_buffer_base(&dbuf));
+		dns_ssutable_addrule(table, grant, dns_name(&fident), mtype,
+				     dns_name(&fname), n, types,
+				     isc_buffer_base(&dbuf));
 		if (types != NULL) {
 			isc_mem_cput(mctx, types, n, sizeof(*types));
 		}

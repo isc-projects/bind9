@@ -3982,7 +3982,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 	}
 
 	dns_fixedname_init(&nsnamef);
-	dns_name_clone(client->query.qname, dns_fixedname_name(&nsnamef));
+	dns_name_clone(client->query.qname, dns_name(&nsnamef));
 	options = client->query.dboptions | DNS_DBFIND_GLUEOK;
 	while (st->r.label > st->popt.min_ns_labels) {
 		bool was_glue = false;
@@ -3992,7 +3992,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		if (st->r.label == dns_name_countlabels(client->query.qname)) {
 			nsname = dns_name(client->query.qname);
 		} else {
-			nsname = dns_fixedname_name(&nsnamef);
+			nsname = dns_name(&nsnamef);
 			dns_name_split(dns_name(client->query.qname),
 				       st->r.label, NULL, nsname);
 		}
@@ -6933,12 +6933,11 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 	if (labels > 2 && dns_name_iswildcard(cname)) {
 		dns_fixedname_init(&prefix);
 		dns_name_split(dns_name(client->query.qname), 1,
-			       dns_fixedname_name(&prefix), NULL);
+			       dns_name(&prefix), NULL);
 		dns_fixedname_init(&suffix);
-		dns_name_split(cname, labels - 1, NULL,
-			       dns_fixedname_name(&suffix));
-		result = dns_name_concatenate(dns_fixedname_name(&prefix),
-					      dns_fixedname_name(&suffix),
+		dns_name_split(cname, labels - 1, NULL, dns_name(&suffix));
+		result = dns_name_concatenate(dns_name(&prefix),
+					      dns_name(&suffix),
 					      dns_name(qctx->fname));
 		if (result == DNS_R_NAMETOOLONG) {
 			client->message->rcode = dns_rcode_yxdomain;
@@ -8138,7 +8137,7 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	 * it here in case we need it.
 	 */
 	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname));
+	dns_name_copy(qctx->fname, dns_name(&qctx->dsname));
 
 	/*
 	 * This is the best answer.
@@ -8457,7 +8456,7 @@ query_addds(query_ctx_t *qctx) {
 	rdataset = ns_client_newrdataset(client);
 	sigrdataset = ns_client_newrdataset(client);
 
-	name = dns_fixedname_name(&qctx->dsname);
+	name = dns_name(&qctx->dsname);
 	lookupname = qctx_has_foundname(qctx) ? qctx_get_foundname(qctx) : name;
 	foundname = dns_fixedname_initname(&foundfixed);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
@@ -8528,7 +8527,7 @@ addnsec3:
 	dns_rdataset_cleanup(sigrdataset);
 	query_findclosestnsec3(name, qctx->db, qctx->version, client, rdataset,
 			       sigrdataset, dns_name(fname), true,
-			       dns_fixedname_name(&fixed));
+			       dns_name(&fixed));
 	if (!dns_rdataset_isassociated(rdataset)) {
 		goto cleanup;
 	}
@@ -8542,17 +8541,16 @@ addnsec3:
 		count = dns_name_countlabels(&fixed) + 1;
 		dns_name_getlabelsequence(name,
 					  dns_name_countlabels(name) - count,
-					  count, dns_fixedname_name(&fixed));
+					  count, dns_name(&fixed));
 		fixfname(client, &fname, &dbuf, &b);
 		fixrdataset(client, &rdataset);
 		fixrdataset(client, &sigrdataset);
 		if (fname == NULL || rdataset == NULL || sigrdataset == NULL) {
 			goto cleanup;
 		}
-		query_findclosestnsec3(dns_fixedname_name(&fixed), qctx->db,
-				       qctx->version, client, rdataset,
-				       sigrdataset, dns_name(fname), false,
-				       NULL);
+		query_findclosestnsec3(
+			dns_name(&fixed), qctx->db, qctx->version, client,
+			rdataset, sigrdataset, dns_name(fname), false, NULL);
 		if (!dns_rdataset_isassociated(rdataset)) {
 			goto cleanup;
 		}

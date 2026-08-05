@@ -454,7 +454,7 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	}
 
 	ictx->origin_in_use = 0;
-	ictx->origin = dns_fixedname_name(&ictx->fixed[ictx->origin_in_use]);
+	ictx->origin = dns_name(&ictx->fixed[ictx->origin_in_use]);
 	ictx->in_use[ictx->origin_in_use] = true;
 	dns_name_toregion(origin, &r);
 	dns_name_fromregion(ictx->origin, &r);
@@ -2138,8 +2138,8 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	/* Set current domain. */
 	if (ictx->glue != NULL || ictx->current != NULL) {
 		newctx->current_in_use = find_free_name(newctx);
-		newctx->current = dns_fixedname_name(
-			&newctx->fixed[newctx->current_in_use]);
+		newctx->current =
+			dns_name(&newctx->fixed[newctx->current_in_use]);
 		newctx->in_use[newctx->current_in_use] = true;
 		dns_name_toregion(
 			(ictx->glue != NULL) ? ictx->glue : ictx->current, &r);

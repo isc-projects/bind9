@@ -2802,7 +2802,7 @@ qpzone_setup_delegation(qpz_search_t *search, dns_name_t *foundname,
 	 * we have trouble.
 	 */
 	if (foundname != NULL && search->copy_name) {
-		zcname = dns_fixedname_name(&search->zonecut_name);
+		zcname = dns_name(&search->zonecut_name);
 		dns_name_copy(zcname, foundname);
 	}
 	if (rdataset != NULL) {
@@ -3482,7 +3482,7 @@ qpzone_check_zonecut(qpznode_t *node, void *arg DNS__DB_FLARG) {
 			 * This may or may not be the best match.  In case it
 			 * is, we need to remember the node name.
 			 */
-			zcname = dns_fixedname_name(&search->zonecut_name);
+			zcname = dns_name(&search->zonecut_name);
 			dns_name_copy(&node->name, zcname);
 			search->copy_name = true;
 		}

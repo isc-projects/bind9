@@ -377,8 +377,7 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	dns_fixedname_init(&fixed);
 	result = dns_db_find(db, name, ver, type, DNS_DBFIND_NOWILD,
-			     (isc_stdtime_t)0, dns_fixedname_name(&fixed), NULL,
-			     NULL);
+			     (isc_stdtime_t)0, dns_name(&fixed), NULL, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		*visible = true;
@@ -661,8 +660,8 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 	dns_fixedname_init(&foundname);
 	result = dns_db_find(db, name, ver, dns_rdatatype_any,
 			     DNS_DBFIND_GLUEOK | DNS_DBFIND_NOWILD,
-			     (isc_stdtime_t)0, dns_fixedname_name(&foundname),
-			     NULL, NULL);
+			     (isc_stdtime_t)0, dns_name(&foundname), NULL,
+			     NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_EMPTYNAME) {
 		*flag = true;
 		*cut = false;
@@ -677,9 +676,8 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 			 * is a DS RRset.
 			 */
 			if (dns_db_find(db, name, ver, dns_rdatatype_ds, 0,
-					(isc_stdtime_t)0,
-					dns_fixedname_name(&foundname), NULL,
-					NULL) == DNS_R_NXRRSET)
+					(isc_stdtime_t)0, dns_name(&foundname),
+					NULL, NULL) == DNS_R_NXRRSET)
 			{
 				*unsecure = true;
 			} else {

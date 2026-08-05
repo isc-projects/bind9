@@ -546,8 +546,7 @@ sendquery(struct query *query) {
 	dns_fixedname_init(&queryname);
 	isc_buffer_init(&buf, query->textname, strlen(query->textname));
 	isc_buffer_add(&buf, strlen(query->textname));
-	result = dns_name_fromtext(dns_fixedname_name(&queryname), &buf,
-				   dns_rootname, 0);
+	result = dns_name_fromtext(dns_name(&queryname), &buf, dns_rootname, 0);
 	CHECKM("dns_name_fromtext", result);
 
 	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,

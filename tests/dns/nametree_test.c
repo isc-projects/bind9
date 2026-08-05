@@ -54,7 +54,7 @@ dns_nametree_t *counttree = NULL;
 static int
 setup(void **state ISC_ATTR_UNUSED) {
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_BOOL, "bool test",
 			    &booltree);
@@ -99,7 +99,7 @@ teardown(void **state ISC_ATTR_UNUSED) {
 ISC_RUN_TEST_IMPL(add_bool) {
 	dns_ntnode_t *node = NULL;
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/*
 	 * Getting the node for example.com should succeed.
@@ -130,7 +130,7 @@ ISC_RUN_TEST_IMPL(add_bool) {
 ISC_RUN_TEST_IMPL(add_bits) {
 	dns_ntnode_t *node = NULL;
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/*
 	 * Getting the node for example.com should succeed.
@@ -162,7 +162,7 @@ ISC_RUN_TEST_IMPL(add_bits) {
 
 ISC_RUN_TEST_IMPL(add_count) {
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/* add a counter node five times */
 	dns_test_namefromstring("example.com.", &fn);
@@ -220,7 +220,7 @@ ISC_RUN_TEST_IMPL(covered_bool) {
 
 ISC_RUN_TEST_IMPL(covered_bits) {
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/* check existing bit values */
 	dns_test_namefromstring("example.com.", &fn);
@@ -277,7 +277,7 @@ ISC_RUN_TEST_IMPL(covered_bits) {
 
 ISC_RUN_TEST_IMPL(delete) {
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/* name doesn't match */
 	dns_test_namefromstring("example.org.", &fn);
@@ -304,7 +304,7 @@ ISC_RUN_TEST_IMPL(delete) {
 ISC_RUN_TEST_IMPL(find) {
 	dns_ntnode_t *node = NULL;
 	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
+	dns_name_t *name = dns_name(&fn);
 
 	/*
 	 * dns_nametree_find() requires exact name match.  It matches node

@@ -289,8 +289,7 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	isc_buffer_constinit(&b, objstr, strlen(objstr));
 	isc_buffer_add(&b, strlen(objstr));
 	dns_fixedname_init(&fname);
-	result = dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
-				   0);
+	result = dns_name_fromtext(dns_name(&fname), &b, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, *namep, sizeof(**namep));
 		return result;

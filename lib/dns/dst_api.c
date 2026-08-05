@@ -1485,8 +1485,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	dns_fixedname_init(&name);
 	isc_buffer_init(&b, DST_AS_STR(token), strlen(DST_AS_STR(token)));
 	isc_buffer_add(&b, strlen(DST_AS_STR(token)));
-	CHECK(dns_name_fromtext(dns_fixedname_name(&name), &b, dns_rootname,
-				0));
+	CHECK(dns_name_fromtext(dns_name(&name), &b, dns_rootname, 0));
 
 	/* Read the next word: either TTL, class, or 'KEY' */
 	NEXTTOKEN(lex, opt, &token);
@@ -1533,8 +1532,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	CHECK(dns_rdata_fromtext(&rdata, rdclass, keytype, lex, NULL, false,
 				 mctx, &b, NULL));
 
-	CHECK(dst_key_fromdns(dns_fixedname_name(&name), rdclass, &b, mctx,
-			      keyp));
+	CHECK(dst_key_fromdns(dns_name(&name), rdclass, &b, mctx, keyp));
 
 	dst_key_setttl(*keyp, ttl);
 

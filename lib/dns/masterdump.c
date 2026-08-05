@@ -1679,7 +1679,7 @@ dumptostream(dns_dumpctx_t *dctx) {
 		}
 		if (result == DNS_R_NEWORIGIN) {
 			dns_name_t *origin =
-				dns_fixedname_name(&dctx->tctx.origin_fixname);
+				dns_name(&dctx->tctx.origin_fixname);
 			result = dns_dbiterator_origin(dctx->dbiter, origin);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if ((dctx->tctx.style.flags & DNS_STYLEFLAG_REL_DATA) !=

@@ -5960,9 +5960,8 @@ answer_response:
 	    gettrust(val->rdataset) == dns_trust_secure &&
 	    gettrust(val->sigrdataset) == dns_trust_secure)
 	{
-		cache_rrset(fctx, now, dns_fixedname_name(&val->wild),
-			    val->rdataset, val->sigrdataset, NULL, NULL, NULL,
-			    true);
+		cache_rrset(fctx, now, dns_name(&val->wild), val->rdataset,
+			    val->sigrdataset, NULL, NULL, NULL, true);
 	}
 
 	/*

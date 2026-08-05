@@ -319,19 +319,18 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 
 	dns_fixedname_init(&fixed);
 	snprintf(buf, sizeof(buf), "_%u._tcp", port);
-	result = dns_name_fromstring(dns_fixedname_name(&fixed), buf, NULL, 0,
-				     NULL);
+	result = dns_name_fromstring(dns_name(&fixed), buf, NULL, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_SUCCESS;
 	}
 
-	result = dns_name_concatenate(dns_fixedname_name(&fixed), &name,
-				      dns_fixedname_name(&fixed));
+	result = dns_name_concatenate(dns_name(&fixed), &name,
+				      dns_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_SUCCESS;
 	}
 
-	return (add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
+	return (add)(arg, dns_name(&fixed), dns_rdatatype_tlsa,
 		     NULL DNS__DB_FILELINE);
 }
 

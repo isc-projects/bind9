@@ -3169,7 +3169,7 @@ dns__zone_set_resigntime(dns_zone_t *zone) {
 		return;
 	}
 
-	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+	result = dns_db_getsigningtime(db, &resign, dns_name(&fixed),
 				       &typepair);
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&zone->resigntime);
@@ -3732,8 +3732,8 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	 */
 	dns_fixedname_init(&fname);
 	result = dns_db_find(db, keyname, ver, dns_rdatatype_keydata,
-			     DNS_DBFIND_NOWILD, 0, dns_fixedname_name(&fname),
-			     NULL, NULL);
+			     DNS_DBFIND_NOWILD, 0, dns_name(&fname), NULL,
+			     NULL);
 	if (result == ISC_R_SUCCESS) {
 		return;
 	}
@@ -8816,7 +8816,7 @@ minimal_update(dns_zonefetch_t *fetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 
 	now = isc_stdtime_now();
 	zone = fetch->zone;
-	name = dns_fixedname_name(&fetch->name);
+	name = dns_name(&fetch->name);
 	kfetch = &fetch->fetchdata.keyfetch;
 
 	DNS_RDATASET_FOREACH(&kfetch->keydataset) {
@@ -8873,7 +8873,7 @@ revocable(dns_zonefetch_t *fetch, dns_rdata_keydata_t *keydata) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
 	REQUIRE(dns_rdataset_isassociated(&fetch->sigset));
 
-	keyname = dns_fixedname_name(&fetch->name);
+	keyname = dns_name(&fetch->name);
 	mctx = fetch->zone->view->mctx;
 
 	/* Generate a key from keydata */
@@ -8930,7 +8930,7 @@ static isc_result_t
 keyfetch_start(dns_zonefetch_t *fetch) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
 
-	fetch->qname = dns_fixedname_name(&fetch->name);
+	fetch->qname = dns_name(&fetch->name);
 	fetch->qtype = dns_rdatatype_dnskey;
 
 	return ISC_R_SUCCESS;
@@ -9034,7 +9034,7 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	kfetch = &fetch->fetchdata.keyfetch;
 	zone = fetch->zone;
 	mctx = fetch->mctx;
-	keyname = dns_fixedname_name(&fetch->name);
+	keyname = dns_name(&fetch->name);
 	dnskeys = &fetch->rrset;
 	dnskeysigs = &fetch->sigset;
 
@@ -18053,8 +18053,7 @@ dsyncfetch_start(dns_zonefetch_t *fetch) {
 
 	nlabels = dns_name_countlabels(&dsyncfetch->pname);
 	dns_name_init(&prefix);
-	dns_name_split(dns_fixedname_name(&fetch->name), nlabels, &prefix,
-		       NULL);
+	dns_name_split(dns_name(&fetch->name), nlabels, &prefix, NULL);
 
 	result = dns_name_concatenate(&prefix, &_dsync, dsyncname);
 	if (result != ISC_R_SUCCESS) {
@@ -18154,7 +18153,7 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	dsyncfetch = &fetch->fetchdata.dsyncfetch;
 	zone = fetch->zone;
 	rrset = &fetch->rrset;
-	dsyncname = dns_fixedname_name(&dsyncfetch->dsyncname);
+	dsyncname = dns_name(&dsyncfetch->dsyncname);
 
 	zone->fetchcount[ZONEFETCHTYPE_DSYNC]--;
 

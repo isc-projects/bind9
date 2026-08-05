@@ -1999,7 +1999,7 @@ dns_zone_getrad(dns_zone_t *zone, dns_name_t *name) {
 	rcu_read_lock();
 	dns_rad_t *rad = rcu_dereference(zone->rad);
 	if (rad != NULL) {
-		dns_name_t *inner = dns_fixedname_name(&rad->fname);
+		dns_name_t *inner = dns_name(&rad->fname);
 		dns_name_copy(inner, name);
 		result = ISC_R_SUCCESS;
 	}
@@ -2021,7 +2021,7 @@ dns_zone_setrad(dns_zone_t *zone, dns_name_t *name) {
 		dns_fixedname_init(&new_rad->fname);
 
 		isc_mem_attach(zone->mctx, &new_rad->mctx);
-		dns_name_copy(name, dns_fixedname_name(&new_rad->fname));
+		dns_name_copy(name, dns_name(&new_rad->fname));
 	}
 	dns_rad_t *xchg_rad = rcu_xchg_pointer(&zone->rad, new_rad);
 

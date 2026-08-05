@@ -80,7 +80,7 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 	};
 
 	dns_fixedname_init(&ent->name);
-	dns_name_copy(name, dns_fixedname_name(&ent->name));
+	dns_name_copy(name, dns_name(&ent->name));
 
 	ISC_LIST_INITANDAPPEND(order->ents, ent, link);
 }
@@ -107,7 +107,7 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 		{
 			continue;
 		}
-		if (match(name, dns_fixedname_name(&ent->name))) {
+		if (match(name, dns_name(&ent->name))) {
 			return ent->mode;
 		}
 	}

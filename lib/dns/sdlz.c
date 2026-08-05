@@ -555,7 +555,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				wild = dns_wildcardname;
 			} else {
 				dns_name_t *fname;
-				fname = dns_fixedname_name(&fixed);
+				fname = dns_name(&fixed);
 				dns_name_getlabelsequence(
 					name, i + 1, dlabels - i - 1, fname);
 				result = dns_name_concatenate(dns_wildcardname,

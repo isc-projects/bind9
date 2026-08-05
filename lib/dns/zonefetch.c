@@ -96,7 +96,7 @@ cancel:
 	 */
 	dns__zone_lock(zone);
 
-	dns_name_t *zname = dns_fixedname_name(&fetch->name);
+	dns_name_t *zname = dns_name(&fetch->name);
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	bool free_needed;
 
@@ -136,7 +136,7 @@ dns_zonefetch_done(void *arg) {
 
 	mctx = fetch->mctx;
 	zone = fetch->zone;
-	zname = dns_fixedname_name(&fetch->name);
+	zname = dns_name(&fetch->name);
 	rrset = &fetch->rrset;
 	sigset = &fetch->sigset;
 	view = dns_zone_getview(zone);

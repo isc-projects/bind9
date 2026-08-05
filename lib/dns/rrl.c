@@ -930,12 +930,11 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 				e->log_qname = qbuf->index;
 				qbuf->e = e;
 				dns_fixedname_init(&qbuf->qname);
-				dns_name_copy(qname,
-					      dns_fixedname_name(&qbuf->qname));
+				dns_name_copy(qname, dns_name(&qbuf->qname));
 			}
 		}
 		if (qbuf != NULL) {
-			qname = dns_fixedname_name(&qbuf->qname);
+			qname = dns_name(&qbuf->qname);
 		}
 		if (qname != NULL) {
 			ADD_LOG_CSTR(&lb, " for ");

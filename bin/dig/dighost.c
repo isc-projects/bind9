@@ -797,7 +797,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 			sizeof(*looknew->ecs_addr));
 	}
 
-	dns_name_copy(&lookold->fdomain, dns_fixedname_name(&looknew->fdomain));
+	dns_name_copy(&lookold->fdomain, dns_name(&looknew->fdomain));
 
 	if (servers) {
 		if (lookold->tls_ctx_cache != NULL) {
@@ -1815,7 +1815,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 			unsigned int nlabels;
 			int order;
 
-			domain = dns_fixedname_name(&query->lookup->fdomain);
+			domain = dns_name(&query->lookup->fdomain);
 			namereln = dns_name_fullcompare(name, domain, &order,
 							&nlabels);
 			if (namereln == dns_namereln_equal) {
@@ -1872,7 +1872,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 				if (lookup->ns_search_only) {
 					lookup->recurse = false;
 				}
-				domain = dns_fixedname_name(&lookup->fdomain);
+				domain = dns_name(&lookup->fdomain);
 				dns_name_copy(name, domain);
 				lookup->edns = lookup->original_edns;
 			}

@@ -440,10 +440,10 @@ start_fetch(resctx_t *rctx) {
 	}
 
 	result = dns_resolver_createfetch(
-		rctx->view->resolver, dns_fixedname_name(&rctx->name),
-		rctx->type, NULL, NULL, NULL, NULL, 0, fopts, 0, NULL, rctx->qc,
-		NULL, rctx->client->loop, fetch_done, rctx, NULL,
-		rctx->rdataset, rctx->sigrdataset, &rctx->fetch);
+		rctx->view->resolver, dns_name(&rctx->name), rctx->type, NULL,
+		NULL, NULL, NULL, 0, fopts, 0, NULL, rctx->qc, NULL,
+		rctx->client->loop, fetch_done, rctx, NULL, rctx->rdataset,
+		rctx->sigrdataset, &rctx->fetch);
 
 	return result;
 }
@@ -451,7 +451,7 @@ start_fetch(resctx_t *rctx) {
 static isc_result_t
 view_find(resctx_t *rctx, dns_db_t **dbp, dns_name_t *foundname) {
 	isc_result_t result;
-	dns_name_t *name = dns_fixedname_name(&rctx->name);
+	dns_name_t *name = dns_name(&rctx->name);
 	dns_rdatatype_t type;
 
 	if (rctx->type == dns_rdatatype_rrsig) {
@@ -487,7 +487,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 
 	mctx = rctx->view->mctx;
 
-	name = dns_fixedname_name(&rctx->name);
+	name = dns_name(&rctx->name);
 
 	do {
 		dns_name_t *fname = dns_fixedname_initname(&foundname);
@@ -539,7 +539,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		 * Get some resource for copying the
 		 * result.
 		 */
-		dns_name_t *aname = dns_fixedname_name(&rctx->name);
+		dns_name_t *aname = dns_name(&rctx->name);
 
 		ansname = isc_mem_get(mctx, sizeof(*ansname));
 		dns_linkedname_init(ansname);
@@ -908,7 +908,7 @@ startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->sigrdataset = sigrdataset;
 
 	dns_fixedname_init(&rctx->name);
-	dns_name_copy(name, dns_fixedname_name(&rctx->name));
+	dns_name_copy(name, dns_name(&rctx->name));
 
 	dns_view_attach(client->view, &rctx->view);
 

@@ -228,7 +228,7 @@ main(int argc, char **argv) {
 	n = i;
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
-		name = dns_fixedname_name(&items[i]);
+		name = dns_name(&items[i]);
 		dns_qp_getname(qp, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
@@ -238,7 +238,7 @@ main(int argc, char **argv) {
 
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
-		name = dns_fixedname_name(&items[i]);
+		name = dns_name(&items[i]);
 		dns_qp_lookup(qp, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
 			      NULL, NULL);
 	}
@@ -259,7 +259,7 @@ main(int argc, char **argv) {
 		dns_fixedname_t sf;
 		dns_name_t *search = dns_fixedname_initname(&sf);
 
-		name = dns_fixedname_name(&items[i]);
+		name = dns_name(&items[i]);
 		dns_name_copy(name, search);
 		if (search->ndata[1] != 0) {
 			++search->ndata[1];

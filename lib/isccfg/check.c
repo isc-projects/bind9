@@ -144,8 +144,8 @@ check_orderent(const cfg_obj_t *ent) {
 		str = cfg_obj_asstring(obj);
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0);
+		tresult = dns_name_fromtext(dns_name(&fixed), &b, dns_rootname,
+					    0);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "rrset-order: invalid name '%s'", str);
@@ -964,8 +964,8 @@ check_name(const char *str) {
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
-	return dns_name_fromstring(dns_fixedname_name(&fixed), str,
-				   dns_rootname, 0, NULL);
+	return dns_name_fromstring(dns_name(&fixed), str, dns_rootname, 0,
+				   NULL);
 }
 
 static bool
@@ -3459,8 +3459,8 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	dns_fixedname_init(&fixedname);
 	isc_buffer_constinit(&b, znamestr, strlen(znamestr));
 	isc_buffer_add(&b, strlen(znamestr));
-	tresult = dns_name_fromtext(dns_fixedname_name(&fixedname), &b,
-				    dns_rootname, DNS_NAME_DOWNCASE);
+	tresult = dns_name_fromtext(dns_name(&fixedname), &b, dns_rootname,
+				    DNS_NAME_DOWNCASE);
 	if (tresult != ISC_R_SUCCESS) {
 		cfg_obj_log(zconfig, ISC_LOG_ERROR,
 			    "zone '%s': is not a valid name", znamestr);
@@ -3473,7 +3473,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		size_t len = 0;
 		int n;
 
-		zname = dns_fixedname_name(&fixedname);
+		zname = dns_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(zclass, classbuf, sizeof(classbuf));
 

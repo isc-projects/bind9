@@ -260,7 +260,7 @@ new_ht(isc_mem_t *mem) {
 
 static isc_result_t
 add_ht(void *ht, size_t count) {
-	dns_name_t *name = dns_fixedname_name(&item[count].fixed);
+	dns_name_t *name = dns_name(&item[count].fixed);
 	isc_result_t result = isc_ht_add(ht, name->ndata, name->length,
 					 &item[count]);
 	return result;
@@ -268,7 +268,7 @@ add_ht(void *ht, size_t count) {
 
 static isc_result_t
 get_ht(void *ht, size_t count, void **pval) {
-	dns_name_t *name = dns_fixedname_name(&item[count].fixed);
+	dns_name_t *name = dns_name(&item[count].fixed);
 	isc_result_t result = isc_ht_find(ht, name->ndata, name->length, pval);
 	return result;
 }
