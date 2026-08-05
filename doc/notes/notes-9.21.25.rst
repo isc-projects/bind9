@@ -118,13 +118,7 @@ Bug Fixes
   When key names are generated with :iscman:`rndc-confgen`,
   :iscman:`tsig-keygen`, and :iscman:`ddns-confgen`, special characters
   must be escaped to ensure the configuration is parsed correctly.
-  :gl:`#6071`
-
-- Prevent :iscman:`ddns-confgen` self-domain update-policy injection.
-
-  A user-supplied domain name was not properly escaped, allowing
-  injection into the generated update-policy configuration. This has
-  been fixed. :gl:`#6072`
+  :gl:`#6071` :gl:`#6072`
 
 - Fix a potential heap bounds overflow write in :iscman:`dnssec-signzone`.
 
