@@ -13,7 +13,7 @@ information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator, Callable, Collection, Coroutine, Sequence
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any, cast, final
 
 import abc
 import asyncio
@@ -596,6 +596,43 @@ class ResponseHandler(abc.ABC):
 
     def __str__(self) -> str:
         return self.__class__.__name__
+
+
+class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
+    """
+    Base class for handlers that wrap another handler and modify each response
+    it yields.  `match()` and the response stream are delegated to the wrapped
+    `inner` handler; subclasses implement `_modify_response()` to mutate each
+    yielded action in place, and may override `_on_query_received()` to reset
+    per-query state.
+    """
+
+    def __init__(self, inner: ResponseHandler) -> None:
+        self._inner = inner
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._inner.match(qctx)
+
+    def _on_query_received(self, qctx: QueryContext) -> None:
+        pass
+
+    @abc.abstractmethod
+    def _modify_response(
+        self, qctx: QueryContext, response_action: ResponseAction
+    ) -> None:
+        raise NotImplementedError
+
+    @final
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        self._on_query_received(qctx)
+        async for response_action in self._inner.get_responses(qctx):
+            self._modify_response(qctx, response_action)
+            yield response_action
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self._inner})"
 
 
 class IgnoreAllQueries(ResponseHandler):
