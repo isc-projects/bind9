@@ -77,6 +77,8 @@ Two kinds of mismatch to look for:
 - **User/interface changes** generally get a note — *except* when merely
   loosening/relaxing a condition (and/or main-only): OK to skip.
 - **Main-only optimizations**: OK to skip.
+- **Implementation details** which are unlikely to be visible to sysadmins:
+  OK to skip.
 
 ### Flag, don't decide
 
@@ -183,6 +185,8 @@ line** and let `:gl:`#NNNN`` attach to the end of the last body sentence.
   "named …"); restructure, e.g. "Previously, :iscman:`named` …" or "The
   :iscman:`named` process …".
 - Fix obvious typos while you're in the file.
+- Intended audience are system administrators. Omit implementation details like
+  function names, data structure details etc. Focus on user visible impact.
 
 ### Sectioning & entry order
 
