@@ -517,8 +517,8 @@ dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	if (db->methods->find != NULL) {
 		return (db->methods->find)(db, name, version, type, options,
-					   now, NULL, foundname, methods,
-					   clientinfo, rdataset,
+					   now, foundname, methods, clientinfo,
+					   rdataset,
 					   sigrdataset DNS__DB_FLARG_PASS);
 	}
 	return ISC_R_NOTIMPLEMENTED;

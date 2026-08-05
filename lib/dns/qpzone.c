@@ -3442,8 +3442,7 @@ qpz_search_init(qpz_search_t *search, qpzonedb_t *db, qpz_version_t *version,
 static isc_result_t
 qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options,
-	    isc_stdtime_t now ISC_ATTR_UNUSED,
-	    dns_dbnode_t **nodep ISC_ATTR_UNUSED, dns_name_t *foundname,
+	    isc_stdtime_t now ISC_ATTR_UNUSED, dns_name_t *foundname,
 	    dns_clientinfomethods_t *methods ISC_ATTR_UNUSED,
 	    dns_clientinfo_t *clientinfo ISC_ATTR_UNUSED,
 	    dns_rdataset_t *rdataset,
@@ -5209,7 +5208,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	dns_rdataset_init(&sigrdataset_aaaa);
 
 	result = qpzone_find(ctx->db, name, ctx->version, dns_rdatatype_a,
-			     DNS_DBFIND_GLUEOK, 0, NULL, name_a, NULL, NULL,
+			     DNS_DBFIND_GLUEOK, 0, name_a, NULL, NULL,
 			     &rdataset_a, &sigrdataset_a DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {
 		glue = new_glue(ctx->db->mctx, name_a);
@@ -5226,7 +5225,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	}
 
 	result = qpzone_find(ctx->db, name, ctx->version, dns_rdatatype_aaaa,
-			     DNS_DBFIND_GLUEOK, 0, NULL, name_aaaa, NULL, NULL,
+			     DNS_DBFIND_GLUEOK, 0, name_aaaa, NULL, NULL,
 			     &rdataset_aaaa,
 			     &sigrdataset_aaaa DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {

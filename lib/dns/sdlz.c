@@ -765,9 +765,8 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 static isc_result_t
 sdlz_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	  dns_dbnode_t **nodep ISC_ATTR_UNUSED, dns_name_t *foundname,
-	  dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	  dns_rdataset_t *rdataset,
+	  dns_name_t *foundname, dns_clientinfomethods_t *methods,
+	  dns_clientinfo_t *clientinfo, dns_rdataset_t *rdataset,
 	  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 	dns_dbnode_t *node = NULL;

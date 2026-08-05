@@ -1392,7 +1392,7 @@ qpc_search_deinit(qpc_search_t *search DNS__DB_FLARG) {
 static isc_result_t
 qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t __now,
-	     dns_dbnode_t **nodep ISC_ATTR_UNUSED, dns_name_t *foundname,
+	     dns_name_t *foundname,
 	     dns_clientinfomethods_t *methods ISC_ATTR_UNUSED,
 	     dns_clientinfo_t *clientinfo ISC_ATTR_UNUSED,
 	     dns_rdataset_t *rdataset,

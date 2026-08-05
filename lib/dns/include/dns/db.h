@@ -152,7 +152,7 @@ typedef struct dns_db_methods {
 	isc_result_t (*find)(dns_db_t *db, const dns_name_t *name,
 			     dns_dbversion_t *version, dns_rdatatype_t type,
 			     unsigned int options, isc_stdtime_t now,
-			     dns_dbnode_t **nodep, dns_name_t *foundname,
+			     dns_name_t			*foundname,
 			     dns_clientinfomethods_t	*methods,
 			     dns_clientinfo_t		*clientinfo,
 			     dns_rdataset_t		*rdataset,
