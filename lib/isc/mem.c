@@ -58,6 +58,9 @@
 #include <jemalloc/jemalloc.h>
 #define JEMALLOC_API_SUPPORTED 1
 #else
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
 #include "jemalloc_shim.h"
 #endif
 
@@ -503,12 +506,18 @@ debugging_enabled(const char *name) {
 
 void
 isc__mem_initialize(void) {
-/*
- * Check if the values copied from jemalloc still match
- */
-#ifdef JEMALLOC_API_SUPPORTED
-	RUNTIME_CHECK(ISC__MEM_ZERO == MALLOCX_ZERO);
+	/*
+	 * Check if the values copied from jemalloc still match; the
+	 * shim defines the MALLOCX_* macros too, so this holds on
+	 * every allocator path.
+	 */
+	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
+	RUNTIME_CHECK(ISC_MEM_ALIGN(sizeof(void *)) ==
+		      MALLOCX_ALIGN(sizeof(void *)));
+	RUNTIME_CHECK(ISC_MEM_ALIGN(ISC_OS_CACHELINE_SIZE) ==
+		      MALLOCX_ALIGN(ISC_OS_CACHELINE_SIZE));
 
+#ifdef JEMALLOC_API_SUPPORTED
 	/*
 	 * ignore errors — volumetric-based purge in mem_put handles the rest
 	 * regardless
@@ -605,7 +614,8 @@ mem_create(const char *name, isc_mem_t **ctxp, unsigned int debugging,
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 	REQUIRE(name != NULL);
 
-	ctx = mallocx(sizeof(*ctx), jemalloc_flags);
+	ctx = mallocx(sizeof(*ctx),
+		      jemalloc_flags | ISC_MEM_ALIGN(isc_os_cacheline()));
 	CHECK_OOM(ctx, sizeof(*ctx));
 
 	*ctx = (isc_mem_t){
@@ -677,7 +687,7 @@ mem_destroy(isc_mem_t *ctx) {
 				INSIST(!ctx->checkfree || dl->ptr == NULL);
 
 				ISC_LIST_UNLINK(ctx->debuglist[i], dl, link);
-				sdallocx(dl, sizeof(*dl), ctx->jemalloc_flags);
+				sdallocx(dl, dl->dlsize, ctx->jemalloc_flags);
 			}
 		}
 
@@ -706,7 +716,8 @@ mem_destroy(isc_mem_t *ctx) {
 	}
 #endif /* ISC_MEM_TRACKLINES */
 
-	sdallocx(ctx, sizeof(*ctx), ctx->jemalloc_flags);
+	sdallocx(ctx, sizeof(*ctx),
+		 ctx->jemalloc_flags | ISC_MEM_ALIGN(isc_os_cacheline()));
 }
 
 #if ISC_MEM_TRACE
@@ -868,19 +879,7 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 
 		ADJUST_ZERO_ALLOCATION_SIZE(new_size);
 
-#ifdef JEMALLOC_API_SUPPORTED
 		new_ptr = mem_realloc(ctx, old_ptr, new_size, flags);
-#else
-		new_ptr = mem_realloc(ctx, old_ptr, new_size,
-				      flags & ~ISC__MEM_ZERO);
-
-		if ((flags & ISC__MEM_ZERO) != 0) {
-			if (new_size > old_size) {
-				memset((uint8_t *)new_ptr + old_size, 0,
-				       new_size - old_size);
-			}
-		}
-#endif
 
 		mem_getstats(ctx, new_size);
 		ADD_TRACE(ctx, new_ptr, new_size, func, file, line);
