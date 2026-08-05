@@ -992,9 +992,8 @@ bindrdatasets(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *found,
 }
 
 static isc_result_t
-setup_delegation(qpc_search_t *search, dns_dbnode_t **nodep,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		 isc_rwlocktype_t nlocktype,
+setup_delegation(qpc_search_t *search, dns_rdataset_t *rdataset,
+		 dns_rdataset_t *sigrdataset, isc_rwlocktype_t nlocktype,
 		 isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
 	REQUIRE(search != NULL);
 	REQUIRE(search->zonecut != NULL);
@@ -1005,11 +1004,6 @@ setup_delegation(qpc_search_t *search, dns_dbnode_t **nodep,
 	dns_typepair_t typepair = search->zonecut_header->typepair;
 	isc_rwlock_t *nlock = NULL;
 
-	if (nodep != NULL) {
-		qpcnode_acquire(search->qpdb, node, nlocktype,
-				tlocktype DNS__DB_FLARG_PASS);
-		*nodep = (dns_dbnode_t *)node;
-	}
 	if (rdataset != NULL) {
 		nlock = &search->qpdb->buckets[node->locknum].lock;
 		NODE_RDLOCK(nlock, &nlocktype);
@@ -1269,8 +1263,7 @@ check_dname(qpcnode_t *node, void *arg DNS__DB_FLARG) {
  */
 static isc_result_t
 find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
-		  dns_dbnode_t **nodep, dns_name_t *foundname,
-		  dns_rdataset_t *rdataset,
+		  dns_name_t *foundname, dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_fixedname_t fpredecessor, fixed;
 	dns_name_t *predecessor = NULL, *fname = NULL;
@@ -1324,11 +1317,6 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	if (found != NULL && header_trust(found) == dns_trust_secure &&
 	    (foundsig == NULL || header_trust(foundsig) == dns_trust_secure))
 	{
-		if (nodep != NULL) {
-			qpcnode_acquire(search->qpdb, node, nlocktype,
-					isc_rwlocktype_none DNS__DB_FLARG_PASS);
-			*nodep = (dns_dbnode_t *)node;
-		}
 		bindrdatasets(search->qpdb, node, found, foundsig, search->now,
 			      nlocktype, isc_rwlocktype_none, rdataset,
 			      sigrdataset DNS__DB_FLARG_PASS);
@@ -1404,7 +1392,7 @@ qpc_search_deinit(qpc_search_t *search DNS__DB_FLARG) {
 static isc_result_t
 qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t __now,
-	     dns_dbnode_t **nodep, dns_name_t *foundname,
+	     dns_dbnode_t **nodep ISC_ATTR_UNUSED, dns_name_t *foundname,
 	     dns_clientinfomethods_t *methods ISC_ATTR_UNUSED,
 	     dns_clientinfo_t *clientinfo ISC_ATTR_UNUSED,
 	     dns_rdataset_t *rdataset,
@@ -1491,14 +1479,14 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		     search.zonecut_header->typepair != dns_rdatatype_dname))
 		{
 			result = find_coveringnsec(
-				&search, name, nodep, foundname, rdataset,
+				&search, name, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result == DNS_R_COVERINGNSEC) {
 				goto tree_exit;
 			}
 		}
 		if (search.zonecut != NULL) {
-			result = setup_delegation(&search, nodep, rdataset,
+			result = setup_delegation(&search, rdataset,
 						  sigrdataset, nlocktype,
 						  tlocktype DNS__DB_FLARG_PASS);
 			goto tree_exit;
@@ -1617,7 +1605,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		NODE_UNLOCK(nlock, &nlocktype);
 		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
 			result = find_coveringnsec(
-				&search, name, nodep, foundname, rdataset,
+				&search, name, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result == DNS_R_COVERINGNSEC) {
 				goto tree_exit;
@@ -1638,11 +1626,6 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0 &&
 		    nsecheader != NULL)
 		{
-			if (nodep != NULL) {
-				qpcnode_acquire(search.qpdb, node, nlocktype,
-						tlocktype DNS__DB_FLARG_PASS);
-				*nodep = (dns_dbnode_t *)node;
-			}
 			bindrdatasets(search.qpdb, node, nsecheader, nsecsig,
 				      search.now, nlocktype, tlocktype,
 				      rdataset, sigrdataset DNS__DB_FLARG_PASS);
@@ -1658,7 +1641,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		{
 			NODE_UNLOCK(nlock, &nlocktype);
 			result = find_coveringnsec(
-				&search, name, nodep, foundname, rdataset,
+				&search, name, foundname, rdataset,
 				sigrdataset DNS__DB_FLARG_PASS);
 			if (result != DNS_R_COVERINGNSEC) {
 				result = ISC_R_NOTFOUND;
@@ -1673,12 +1656,6 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * We found what we were looking for, or we found a CNAME.
 	 */
-
-	if (nodep != NULL) {
-		qpcnode_acquire(search.qpdb, node, nlocktype,
-				tlocktype DNS__DB_FLARG_PASS);
-		*nodep = (dns_dbnode_t *)node;
-	}
 
 	if (NEGATIVE(found)) {
 		/*
