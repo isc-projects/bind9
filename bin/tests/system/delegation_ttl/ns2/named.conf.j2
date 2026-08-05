@@ -1,17 +1,32 @@
 {% set minttl = minttl | default(None) %}
 {% set maxttl = maxttl | default(None) %}
+{% set inview = inview | default(False) %}
 
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
+{% if not inview %}
 {% if minttl != None %}
 	min-delegation-ttl @minttl@;
 {% endif %}
 {% if maxttl != None %}
 	max-delegation-ttl @maxttl@;
 {% endif %}
+{% endif %}
 };
 
+{% if inview %}
+view "v" {
+{% if minttl != None %}
+	min-delegation-ttl @minttl@;
+{% endif %}
+{% if maxttl != None %}
+	max-delegation-ttl @maxttl@;
+{% endif %}
+	{% include_indented "_common/root.hint.conf" %}
+};
+{% else %}
 {% include "_common/root.hint.conf" %}
+{% endif %}
 
 {% include "_common/controls.conf.j2" %}
