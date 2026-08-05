@@ -58,7 +58,7 @@ Bug Fixes
   negative answer from being cached even after they had passed their
   TTL, and the expired records could be returned to the client instead.
   Validated records that have expired no longer prevent negative
-  answers from being cached. :gl:`!12423`
+  answers from being cached. :gl:`#5877`
 
 - Ensure NSEC authority does not cross zonecut boundary.
 
