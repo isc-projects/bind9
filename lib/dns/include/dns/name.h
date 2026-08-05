@@ -209,6 +209,36 @@ extern const dns_name_t *dns_inaddrarpa;
 
 #define DNS_NAME_INITEMPTY { .magic = DNS_NAME_MAGIC }
 
+/*%<
+ * These are similar macros for initializing dns_linkedname structures.
+ */
+#define DNS_LINKEDNAME_INITNONABSOLUTE(__ndata)          \
+	{                                                \
+		.name.magic = DNS_NAME_MAGIC,            \
+		.name.ndata = (__ndata),                 \
+		.name.length = (sizeof(__ndata) - 1),    \
+		.name.attributes = { .readonly = true }, \
+		.link = ISC_LINK_INITIALIZER,            \
+		.list = ISC_LIST_INITIALIZER,            \
+	}
+
+#define DNS_LINKEDNAME_INITABSOLUTE(__ndata)                               \
+	{                                                                  \
+		.name.magic = DNS_NAME_MAGIC,                              \
+		.name.ndata = (__ndata),                                   \
+		.name.length = sizeof(__ndata),                            \
+		.name.attributes = { .readonly = true, .absolute = true }, \
+		.link = ISC_LINK_INITIALIZER,                              \
+		.list = ISC_LIST_INITIALIZER,                              \
+	}
+
+#define DNS_LINKEDNAME_INITEMPTY              \
+	{                                     \
+		.name.magic = DNS_NAME_MAGIC, \
+		.link = ISC_LINK_INITIALIZER, \
+		.list = ISC_LIST_INITIALIZER, \
+	}
+
 /*%
  * Standard sizes of a wire format name
  */

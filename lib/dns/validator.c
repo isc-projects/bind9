@@ -3000,16 +3000,12 @@ static isc_result_t
 checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	      dns_name_t *zonename) {
 	dns_linkedname_t *name;
-	dns_linkedname_t tname_wl;
-	dns_name_t *wild;
+	dns_linkedname_t tname_wl = DNS_LINKEDNAME_INITEMPTY;
+	dns_name_t *wild = dns_fixedname_name(&val->wild);
 	isc_result_t result;
 	bool exists, data;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_rdataset_t *rdataset, trdataset;
-
-	dns_linkedname_init(&tname_wl);
-	dns_rdataset_init(&trdataset);
-	wild = dns_fixedname_name(&val->wild);
+	dns_rdataset_t *rdataset, trdataset = DNS_RDATASET_INIT;
 
 	if (dns_name_empty(wild)) {
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -3101,7 +3097,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
  */
 static isc_result_t
 findnsec3proofs(dns_validator_t *val) {
-	dns_linkedname_t tname_wl;
+	dns_linkedname_t tname_wl = DNS_LINKEDNAME_INITEMPTY;
 	dns_linkedname_t *name = (val->message == NULL) ? &tname_wl : NULL;
 	isc_result_t result;
 	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
@@ -3113,8 +3109,6 @@ findnsec3proofs(dns_validator_t *val) {
 	dns_name_t *closestp = NULL;
 	dns_linkedname_t **proofs = val->proofs;
 	bool exists, data, optout, unknown, setnearest;
-
-	dns_linkedname_init(&tname_wl);
 
 	for (result = val_rdataset_first(val, &name, &rdataset);
 	     result == ISC_R_SUCCESS;

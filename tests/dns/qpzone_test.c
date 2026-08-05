@@ -157,9 +157,7 @@ static dns_rdata_rrsig_t rrsig_test_data1 = {
 	.timeexpire = 1695820800,
 	.timesigned = 1695744000,
 	.keyid = 0x1234,
-	.signer = { .name = DNS_NAME_INITABSOLUTE(example_org_data),
-		    .link = ISC_LINK_INITIALIZER,
-		    .list = ISC_LIST_INITIALIZER },
+	.signer = DNS_LINKEDNAME_INITABSOLUTE(example_org_data),
 	.siglen = 64,
 	.signature = rrsig_signature1,
 };
@@ -174,9 +172,7 @@ static dns_rdata_rrsig_t rrsig_test_data2 = {
 	.timeexpire = 1695820800,
 	.timesigned = 1695744000,
 	.keyid = 0x5678,
-	.signer = { .name = DNS_NAME_INITABSOLUTE(example_org_data),
-		    .link = ISC_LINK_INITIALIZER,
-		    .list = ISC_LIST_INITIALIZER },
+	.signer = DNS_LINKEDNAME_INITABSOLUTE(example_org_data),
 	.siglen = 64,
 	.signature = rrsig_signature2,
 };
