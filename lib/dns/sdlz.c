@@ -763,11 +763,12 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-     dns_dbnode_t **nodep, dns_name_t *foundname,
-     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+sdlz_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	  dns_dbnode_t **nodep ISC_ATTR_UNUSED, dns_name_t *foundname,
+	  dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
+	  dns_rdataset_t *rdataset,
+	  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fname;
@@ -778,7 +779,6 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	unsigned int i;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
-	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(version == NULL || version == (void *)&sdlz->dummy_version ||
 		version == sdlz->future_version);
 
@@ -926,9 +926,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		}
 	}
 
-	if (nodep != NULL) {
-		*nodep = node;
-	} else if (node != NULL) {
+	if (node != NULL) {
 		sdlznode_detachnode(&node DNS__DB_FLARG_PASS);
 	}
 
@@ -1098,7 +1096,7 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.attachversion = attachversion,
 	.closeversion = closeversion,
 	.findnode = findnode,
-	.find = find,
+	.find = sdlz_find,
 	.createiterator = createiterator,
 	.findrdataset = findrdataset,
 	.allrdatasets = allrdatasets,
