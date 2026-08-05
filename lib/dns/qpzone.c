@@ -5429,7 +5429,7 @@ addglue_to_message(qpzonedb_t *qpdb, dns_glue_t *ge, dns_message_t *msg) {
 
 		dns_message_gettempname(msg, &name);
 
-		dns_name_copy(&ge->name, dns_linkedname_name(name));
+		dns_name_copy(&ge->name, dns_name(name));
 
 		if (ge->header_a != NULL) {
 			dns_message_gettemprdataset(msg, &rdataset_a);

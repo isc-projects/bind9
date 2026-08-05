@@ -544,7 +544,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		ansname = isc_mem_get(mctx, sizeof(*ansname));
 		dns_linkedname_init(ansname);
 
-		dns_name_dup(aname, mctx, dns_linkedname_name(ansname));
+		dns_name_dup(aname, mctx, dns_name(ansname));
 
 		switch (result) {
 		case ISC_R_SUCCESS:
@@ -761,7 +761,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 				ISC_LIST_UNLINK(ansname->list, rdataset, link);
 				putrdataset(mctx, &rdataset);
 			}
-			dns_name_free(dns_linkedname_name(ansname), mctx);
+			dns_name_free(dns_name(ansname), mctx);
 			isc_mem_put(mctx, ansname, sizeof(*ansname));
 		}
 
@@ -987,7 +987,7 @@ dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
 			putrdataset(client->mctx, &rdataset);
 		}
 
-		dns_name_free(dns_linkedname_name(name), client->mctx);
+		dns_name_free(dns_name(name), client->mctx);
 		isc_mem_put(client->mctx, name, sizeof(*name));
 	}
 }

@@ -1543,7 +1543,7 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg,
 	dns_rdatalist_tordataset(rdl, rds);
 
 	dns_message_gettempname(msg, &name);
-	dns_name_clone(&tuple->name, dns_linkedname_name(name));
+	dns_name_clone(&tuple->name, dns_name(name));
 	ISC_LIST_APPEND(name->list, rds, link);
 
 	*target = name;
@@ -1608,7 +1608,7 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 
 	/* Create a name for the question section. */
 	dns_message_gettempname(msg, &qname);
-	dns_name_clone(&xfr->name, dns_linkedname_name(qname));
+	dns_name_clone(&xfr->name, dns_name(qname));
 
 	/* Formulate the question and attach it to the question name. */
 	dns_message_gettemprdataset(msg, &qrdataset);
@@ -1985,8 +1985,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			DNS_RDATASET_FOREACH(rds) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
-				CHECK(xfr_rr(xfr, dns_linkedname_name(name),
-					     rds->ttl, &rdata));
+				CHECK(xfr_rr(xfr, dns_name(name), rds->ttl,
+					     &rdata));
 
 				/*
 				 * Did we hit the maximum ixfr diffs limit?

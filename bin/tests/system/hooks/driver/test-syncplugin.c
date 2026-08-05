@@ -36,8 +36,7 @@ syncplugin__hook(void *arg, void *cbdata, isc_result_t *resp) {
 	UNUSED(resp);
 
 	if (inst->firstlbl != NULL) {
-		const dns_name_t *qname =
-			dns_linkedname_name(qctx->client->query.qname);
+		const dns_name_t *qname = dns_name(qctx->client->query.qname);
 		dns_label_t label;
 		size_t len = strlen(inst->firstlbl);
 

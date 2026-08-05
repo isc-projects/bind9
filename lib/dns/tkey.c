@@ -119,7 +119,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_message_takebuffer(msg, &tmprdatabuf);
 
 	dns_message_gettempname(msg, &newname);
-	dns_name_copy(name, dns_linkedname_name(newname));
+	dns_name_copy(name, dns_name(newname));
 
 	dns_message_gettemprdatalist(msg, &newlist);
 	newlist->rdclass = newrdata->rdclass;
@@ -353,8 +353,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	/* * Look for a TKEY record that matches the question.
 	 */
 	result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL,
-				      dns_linkedname_name(qname),
-				      dns_rdatatype_tkey, 0, NULL, &tkeyset);
+				      dns_name(qname), dns_rdatatype_tkey, 0,
+				      NULL, &tkeyset);
 	if (result != ISC_R_SUCCESS) {
 		tkey_log("dns_tkey_processquery: couldn't find a TKEY "
 			 "matching the question");
@@ -402,7 +402,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		/*
 		 * A delete operation uses the fully specified qname.
 		 */
-		keyname = dns_linkedname_name(qname);
+		keyname = dns_name(qname);
 		CHECK(process_deletetkey(signer, keyname, &tkeyin, &tkeyout,
 					 ring));
 		break;
@@ -464,7 +464,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		/*
 		 * For unrecognized modes also use the fully specified qname.
 		 */
-		keyname = dns_linkedname_name(qname);
+		keyname = dns_name(qname);
 		tkeyout.error = dns_tsigerror_badmode;
 	}
 
@@ -533,8 +533,8 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey) {
 	dns_message_gettemprdataset(msg, &tkeyset);
 	dns_rdatalist_tordataset(tkeylist, tkeyset);
 
-	dns_name_copy(name, dns_linkedname_name(qname));
-	dns_name_copy(name, dns_linkedname_name(aname));
+	dns_name_copy(name, dns_name(qname));
+	dns_name_copy(name, dns_name(aname));
 
 	ISC_LIST_APPEND(qname->list, question, link);
 	ISC_LIST_APPEND(aname->list, tkeyset, link);
@@ -597,7 +597,7 @@ find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata,
 			RETERR(dns_rdataset_first(tkeyset));
 
 			dns_rdataset_current(tkeyset, rdata);
-			*name = dns_linkedname_name(cur);
+			*name = dns_name(cur);
 			return ISC_R_SUCCESS;
 		}
 	}

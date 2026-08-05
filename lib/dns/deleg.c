@@ -465,7 +465,7 @@ addname(dns_delegset_t *delegset, dns_namelist_t *list,
 
 	clone = isc_mem_get(delegset->mctx, sizeof(*clone));
 	dns_linkedname_init(clone);
-	dns_name_dup(name, delegset->mctx, dns_linkedname_name(clone));
+	dns_name_dup(name, delegset->mctx, dns_name(clone));
 	ISC_LIST_APPEND(*list, clone, link);
 }
 

@@ -768,7 +768,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	question_name_wl =
 		ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
-	question_name = dns_linkedname_name(question_name_wl);
+	question_name = dns_name(question_name_wl);
 	question_rdataset = ISC_LIST_HEAD(question_name_wl->list);
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
@@ -1450,7 +1450,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			r.length = xfr->qname->length;
 			isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
 					  xfr->qname->length);
-			dns_name_fromregion(dns_linkedname_name(qname), &r);
+			dns_name_fromregion(dns_name(qname), &r);
 			ISC_LIST_INIT(qname->list);
 			ISC_LIST_APPEND(qname->list, qrdataset, link);
 
@@ -1518,7 +1518,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		INSIST(r.length >= name->length);
 		r.length = name->length;
 		isc_buffer_putmem(&xfr->buf, name->ndata, name->length);
-		dns_name_fromregion(dns_linkedname_name(msgname), &r);
+		dns_name_fromregion(dns_name(msgname), &r);
 
 		/* Reserve space for RR header. */
 		isc_buffer_add(&xfr->buf, 10);

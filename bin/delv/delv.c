@@ -1838,7 +1838,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 
 	ISC_LIST_FOREACH(*namelist, response_name, link) {
 		ISC_LIST_FOREACH(response_name->list, rdataset, link) {
-			printdata(rdataset, dns_linkedname_name(response_name));
+			printdata(rdataset, dns_name(response_name));
 		}
 	}
 
@@ -1969,7 +1969,7 @@ recvresponse(void *arg) {
 	}
 
 	MSG_SECTION_FOREACH(response, DNS_SECTION_ANSWER, linkedname) {
-		const dns_name_t *name = dns_linkedname_name(linkedname);
+		const dns_name_t *name = dns_name(linkedname);
 		dns_rdatatype_t prevtype = dns_rdatatype_none;
 
 		ISC_LIST_FOREACH(linkedname->list, rdataset, link) {
@@ -2072,7 +2072,7 @@ sendquery(void *arg) {
 
 	dns_message_gettempname(message, &mname);
 	dns_message_gettemprdataset(message, &mrdataset);
-	dns_name_clone(query_name, dns_linkedname_name(mname));
+	dns_name_clone(query_name, dns_name(mname));
 	dns_rdataset_makequestion(mrdataset, dns_rdataclass_in, qtype);
 	ISC_LIST_APPEND(mname->list, mrdataset, link);
 	dns_message_addname(message, mname, DNS_SECTION_QUESTION);

@@ -11215,7 +11215,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	/*
 	 * Make question.
 	 */
-	dns_name_clone(name, dns_linkedname_name(qname));
+	dns_name_clone(name, dns_name(qname));
 	dns_rdataset_makequestion(qrdataset, zone->rdclass, rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
@@ -11667,7 +11667,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 					       sizeof(*tmp_name));
 			dns_linkedname_init(tmp_name);
 			dns_name_dup(&ns.name, cb_args->stub->mctx,
-				     dns_linkedname_name(tmp_name));
+				     dns_name(tmp_name));
 			ISC_LIST_APPEND(ns_list, tmp_name, link);
 		}
 	}
@@ -11682,7 +11682,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 			 * Resolve NS IPv4 address/A.
 			 */
 			result = stub_request_nameserver_address(
-				cb_args, true, dns_linkedname_name(ns_name));
+				cb_args, true, dns_name(ns_name));
 			if (result != ISC_R_SUCCESS) {
 				goto done;
 			}
@@ -11690,7 +11690,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 			 * Resolve NS IPv6 address/AAAA.
 			 */
 			result = stub_request_nameserver_address(
-				cb_args, false, dns_linkedname_name(ns_name));
+				cb_args, false, dns_name(ns_name));
 			if (result != ISC_R_SUCCESS) {
 				goto done;
 			}
@@ -11702,8 +11702,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 done:
 	ISC_LIST_FOREACH(ns_list, ns_name, link) {
 		ISC_LIST_UNLINK(ns_list, ns_name, link);
-		dns_name_free(dns_linkedname_name(ns_name),
-			      cb_args->stub->mctx);
+		dns_name_free(dns_name(ns_name), cb_args->stub->mctx);
 		isc_mem_put(cb_args->stub->mctx, ns_name, sizeof(*ns_name));
 	}
 	return result;
@@ -17341,8 +17340,8 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	/*
 	 * Make question.
 	 */
-	dns_name_init(dns_linkedname_name(tempname));
-	dns_name_clone(&zone->origin, dns_linkedname_name(tempname));
+	dns_name_init(dns_name(tempname));
+	dns_name_clone(&zone->origin, dns_name(tempname));
 	dns_rdataset_makequestion(temprdataset, zone->rdclass,
 				  dns_rdatatype_ds);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);

@@ -389,17 +389,16 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 		return key;
 	}
 
-	result = dst_key_fromfile(dns_linkedname_name(&rrsig->signer),
-				  rrsig->keyid, rrsig->algorithm,
-				  DST_TYPE_PUBLIC, directory, isc_g_mctx,
-				  &pubkey);
+	result = dst_key_fromfile(dns_name(&rrsig->signer), rrsig->keyid,
+				  rrsig->algorithm, DST_TYPE_PUBLIC, directory,
+				  isc_g_mctx, &pubkey);
 	if (result != ISC_R_SUCCESS) {
 		isc_rwlock_unlock(&keylist_lock, isc_rwlocktype_write);
 		return NULL;
 	}
 
-	result = dst_key_fromfile(dns_linkedname_name(&rrsig->signer),
-				  rrsig->keyid, rrsig->algorithm,
+	result = dst_key_fromfile(dns_name(&rrsig->signer), rrsig->keyid,
+				  rrsig->algorithm,
 				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, directory,
 				  isc_g_mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
@@ -579,8 +578,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 					 "invalid validity period\n",
 					 sigstr);
 			} else if (key == NULL && !future &&
-				   expecttofindkey(
-					   dns_linkedname_name(&rrsig.signer)))
+				   expecttofindkey(dns_name(&rrsig.signer)))
 			{
 				/* rrsig is dropped and not replaced */
 				vbprintf(2,

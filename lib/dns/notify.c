@@ -222,8 +222,7 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	/*
 	 * Make question.
 	 */
-	dns_name_clone(dns_zone_getorigin(notify->zone),
-		       dns_linkedname_name(tempname));
+	dns_name_clone(dns_zone_getorigin(notify->zone), dns_name(tempname));
 	dns_rdataset_makequestion(temprdataset, dns_zone_getclass(notify->zone),
 				  notify->type);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
@@ -244,8 +243,7 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	INSIST(result == ISC_R_SUCCESS);
 	INSIST(zonedb != NULL); /* XXXJT: is this assumption correct? */
 
-	dns_name_clone(dns_zone_getorigin(notify->zone),
-		       dns_linkedname_name(tempname));
+	dns_name_clone(dns_zone_getorigin(notify->zone), dns_name(tempname));
 	dns_db_currentversion(zonedb, &version);
 	result = dns_db_findnode(zonedb, tempname, false, &node);
 	if (result != ISC_R_SUCCESS) {

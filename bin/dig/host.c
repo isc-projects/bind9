@@ -223,7 +223,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	MSG_SECTION_FOREACH(msg, sectionid, name) {
 		isc_buffer_init(&target, tbuf, sizeof(tbuf));
 		first = true;
-		print_name = dns_linkedname_name(name);
+		print_name = dns_name(name);
 
 		ISC_LIST_FOREACH(name->list, rdataset, link) {
 			if (query->lookup->rdtype == dns_rdatatype_axfr &&

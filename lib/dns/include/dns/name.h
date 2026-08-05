@@ -1512,6 +1512,9 @@ dns_name_belowroot(const dns_name_t *name) {
 		dns_fixedname_t *: dns_fixedname_name,               \
 		const dns_fixedname_t *: dns_fixedname_name_const)(arg)
 
+#define dns_name(source)       DNS_NAME__RO_ARG(source)
+#define dns_name_const(source) DNS_NAME__RO_ARG(source)
+
 #define dns_name_clone(source, target) \
 	dns_name__clone(DNS_NAME__RO_ARG(source), target)
 

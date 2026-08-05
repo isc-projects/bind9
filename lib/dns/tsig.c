@@ -843,7 +843,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	}
 
 	dns_message_gettempname(msg, &owner);
-	dns_name_copy(key->name, dns_linkedname_name(owner));
+	dns_name_copy(key->name, dns_name(owner));
 
 	dns_message_gettemprdatalist(msg, &datalist);
 
@@ -935,7 +935,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 * TSIG record.
 	 */
 
-	keyname = dns_linkedname_name(msg->tsigname);
+	keyname = dns_name(msg->tsigname);
 	RETERR(dns_rdataset_first(msg->tsig));
 	dns_rdataset_current(msg->tsig, &rdata);
 	RETERR(dns_rdata_tostruct(&rdata, &tsig));
@@ -1262,7 +1262,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	if (msg->tsig != NULL) {
 		has_tsig = true;
 
-		keyname = dns_linkedname_name(msg->tsigname);
+		keyname = dns_name(msg->tsigname);
 		result = dns_rdataset_first(msg->tsig);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;

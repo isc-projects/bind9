@@ -171,7 +171,7 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		goto done;
 	}
 	result = dns_view_findzone(client->inner.view,
-				   dns_linkedname_name(zonename),
+				   dns_name(zonename),
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result == ISC_R_SUCCESS) {
 		dns_zonetype_t zonetype = dns_zone_gettype(zone);

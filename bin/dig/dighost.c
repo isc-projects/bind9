@@ -2041,7 +2041,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	dns_message_gettempname(lookup->sendmsg, &soaname);
-	dns_name_clone(lookup->name, dns_linkedname_name(soaname));
+	dns_name_clone(lookup->name, dns_name(soaname));
 	ISC_LIST_INIT(soaname->list);
 	ISC_LIST_APPEND(soaname->list, rdataset, link);
 	dns_message_addname(lookup->sendmsg, soaname, DNS_SECTION_AUTHORITY);
@@ -2186,8 +2186,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = (unsigned int)strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(dns_linkedname_name(oname), &b,
-					   dns_rootname, 0);
+		result = dns_name_fromtext(dns_name(oname), &b, dns_rootname,
+					   0);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
 			dns_message_puttempname(lookup->sendmsg, &oname);
@@ -2195,8 +2195,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			      isc_result_totext(result));
 		}
 		if (lookup->trace && lookup->trace_root) {
-			dns_name_clone(dns_rootname,
-				       dns_linkedname_name(lookup->name));
+			dns_name_clone(dns_rootname, dns_name(lookup->name));
 		} else {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
@@ -2209,14 +2208,11 @@ setup_lookup(dig_lookup_t *lookup) {
 			if (result == ISC_R_SUCCESS) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
-						name,
-						dns_linkedname_name(oname),
-						dns_linkedname_name(
-							lookup->name));
+						name, dns_name(oname),
+						dns_name(lookup->name));
 				} else {
 					dns_name_copy(name,
-						      dns_linkedname_name(
-							      lookup->name));
+						      dns_name(lookup->name));
 				}
 			}
 			if (result != ISC_R_SUCCESS) {
@@ -2236,15 +2232,13 @@ setup_lookup(dig_lookup_t *lookup) {
 	} else {
 		debug("using root origin");
 		if (lookup->trace && lookup->trace_root) {
-			dns_name_clone(dns_rootname,
-				       dns_linkedname_name(lookup->name));
+			dns_name_clone(dns_rootname, dns_name(lookup->name));
 		} else {
 			len = (unsigned int)strlen(textname);
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
-			result = dns_name_fromtext(
-				dns_linkedname_name(lookup->name), &b,
-				dns_rootname, 0);
+			result = dns_name_fromtext(dns_name(lookup->name), &b,
+						   dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);

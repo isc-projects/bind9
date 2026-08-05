@@ -742,7 +742,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 */
 			result = ns_query_recurse(
 				qctx->client, dns_rdatatype_a,
-				dns_linkedname_name(qctx->client->query.qname),
+				dns_name(qctx->client->query.qname),
 				qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_AAAA_RECURSING;
@@ -756,7 +756,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = dns_linkedname_name(qctx->fname),
+			.name = dns_name(qctx->fname),
 			.type = dns_rdatatype_aaaa,
 		};
 		process_section(&filter_answer);
@@ -797,7 +797,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = dns_linkedname_name(qctx->tname),
+			.name = dns_name(qctx->tname),
 			.type = dns_rdatatype_aaaa,
 			.only_if_a_exists = qctx->authoritative,
 		};
