@@ -27,7 +27,7 @@ New Features
 - Built-in hints can be printed with the :option:`named -H` command.
 
   The built-in root hints were also updated to precisely match the
-  authoritative source, including comments; this is a cosmetic change
+  authoritative source, including comments. This is a cosmetic change
   and the IP addresses have not changed. :gl:`!11114`
 
 - Add an RPZ mode to :iscman:`named-checkzone`.
@@ -52,10 +52,10 @@ Bug Fixes
 
 - Resolver could return expired records instead of a negative answer.
 
-  When an unvalidated negative answer (such as one obtained for a query
-  with the checking-disabled (CD) bit set) arrived for a name that had
+  When an unvalidated negative answer arrived, such as one obtained for a query
+  with the checking-disabled (CD) bit set, for a name that had
   DNSSEC-validated records in the cache, those records blocked the
-  negative answer from being cached even after they had passed their
+  negative answer from being cached, even after they had passed their
   TTL, and the expired records could be returned to the client instead.
   Validated records that have expired no longer prevent negative
   answers from being cached. :gl:`#5877`
@@ -78,7 +78,7 @@ Bug Fixes
 - Treat non-canonical RPZ prefixes as any other failure.
 
   RPZ prefixes that were not encoded in canonical form did not work.
-  Treat them as any other encoding error. :gl:`#6043`
+  They are now handled in the same way as any other encoding error. :gl:`#6043`
 
 - Negative caching stopped working with stale-answer-client-timeout set
   to ``0``.
@@ -93,7 +93,7 @@ Bug Fixes
   :iscman:`named` to abort if the cache held already-deleted entries.
   These are now skipped, so the dump completes normally. :gl:`#6064`
 
-- Unterminated OpenSSL private-key ``Label:`` field could be read past
+- An unterminated OpenSSL private-key ``Label:`` field could be read past
   its parser buffer.
 
   The ``Label:`` field in a ``.private`` key file is now checked for
@@ -107,8 +107,8 @@ Bug Fixes
 
   When no server could be reached, :iscman:`dig` printed its
   plain-text startup banner ahead of the YAML output, making the
-  result unparsable. :iscman:`dig` no longer does this, and correctly
-  reflects options such as ``+nocmd``, ``+short``, and ``+yaml``
+  result unparsable. :iscman:`dig` no longer does this and correctly
+  reflects options such as ``+nocmd``, ``+short`` and ``+yaml``,
   regardless of where they appear on the command line. :gl:`#1230`
 
 - :option:`host -a` now uses TCP, as documented. :gl:`#2072`
@@ -116,8 +116,8 @@ Bug Fixes
 - Properly prevent TSIG generation command line injection attacks.
 
   When key names are generated with :iscman:`rndc-confgen`,
-  :iscman:`tsig-keygen`, and :iscman:`ddns-confgen`, special characters
-  must be escaped to ensure the configuration is parsed correctly.
+  :iscman:`tsig-keygen` and :iscman:`ddns-confgen`, special characters
+  must be escaped to ensure that the configuration is parsed correctly.
   :gl:`#6071` :gl:`#6072`
 
 - Fix a potential heap bounds overflow write in :iscman:`dnssec-signzone`.
