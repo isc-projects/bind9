@@ -16,19 +16,11 @@
 acl rfc1918 { 10/8; 192.168/16; 172.16/12; };
 
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
-	recursion yes;
-	notify yes;
+	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 
 	dns64 2001:aaaa::/96 {
-		clients { 10.53.0.2; };
+		clients { @ns.ip@; };
 		mapped { !rfc1918; any; };
 		exclude { 2001:eeee::/32; 64:FF9B::/96; ::ffff:0000:0000/96; };
 		suffix ::;
@@ -62,10 +54,7 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "rpz" {
 	type primary;

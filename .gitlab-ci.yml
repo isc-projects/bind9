@@ -720,7 +720,9 @@ misc:
   script:
     - sh util/checklibs.sh > checklibs.out
     - sh util/check-categories.sh
+    - sh util/check-conf-indentation.sh
     - sh util/check-gitignore.sh
+    - sh util/check-jinja-include-indentation.sh
     - sh util/check-trailing-whitespace.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
