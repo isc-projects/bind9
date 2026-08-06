@@ -47,6 +47,14 @@ options {
 		suffix ::;
 	};
 
+	dns64 2001:cccc::/96 {
+		clients { 10.53.0.8; };
+		mapped { !rfc1918; any; };
+		exclude { 2001:eeee::/32; 64:FF9B::/96; ::ffff:0000:0000/96; };
+		suffix ::;
+		break-dnssec yes;
+	};
+
 	dns64-server "dns64.example.net.";
 	dns64-contact "hostmaster.example.net.";
 	dns64 2001:32::/32 { clients { 10.53.0.6; }; };
