@@ -1732,7 +1732,7 @@ unit:clang:trixie:amd64:
 clang:freebsd14:amd64:
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-    EXTRA_SETUP_FILES: "--native-file ci/freebsd.ini"
+    EXTRA_SETUP_FILES: "--native-file ci/freebsd14.ini"
   <<: *build_job
   <<: *freebsd_autoscaler_14_amd64_tags
 
@@ -1760,7 +1760,7 @@ unit:clang:freebsd14:amd64:
 clang:freebsd15:amd64:
   variables:
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-    EXTRA_SETUP_FILES: "--native-file ci/freebsd.ini"
+    EXTRA_SETUP_FILES: "--native-file ci/freebsd15.ini"
   <<: *build_job
   <<: *freebsd_autoscaler_15_amd64_tags
 
