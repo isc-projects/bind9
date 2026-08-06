@@ -44,19 +44,126 @@ for db in zones/bad*.db; do
   echo_i "checking $db ($n)"
   ret=0 v=0
   case $db in
-    zones/bad-dns-sd-reverse.db | zones/bad-svcb-servername.db)
-      $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || v=$?
+    zones/bad-_dns-svcb*.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "SVCB record not valid:" test.out.$n >/dev/null || ret=1
       ;;
-    bad-cname-and*.db)
+    zones/bad-caa-rr.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "dns_rdata_fromtext: zones/bad-caa-rr\.db:6: near .*: syntax error" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-cdnskey.db | zones/bad-cds.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "CDS/CDNSKEY consistency checks failed" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-cname-and*.db)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
       grep "CNAME and other data" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-dhcid.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-dhcid\.db:1: near eol: unexpected end of input" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-dns-sd-reverse.db)
+      $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || v=$?
+      grep "${db}:8: near '!@#3.': bad name (check-names)" test.out.$n >/dev/null || ret=1
+      grep "${db}:9: near '!@#3.': bad name (check-names)" test.out.$n >/dev/null || ret=1
+      grep "${db}:10: near '!@#3.': bad name (check-names)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-ds.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "DS record at top of zone (example)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-ds-2.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "DS not at delegation point" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-eid.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-eid.db:1: near eol: unexpected end of input" test.out.$n >/dev/null || ret=1
+      grep "zones/bad-eid.db:2: near eol: unexpected end of input" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-generate-garbage.db | zones/bad-generate-missing-brace.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "\$GENERATE: ${db}:6: syntax error" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-generate-range.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "\$GENERATE: ${db}:7: out of range" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-generate-tkey.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "\$GENERATE: ${db}:6: meta RR type 'TKEY'" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-include-directory.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "dns_master_load: .:1: isc_lex_gettoken() failed: not a file" test.out.$n >/dev/null || ret=1
+      grep "dns_master_load: ..:1: isc_lex_gettoken() failed: not a file" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-nsap-empty.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "near '0x': unexpected end of input" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-nsap-odd-nibble.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "near '0x47000580005a0000000001e133ffffff000161000': unexpected end of input" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-nsec3-length.db)
+      $CHECKZONE -P -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-nsec3-length.db:6: near 'IMQ912BREQP1POLAH3RMONG': out of range" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-nsec3-padded.db)
+      $CHECKZONE -P -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-nsec3-padded.db:8: near 'CPNMU===': bad base32 encoding" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-nsec3owner-padded.db)
+      $CHECKZONE -P -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-nsec3owner-padded.db:7: CPNMU===.example: bad owner name (check-names)" test.out.$n >/dev/null || ret=1
       ;;
     zones/bad-rpz-prefix.db)
       $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
       grep 'invalid rpz IP address "128.2.0.0.0.0.3.2.2001.rpz-ip.db" is not in canonical form 128.2.zz.3.2.2001.rpz-nsdname.db' test.out.$n >/dev/null || ret=1
       ;;
-    *)
+    zones/bad-svcb-alpn[123456].db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "${db}:6: near 'alpn=.*': syntax error" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-svcb-mandatory.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-svcb-mandatory.db:6: near eol: disallowed (by application policy)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-svcb-servername.db)
+      $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || v=$?
+      grep "${db}:6: near '_underscore.example.': bad name (check-names)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-svcb.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-svcb.db:6: near 'unknown=wha': syntax error" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-tkey.db | zones/bad-tsig.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "type '[A-Z]*': invalid use of a meta type" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-unspec.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad-unspec.db:5: near '^#': unknown class/type" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad1.db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "zones/bad1.db:6: extra input text" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad[234].db)
+      $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
+      grep "\$GENERATE: ${db}:8: invalid range" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/badttl.db)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "zones/badttl.db:1: unexpected end of line" test.out.$n >/dev/null || ret=1
+      ;;
+    *)
+      ret=1
+      echo "add case entry for $db"
+      $CHECKZONE -i local example $db || v=$?
       ;;
   esac
   test $v = 1 || ret=1
