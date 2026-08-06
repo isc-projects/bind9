@@ -1,12 +1,10 @@
 options {
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	{% include_indented "_common/options.conf.j2" %}
 	max-cache-size 8000;
 };
 
 statistics-channels {
-	inet 10.53.0.1 port @EXTRAPORT1@;
+	inet @ns.ip@ port @EXTRAPORT1@;
 };
 
 {% include "_common/controls.conf.j2" %}

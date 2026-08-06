@@ -4,15 +4,11 @@
 {% set broken_key = broken_key | default(False) %}
 {% set many_anchors = many_anchors | default(False) %}
 options {
-	query-source address 10.53.0.5;
-	notify-source 10.53.0.5;
-	transfer-source 10.53.0.5;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.5; 127.0.0.1; };
+	{% include_indented "_common/options/sources.conf.j2" %}
+	{% include_indented "_common/options/server.conf.j2" %}
+	listen-on { @ns.ip@; 127.0.0.1; };
 	listen-on-v6 { none; };
 	minimal-any no;
-	recursion yes;
 	minimal-responses no;
 	servfail-ttl 0;
 
@@ -46,25 +42,16 @@ options {
 		};
 	};
 {% elif broken_key %}
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	include "broken.conf";
 {% elif many_anchors %}
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	include "many-managed.conf";
 	include "many-trusted.conf";
 {% else %}
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 
 	include "trusted.conf";
 {% endif %}

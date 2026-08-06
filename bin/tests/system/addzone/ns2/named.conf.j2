@@ -1,8 +1,5 @@
 options {
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	allow-query { any; };
 	recursion no;
 	allow-new-zones yes;
@@ -26,10 +23,7 @@ template bad {
 	min-retry-time 0;
 };
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "normal.example" {
 	type primary;

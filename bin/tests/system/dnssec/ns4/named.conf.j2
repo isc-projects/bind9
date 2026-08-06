@@ -6,16 +6,9 @@
 {% set multi_view = multi_view | default(False) %}
 
 options {
-	query-source address 10.53.0.4;
-	notify-source 10.53.0.4;
-	transfer-source 10.53.0.4;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.4; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	minimal-any no;
 	minimal-responses no;
-	recursion yes;
 
 	{% if accept_expired %}
 		dnssec-accept-expired yes;
@@ -51,19 +44,16 @@ include "trusted.conf";
 
 		include "trusted.conf";
 
-		zone "." {
-			type hint;
-			file "../../_common/root.hint";
-		};
+		{% include_indented "_common/root.hint.conf" %}
 
 		zone secure.example {
 			type static-stub;
-			server-addresses { 10.53.0.4; };
+			server-addresses { @ns.ip@; };
 		};
 
 		zone insecure.secure.example {
 			type static-stub;
-			server-addresses { 10.53.0.4; };
+			server-addresses { @ns.ip@; };
 		};
 	};
 
@@ -72,10 +62,7 @@ include "trusted.conf";
 		allow-recursion { none; };
 		dnssec-validation no;
 
-		zone "." {
-			type hint;
-			file "../../_common/root.hint";
-		};
+		{% include_indented "_common/root.hint.conf" %}
 
 		zone secure.example {
 			type secondary;
@@ -88,8 +75,5 @@ include "trusted.conf";
 		};
 	};
 {% else %}
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
+	{% include_indented "_common/root.hint.conf" %}
 {% endif %}

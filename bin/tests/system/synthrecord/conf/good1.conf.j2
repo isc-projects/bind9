@@ -1,39 +1,39 @@
 zone 10.in-addr.arpa {
 	type primary;
 	file "10.in-addr.arpa.db";
-        plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
-                prefix "dynamic-";
-                allow-synth {
-                        10.53.0.0/16;
-                };
-                origin example.;
-                ttl 60;
-        };
+	plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
+		prefix "dynamic-";
+		allow-synth {
+			10.53.0.0/16;
+		};
+		origin example.;
+		ttl 60;
+	};
 };
 
 zone e.f.a.c.ip6.arpa {
 	type primary;
 	file "e.f.a.c.in-addr.arpa.db";
-        plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
-                prefix "dynamic-";
-                allow-synth {
-                        cafe:cafe::/32;
-                };
-                origin example.;
-                ttl 60;
-        };
+	plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
+		prefix "dynamic-";
+		allow-synth {
+			cafe:cafe::/32;
+		};
+		origin example.;
+		ttl 60;
+	};
 };
 
 zone example {
 	type primary;
 	file "example.db";
-        plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
-                prefix "dynamic-";
-                allow-synth {
-                        10.53.0.0/16;
-                        cafe:cafe::/32;
-                };
-                origin example.;
-                ttl 60;
-        };
+	plugin query "@TOP_BUILDDIR@/synthrecord.@DYLIB@" {
+		prefix "dynamic-";
+		allow-synth {
+			10.53.0.0/16;
+			cafe:cafe::/32;
+		};
+		origin example.;
+		ttl 60;
+	};
 };

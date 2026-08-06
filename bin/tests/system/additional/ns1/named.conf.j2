@@ -1,13 +1,7 @@
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
+	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 	dnssec-validation no;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
-	listen-on-v6 { none; };
 	notify no;
 	minimal-responses yes;
 };
@@ -15,8 +9,8 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 zone "." {
-        type primary;
-        file "root.db";
+	type primary;
+	file "root.db";
 };
 
 zone "rt.example" {

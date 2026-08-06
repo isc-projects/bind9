@@ -3,15 +3,8 @@
 {% set forward_badkey = forward_badkey | default(False) %}
 
 options {
-	query-source address 10.53.0.9;
-	notify-source 10.53.0.9;
-	transfer-source 10.53.0.9;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.9; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	minimal-any no;
-	recursion yes;
 	dnssec-validation yes;
 	forward only;
 {% if forward_badkey %}

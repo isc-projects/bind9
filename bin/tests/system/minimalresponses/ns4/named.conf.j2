@@ -1,25 +1,14 @@
 {% set minresp = minresp | default("yes") %}
 
 options {
-	query-source address 10.53.0.4;
-	notify-source 10.53.0.4;
-	transfer-source 10.53.0.4;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.4; };
-	listen-on-v6 { none; };
-	recursion yes;
-	notify yes;
+	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
 	minimal-responses @minresp@;
 };
 
 {% include "_common/controls.conf.j2" %}
 
-zone "." {
-	type hint;
-	file "../../_common/root.hint";
-};
+{% include "_common/root.hint.conf" %}
 
 zone "example4" {
 	type primary;

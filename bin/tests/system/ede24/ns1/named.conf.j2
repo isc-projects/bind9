@@ -1,10 +1,7 @@
 options {
-	listen-on port @PORT@ { 10.53.0.1; };
-	transfer-source 10.53.0.1;
-	pid-file "named.pid";
+	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 	also-notify { 10.53.0.2 port @PORT@; };
-	notify-source 10.53.0.1;
 };
 
 zone "foo.fr" {
