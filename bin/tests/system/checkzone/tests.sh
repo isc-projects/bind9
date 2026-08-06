@@ -80,6 +80,10 @@ for db in zones/bad*.db; do
       grep "zones/bad-eid.db:12: near eol: unexpected end of input" test.out.$n >/dev/null || ret=1
       grep "zones/bad-eid.db:13: near eol: unexpected end of input" test.out.$n >/dev/null || ret=1
       ;;
+    zones/bad-eui48-*.db | zones/bad-eui64-*.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "bad EUI" test.out.$n >/dev/null || ret=1
+      ;;
     zones/bad-generate-garbage.db | zones/bad-generate-missing-brace.db)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
       grep "\$GENERATE: ${db}:17: syntax error" test.out.$n >/dev/null || ret=1
