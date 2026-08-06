@@ -736,6 +736,22 @@ badname(int level, const dns_name_t *name, const char *str1, const char *str2) {
 	}
 }
 
+static void
+badowner(int level, const dns_name_t *name) {
+	/*
+	 * bin/tests/system/rpz/tests.sh looks for "invalid rpz".
+	 */
+	if (level < DNS_RPZ_DEBUG_QUIET && isc_log_wouldlog(dns_lctx, level)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
+			      DNS_LOGMODULE_RBTDB, level,
+			      "invalid rpz owner name \"%s\"; "
+			      "not within the policy zone",
+			      namebuf);
+	}
+}
+
 /*
  * Convert an IP address from radix tree binary (host byte order) to
  * to its canonical response policy domain name without the origin of the
@@ -1043,23 +1059,48 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
  * Get trigger name and data bits for adding or deleting summary NSDNAME
  * or QNAME data.
  */
-static void
-name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
+static isc_result_t
+name2data(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	  const dns_name_t *src_name, dns_name_t *trig_name,
 	  nmdata_t *new_data) {
 	dns_offsets_t tmp_name_offsets;
+	const dns_name_t *suffix = NULL;
 	dns_name_t tmp_name;
-	unsigned int prefix_len, n;
+	unsigned int prefix_len, nlabels;
 
 	REQUIRE(rpz != NULL);
 	REQUIRE(rpz->rpzs != NULL && rpz->num < rpz->rpzs->p.num_zones);
+
+	if (rpz_type == DNS_RPZ_TYPE_QNAME) {
+		suffix = &rpz->origin;
+	} else {
+		suffix = &rpz->nsdname;
+	}
+
+	/*
+	 * A zone transfer can carry records whose owner name lies outside the
+	 * zone, and a secondary keeps them when it reloads its own copy of the
+	 * zone.  We are about to strip 'suffix' off the owner name, so require
+	 * that it is really there, the way dns_catz_update_process() does
+	 * before splitting a catalog zone entry.
+	 */
+	if (!dns_name_issubdomain(src_name, suffix)) {
+		badowner(log_level, src_name);
+		return ISC_R_FAILURE;
+	}
+
+	nlabels = dns_name_countlabels(src_name) - dns_name_countlabels(suffix);
 
 	/*
 	 * Handle wildcards by putting only the parent into the
 	 * summary database.  The database only causes a check of the
 	 * real policy zone where wildcards will be handled.
+	 *
+	 * The "*" label is one of the labels we are keeping, so there has to
+	 * be one to spare; a policy zone whose own origin is a wildcard has
+	 * none at its apex.
 	 */
-	if (dns_name_iswildcard(src_name)) {
+	if (nlabels > 0 && dns_name_iswildcard(src_name)) {
 		prefix_len = 1;
 		memset(&new_data->set, 0, sizeof(new_data->set));
 		make_nm_set(&new_data->wild, rpz->num, rpz_type);
@@ -1070,15 +1111,11 @@ name2data(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	}
 
 	dns_name_init(&tmp_name, tmp_name_offsets);
-	n = dns_name_countlabels(src_name);
-	n -= prefix_len;
-	if (rpz_type == DNS_RPZ_TYPE_QNAME) {
-		n -= dns_name_countlabels(&rpz->origin);
-	} else {
-		n -= dns_name_countlabels(&rpz->nsdname);
-	}
-	dns_name_getlabelsequence(src_name, prefix_len, n, &tmp_name);
+	dns_name_getlabelsequence(src_name, prefix_len, nlabels - prefix_len,
+				  &tmp_name);
 	(void)dns_name_concatenate(&tmp_name, dns_rootname, trig_name, NULL);
+
+	return ISC_R_SUCCESS;
 }
 
 #ifndef HAVE_BUILTIN_CLZ
@@ -1471,7 +1508,14 @@ add_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	 */
 
 	trig_name = dns_fixedname_initname(&trig_namef);
-	name2data(rpz, rpz_type, src_name, trig_name, &new_data);
+	result = name2data(DNS_RPZ_ERROR_LEVEL, rpz, rpz_type, src_name,
+			   trig_name, &new_data);
+	/*
+	 * Log complaints about bad owner names but let the zone load.
+	 */
+	if (result != ISC_R_SUCCESS) {
+		return ISC_R_SUCCESS;
+	}
 
 	result = add_nm(rpz->rpzs, qp, trig_name, &new_data);
 
@@ -2365,7 +2409,15 @@ del_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	 */
 
 	trig_name = dns_fixedname_initname(&trig_namef);
-	name2data(rpz, rpz_type, src_name, trig_name, &del_data);
+	/*
+	 * Do not worry about invalid rpz owner names.  If we are here, then
+	 * something relevant was added and so was valid.
+	 */
+	result = name2data(DNS_RPZ_DEBUG_QUIET, rpz, rpz_type, src_name,
+			   trig_name, &del_data);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
 
 	result = dns_qp_getname(qp, trig_name, (void **)&data, NULL);
 	if (result != ISC_R_SUCCESS) {
