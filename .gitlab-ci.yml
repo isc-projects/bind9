@@ -1904,8 +1904,9 @@ clang:freebsd14:amd64:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
-    # incompatibility; see https://bugs.freebsd.org/275241.
+    # FreeBSD 14 ships Heimdal in the base system, which BIND 9 GSS-API support
+    # is incompatible with (see https://bugs.freebsd.org/275241), so use the MIT
+    # Kerberos 5 port instead.
     EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config"
   <<: *build_job
   <<: *freebsd_autoscaler_14_amd64_tags
@@ -1936,11 +1937,11 @@ clang:freebsd15:amd64:
     CC: clang
     CFLAGS: "${CFLAGS_COMMON} -Og"
     GIT_CLONE_PATH: "${GIT_CLONE_PATH_INSTANCE_EXECUTOR}"
-    # Use MIT Kerberos5 for BIND 9 GSS-API support because of FreeBSD Heimdal
-    # incompatibility; see https://bugs.freebsd.org/275241.
+    # FreeBSD 15 replaced base Heimdal with MIT Kerberos 5, so no krb5-config
+    # override is needed here, unlike on FreeBSD 14.
     #
     # The "doh" unit test permanently fails on FreeBSD 15; see #5448.
-    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --with-gssapi=/usr/local/bin/krb5-config --disable-doh"
+    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --disable-doh"
   <<: *build_job
   <<: *freebsd_autoscaler_15_amd64_tags
 
