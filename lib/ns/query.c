@@ -4676,18 +4676,33 @@ qctx_init(ns_client_t *client, dns_fetchresponse_t **frespp,
 	}
 }
 
-static bool
-fixedname_has_name(dns_fixedname_t *fixed) {
-	return dns_name_countlabels(dns_fixedname_name(fixed)) != 0;
+/*
+ * Move a database owner name between fixed names. dns_name_copy() preserves
+ * the absolute attribute; wildcard is the only additional name attribute
+ * used for database names during query processing.
+ */
+static void
+fixedname_move(dns_fixedname_t *source, dns_fixedname_t *target) {
+	dns_name_t *src = NULL;
+	dns_name_t *dst = NULL;
+
+	REQUIRE(source != target);
+
+	src = dns_fixedname_name(source);
+	dns_fixedname_init(target);
+	dst = dns_fixedname_name(target);
+	dns_name_copy(src, dst);
+	dst->attributes.wildcard = src->attributes.wildcard;
+	dns_fixedname_init(source);
 }
 
 static bool
 qctx_has_foundname(query_ctx_t *qctx) {
-	return fixedname_has_name(&qctx->foundname);
+	return dns_fixedname_name(&qctx->foundname)->length != 0;
 }
 
 static dns_name_t *
-qctx_foundname(query_ctx_t *qctx) {
+qctx_get_foundname(query_ctx_t *qctx) {
 	REQUIRE(qctx_has_foundname(qctx));
 
 	return dns_fixedname_name(&qctx->foundname);
@@ -4801,20 +4816,8 @@ qctx_save(query_ctx_t *src, query_ctx_t **targetp) {
 	target->rpz_st = MOVE_OWNERSHIP(src->rpz_st);
 	target->zone = MOVE_OWNERSHIP(src->zone);
 
-	dns_fixedname_init(&target->foundname);
-	if (qctx_has_foundname(src)) {
-		dns_name_copy(qctx_foundname(src),
-			      dns_fixedname_name(&target->foundname));
-	}
-	{
-		dns_name_t *srcname = dns_fixedname_name(&src->zfoundname);
-		dns_name_t *targetname =
-			dns_fixedname_initname(&target->zfoundname);
-
-		dns_name_copy(srcname, targetname);
-		targetname->attributes.wildcard = srcname->attributes.wildcard;
-		dns_fixedname_init(&src->zfoundname);
-	}
+	fixedname_move(&src->foundname, &target->foundname);
+	fixedname_move(&src->zfoundname, &target->zfoundname);
 
 	/* View has to stay in 'src' for qctx_destroy. */
 	target->view = NULL;
@@ -6071,13 +6074,7 @@ query_resume(query_ctx_t *qctx) {
 		qctx->rdataset = MOVE_OWNERSHIP(qctx->rpz_st->q.rdataset);
 		qctx->sigrdataset = MOVE_OWNERSHIP(qctx->rpz_st->q.sigrdataset);
 		qctx->qtype = qctx->rpz_st->q.qtype;
-		if (fixedname_has_name(&qctx->rpz_st->q.foundname)) {
-			dns_fixedname_init(&qctx->foundname);
-			dns_name_copy(
-				dns_fixedname_name(&qctx->rpz_st->q.foundname),
-				dns_fixedname_name(&qctx->foundname));
-			dns_fixedname_init(&qctx->rpz_st->q.foundname);
-		}
+		fixedname_move(&qctx->rpz_st->q.foundname, &qctx->foundname);
 
 		if (qctx->fresp->node != NULL) {
 			dns_db_detachnode(&qctx->fresp->node);
@@ -6112,16 +6109,8 @@ query_resume(query_ctx_t *qctx) {
 		qctx->zone = MOVE_OWNERSHIP(qctx->client->query.redirect.zone);
 		qctx->authoritative =
 			qctx->client->query.redirect.authoritative;
-		if (fixedname_has_name(&qctx->client->query.redirect.foundname))
-		{
-			dns_fixedname_init(&qctx->foundname);
-			dns_name_copy(
-				dns_fixedname_name(
-					&qctx->client->query.redirect.foundname),
-				dns_fixedname_name(&qctx->foundname));
-			dns_fixedname_init(
-				&qctx->client->query.redirect.foundname);
-		}
+		fixedname_move(&qctx->client->query.redirect.foundname,
+			       &qctx->foundname);
 
 		/*
 		 * Free resources used while recursing.
@@ -6140,9 +6129,7 @@ query_resume(query_ctx_t *qctx) {
 
 		qctx->qtype = qctx->fresp->qtype;
 		qctx->db = MOVE_OWNERSHIP(qctx->fresp->cache);
-		if (dns_name_countlabels(qctx->fresp->foundname) != 0) {
-			qctx_set_foundname(qctx, qctx->fresp->foundname);
-		}
+		qctx_set_foundname(qctx, qctx->fresp->foundname);
 		if (qctx->fresp->node != NULL) {
 			dns_db_detachnode(&qctx->fresp->node);
 		}
@@ -6733,12 +6720,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		qctx->rpz_st->q.sigrdataset = MOVE_OWNERSHIP(qctx->sigrdataset);
 		dns_name_copy(qctx->fname, qctx->rpz_st->fname);
 		qctx->rpz_st->q.result = result;
-		dns_fixedname_init(&qctx->rpz_st->q.foundname);
-		if (qctx_has_foundname(qctx)) {
-			dns_name_copy(
-				qctx_foundname(qctx),
-				dns_fixedname_name(&qctx->rpz_st->q.foundname));
-		}
+		fixedname_move(&qctx->foundname, &qctx->rpz_st->q.foundname);
 		qctx->client->query.recursing = true;
 		return ISC_R_COMPLETE;
 	default:
@@ -6840,10 +6822,8 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 				 * the actual matched policy owner saved by
 				 * rpz_find_p().
 				 */
-				qctx_set_foundname(
-					qctx,
-					dns_fixedname_name(
-						&qctx->rpz_st->m.foundname));
+				fixedname_move(&qctx->rpz_st->m.foundname,
+					       &qctx->foundname);
 				dns_rdataset_cleanup(qctx->rdataset);
 			} else {
 				/*
@@ -7339,8 +7319,8 @@ query_respond_any(query_ctx_t *qctx) {
 		dns_clientinfo_setecs(&ci, &qctx->client->inner.ecs);
 	}
 
-	result = dns_db_findnodeext(qctx->db, qctx_foundname(qctx), false, &cm,
-				    &ci, &node);
+	result = dns_db_findnodeext(qctx->db, qctx_get_foundname(qctx), false,
+				    &cm, &ci, &node);
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR, "query_respond_any: findnode failed");
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
@@ -8264,17 +8244,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 		ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 		qctx->zdb = MOVE_OWNERSHIP(qctx->db);
 		qctx->zfname = MOVE_OWNERSHIP(qctx->fname);
-		{
-			dns_name_t *foundname =
-				dns_fixedname_name(&qctx->foundname);
-			dns_name_t *zfoundname =
-				dns_fixedname_initname(&qctx->zfoundname);
-
-			dns_name_copy(foundname, zfoundname);
-			zfoundname->attributes.wildcard =
-				foundname->attributes.wildcard;
-			dns_fixedname_init(&qctx->foundname);
-		}
+		fixedname_move(&qctx->foundname, &qctx->zfoundname);
 		qctx->zversion = MOVE_OWNERSHIP(qctx->version);
 		qctx->zrdataset = MOVE_OWNERSHIP(qctx->rdataset);
 		qctx->zsigrdataset = MOVE_OWNERSHIP(qctx->sigrdataset);
@@ -8366,17 +8336,7 @@ query_delegation(query_ctx_t *qctx) {
 		dns_db_detach(&qctx->db);
 		qctx->db = MOVE_OWNERSHIP(qctx->zdb);
 		qctx->fname = MOVE_OWNERSHIP(qctx->zfname);
-		{
-			dns_name_t *zfoundname =
-				dns_fixedname_name(&qctx->zfoundname);
-			dns_name_t *foundname =
-				dns_fixedname_initname(&qctx->foundname);
-
-			dns_name_copy(zfoundname, foundname);
-			foundname->attributes.wildcard =
-				zfoundname->attributes.wildcard;
-			dns_fixedname_init(&qctx->zfoundname);
-		}
+		fixedname_move(&qctx->zfoundname, &qctx->foundname);
 		qctx->version = MOVE_OWNERSHIP(qctx->zversion);
 		qctx->rdataset = MOVE_OWNERSHIP(qctx->zrdataset);
 		qctx->sigrdataset = MOVE_OWNERSHIP(qctx->zsigrdataset);
@@ -8522,7 +8482,7 @@ query_addds(query_ctx_t *qctx) {
 	sigrdataset = ns_client_newrdataset(client);
 
 	name = dns_fixedname_name(&qctx->dsname);
-	lookupname = qctx_has_foundname(qctx) ? qctx_foundname(qctx) : name;
+	lookupname = qctx_has_foundname(qctx) ? qctx_get_foundname(qctx) : name;
 	foundname = dns_fixedname_initname(&foundfixed);
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
@@ -9080,13 +9040,8 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 			MOVE_OWNERSHIP(qctx->sigrdataset);
 		qctx->client->query.redirect.result = saved_result;
 		dns_name_copy(qctx->fname, qctx->client->query.redirect.fname);
-		dns_fixedname_init(&qctx->client->query.redirect.foundname);
-		if (qctx_has_foundname(qctx)) {
-			dns_name_copy(
-				qctx_foundname(qctx),
-				dns_fixedname_name(&qctx->client->query.redirect
-							    .foundname));
-		}
+		fixedname_move(&qctx->foundname,
+			       &qctx->client->query.redirect.foundname);
 		qctx->client->query.redirect.authoritative =
 			qctx->authoritative;
 		qctx->client->query.redirect.is_zone = qctx->is_zone;
