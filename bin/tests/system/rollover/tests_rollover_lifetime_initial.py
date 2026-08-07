@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import shutil
+
 import pytest
 
 from isctest.util import param
@@ -17,6 +19,20 @@ from rollover.common import CDSS, DEFAULT_CONFIG, DURATION, ROLLOVER_MARK
 import isctest
 
 pytestmark = ROLLOVER_MARK
+
+
+def bootstrap():
+    data = {
+        "testconf": "lifetime",
+        "trust_anchors": [],
+    }
+
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/longer-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/shorter-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/limit-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/unlimit-lifetime.db")
+
+    return data
 
 
 @pytest.mark.parametrize(

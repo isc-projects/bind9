@@ -4,7 +4,7 @@
 {% set limit = "unlimited-lifetime" if not change_lifetime else "short-lifetime" %}
 {% set unlimit = "short-lifetime" if not change_lifetime else "unlimited-lifetime" %}
 
-include "kasp.conf";
+include "policy/lifetime.conf";
 include "named.common.conf";
 
 zone longer-lifetime.kasp {
