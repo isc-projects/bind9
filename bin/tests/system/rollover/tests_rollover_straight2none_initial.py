@@ -23,6 +23,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "straight2none",
     }
 
     tlds = []

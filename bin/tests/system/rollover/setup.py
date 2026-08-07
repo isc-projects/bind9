@@ -1491,7 +1491,7 @@ def configure_enable_dnssec(tld: str, policy: str) -> list[Zone]:
     # initial signing of a zone.
     zones = []
     zone = f"enable-dnssec.{tld}"
-    keygen = EnvCmd("KEYGEN", f"-k {policy} -l policy/enable-dnsssec.conf")
+    keygen = EnvCmd("KEYGEN", f"-k {policy} -l policy/enable-dnssec.conf")
 
     # Step 1:
     # This is an unsigned zone and named should perform the initial steps of

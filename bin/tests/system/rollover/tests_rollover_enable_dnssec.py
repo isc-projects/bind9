@@ -47,6 +47,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": POLICY,
     }
 
     tlds = []

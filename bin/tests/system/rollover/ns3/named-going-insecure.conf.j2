@@ -1,6 +1,6 @@
 {% set policy = policy | default("unsigning") %}
 
-include "kasp.conf";
+include "policy/going-insecure.conf";
 include "named.common.conf";
 
 zone "step1.going-insecure.kasp" {

@@ -11,8 +11,8 @@
 
 import pytest
 
-from rollover.common import CDSS, DURATION, ROLLOVER_MARK, UNSIGNING_CONFIG
-from rollover.setup import configure_going_insecure, configure_root, configure_tld
+from rollover.common import CDSS, DEFAULT_CONFIG, DURATION, ROLLOVER_MARK
+from rollover.setup import configure_root, configure_straight2none, configure_tld
 
 import isctest
 
@@ -23,11 +23,12 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "straight2none",
     }
 
     tlds = []
     tld_name = "kasp"
-    delegations = configure_going_insecure(tld_name, reconfig=False)
+    delegations = configure_straight2none(tld_name)
     tld = configure_tld(tld_name, delegations)
     tlds.append(tld)
     data["tlds"].append(tld_name)
@@ -36,26 +37,33 @@ def bootstrap():
     return data
 
 
+@pytest.fixture(scope="module", autouse=True)
+def after_servers_start(ns3, templates):
+    isctest.kasp.wait_keymgr_done(ns3, "going-straight-to-none.kasp")
+    isctest.kasp.wait_keymgr_done(ns3, "going-straight-to-none-dynamic.kasp")
+
+    templates.render("ns3/named-straight2none.conf", {"policy": "none"})
+    ns3.reconfigure()
+
+
 @pytest.mark.parametrize(
     "zone",
     [
-        "going-insecure.kasp",
-        "going-insecure-dynamic.kasp",
+        "going-straight-to-none.kasp",
+        "going-straight-to-none-dynamic.kasp",
     ],
 )
-def test_going_insecure_initial(zone, ns3, default_algorithm):
-    config = UNSIGNING_CONFIG
-    policy = "unsigning"
-    zone = f"step1.{zone}"
-
-    isctest.kasp.wait_keymgr_done(ns3, zone)
+def test_straight2none_reconfig(zone, ns3, default_algorithm):
+    config = DEFAULT_CONFIG
+    policy = None
 
     step = {
         "zone": zone,
         "cdss": CDSS,
+        # These zones will go bogus after signatures expire, but
+        # remain validly signed for now.
         "keyprops": [
-            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
-            f"zsk {DURATION['P60D']} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{-DURATION['P10D']}",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
         ],
         "nextev": None,
     }
