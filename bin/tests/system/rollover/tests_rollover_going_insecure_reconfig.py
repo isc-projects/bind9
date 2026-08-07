@@ -29,6 +29,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "going-insecure",
     }
 
     tlds = []
@@ -44,7 +45,7 @@ def bootstrap():
 
 @pytest.fixture(scope="module", autouse=True)
 def after_servers_start(ns3, templates):
-    templates.render("ns3/named.conf", {"policy": "insecure"})
+    templates.render("ns3/named-going-insecure.conf", {"policy": "insecure"})
     ns3.reconfigure()  # move from "unsigning" to "insecure"
 
 

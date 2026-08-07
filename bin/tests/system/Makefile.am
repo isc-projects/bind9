@@ -158,13 +158,10 @@ TESTS =				\
 	rndc			\
 	rollover		\
 	rollover_dynamic2inline	\
-	rollover_enable_dnssec	\
-	rollover_going_insecure	\
 	rollover_ksk_3crowd	\
 	rollover_ksk_doubleksk	\
 	rollover_lifetime	\
 	rollover_multisigner	\
-	rollover_straight2none	\
 	rollover_zsk_prepub	\
 	rootkeysentinel		\
 	rpzextra		\
