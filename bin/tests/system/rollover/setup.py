@@ -154,7 +154,9 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
     TsbmN = "now-161h"
     csktimes = f"-P {TactN} -A {TactN}"
     # Key generation.
-    csk_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
+    csk_name = keygen(
+        f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+    ).out.strip()
     settime(
         f"-g OMNIPRESENT -k OMNIPRESENT {TactN} -r OMNIPRESENT {TactN} -z OMNIPRESENT {TactN} -d OMNIPRESENT {TactN} {csk_name}",
         cwd="ns3",
@@ -173,8 +175,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN} -P sync {TsbmN} -I now"
         newtimes = f"-P {TpubN1} -A {TpubN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         settime(
             f"-g HIDDEN -k OMNIPRESENT {TactN} -r OMNIPRESENT {TactN} -z OMNIPRESENT {TactN} -d OMNIPRESENT {TactN} {csk1_name}",
             cwd="ns3",
@@ -197,8 +203,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         settime(
             f"-g HIDDEN -k OMNIPRESENT {TactN} -r OMNIPRESENT {TactN} -z OMNIPRESENT {TactN} -d OMNIPRESENT {TactN} {csk1_name}",
             cwd="ns3",
@@ -221,8 +231,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         settime(
             f"-g HIDDEN -k OMNIPRESENT {TactN} -r OMNIPRESENT {TactN} -z OMNIPRESENT {TsbmN1} -d UNRETENTIVE {TsbmN1} -D ds {TsbmN1} {csk1_name}",
             cwd="ns3",
@@ -245,8 +259,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN} -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         settime(
             f"-g HIDDEN -k UNRETENTIVE {TactN} -r UNRETENTIVE {TactN} -z UNRETENTIVE {TsbmN1} -d HIDDEN {TsbmN1} {csk1_name}",
             cwd="ns3",
@@ -269,8 +287,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN}  -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         settime(
             f"-g HIDDEN -k HIDDEN {TactN} -r UNRETENTIVE {TactN} -z UNRETENTIVE {TactN} -d HIDDEN {TsbmN1} {csk1_name}",
             cwd="ns3",

@@ -101,6 +101,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "rollover",
     }
     tld = configure_tld("kasp", zones)
     data["tlds"].append("kasp")

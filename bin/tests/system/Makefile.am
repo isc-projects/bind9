@@ -157,7 +157,6 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rollover		\
-	rollover_algo_csk	\
 	rollover_algo_ksk_zsk	\
 	rollover_csk_roll1	\
 	rollover_csk_roll2	\
