@@ -36,6 +36,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "ksk-3crowd",
     }
 
     tlds = []
