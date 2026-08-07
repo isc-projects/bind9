@@ -91,7 +91,12 @@ def bootstrap():
     fake_lifetime(zsk_name, 0)
     render_and_sign_zone(zonename, [ksk_name, zsk_name])
 
-    return {}
+    data = {
+        "testconf": "multisigner",
+        "trust_anchors": [],
+    }
+
+    return data
 
 
 def test_rollover_multisigner(ns3, default_algorithm):
