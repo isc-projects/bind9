@@ -15,7 +15,7 @@
 {% set policy = "rsasha256" if not alg_roll else "ecdsa256" %}
 {% set zones = ["kasp", "manual"] %}
 
-include "kasp.conf";
+include "policy/ksk-zsk.conf";
 include "named.common.conf";
 
 {% for tld in zones %}
