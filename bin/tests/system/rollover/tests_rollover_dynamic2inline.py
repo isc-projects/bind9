@@ -16,6 +16,15 @@ import isctest
 pytestmark = ROLLOVER_MARK
 
 
+def bootstrap():
+    data = {
+        "testconf": "dynamic2inline",
+        "trust_anchors": [],
+    }
+
+    return data
+
+
 def test_dynamic2inline(ns3, default_algorithm, templates):
     config = DEFAULT_CONFIG
     policy = "default"
@@ -34,7 +43,7 @@ def test_dynamic2inline(ns3, default_algorithm, templates):
 
     isctest.kasp.check_rollover_step(ns3, config, policy, step)
 
-    templates.render("ns3/named.conf", {"change_lifetime": True})
+    templates.render("ns3/named-dynamic2inline.conf", {"change_lifetime": True})
     ns3.reconfigure()
     isctest.kasp.wait_keymgr_done(ns3, zone, reconfig=True)
 

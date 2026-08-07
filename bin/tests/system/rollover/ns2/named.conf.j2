@@ -25,9 +25,11 @@ options {
 
 {% include "_common/root.hint.conf" %}
 
+{% if tlds is defined %}
 {% for zone in tlds %}
 zone "@zone@" {
 	type primary;
 	file "@zone@.db.signed";
 };
 {% endfor %}
+{% endif %}
