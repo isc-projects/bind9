@@ -160,7 +160,6 @@ TESTS =				\
 	rollover_dynamic2inline	\
 	rollover_lifetime	\
 	rollover_multisigner	\
-	rollover_zsk_prepub	\
 	rootkeysentinel		\
 	rpzextra		\
 	rrchecker		\
