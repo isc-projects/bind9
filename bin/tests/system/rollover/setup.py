@@ -158,7 +158,9 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
     TsbmN = "now-161h"
     csktimes = f"-P {TactN} -A {TactN}"
     # Key generation.
-    csk_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
+    csk_name = keygen(
+        f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+    ).out.strip()
     # Key state timing metadata.
     timings = SettimeOptions(
         g="OMNIPRESENT",
@@ -182,8 +184,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN} -P sync {TsbmN} -I now"
         newtimes = f"-P {TpubN1} -A {TpubN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         # Key state timing metadata.
         timings = SettimeOptions(
             g="HIDDEN",
@@ -215,8 +221,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         # Key state timing metadata.
         timings = SettimeOptions(
             g="HIDDEN",
@@ -248,8 +258,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         # Key state timing metadata.
         timings = SettimeOptions(
             g="HIDDEN",
@@ -283,8 +297,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN} -A {TactN} -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         # Key state timing metadata.
         timings = SettimeOptions(
             g="HIDDEN",
@@ -316,8 +334,12 @@ def configure_algo_csk(tld: str, policy: str, reconfig: bool = False) -> list[Zo
         csktimes = f"-P {TactN}  -A {TactN}  -P sync {TsbmN} -I {TsbmN1}"
         newtimes = f"-P {TpubN1} -A {TpubN1} -P sync {TsbmN1}"
         # Key generation.
-        csk1_name = keygen(f"-l csk1.conf {csktimes} {zonename}", cwd="ns3").out.strip()
-        csk2_name = keygen(f"-l csk2.conf {newtimes} {zonename}", cwd="ns3").out.strip()
+        csk1_name = keygen(
+            f"-l policy/csk1.conf {csktimes} {zonename}", cwd="ns3"
+        ).out.strip()
+        csk2_name = keygen(
+            f"-l policy/csk2.conf {newtimes} {zonename}", cwd="ns3"
+        ).out.strip()
         # Key state timing metadata.
         timings = SettimeOptions(
             g="HIDDEN",

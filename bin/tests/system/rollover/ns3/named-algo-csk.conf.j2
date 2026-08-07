@@ -1,5 +1,5 @@
 {% set csk_roll = csk_roll | default(False) %}
-{% set _csk_file = "csk1.conf" if not csk_roll else "csk2.conf" %}
+{% set _csk_file = "policy/csk1.conf" if not csk_roll else "policy/csk2.conf" %}
 {% set zones = ["kasp", "manual"] %}
 
 include "@_csk_file@";
