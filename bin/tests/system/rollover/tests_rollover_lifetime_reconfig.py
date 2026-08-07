@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import shutil
+
 import pytest
 
 from isctest.util import param
@@ -19,6 +21,20 @@ import isctest
 pytestmark = ROLLOVER_MARK
 
 
+def bootstrap():
+    data = {
+        "testconf": "lifetime",
+        "trust_anchors": [],
+    }
+
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/longer-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/shorter-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/limit-lifetime.db")
+    shutil.copyfile("ns3/lifetime.db.in", "ns3/unlimit-lifetime.db")
+
+    return data
+
+
 @pytest.fixture(scope="module", autouse=True)
 def after_servers_start(ns3, templates):
     isctest.kasp.wait_keymgr_done(ns3, "shorter-lifetime.kasp")
@@ -26,7 +42,7 @@ def after_servers_start(ns3, templates):
     isctest.kasp.wait_keymgr_done(ns3, "limit-lifetime.kasp")
     isctest.kasp.wait_keymgr_done(ns3, "unlimit-lifetime.kasp")
 
-    templates.render("ns3/named.conf", {"change_lifetime": True})
+    templates.render("ns3/named-lifetime.conf", {"change_lifetime": True})
     ns3.reconfigure()
 
 

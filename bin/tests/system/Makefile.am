@@ -157,7 +157,6 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rollover		\
-	rollover_lifetime	\
 	rollover_multisigner	\
 	rootkeysentinel		\
 	rpzextra		\
