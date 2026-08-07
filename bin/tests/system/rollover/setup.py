@@ -569,7 +569,7 @@ def configure_cskroll1(tld: str, policy: str) -> list[Zone]:
     zones = []
     zone = f"csk-roll1.{tld}"
     cds = "cdnskey,cds:sha384"
-    keygen = EnvCmd("KEYGEN", f"-k {policy} -l kasp.conf")
+    keygen = EnvCmd("KEYGEN", f"-k {policy} -l policy/csk-roll1.conf")
     settime = EnvCmd("SETTIME", "-s")
 
     # Step 1:
@@ -900,7 +900,7 @@ def configure_cskroll2(tld: str, policy: str) -> list[Zone]:
     zones = []
     zone = f"csk-roll2.{tld}"
     cds = "cdnskey,cds:sha-256,cds:sha-384"
-    keygen = EnvCmd("KEYGEN", f"-k {policy} -l kasp.conf")
+    keygen = EnvCmd("KEYGEN", f"-k {policy} -l policy/csk-roll2.conf")
     settime = EnvCmd("SETTIME", "-s")
 
     # Step 1:
@@ -1241,7 +1241,7 @@ def configure_enable_dnssec(tld: str, policy: str) -> list[Zone]:
     # initial signing of a zone.
     zones = []
     zone = f"enable-dnssec.{tld}"
-    keygen = EnvCmd("KEYGEN", f"-k {policy} -l kasp.conf")
+    keygen = EnvCmd("KEYGEN", f"-k {policy} -l policy/enable-dnsssec.conf")
     settime = EnvCmd("SETTIME", "-s")
 
     # Step 1:

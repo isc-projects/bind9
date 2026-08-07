@@ -13,7 +13,7 @@
 
 {% set zones = ["autosign", "manual"] %}
 
-include "kasp.conf";
+include "policy/csk-roll2.conf";
 include "named.common.conf";
 
 {% for tld in zones %}

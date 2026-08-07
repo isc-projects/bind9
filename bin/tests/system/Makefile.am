@@ -157,8 +157,6 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rollover		\
-	rollover_csk_roll1	\
-	rollover_csk_roll2	\
 	rollover_dynamic2inline	\
 	rollover_enable_dnssec	\
 	rollover_going_insecure	\
