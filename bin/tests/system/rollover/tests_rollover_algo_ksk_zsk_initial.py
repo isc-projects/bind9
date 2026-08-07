@@ -24,6 +24,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "algo-ksk-zsk",
     }
 
     tlds = []

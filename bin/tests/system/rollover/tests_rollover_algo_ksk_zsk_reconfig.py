@@ -42,6 +42,7 @@ def bootstrap():
     data = {
         "tlds": [],
         "trust_anchors": [],
+        "testconf": "algo-ksk-zsk",
     }
 
     tlds = []
@@ -68,7 +69,7 @@ def after_servers_start(ns3, templates):
 
     isctest.kasp.wait_keymgr_done(ns3, "step1.algorithm-roll.kasp")
 
-    templates.render("ns3/named.conf", {"alg_roll": True})
+    templates.render("ns3/named-algo-ksk-zsk.conf", {"alg_roll": True})
     start_time = KeyTimingMetadata.now()
     ns3.reconfigure()
 
