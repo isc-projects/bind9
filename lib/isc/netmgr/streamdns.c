@@ -16,6 +16,7 @@
 
 #include <isc/async.h>
 #include <isc/atomic.h>
+#include <isc/log.h>
 #include <isc/result.h>
 #include <isc/thread.h>
 
@@ -904,6 +905,8 @@ streamdns_read_cb(void *arg) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
+	sock->processing = false;
+
 	if (streamdns_closing(sock)) {
 		streamdns_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto detach;
@@ -942,6 +945,14 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	}
 
 	/*
+	 * Prevent scheduling the job or processing data if streamdns_read_cb
+	 * has been already scheduled.
+	 */
+	if (sock->processing) {
+		return;
+	}
+
+	/*
 	 * In some cases there is little sense in making the operation
 	 * asynchronous as we just want to start reading from the
 	 * underlying transport.
@@ -966,6 +977,7 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	 */
 
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	sock->processing = true;
 	isc_job_run(sock->worker->loop, &sock->job, streamdns_read_cb, sock);
 }
 
