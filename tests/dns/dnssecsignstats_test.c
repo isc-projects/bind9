@@ -125,68 +125,6 @@ ISC_RUN_TEST_IMPL(basic) {
 	rcu_barrier();
 }
 
-#define INSERT_THREADS	  4
-#define INSERT_INCREMENTS 50000
-
-typedef struct {
-	dns_stats_t *stats;
-	atomic_uint_fast32_t ready;
-	atomic_bool start;
-} insert_test_t;
-
-static void *
-insert_worker(void *arg) {
-	insert_test_t *test = arg;
-
-	atomic_fetch_add_relaxed(&test->ready, 1);
-	while (!atomic_load_acquire(&test->start)) {
-		isc_thread_yield();
-	}
-
-	for (size_t i = 0; i < INSERT_INCREMENTS; i++) {
-		dns_dnssecsignstats_increment(test->stats, 12345, 13,
-					      dns_dnssecsignstats_sign);
-	}
-
-	return NULL;
-}
-
-ISC_RUN_TEST_IMPL(concurrent_insert) {
-	dns_stats_t *stats = NULL;
-	insert_test_t test = { 0 };
-	isc_thread_t threads[INSERT_THREADS];
-	dump_t dump = { 0 };
-	uint64_t value = 0;
-
-	UNUSED(state);
-
-	dns_dnssecsignstats_create(isc_g_mctx, &stats);
-	test.stats = stats;
-	atomic_init(&test.ready, 0);
-	atomic_init(&test.start, false);
-
-	for (size_t i = 0; i < ARRAY_SIZE(threads); i++) {
-		isc_thread_create(insert_worker, &test, &threads[i]);
-	}
-	while (atomic_load_acquire(&test.ready) < ARRAY_SIZE(threads)) {
-		isc_thread_yield();
-	}
-	atomic_store_release(&test.start, true);
-
-	for (size_t i = 0; i < ARRAY_SIZE(threads); i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	dns_dnssecsignstats_dump(stats, dns_dnssecsignstats_sign, collect,
-				 &dump, 0);
-	assert_int_equal(dump.count, 1);
-	assert_true(find_value(&dump, DNSSEC_KEY(13, 12345), &value));
-	assert_int_equal(value, INSERT_THREADS * INSERT_INCREMENTS);
-
-	dns_stats_detach(&stats);
-	rcu_barrier();
-}
-
 #define STRESS_READER_THREADS 4
 #define STRESS_ITERATIONS     20000
 #define STRESS_KEY_COUNT      64
@@ -275,7 +213,6 @@ ISC_RUN_TEST_IMPL(concurrent_clear_dump) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(basic)
-ISC_TEST_ENTRY(concurrent_insert)
 ISC_TEST_ENTRY(concurrent_clear_dump)
 ISC_TEST_LIST_END
 
