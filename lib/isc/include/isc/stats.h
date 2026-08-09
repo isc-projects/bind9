@@ -211,14 +211,3 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter);
  *\li	counter is less than the maximum available ID for the stats specified
  *	on creation.
  */
-
-void
-isc_stats_resize(isc_stats_t **stats, int ncounters);
-/*%<
- * Resize a statistics counter structure of general type. The new set of
- * counters are indexed by an ID between 0 and ncounters -1.
- *
- * Requires:
- *\li	'stats' is a valid isc_stats_t.
- *\li	'ncounters' is a non-zero positive number.
- */
