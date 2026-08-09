@@ -27,6 +27,7 @@ check_PROGRAMS =		\
 	diff_test		\
 	dispatch_test		\
 	dns64_test		\
+	dnssecsignstats_test	\
 	dst_test		\
 	ede_test		\
 	keytable_test		\
