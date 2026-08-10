@@ -13,13 +13,13 @@
 
 #include <getopt.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 
 #include <isc/lib.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -40,6 +40,8 @@ static isc_sockaddr_t sockaddr ISC_ATTR_UNUSED;
 static int workers;
 
 static isc_tlsctx_t *tls_ctx = NULL;
+static isc_nmsocket_t *sock = NULL;
+static isc_nm_udplistener_t *udp_listener = NULL;
 
 static void
 read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
@@ -177,20 +179,6 @@ teardown(void) {
 }
 
 static void
-test_server_yield(void) {
-	sigset_t sset;
-	int sig;
-
-	RUNTIME_CHECK(sigemptyset(&sset) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGHUP) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGINT) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGTERM) == 0);
-	RUNTIME_CHECK(sigwait(&sset, &sig) == 0);
-
-	fprintf(stderr, "Shutting down...\n");
-}
-
-static void
 read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	void *cbarg) {
 	isc_region_t *reply = NULL;
@@ -235,10 +223,8 @@ accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 }
 
 static void
-run(void) {
+run_cb(void *arg ISC_ATTR_UNUSED) {
 	isc_result_t result;
-	isc_nmsocket_t *sock = NULL;
-	isc_nm_udplistener_t *udp_listener = NULL;
 
 	switch (protocol) {
 	case UDP:
@@ -282,9 +268,10 @@ run(void) {
 		UNREACHABLE();
 	}
 	REQUIRE(result == ISC_R_SUCCESS);
+}
 
-	test_server_yield();
-
+static void
+stop_cb(void *arg ISC_ATTR_UNUSED) {
 	if (udp_listener != NULL) {
 		isc_nm_udplistener_stop(udp_listener);
 		isc_nm_udplistener_detach(&udp_listener);
@@ -292,6 +279,13 @@ run(void) {
 		isc_nm_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 	}
+}
+
+static void
+run(void) {
+	isc_loop_setup(isc_loop_main(), run_cb, NULL);
+	isc_loop_teardown(isc_loop_main(), stop_cb, NULL);
+	isc_loopmgr_run();
 }
 
 int

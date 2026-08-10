@@ -15,7 +15,6 @@
 #include <getopt.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -300,20 +299,6 @@ teardown(void) {
 }
 
 static void
-waitforsignal(void) {
-	sigset_t sset;
-	int sig;
-
-	RUNTIME_CHECK(sigemptyset(&sset) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGHUP) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGINT) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGTERM) == 0);
-	RUNTIME_CHECK(sigwait(&sset, &sig) == 0);
-
-	fprintf(stderr, "Shutting down...\n");
-}
-
-static void
 read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	void *cbarg) {
 	isc_nmhandle_t *readhandle = cbarg;
@@ -336,7 +321,7 @@ read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 
 	isc_nmhandle_detach(&readhandle);
-	kill(getpid(), SIGTERM);
+	isc_loopmgr_shutdown();
 }
 
 static void
@@ -358,7 +343,7 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		isc_result_totext(eresult));
 
 	if (eresult != ISC_R_SUCCESS) {
-		kill(getpid(), SIGTERM);
+		isc_loopmgr_shutdown();
 		return;
 	}
 
@@ -368,7 +353,9 @@ connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 }
 
 static void
-run(void) {
+run_cb(void *arg) {
+	UNUSED(arg);
+
 	switch (protocol) {
 	case UDP:
 		isc_nm_udpconnect(&sockaddr_local, &sockaddr_remote, connect_cb,
@@ -411,8 +398,12 @@ run(void) {
 	default:
 		UNREACHABLE();
 	}
+}
 
-	waitforsignal();
+static void
+run(void) {
+	isc_loop_setup(isc_loop_main(), run_cb, NULL);
+	isc_loopmgr_run();
 }
 
 int
