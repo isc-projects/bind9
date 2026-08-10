@@ -93,7 +93,7 @@ raw_key_to_ossl(const eddsa_alginfo_t *alginfo, int private,
 	size_t len = alginfo->key_size;
 
 	result = (private ? DST_R_INVALIDPRIVATEKEY : DST_R_INVALIDPUBLICKEY);
-	if (*key_len < len) {
+	if (*key_len != len) {
 		return result;
 	}
 
