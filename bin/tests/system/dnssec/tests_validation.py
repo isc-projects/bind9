@@ -42,6 +42,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "*/*.lower",
         "*/*.upper",
         "*/*.unsplit",
+        "kasp.conf",
     ]
 )
 
