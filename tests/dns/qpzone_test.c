@@ -390,6 +390,17 @@ ISC_RUN_TEST_IMPL(setownercase) {
 ISC_RUN_TEST_IMPL(resign_sooner_values) {
 	dns_typepair_t soa = DNS_SIGTYPEPAIR(dns_rdatatype_soa);
 	dns_typepair_t other = DNS_SIGTYPEPAIR(dns_rdatatype_a);
+	dns_vecheader_t scheduled = {
+		.attributes = DNS_VECHEADERATTR_RESIGN,
+		.typepair = other,
+		.resign = 20,
+	};
+	dns_vecheader_t unscheduled = {
+		.typepair = other,
+		.resign = 0,
+	};
+	qpz_resign_t scheduled_elem = { .header = &scheduled };
+	qpz_resign_t unscheduled_elem = { .header = &unscheduled };
 
 	UNUSED(state);
 
@@ -401,6 +412,58 @@ ISC_RUN_TEST_IMPL(resign_sooner_values) {
 
 	assert_false(resign_sooner_values(10, soa, 10, soa));
 	assert_false(resign_sooner_values(10, other, 10, other));
+
+	assert_true(resign_sooner(&scheduled_elem, &unscheduled_elem));
+	assert_false(resign_sooner(&unscheduled_elem, &scheduled_elem));
+}
+
+ISC_RUN_TEST_IMPL(unscheduled_resign) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_fixedname_t fixed;
+	dns_typepair_t typepair;
+	isc_stdtime_t resign;
+
+	result = dns__qpzone_create(isc_g_mctx, &example_org_name,
+				    dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+				    NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	WITH_NEWVERSION(db, version, true) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[0], 16,
+					  DNS_DIFFOP_ADD);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	WITH_NEWVERSION(db, version, true) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[1], 16,
+					  DNS_DIFFOP_ADD);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Rolling back the subtraction currently leaves the old, ordinary
+	 * AAAA header in the resigning heap.  It must not be exposed as a
+	 * scheduled header with resign time zero.
+	 */
+	WITH_NEWVERSION(db, version, false) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[0], 16,
+					  DNS_DIFFOP_DEL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	dns_fixedname_init(&fixed);
+	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+				       &typepair);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	dns_db_detach(&db);
 }
 
 ISC_RUN_TEST_IMPL(diffop_add_sub) {
@@ -806,6 +869,7 @@ ISC_TEST_LIST_START
 ISC_TEST_ENTRY(ownercase)
 ISC_TEST_ENTRY(setownercase)
 ISC_TEST_ENTRY(resign_sooner_values)
+ISC_TEST_ENTRY(unscheduled_resign)
 ISC_TEST_ENTRY(diffop_add_sub)
 ISC_TEST_ENTRY(wildcard_foundname)
 ISC_TEST_ENTRY(wildcard_delegation_foundname)

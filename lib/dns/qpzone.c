@@ -657,9 +657,15 @@ resign_sooner_values(int64_t lhs_resign, dns_typepair_t lhs_typepair,
 	       (lhs_resign == rhs_resign && lhs_is_soa < rhs_is_soa);
 }
 
+static int64_t
+resign_effective_time(const dns_vecheader_t *header) {
+	return RESIGN(header) ? header->resign : INT64_MAX;
+}
+
 /*%
  * Return which RRset should be resigned sooner.  If the RRsets have the
- * same signing time, prefer the other RRset over the SOA RRset.
+ * same signing time, prefer the other RRset over the SOA RRset.  Headers
+ * which are not scheduled for resigning sort after every scheduled header.
  */
 static bool
 resign_sooner(void *v1, void *v2) {
@@ -667,8 +673,8 @@ resign_sooner(void *v1, void *v2) {
 	qpz_resign_t *elem2 = v2;
 
 	return resign_sooner_values(
-		elem1->header->resign, elem1->header->typepair,
-		elem2->header->resign, elem2->header->typepair);
+		resign_effective_time(elem1->header), elem1->header->typepair,
+		resign_effective_time(elem2->header), elem2->header->typepair);
 }
 
 /*%
@@ -2562,9 +2568,9 @@ again:
 		goto again;
 	}
 
-	if (elem != NULL) {
+	if (elem != NULL && RESIGN(elem->header)) {
 		header = elem->header;
-		*resign = RESIGN(header) ? (uint32_t)header->resign : 0;
+		*resign = (uint32_t)header->resign;
 		dns_name_copy(&elem->node->name, foundname);
 		*typepair = header->typepair;
 		result = ISC_R_SUCCESS;
