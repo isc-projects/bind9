@@ -151,7 +151,9 @@ parse_input(const char *input) {
 
 	message.length = read(in, message.base, sizeof(messagebuf));
 
-	close(in);
+	if (in != 0) {
+		close(in);
+	}
 
 	return ISC_R_SUCCESS;
 }
@@ -315,7 +317,6 @@ read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		printf("RECEIVED %u bytes\n", region->length);
 		if (out >= 0) {
 			ssize_t len = write(out, region->base, region->length);
-			close(out);
 			REQUIRE((size_t)len == region->length);
 		}
 	}
