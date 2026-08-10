@@ -525,8 +525,8 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			break;
 		case dns_ssumatchtype_external:
 			if (!dns_ssu_external_match(rule->identity, signer,
-						    name, addr, type, key,
-						    table->mctx))
+						    name, tcp ? addr : NULL,
+						    type, key, table->mctx))
 			{
 				continue;
 			}
