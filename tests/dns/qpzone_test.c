@@ -420,7 +420,9 @@ ISC_RUN_TEST_IMPL(resign_sooner_values) {
 ISC_RUN_TEST_IMPL(unscheduled_resign) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
+	dns_rdataset_t rdataset;
 	dns_typepair_t typepair;
 	isc_stdtime_t resign;
 
@@ -446,9 +448,41 @@ ISC_RUN_TEST_IMPL(unscheduled_resign) {
 	}
 
 	/*
-	 * Rolling back the subtraction currently leaves the old, ordinary
-	 * AAAA header in the resigning heap.  It must not be exposed as a
-	 * scheduled header with resign time zero.
+	 * Deliberately insert an ordinary header into the resigning heap to
+	 * verify that the defensive checks do not expose it as scheduled.
+	 */
+	result = dns_db_findnode(db, &example_org_name, false, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_aaaa, 0, 0,
+				     &rdataset, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
+	dns_vecheader_t *header = dns_vecheader_getheader(&rdataset);
+	LOCK(&qpdb->heap->lock);
+	resign_register(qpdb->heap, (qpznode_t *)node, header);
+	UNLOCK(&qpdb->heap->lock);
+
+	dns_fixedname_init(&fixed);
+	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+				       &typepair);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	LOCK(&qpdb->heap->lock);
+	result = resign_unregister(qpdb->heap, (qpznode_t *)node, header);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = resign_unregister(qpdb->heap, (qpznode_t *)node, header);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	UNLOCK(&qpdb->heap->lock);
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detachnode(&node);
+
+	/*
+	 * A rolled-back subtraction must not register an ordinary header that
+	 * was not in the resigning heap before the transaction.
 	 */
 	WITH_NEWVERSION(db, version, false) {
 		result = apply_dns_update(db, version, &example_org_name,
@@ -458,7 +492,10 @@ ISC_RUN_TEST_IMPL(unscheduled_resign) {
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
-	dns_fixedname_init(&fixed);
+	LOCK(&qpdb->heap->lock);
+	assert_null(isc_heap_element(qpdb->heap->heap, 1));
+	UNLOCK(&qpdb->heap->lock);
+
 	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
 				       &typepair);
 	assert_int_equal(result, ISC_R_NOTFOUND);
