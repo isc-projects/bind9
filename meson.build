@@ -460,6 +460,15 @@ endif
 
 fuzz_link_args = []
 if fuzzing_backend_opt == 'afl'
+    # Without an AFL compiler wrapper, __AFL_COMPILER is not defined,
+    # fuzz/main.c compiles to nothing and the fuzz binaries fail to link with
+    # a bare "undefined reference to `main'".  Say so while it can still be
+    # explained.
+    assert(
+        afl_compiler,
+        'the "afl" fuzzing backend requires an AFL compiler, e.g. CC=afl-cc',
+    )
+
     config.set('FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION', 1)
     config.set('ENABLE_AFL', 1)
 elif fuzzing_backend_opt == 'libfuzzer'
