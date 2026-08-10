@@ -166,6 +166,7 @@ main(int argc, char **argv) {
 int
 main(int argc, char **argv) {
 	int ret;
+	size_t n;
 	unsigned char buf[64 * 1024];
 
 	ret = LLVMFuzzerInitialize(&argc, &argv);
@@ -179,12 +180,14 @@ main(int argc, char **argv) {
 #else  /* ifdef __AFL_LOOP */
 	{
 #endif /* ifdef __AFL_LOOP */
-		ret = fread(buf, 1, sizeof(buf), stdin);
-		if (ret < 0) {
-			return 0;
+		n = fread(buf, 1, sizeof(buf), stdin);
+		if (ferror(stdin) != 0) {
+			fprintf(stderr, "Failed to read from stdin: %s\n",
+				strerror(errno));
+			return 1;
 		}
 
-		LLVMFuzzerTestOneInput(buf, ret);
+		LLVMFuzzerTestOneInput(buf, n);
 	}
 
 	return 0;
