@@ -180,12 +180,17 @@ teardown(void) {
 
 static void
 read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	void *cbarg) {
+	void *cbarg ISC_ATTR_UNUSED) {
 	isc_region_t *reply = NULL;
 
 	REQUIRE(handle != NULL);
-	REQUIRE(eresult == ISC_R_SUCCESS);
-	UNUSED(cbarg);
+
+	if (eresult != ISC_R_SUCCESS) {
+		/* client disconnected or the read was canceled at shutdown */
+		fprintf(stderr, "read callback failed with %s\n",
+			isc_result_toid(eresult));
+		return;
+	}
 
 	fprintf(stderr, "RECEIVED %u bytes\n", region->length);
 
@@ -204,11 +209,11 @@ read_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 }
 
 static void
-send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
+send_cb(isc_nmhandle_t *handle, isc_result_t eresult ISC_ATTR_UNUSED,
+	void *cbarg) {
 	isc_region_t *reply = cbarg;
 
 	REQUIRE(handle != NULL);
-	REQUIRE(eresult == ISC_R_SUCCESS);
 
 	isc_mem_put(isc_g_mctx, cbarg, sizeof(isc_region_t) + reply->length);
 }
