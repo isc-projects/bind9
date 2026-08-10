@@ -49,6 +49,7 @@ options {
 		zone "evil-cname"  policy cname a12.tld2. ede blocked;
 		zone "wild-cname"  ede blocked;
 		zone "slow-rpz";
+		zone "outofzone.tld2";
 	}
 	add-soa yes
 	min-ns-dots 0
@@ -132,6 +133,18 @@ zone "fast-expire." {
 	type secondary;
 	file "fast-expire.db";
 	primaries { 10.53.0.5; };
+	notify no;
+};
+
+/*
+ * A policy zone holding a record from outside the zone.  ns2 does not
+ * serve it, so "outofzone.db" is never replaced by a transfer.
+ */
+zone "outofzone.tld2." {
+	type secondary;
+	file "outofzone.db";
+	masterfile-format text;
+	primaries { 10.53.0.2; };
 	notify no;
 };
 
