@@ -722,7 +722,8 @@ new_node(dns_rpz_zones_t *rpzs, const dns_rpz_cidr_key_t *ip,
 }
 
 static void
-badname(int level, const dns_name_t *name, const char *str1, const char *str2) {
+log_badname(int level, const dns_name_t *name, const char *str1,
+	    const char *str2) {
 	/*
 	 * bin/tests/system/rpz/tests.sh looks for "invalid rpz".
 	 */
@@ -737,7 +738,7 @@ badname(int level, const dns_name_t *name, const char *str1, const char *str2) {
 }
 
 static void
-badowner(int level, const dns_name_t *name) {
+log_badowner(int level, const dns_name_t *name) {
 	/*
 	 * bin/tests/system/rpz/tests.sh looks for "invalid rpz".
 	 */
@@ -909,7 +910,7 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		ip_labels -= dns_name_countlabels(&rpz->nsdname);
 	}
 	if (ip_labels < 2) {
-		badname(log_level, src_name, "; too short", "");
+		log_badname(log_level, src_name, "; too short", "");
 		return ISC_R_FAILURE;
 	}
 	dns_name_init(&ip_name, ip_name_offsets);
@@ -924,15 +925,15 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 
 	prefix_num = strtoul(prefix_str, &cp2, 10);
 	if (*cp2 != '.') {
-		badname(log_level, src_name, "; invalid leading prefix length",
-			"");
+		log_badname(log_level, src_name,
+			    "; invalid leading prefix length", "");
 		return ISC_R_FAILURE;
 	}
 	prefix_end = cp2;
 	if (prefix_num < 1U || prefix_num > 128U) {
 		*prefix_end = '\0';
-		badname(log_level, src_name, "; invalid prefix length of ",
-			prefix_str);
+		log_badname(log_level, src_name, "; invalid prefix length of ",
+			    prefix_str);
 		return ISC_R_FAILURE;
 	}
 	cp = cp2 + 1;
@@ -944,8 +945,9 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		 */
 		if (prefix_num > 32U) {
 			*prefix_end = '\0';
-			badname(log_level, src_name,
-				"; invalid IPv4 prefix length of ", prefix_str);
+			log_badname(log_level, src_name,
+				    "; invalid IPv4 prefix length of ",
+				    prefix_str);
 			return ISC_R_FAILURE;
 		}
 		prefix_num += 96;
@@ -960,8 +962,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 				if (*cp2 == '.') {
 					*cp2 = '\0';
 				}
-				badname(log_level, src_name,
-					"; invalid IPv4 octet ", cp);
+				log_badname(log_level, src_name,
+					    "; invalid IPv4 octet ", cp);
 				return ISC_R_FAILURE;
 			}
 			tgt_ip->w[3] |= l << i;
@@ -993,8 +995,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 					if (*cp2 == '.') {
 						*cp2 = '\0';
 					}
-					badname(log_level, src_name,
-						"; invalid IPv6 word ", cp);
+					log_badname(log_level, src_name,
+						    "; invalid IPv6 word ", cp);
 					return ISC_R_FAILURE;
 				}
 				if ((i & 1) == 0) {
@@ -1008,7 +1010,7 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		}
 	}
 	if (cp != end) {
-		badname(log_level, src_name, "", "");
+		log_badname(log_level, src_name, "", "");
 		return ISC_R_FAILURE;
 	}
 
@@ -1023,8 +1025,9 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		aword = tgt_ip->w[prefix / DNS_RPZ_CIDR_WORD_BITS];
 		if ((aword & ~DNS_RPZ_WORD_MASK(i)) != 0) {
 			*prefix_end = '\0';
-			badname(log_level, src_name,
-				"; too small prefix length of ", prefix_str);
+			log_badname(log_level, src_name,
+				    "; too small prefix length of ",
+				    prefix_str);
 			return ISC_R_FAILURE;
 		}
 		prefix -= i;
@@ -1047,8 +1050,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 					     NULL);
 		}
 		dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
-		badname(log_level, src_name, " is not in canonical form ",
-			ip2_str);
+		log_badname(log_level, src_name, " is not in canonical form ",
+			    ip2_str);
 		return ISC_R_FAILURE;
 	}
 
@@ -1085,7 +1088,7 @@ name2data(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	 * before splitting a catalog zone entry.
 	 */
 	if (!dns_name_issubdomain(src_name, suffix)) {
-		badowner(log_level, src_name);
+		log_badowner(log_level, src_name);
 		return ISC_R_FAILURE;
 	}
 
