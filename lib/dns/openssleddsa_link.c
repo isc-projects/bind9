@@ -87,13 +87,13 @@ openssleddsa_alg_info(unsigned int key_alg) {
 
 static isc_result_t
 raw_key_to_ossl(const eddsa_alginfo_t *alginfo, int private,
-		const unsigned char *key, size_t *key_len, EVP_PKEY **pkey) {
+		const unsigned char *key, size_t key_len, EVP_PKEY **pkey) {
 	isc_result_t result;
 	int pkey_type = alginfo->pkey_type;
 	size_t len = alginfo->key_size;
 
 	result = (private ? DST_R_INVALIDPRIVATEKEY : DST_R_INVALIDPUBLICKEY);
-	if (*key_len != len) {
+	if (key_len != len) {
 		return result;
 	}
 
@@ -106,7 +106,6 @@ raw_key_to_ossl(const eddsa_alginfo_t *alginfo, int private,
 		return dst__openssl_toresult(result);
 	}
 
-	*key_len = len;
 	return ISC_R_SUCCESS;
 }
 
@@ -339,7 +338,6 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
 	isc_result_t ret;
 	isc_region_t r;
-	size_t len;
 	EVP_PKEY *pkey = NULL;
 
 	REQUIRE(alginfo != NULL);
@@ -349,15 +347,14 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		return ISC_R_SUCCESS;
 	}
 
-	len = r.length;
-	ret = raw_key_to_ossl(alginfo, 0, r.base, &len, &pkey);
+	ret = raw_key_to_ossl(alginfo, 0, r.base, r.length, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		return ret;
 	}
 
-	isc_buffer_forward(data, len);
+	isc_buffer_forward(data, alginfo->key_size);
 	key->keydata.pkeypair.pub = pkey;
-	key->key_size = len * 8;
+	key->key_size = alginfo->key_size * 8;
 	return ISC_R_SUCCESS;
 }
 
@@ -429,7 +426,6 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	int i, privkey_index = -1;
 	const char *engine = NULL, *label = NULL;
 	EVP_PKEY *pkey = NULL;
-	size_t len;
 	isc_mem_t *mctx = key->mctx;
 
 	REQUIRE(alginfo != NULL);
@@ -485,9 +481,8 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 
-	len = priv.elements[privkey_index].length;
 	CHECK(raw_key_to_ossl(alginfo, 1, priv.elements[privkey_index].data,
-			      &len, &pkey));
+			      priv.elements[privkey_index].length, &pkey));
 	/* Check that the public component matches if given */
 	if (pub != NULL && EVP_PKEY_eq(pkey, pub->keydata.pkeypair.pub) != 1) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
@@ -495,7 +490,7 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	key->keydata.pkeypair.priv = pkey;
 	key->keydata.pkeypair.pub = pkey;
-	key->key_size = len * 8;
+	key->key_size = alginfo->key_size * 8;
 	pkey = NULL;
 	result = ISC_R_SUCCESS;
 
@@ -628,7 +623,7 @@ check_algorithm(unsigned char algorithm) {
 	}
 
 	INSIST(alginfo != NULL);
-	CHECK(raw_key_to_ossl(alginfo, 0, key, &key_len, &pkey));
+	CHECK(raw_key_to_ossl(alginfo, 0, key, key_len, &pkey));
 
 	/*
 	 * Check that we can verify the signature.
