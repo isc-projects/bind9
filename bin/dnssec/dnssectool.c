@@ -480,6 +480,8 @@ set_keyversion(dst_key_t *key) {
 bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	      isc_mem_t *mctx, uint16_t min, uint16_t max, bool *exact) {
+	REQUIRE((min == 0 && max == 0) || min < max);
+
 	isc_result_t result;
 	bool conflict = false;
 	dns_dnsseckeylist_t matchkeys;

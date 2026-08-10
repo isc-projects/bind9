@@ -533,7 +533,7 @@ dns_kasp_key_tagmin(dns_kasp_key_t *key) {
 uint16_t
 dns_kasp_key_tagmax(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
-	return key->tag_min;
+	return key->tag_max;
 }
 
 bool
