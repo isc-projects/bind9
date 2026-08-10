@@ -82,6 +82,21 @@ zone "bogus.example" {
 	allow-update { any; };
 };
 
+zone "keytrap.example" {
+	type primary;
+	file "keytrap.example.db.signed";
+};
+
+zone "keytrap2.example" {
+	type primary;
+	file "keytrap2.example.db.signed";
+};
+
+zone "keytrap3.example" {
+	type primary;
+	file "keytrap3.example.db.signed";
+};
+
 zone "badds.example" {
 	type primary;
 	file "badds.example.db.signed";
