@@ -281,6 +281,7 @@ add_project_arguments(sys_defines, language: 'c')
 
 ### Sanitizer
 asan_options = 'abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1:detect_odr_violation=0'
+lsan_options = 'use_unaligned=1'
 tsan_options = 'disable_coredump=0:second_deadlock_stack=1:atexit_sleep_ms=1000:history_size=7:log_exe_name=true:log_path=tsan'
 ubsan_options = 'halt_on_error=1:abort_on_error=1:disable_coredump=0'
 
@@ -292,6 +293,7 @@ config_sanitize.set10('BIND_LSAN_ENABLED', sanitizer.contains('leak'))
 config_sanitize.set10('BIND_TSAN_ENABLED', sanitizer.contains('thread'))
 config_sanitize.set10('BIND_UBSAN_ENABLED', sanitizer.contains('undefined'))
 config_sanitize.set('BIND_ASAN_OPTIONS', asan_options)
+config_sanitize.set('BIND_LSAN_OPTIONS', lsan_options)
 config_sanitize.set('BIND_TSAN_OPTIONS', tsan_options)
 config_sanitize.set('BIND_UBSAN_OPTIONS', ubsan_options)
 

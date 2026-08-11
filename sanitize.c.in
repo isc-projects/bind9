@@ -26,6 +26,17 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
+/*
+ * QP trie nodes contain pointers that are not always naturally aligned.
+ * Always provide these defaults: OSS-Fuzz can enable sanitizers through
+ * compiler flags without setting Meson's b_sanitize option.
+ */
+__attribute__((no_sanitize("address", "leak", "thread", "undefined")))
+const char *
+__lsan_default_options(void) {
+	return "@BIND_LSAN_OPTIONS@";
+}
+
 #if @BIND_ASAN_ENABLED@
 __attribute__((no_sanitize("address", "leak", "thread", "undefined")))
 const char *
