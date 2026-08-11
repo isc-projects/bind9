@@ -192,6 +192,31 @@ ISC_RUN_TEST_IMPL(nulbyte) {
 }
 
 /*
+ * Embedded NUL in a quoted string test:
+ * dns_master_loadbuffer() rejects a NUL byte embedded in a quoted
+ * token with DNS_R_SYNTAX instead of silently truncating it -- the
+ * $INCLUDE filename "a\0b" must not be opened as "a".
+ */
+ISC_RUN_TEST_IMPL(nulbyte_quoted) {
+	isc_result_t result;
+	isc_buffer_t source;
+	unsigned char data[] = "$INCLUDE \"a\0b\"\n";
+
+	UNUSED(state);
+
+	result = setup_master(nullmsg, nullmsg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_buffer_init(&source, data, sizeof(data) - 1);
+	isc_buffer_add(&source, sizeof(data) - 1);
+
+	result = dns_master_loadbuffer(&source, dns_origin, dns_origin,
+				       dns_rdataclass_in, 0, &callbacks,
+				       isc_g_mctx);
+	assert_int_equal(result, DNS_R_SYNTAX);
+}
+
+/*
  * Unexpected end of file test:
  * dns_master_loadfile() returns DNS_R_UNEXPECTED when file ends too soon
  */
@@ -565,6 +590,7 @@ ISC_RUN_TEST_IMPL(neworigin) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(load)
 ISC_TEST_ENTRY(nulbyte)
+ISC_TEST_ENTRY(nulbyte_quoted)
 ISC_TEST_ENTRY(unexpected)
 ISC_TEST_ENTRY(noowner)
 ISC_TEST_ENTRY(nottl)
