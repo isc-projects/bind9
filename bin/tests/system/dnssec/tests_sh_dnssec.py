@@ -21,6 +21,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "dnssectools.out.*",
         "dsfromkey.out.*",
         "dsset-*",
+        "kasp.conf",
         "keygen*.err*",
         "named.secroots.*",
         "nsupdate.out.*",
