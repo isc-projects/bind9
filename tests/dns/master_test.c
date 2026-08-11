@@ -168,6 +168,30 @@ ISC_RUN_TEST_IMPL(load) {
 }
 
 /*
+ * Embedded NUL test:
+ * dns_master_loadbuffer() rejects a bare NUL byte with DNS_R_SYNTAX
+ * instead of acting on the partially-written unknown token
+ */
+ISC_RUN_TEST_IMPL(nulbyte) {
+	isc_result_t result;
+	isc_buffer_t source;
+	unsigned char data[] = "$INCLUDE \0\n";
+
+	UNUSED(state);
+
+	result = setup_master(nullmsg, nullmsg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_buffer_init(&source, data, sizeof(data) - 1);
+	isc_buffer_add(&source, sizeof(data) - 1);
+
+	result = dns_master_loadbuffer(&source, dns_origin, dns_origin,
+				       dns_rdataclass_in, 0, &callbacks,
+				       isc_g_mctx);
+	assert_int_equal(result, DNS_R_SYNTAX);
+}
+
+/*
  * Unexpected end of file test:
  * dns_master_loadfile() returns DNS_R_UNEXPECTED when file ends too soon
  */
@@ -540,6 +564,7 @@ ISC_RUN_TEST_IMPL(neworigin) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(load)
+ISC_TEST_ENTRY(nulbyte)
 ISC_TEST_ENTRY(unexpected)
 ISC_TEST_ENTRY(noowner)
 ISC_TEST_ENTRY(nottl)

@@ -244,7 +244,9 @@ loadctx_destroy(dns_loadctx_t *lctx);
 			} else                                               \
 				goto log_and_cleanup;                        \
 		}                                                            \
-		if ((token)->type == isc_tokentype_special) {                \
+		if ((token)->type == isc_tokentype_special ||                \
+		    (token)->type == isc_tokentype_unknown)                  \
+		{                                                            \
 			result = DNS_R_SYNTAX;                               \
 			if (MANYERRS(lctx, result)) {                        \
 				SETRESULT(lctx, result);                     \
