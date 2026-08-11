@@ -873,6 +873,12 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				result = ISC_R_UNEXPECTEDEND;
 				goto done;
 			}
+			if (c == '\0') {
+				tokenp->type = isc_tokentype_unknown;
+				tokenp->value.as_char = c;
+				done = true;
+				break;
+			}
 			if (c == '{') {
 				if (escaped) {
 					escaped = false;
