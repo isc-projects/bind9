@@ -99,6 +99,44 @@ ISC_RUN_TEST_IMPL(lex_0x00) {
 	isc_lex_destroy(&lex);
 }
 
+/*
+ * A NUL token must not preserve a stale beginning-of-line state:
+ * whitespace following the NUL is not initial whitespace.
+ */
+ISC_RUN_TEST_IMPL(lex_0x00_initialws) {
+	isc_result_t result;
+	isc_lex_t *lex = NULL;
+	isc_buffer_t buf;
+	isc_token_t token;
+
+	unsigned char nul_then_ws[] = { 'a', '\n', '\0', ' ', 'b' };
+
+	UNUSED(state);
+
+	isc_lex_create(isc_g_mctx, 1024, &lex);
+
+	isc_buffer_init(&buf, &nul_then_ws[0], sizeof(nul_then_ws));
+	isc_buffer_add(&buf, sizeof(nul_then_ws));
+
+	result = isc_lex_openbuffer(lex, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_INITIALWS, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_string);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_INITIALWS, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_unknown);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_INITIALWS, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_string);
+	assert_string_equal(AS_STR(token), "b");
+
+	isc_lex_destroy(&lex);
+}
+
 /* check handling of 0xff */
 ISC_RUN_TEST_IMPL(lex_0xff) {
 	isc_result_t result;
@@ -407,6 +445,7 @@ ISC_RUN_TEST_IMPL(lex_keypair) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(lex_0x00)
+ISC_TEST_ENTRY(lex_0x00_initialws)
 ISC_TEST_ENTRY(lex_0xff)
 ISC_TEST_ENTRY(lex_keypair)
 ISC_TEST_ENTRY(lex_setline)

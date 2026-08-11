@@ -541,6 +541,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				no_comments = true;
 				state = lexstate_qstring;
 			} else if (c == '\0') {
+				lex->last_was_eol = false;
 				tokenp->type = isc_tokentype_unknown;
 				tokenp->value.as_char = c;
 				done = true;
