@@ -127,6 +127,12 @@ ISC_RUN_TEST_IMPL(lex_0x00_initialws) {
 	result = isc_lex_gettoken(lex, ISC_LEXOPT_INITIALWS, &token);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(token.type, isc_tokentype_unknown);
+	/*
+	 * The unknown token must not leave the previous token's text
+	 * region pointer behind for a caller to dereference.
+	 */
+	assert_null(token.value.as_textregion.base);
+	assert_int_equal(token.value.as_textregion.length, 0);
 
 	result = isc_lex_gettoken(lex, ISC_LEXOPT_INITIALWS, &token);
 	assert_int_equal(result, ISC_R_SUCCESS);
