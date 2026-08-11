@@ -21,7 +21,7 @@ named-checkconf - named configuration file syntax checking tool
 Synopsis
 ~~~~~~~~
 
-:program:`named-checkconf` [**-achjklnvz**] [**-pe** [**-x** ]] [**-b**]
+:program:`named-checkconf` [**-achijklnvz**] [**-pe** [**-x** ]] [**-b**]
 [**-t** directory] {filename}
 
 Description
