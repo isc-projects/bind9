@@ -51,7 +51,7 @@ usage(void);
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: %s [-achijklvz] [-pe [-x]] [-b] [-t directory] "
+		"usage: %s [-achijklnvz] [-pe [-x]] [-b] [-t directory] "
 		"[named.conf]\n",
 		isc_commandline_progname);
 	exit(EXIT_SUCCESS);

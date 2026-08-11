@@ -175,8 +175,21 @@ grep "option 'max-zone-ttl' is deprecated" <checkconf.out$n.1 >/dev/null || ret=
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 # set -i to ignore deprecate warnings
-$CHECKCONF -i deprecated.conf 2>&1 | grep_v "rrset-order: order 'fixed' was disabled at compilation time" >checkconf.out$n.2
+$CHECKCONF -i deprecated.conf >checkconf.out$n.2 2>&1
 grep '^.+$' <checkconf.out$n.2 >/dev/null && ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+if ! $FEATURETEST --enable-dnstap; then
+  n=$((n + 1))
+  echo_i "checking named-checkconf disabled warnings ($n)"
+  ret=0
+  $CHECKCONF disabled.conf >checkconf.out$n.1 2>&1 && ret=1
+  grep "option 'dnstap-version' was not enabled at compile time" <checkconf.out$n.1 >/dev/null || ret=1
+fi
+# set -n to ignore disabled warnings
+$CHECKCONF -n disabled.conf >checkconf.out$n.2 2>&1
+[ -s checkconf.out$n.2 ] && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

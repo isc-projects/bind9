@@ -799,7 +799,8 @@ cleanup:
 
 #define REQUIRE_PCTX_FLAGS(flags)                                        \
 	REQUIRE((flags & ~(CFG_PCTX_NODEPRECATED | CFG_PCTX_NOOBSOLETE | \
-			   CFG_PCTX_NOEXPERIMENTAL | CFG_PCTX_BUILTIN)) == 0)
+			   CFG_PCTX_NOEXPERIMENTAL | CFG_PCTX_BUILTIN |  \
+			   CFG_PCTX_ALLCONFIGS)) == 0)
 
 isc_result_t
 cfg_parse_file(const char *filename, const cfg_type_t *type, unsigned int flags,
