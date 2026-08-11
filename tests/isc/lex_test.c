@@ -137,6 +137,41 @@ ISC_RUN_TEST_IMPL(lex_0x00_initialws) {
 	isc_lex_destroy(&lex);
 }
 
+/*
+ * A NUL inside brace-delimited text is corruption and must yield an
+ * unknown token instead of being embedded in the btext token.
+ */
+ISC_RUN_TEST_IMPL(lex_0x00_btext) {
+	isc_result_t result;
+	isc_lex_t *lex = NULL;
+	isc_buffer_t buf;
+	isc_token_t token;
+	isc_lexspecials_t specials;
+
+	unsigned char btext_null[] = { '{', 'a', '\0', 'b', '}' };
+
+	UNUSED(state);
+
+	isc_lex_create(isc_g_mctx, 1024, &lex);
+
+	memset(specials, 0, sizeof(specials));
+	specials['{'] = 1;
+	specials['}'] = 1;
+	isc_lex_setspecials(lex, specials);
+
+	isc_buffer_init(&buf, &btext_null[0], sizeof(btext_null));
+	isc_buffer_add(&buf, sizeof(btext_null));
+
+	result = isc_lex_openbuffer(lex, &buf);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_lex_gettoken(lex, ISC_LEXOPT_BTEXT, &token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(token.type, isc_tokentype_unknown);
+
+	isc_lex_destroy(&lex);
+}
+
 /* check handling of 0xff */
 ISC_RUN_TEST_IMPL(lex_0xff) {
 	isc_result_t result;
@@ -446,6 +481,7 @@ ISC_RUN_TEST_IMPL(lex_keypair) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(lex_0x00)
 ISC_TEST_ENTRY(lex_0x00_initialws)
+ISC_TEST_ENTRY(lex_0x00_btext)
 ISC_TEST_ENTRY(lex_0xff)
 ISC_TEST_ENTRY(lex_keypair)
 ISC_TEST_ENTRY(lex_setline)
