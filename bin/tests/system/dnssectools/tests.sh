@@ -1091,6 +1091,25 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "check that dnssec-keygen honours key tag ranges from dnssec-policy ($n)"
+ret=0
+zone=settagrangepolicy
+ksk=$("$KEYGEN" -f KSK -k tagged-keys -l kasp.conf "$zone")
+zsk=$("$KEYGEN" -f ZSK -k tagged-keys -l kasp.conf "$zone")
+kid=$(keyfile_to_key_id "$ksk")
+zid=$(keyfile_to_key_id "$zsk")
+[ $kid -ge 0 -a $kid -le 32767 ] || ret=1
+[ $zid -ge 32768 -a $zid -le 65535 ] || ret=1
+rksk=$($REVOKE -R $ksk)
+rzsk=$($REVOKE -R $zsk)
+krid=$(keyfile_to_key_id "$rksk")
+zrid=$(keyfile_to_key_id "$rzsk")
+[ $krid -ge 0 -a $krid -le 32767 ] || ret=1
+[ $zrid -ge 32768 -a $zrid -le 65535 ] || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "check dnssec-dsfromkey from stdin ($n)"
 ret=0
 cat algroll.dnskey | $DSFROMKEY -f - algroll. >dsfromkey.out.test$n
