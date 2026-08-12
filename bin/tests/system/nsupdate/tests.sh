@@ -384,14 +384,14 @@ ret=0
 echo_i "check that unixtime serial number is correctly generated ($n)"
 $DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 >dig.out.old.test$n || ret=1
 oldserial=$(awk '{print $3}' dig.out.old.test$n) || ret=1
-start=$($PERL -e 'print time()."\n";')
+start=$(date +%s)
 $NSUPDATE <<END >/dev/null 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     ttl 600
     update add new.unixtime.nil in a 1.2.3.4
     send
 END
-now=$($PERL -e 'print time()."\n";')
+now=$(date +%s)
 sleep 1
 $DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 >dig.out.new.test$n || ret=1
 serial=$(awk '{print $3}' dig.out.new.test$n) || ret=1
@@ -1616,14 +1616,14 @@ grep "records in zone (4) exceeds max-records (3)" ns3/named.run >/dev/null || r
 n=$((n + 1))
 ret=0
 echo_i "check whether valid addresses are used for primary failover (UDP with defaults) ($n)"
-t1=$($PERL -e 'print time()')
+t1=$(date +%s)
 $NSUPDATE <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=$($PERL -e 'print time()')
+t2=$(date +%s)
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n >/dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n >/dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1638,14 +1638,14 @@ test $elapsed -gt 15 && ret=1
 n=$((n + 1))
 ret=0
 echo_i "check whether valid addresses are used for primary failover (UDP with -u udptimeout) ($n)"
-t1=$($PERL -e 'print time()')
+t1=$(date +%s)
 $NSUPDATE -u 4 -r 1 <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=$($PERL -e 'print time()')
+t2=$(date +%s)
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n >/dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n >/dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1660,14 +1660,14 @@ test $elapsed -gt 12 && ret=1
 n=$((n + 1))
 ret=0
 echo_i "check whether valid addresses are used for primary failover (UDP with -t timeout) ($n)"
-t1=$($PERL -e 'print time()')
+t1=$(date +%s)
 $NSUPDATE -u 0 -t 8 -r 1 <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=$($PERL -e 'print time()')
+t2=$(date +%s)
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n >/dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n >/dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1682,14 +1682,14 @@ test $elapsed -gt 12 && ret=1
 n=$((n + 1))
 ret=0
 echo_i "check whether valid addresses are used for primary failover (UDP with -u udptimeout -t timeout) ($n)"
-t1=$($PERL -e 'print time()')
+t1=$(date +%s)
 $NSUPDATE -u 4 -t 30 -r 1 <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=$($PERL -e 'print time()')
+t2=$(date +%s)
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n >/dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n >/dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1704,14 +1704,14 @@ test $elapsed -gt 12 && ret=1
 n=$((n + 1))
 ret=0
 echo_i "check whether valid addresses are used for primary failover (TCP with -t timeout) ($n)"
-t1=$($PERL -e 'print time()')
+t1=$(date +%s)
 $NSUPDATE -t 8 -v <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=$($PERL -e 'print time()')
+t2=$(date +%s)
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n >/dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n >/dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
