@@ -899,12 +899,14 @@ scan-build:
     - ${SCAN_BUILD} --use-cc=${CLANG}
                     --exclude build
                     meson setup --native-file ci/scan-build.ini build
-    # Gate on the full set of default checkers.
+    # Gate on the full set of default checkers.  The unit tests are
+    # build_by_default: false, so the "all" target alone would leave them
+    # unanalyzed; meson-test-prereq builds them without running them.
     - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
                     --use-cc=${CLANG}
                     --status-bugs
                     --keep-going
-                    -o scan-build.reports ninja -C build
+                    -o scan-build.reports ninja -C build all meson-test-prereq
   artifacts:
     paths:
       - scan-build.reports/
