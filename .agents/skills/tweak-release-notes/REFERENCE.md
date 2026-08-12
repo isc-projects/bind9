@@ -229,10 +229,8 @@ the MR title, not the commit.)
 
 - **The tweak commit:** subject exactly `Tweak and reword release notes`, **no
   body** (this recurring step uses that fixed subject every release — e.g.
-  prior `Tweak and reword release notes` commits for 9.21.20/.21/.22). Add a
-  trailer `Assisted-by: Claude:<model-id>` (read the actual model id from the
-  system prompt; one Claude trailer per commit). Notes-only — the changelog is
-  never in this commit.
+  prior `Tweak and reword release notes` commits for 9.21.20/.21/.22).
+  Notes-only — the changelog is never in this commit.
 - **Never amend the session base** (HEAD at session start, e.g. the "Prepare
   release notes" commit). Add commits on top.
 - **Follow-up edits** after you've presented the commit → `git commit
@@ -252,16 +250,14 @@ the MR title, not the commit.)
   The generated changelog is correct and kept in place; this revert is
   dropped before merge so the review diff shows only the release-note changes.
 
-  Assisted-by: Claude:<model-id>
+  Assisted-by: ...
   EOF
   ```
 
   The DROP commit sits at the tip and is dropped before merge (which restores
   the changelog). The dangerfile FAILs on `DROP`/`fixup!` subjects — that is
   the intended pre-merge tripwire, not a development-time blocker.
-- **Never** use `Co-Authored-By`, a "Generated with Claude Code" footer, or a
-  robot emoji in any title/message — reviewers reject the emoji on sight.
-  `Assisted-by` is the only trailer.
+- **Always** follow rules for AI agents in CONTRIBUTING.md.
 
 At end of turn, surface any `fixup!`/`DROP` commits present and whether
 `git rebase -i --autosquash <base>` applies cleanly; wait for the maintainer
