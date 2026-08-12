@@ -202,7 +202,7 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *restrict rl, isc_rlevent_t **rlep) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(rl != NULL);
-	REQUIRE(rlep != NULL);
+	REQUIRE(rlep != NULL && *rlep != NULL);
 
 	LOCK(&rl->lock);
 	if (ISC_LINK_LINKED(*rlep, link)) {
