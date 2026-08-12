@@ -1699,7 +1699,7 @@ $NSUPDATE <<END >/dev/null 2>&1 || ret=1
     update add new.yyyymmddvv.nil in a 1.2.3.4
     send
 END
-now=$($PERL -e '@lt=localtime(); printf "%.4d%0.2d%0.2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];')
+now=$(date +%Y%m%d00)
 sleep 1
 serial=$($DIG $DIGOPTS +short yyyymmddvv.nil. soa @10.53.0.1 | awk '{print $3}') || ret=1
 [ "$oldserial" -ne "$serial" ] || ret=1
@@ -1771,13 +1771,11 @@ send
 EOF
 done
 # check that the journal is big enough to require truncation.
-size=$($PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl)
-[ "$size" -gt 6000 ] || ret=1
+[ $(wc -c <ns1/maxjournal.db.jnl) -gt 6000 ] || ret=1
 sleep 1
 $RNDCCMD 10.53.0.1 sync maxjournal.test
 check_size_lt_5000() (
-  size=$($PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl)
-  [ "$size" -lt 5000 ]
+  [ $(wc -c <ns1/maxjournal.db.jnl) -lt 5000 ]
 )
 retry_quiet 20 check_size_lt_5000 || ret=1
 [ $ret = 0 ] || {

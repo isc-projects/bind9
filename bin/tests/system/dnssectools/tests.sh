@@ -679,8 +679,7 @@ ret=0
   cd signer || exit 1
   TZ=UTC $SIGNER -O full -f signer.out.9 -S -N date -o example example2.db >/dev/null
 ) || ret=1
-# shellcheck disable=SC2016
-now=$(TZ=UTC $PERL -e '@lt=localtime(); printf "%.4d%0.2d%0.2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];')
+now=$(date -u +%Y%m%d00)
 serial=$(awk '/^;/ { next; } $4 == "SOA" { print $7 }' signer/signer.out.9)
 [ "$now" -eq "$serial" ] || ret=1
 n=$((n + 1))

@@ -82,15 +82,11 @@ in_cache() {
 filter_tree() {
   tree="$1"
   file="$2"
-  perl -n -e '
-		next if /^;/;
-		if (/'"$tree"'/ || (/^\t/ && $print)) {
-			$print = 1;
-		} else {
-			$print = 0;
-		}
-		print if $print;
-	' "$file"
+  awk -v tree="$tree" '
+    /^;/ { next; }
+    { p = ($0 ~ tree || (/^\t/ && p)) ? 1 : 0; }
+    p { print; }
+  ' "$file"
 }
 
 n=$((n + 1))

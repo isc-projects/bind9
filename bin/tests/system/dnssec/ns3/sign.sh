@@ -159,8 +159,8 @@ cat "$infile" "$keyname.key" >"$zonefile"
 # to point to a provably nonexistent DNSKEY record.
 zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
 mv "$zonefile.signed" "$zonefiletmp"
-"$PERL" <"$zonefiletmp" -p -e 's/ keyless.example/ b.keyless.example/
-    if /^a.b.keyless.example/../A RRSIG NSEC/;' >"$zonefile.signed"
+sed '/^a.b.keyless.example/,/A RRSIG NSEC/s/ keyless.example/ b.keyless.example/' \
+  <"$zonefiletmp" >"$zonefile.signed"
 rm -f "$zonefiletmp"
 
 #
