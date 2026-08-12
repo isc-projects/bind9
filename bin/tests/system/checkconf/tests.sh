@@ -77,6 +77,10 @@ for bad in bad-*.conf; do
   if [ $rc -ne 1 ]; then ret=1; fi
   grep "^$bad:[0-9]*: " <checkconf.out$n >/dev/null || ret=1
   case $bad in
+    bad-embedded-null-02.conf)
+      pat="string contains embedded NUL"
+      grep "$pat" <checkconf.out$n >/dev/null || ret=1
+      ;;
     bad-update-policy[123].conf)
       pat="identity and name fields are not the same"
       grep "$pat" <checkconf.out$n >/dev/null || ret=1
