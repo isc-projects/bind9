@@ -2635,6 +2635,14 @@ Boolean Options
    owner name indicates that it is a reverse lookup of a hostname (the
    owner name ends in IN-ADDR.ARPA, IP6.ARPA, or IP6.INT).
 
+   Owner names of A and AAAA records starting with the Active
+   Directory Forest prefix labels ``gc._msdcs`` are excluded if the
+   remainder of the name meets the check-names rules.
+
+   Owner names of A records meeting the :rfc:`7208` rules for the
+   labels ``_spf``, ``_spf_verify`` and ``_spf_rate`` are also
+   excluded.
+
 .. namedconf:statement:: check-dup-records
    :tags: dnssec, query
    :short: Checks primary zones for records that are treated as different by DNSSEC but are semantically equal in plain DNS.
