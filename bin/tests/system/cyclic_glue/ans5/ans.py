@@ -11,61 +11,73 @@ See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 """
 
-from dns import name, rcode, rdataclass, rdatatype, rrset
+import dns.name
+import dns.rcode
+import dns.rdataclass
+import dns.rdatatype
+import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QnameHandler, StaticResponseHandler
+from isctest.asyncserver import AsyncDnsServer, QnameQtypeHandler, StaticResponseHandler
 
 
-def build_rrset(
-    qname: name.Name | str,
-    rtype: rdatatype.RdataType,
+def rrset(
+    qname: dns.name.Name | str,
+    rtype: dns.rdatatype.RdataType,
     rdata: str,
     ttl: int = 300,
-) -> rrset.RRset:
-    return rrset.from_text(qname, ttl, rdataclass.IN, rtype, rdata)
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class BrokenFooHandler(QnameHandler, StaticResponseHandler):
+def ns(owner: str, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
+def a(owner: str, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+class BrokenFooHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["a.foo.test."]
-    qtypes = [rdatatype.A]
+    qtypes = [dns.rdatatype.A]
     authority = [
-        build_rrset("foo.test.", rdatatype.NS, "ns.foo.test."),
-        build_rrset("foo.test.", rdatatype.NS, "ns.bar.test."),
-        build_rrset("foo.test.", rdatatype.NS, "ns.test2."),
+        ns("foo.test.", "ns.foo.test."),
+        ns("foo.test.", "ns.bar.test."),
+        ns("foo.test.", "ns.test2."),
     ]
     additional = [
-        build_rrset("ns.foo.test.", rdatatype.A, "10.53.0.3"),
+        a("ns.foo.test.", "10.53.0.3"),
         # These glues don't belong, as they're outside the
         # delegated domain. However, only the latest will be
         # ignored by the resolver (the former, being a sibling
         # glue, is still used.)
-        build_rrset("ns.bar.test.", rdatatype.A, "10.53.0.3"),
-        build_rrset("ns.test2.", rdatatype.A, "10.10.10.10"),
+        a("ns.bar.test.", "10.53.0.3"),
+        a("ns.test2.", "10.10.10.10"),
     ]
 
 
-class BrokenBarHandler(QnameHandler, StaticResponseHandler):
+class BrokenBarHandler(QnameQtypeHandler, StaticResponseHandler):
     qnames = ["a.bar.test."]
-    qtypes = [rdatatype.A]
+    qtypes = [dns.rdatatype.A]
     authority = [
-        build_rrset("bar.test.", rdatatype.NS, "ns.bar.test."),
+        ns("bar.test.", "ns.bar.test."),
         # This NS is valid but outside the bar.test domain.
-        build_rrset("bar.test.", rdatatype.NS, "ns2.foo.test."),
+        ns("bar.test.", "ns2.foo.test."),
         # This NS is wrong, it's not the qname.
         # It will be ignored by the resolver.
-        build_rrset("bar.test2.", rdatatype.NS, "ns.test2."),
+        ns("bar.test2.", "ns.test2."),
     ]
     additional = [
-        build_rrset("ns.bar.test.", rdatatype.A, "10.53.0.3"),
-        build_rrset("ns2.foo.test.", rdatatype.A, "10.53.0.4"),
-        # The glue is then ignored as well, is it doesn't match
+        a("ns.bar.test.", "10.53.0.3"),
+        a("ns2.foo.test.", "10.53.0.4"),
+        # The glue is then ignored as well, as it doesn't match
         # any of the valid NS above.
-        build_rrset("ns.test2.", rdatatype.A, "10.10.10.10"),
+        a("ns.test2.", "10.10.10.10"),
     ]
 
 
 def main() -> None:
-    server = AsyncDnsServer(default_aa=True, default_rcode=rcode.NOERROR)
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(BrokenFooHandler(), BrokenBarHandler())
     server.run()
 
