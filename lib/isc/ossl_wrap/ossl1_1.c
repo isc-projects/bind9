@@ -593,8 +593,6 @@ isc_ossl_wrap_load_rsa_secret_from_components(isc_ossl_wrap_rsa_components_t *c,
 	REQUIRE(pkeyp != NULL && *pkeyp == NULL);
 	REQUIRE(c != NULL);
 
-	result = ISC_R_SUCCESS;
-
 	rsa = RSA_new();
 	if (rsa == NULL) {
 		CLEANUP(OSSL_WRAP_ERROR("RSA_new"));
