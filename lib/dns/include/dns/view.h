@@ -548,9 +548,8 @@ dns_view_thaw(dns_view_t *view);
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, bool use_hints,
-	      bool use_static_stub, dns_db_t **dbp, dns_dbnode_t **nodep,
-	      dns_name_t *foundname, dns_rdataset_t *rdataset,
-	      dns_rdataset_t *sigrdataset);
+	      bool use_static_stub, dns_db_t **dbp, dns_name_t *foundname,
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -611,8 +610,6 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
  *
  *\li	dbp == NULL || *dbp == NULL
  *
- *\li	nodep == NULL || *nodep == NULL.  If nodep != NULL, dbp != NULL.
- *
  *\li	'foundname' is a valid name with a dedicated buffer or NULL.
  *
  *\li	'rdataset' is a valid, disassociated rdataset.
@@ -625,8 +622,6 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
  *	bound to the found data.
  *
  *\li	If dbp != NULL, it points to the database containing the data.
- *
- *\li	If nodep != NULL, it points to the database node containing the data.
  *
  *\li	If foundname != NULL, it contains the full name of the found data.
  *

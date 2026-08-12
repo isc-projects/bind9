@@ -519,7 +519,7 @@ typedef struct ns_hook_data {
  * as well; if not, set NS_PLUGIN_AGE to 0.
  */
 #ifndef NS_PLUGIN_VERSION
-#define NS_PLUGIN_VERSION 3
+#define NS_PLUGIN_VERSION 4
 #define NS_PLUGIN_AGE	  0
 #endif /* ifndef NS_PLUGIN_VERSION */
 

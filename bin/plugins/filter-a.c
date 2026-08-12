@@ -684,11 +684,24 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	}
 
 	if (qctx->qtype == dns_rdatatype_a) {
+		dns_fixedname_t tfoundname;
 		dns_rdataset_t *trdataset;
+
+		if (dns_name_countlabels(
+			    dns_fixedname_name(&qctx->foundname)) == 0)
+		{
+			return NS_HOOK_CONTINUE;
+		}
+
 		trdataset = ns_client_newrdataset(qctx->client);
-		result = dns_db_findrdataset(
-			qctx->db, qctx->node, qctx->version, dns_rdatatype_aaaa,
-			0, qctx->client->inner.now, trdataset, NULL);
+		/* Preserve the trust-agnostic node lookup used previously. */
+		result = dns_db_find(
+			qctx->db, dns_fixedname_name(&qctx->foundname),
+			qctx->version, dns_rdatatype_aaaa,
+			DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK |
+				DNS_DBFIND_PENDINGOK,
+			qctx->client->inner.now,
+			dns_fixedname_initname(&tfoundname), trdataset, NULL);
 		dns_rdataset_cleanup(trdataset);
 		ns_client_putrdataset(qctx->client, &trdataset);
 
@@ -707,7 +720,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		 * that we care more about AAAAs than As, and would have
 		 * cached an AAAA if it existed.
 		 */
-		if (result == ISC_R_SUCCESS) {
+		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE) {
 			mark_as_rendered(qctx->rdataset, qctx->sigrdataset);
 			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			client_state->flags |= FILTER_A_FILTERED;

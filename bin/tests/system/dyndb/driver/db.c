@@ -319,15 +319,15 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 static isc_result_t
 find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
      dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-     dns_dbnode_t **nodep, dns_name_t *foundname,
-     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+     dns_name_t *foundname, dns_clientinfomethods_t *methods,
+     dns_clientinfo_t *clientinfo, dns_rdataset_t *rdataset,
+     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
 	return dns__db_find(sampledb->db, name, version, type, options, now,
-			    nodep, foundname, methods, clientinfo, rdataset,
+			    foundname, methods, clientinfo, rdataset,
 			    sigrdataset DNS__DB_FLARG_PASS);
 }
 

@@ -479,6 +479,9 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	char zonestr[DNS_NAME_MAXTEXT + 1];
 	bool isorigin;
 	dns_sdlzauthorityfunc_t authority;
+	dns_fixedname_t wildfixed;
+	dns_name_t *wildname = dns_fixedname_initname(&wildfixed);
+	const dns_name_t *nodename = name;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -572,6 +575,12 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				zonestr, wildstr, sdlz->dlzimp->driverarg,
 				sdlz->dbdata, node, methods, clientinfo);
 			if (result == ISC_R_SUCCESS) {
+				result = dns_name_concatenate(
+					wild, &sdlz->common.origin, wildname);
+				if (result != ISC_R_SUCCESS) {
+					break;
+				}
+				nodename = wildname;
 				break;
 			}
 		}
@@ -603,7 +612,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	}
 
 	if (!dns_name_dynamic(&node->name)) {
-		dns_name_dup(name, sdlz->common.mctx, &node->name);
+		dns_name_dup(nodename, sdlz->common.mctx, &node->name);
 	}
 
 	*nodep = (dns_dbnode_t *)node;
@@ -754,11 +763,11 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-     dns_dbnode_t **nodep, dns_name_t *foundname,
-     dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
+sdlz_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	  dns_name_t *foundname, dns_clientinfomethods_t *methods,
+	  dns_clientinfo_t *clientinfo, dns_rdataset_t *rdataset,
+	  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fname;
@@ -769,7 +778,6 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	unsigned int i;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
-	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(version == NULL || version == (void *)&sdlz->dummy_version ||
 		version == sdlz->future_version);
 
@@ -902,12 +910,22 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	}
 
 	if (foundname != NULL) {
-		dns_name_copy(xname, foundname);
+		if (node != NULL) {
+			dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
+
+			dns_name_copy(&sdlznode->name, foundname);
+			if (dns_name_iswildcard(&sdlznode->name) &&
+			    !dns_name_equal(name, &sdlznode->name) &&
+			    dns_name_matcheswildcard(name, &sdlznode->name))
+			{
+				foundname->attributes.wildcard = true;
+			}
+		} else {
+			dns_name_copy(xname, foundname);
+		}
 	}
 
-	if (nodep != NULL) {
-		*nodep = node;
-	} else if (node != NULL) {
+	if (node != NULL) {
 		sdlznode_detachnode(&node DNS__DB_FLARG_PASS);
 	}
 
@@ -1077,7 +1095,7 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.attachversion = attachversion,
 	.closeversion = closeversion,
 	.findnode = findnode,
-	.find = find,
+	.find = sdlz_find,
 	.createiterator = createiterator,
 	.findrdataset = findrdataset,
 	.allrdatasets = allrdatasets,
