@@ -60,7 +60,7 @@ EOF
     echo $out >added.ptr.out.$n
     lines=$(echo "$out" | grep "$host" | wc -l)
     [ $lines -eq 1 ] && break
-    $PERL -e 'select(undef, undef, undef, 0.1);'
+    $PYTHON -c 'import time; time.sleep(0.1)'
   done
   [ $lines -eq 1 ] || {
     [ "$should_fail" ] \
@@ -104,7 +104,7 @@ EOF
     echo $out >deleted.ptr.out.$n
     lines=$(echo "$out" | grep "$host" | wc -l)
     [ $lines -eq 0 ] && break
-    $PERL -e 'select(undef, undef, undef, 0.1);'
+    $PYTHON -c 'import time; time.sleep(0.1)'
   done
   [ $lines -eq 0 ] || {
     [ "$should_fail" ] \
