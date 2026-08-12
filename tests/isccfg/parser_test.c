@@ -182,6 +182,37 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	cfg_parser_destroy(&p2);
 }
 
+/*
+ * A raw NUL byte embedded in a quoted string must be rejected rather
+ * than silently truncated (a truncated "directory" or "include" path
+ * would act on something other than what the config file shows).  The
+ * NUL is embedded with an explicit buffer length, since strlen() would
+ * hide it.
+ */
+ISC_RUN_TEST_IMPL(parse_nulbyte) {
+	isc_result_t result;
+	isc_buffer_t buf;
+	cfg_parser_t *p = NULL;
+	cfg_obj_t *c = NULL;
+	unsigned char text[] =
+		"zone \"test.baz\" { type primary; file \"a\0b\"; };\n";
+
+	UNUSED(state);
+
+	isc_buffer_init(&buf, &text[0], sizeof(text) - 1);
+	isc_buffer_add(&buf, sizeof(text) - 1);
+
+	result = cfg_parser_create(mctx, lctx, &p);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = cfg_parse_buffer(p, &buf, "text1", 0, &cfg_type_namedconf, 0,
+				  &c);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+	assert_null(c);
+
+	cfg_parser_destroy(&p);
+}
+
 /* test cfg_map_firstclause() */
 ISC_RUN_TEST_IMPL(cfg_map_firstclause) {
 	const char *name = NULL;
@@ -220,6 +251,7 @@ ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(addzoneconf)
 ISC_TEST_ENTRY(parse_buffer)
+ISC_TEST_ENTRY(parse_nulbyte)
 ISC_TEST_ENTRY(cfg_map_firstclause)
 ISC_TEST_ENTRY(cfg_map_nextclause)
 
