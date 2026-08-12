@@ -839,7 +839,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "preparing ZSK roll"
-starttime=$($PERL -e 'print time(), "\n";')
+starttime=$(date +%s)
 oldfile=$(cat active.key)
 oldid=$(keyfile_to_key_id "$(cat active.key)")
 newfile=$(cat standby.key)
@@ -1016,7 +1016,7 @@ echo_i "checking former active key was removed ($n)"
 # Work out how long we need to sleep. Allow 4 seconds for the records
 # to be removed.
 #
-now=$($PERL -e 'print time(), "\n";')
+now=$(date +%s)
 sleep=$((starttime + 29 - now))
 case $sleep in
   -* | 0) ;;

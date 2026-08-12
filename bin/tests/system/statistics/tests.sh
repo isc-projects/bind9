@@ -188,10 +188,10 @@ if $FEATURETEST --have-libxml2 && "${CURL}" --http1.1 http://10.53.0.3:${EXTRAPO
   $DIGCMD +notcp +recurse @10.53.0.3 soa . >dig.out.test$n.1 2>&1
   $DIGCMD +notcp +recurse @10.53.0.3 soa example >dig.out.test$n.2 2>&1
   # check multiple requests over the same socket
-  time1=$($PERL -e 'print time(), "\n";')
+  time1=$(date +%s)
   ${CURL} --http1.1 -o curl.out.${n}.xml http://10.53.0.3:${EXTRAPORT1}/xml/v3 \
     -o curl.out.${n}.xsl http://10.53.0.3:${EXTRAPORT1}/bind9.xsl 2>/dev/null || ret=1
-  time2=$($PERL -e 'print time(), "\n";')
+  time2=$(date +%s)
   test $((time2 - time1)) -lt 5 || ret=1
   diff ${TOP_SRCDIR}/bin/named/bind9.xsl curl.out.${n}.xsl || ret=1
   ${XSLTPROC} curl.out.${n}.xsl - <curl.out.${n}.xml >xsltproc.out.${n} 2>/dev/null || ret=1

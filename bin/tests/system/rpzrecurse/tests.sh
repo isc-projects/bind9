@@ -449,9 +449,9 @@ echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' (
 add_test_marker 10.53.0.2 10.53.0.3
 echo_i "timing 'nsip-wait-recurse yes' (default)"
 ret=0
-t1=$($PERL -e 'print time()."\n";')
+t1=$(date +%s)
 $DIG -p ${PORT} +time=30 +tries=1 @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t || ret=1
-t2=$($PERL -e 'print time()."\n";')
+t2=$(date +%s)
 p1=$((t2 - t1))
 echo_i "elapsed time $p1 seconds"
 
@@ -462,9 +462,9 @@ $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
 wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
 echo_i "timing 'nsip-wait-recurse no'"
-t3=$($PERL -e 'print time()."\n";')
+t3=$(date +%s)
 $DIG -p ${PORT} +time=30 +tries=1 @10.53.0.3 foo.child.example.tld a >dig.out.no.$t || ret=1
-t4=$($PERL -e 'print time()."\n";')
+t4=$(date +%s)
 p2=$((t4 - t3))
 echo_i "elapsed time $p2 seconds"
 
@@ -484,9 +484,9 @@ echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse 
 add_test_marker 10.53.0.2 10.53.0.3
 echo_i "timing 'nsdname-wait-recurse yes' (default)"
 ret=0
-t1=$($PERL -e 'print time()."\n";')
+t1=$(date +%s)
 $DIG -p ${PORT} +time=30 +tries=1 @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t || ret=1
-t2=$($PERL -e 'print time()."\n";')
+t2=$(date +%s)
 p1=$((t2 - t1))
 echo_i "elapsed time $p1 seconds"
 
@@ -497,9 +497,9 @@ $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
 wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
 echo_i "timing 'nsdname-wait-recurse no'"
-t3=$($PERL -e 'print time()."\n";')
+t3=$(date +%s)
 $DIG -p ${PORT} +time=30 +tries=1 @10.53.0.3 foo.child.example.tld a >dig.out.no.$t || ret=1
-t4=$($PERL -e 'print time()."\n";')
+t4=$(date +%s)
 p2=$((t4 - t3))
 echo_i "elapsed time $p2 seconds"
 
