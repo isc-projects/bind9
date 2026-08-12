@@ -65,12 +65,10 @@
 
 const char *program = "dnssec-verify";
 
-static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_db_t *gdb = NULL;		 /* The database */
 static dns_dbversion_t *gversion = NULL; /* The database version */
-static dns_rdataclass_t gclass;		 /* The class */
 static dns_name_t *gorigin = NULL;	 /* The database origin */
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
@@ -281,8 +279,6 @@ main(int argc, char *argv[]) {
 		      isc_result_totext(result));
 	}
 
-	now = isc_stdtime_now();
-
 	rdclass = strtoclass(classname);
 
 	setup_logging(mctx, &log);
@@ -324,7 +320,6 @@ main(int argc, char *argv[]) {
 		loadjournal(mctx, gdb, journal);
 	}
 	gorigin = dns_db_origin(gdb);
-	gclass = dns_db_class(gdb);
 
 	gversion = NULL;
 	result = dns_db_newversion(gdb, &gversion);
