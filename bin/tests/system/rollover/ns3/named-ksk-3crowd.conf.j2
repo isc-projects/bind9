@@ -11,25 +11,13 @@
  * information regarding copyright ownership.
  */
 
-// NS2
+include "policy/ksk.conf";
+include "named.common.conf";
 
-options {
-	{% include_indented "_common/options.conf.j2" %}
-	allow-transfer { any; };
-	allow-notify { 10.53.0.3; };
-	recursion no;
-	dnssec-validation no;
-};
-
-{% include "_common/controls.conf.j2" %}
-
-{% include "_common/root.hint.conf" %}
-
-{% if tlds is defined %}
-{% for zone in tlds %}
-zone "@zone@" {
+zone "three-is-a-crowd.kasp" {
 	type primary;
-	file "@zone@.db.signed";
+	file "three-is-a-crowd.kasp.db";
+	inline-signing yes;
+	/* Use same policy as KSK rollover test zones. */
+	dnssec-policy "ksk-doubleksk-autosign";
 };
-{% endfor %}
-{% endif %}
