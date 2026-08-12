@@ -1,0 +1,46 @@
+{% set csk_roll = csk_roll | default(False) %}
+{% set _csk_file = "policy/csk1.conf" if not csk_roll else "policy/csk2.conf" %}
+{% set zones = ["kasp", "manual"] %}
+
+include "@_csk_file@";
+include "named.common.conf";
+
+{% for tld in zones %}
+zone "step1.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step1.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+
+{% if csk_roll %}
+zone "step2.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step2.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+
+zone "step3.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step3.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+
+zone "step4.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step4.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+
+zone "step5.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step5.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+
+zone "step6.csk-algorithm-roll.@tld@" {
+	type primary;
+	file "step6.csk-algorithm-roll.@tld@.db";
+	dnssec-policy "csk-algoroll-@tld@";
+};
+{% endif %}
+{% endfor %}

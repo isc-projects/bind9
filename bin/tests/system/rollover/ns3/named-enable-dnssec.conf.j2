@@ -1,0 +1,28 @@
+{% set zones = ["autosign", "manual"] %}
+
+include "policy/enable-dnssec.conf";
+include "named.common.conf";
+
+{% for tld in zones %}
+zone "step1.enable-dnssec.@tld@" {
+	type primary;
+	file "step1.enable-dnssec.@tld@.db";
+	dnssec-policy "enable-dnssec-@tld@";
+};
+zone "step2.enable-dnssec.@tld@" {
+	type primary;
+	file "step2.enable-dnssec.@tld@.db";
+	dnssec-policy "enable-dnssec-@tld@";
+};
+zone "step3.enable-dnssec.@tld@" {
+	type primary;
+	file "step3.enable-dnssec.@tld@.db";
+	dnssec-policy "enable-dnssec-@tld@";
+};
+zone "step4.enable-dnssec.@tld@" {
+	type primary;
+	file "step4.enable-dnssec.@tld@.db";
+	dnssec-policy "enable-dnssec-@tld@";
+};
+
+{% endfor %}

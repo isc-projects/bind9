@@ -1,0 +1,37 @@
+{% set zones = ["autosign", "manual"] %}
+
+include "policy/ksk.conf";
+include "named.common.conf";
+
+{% for tld in zones %}
+zone "step1.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step1.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+zone "step2.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step2.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+zone "step3.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step3.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+zone "step4.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step4.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+zone "step5.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step5.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+zone "step6.ksk-doubleksk.@tld@" {
+	type primary;
+	file "step6.ksk-doubleksk.@tld@.db";
+	dnssec-policy "ksk-doubleksk-@tld@";
+};
+{% endfor %}

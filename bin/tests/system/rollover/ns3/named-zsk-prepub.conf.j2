@@ -1,0 +1,37 @@
+{% set zones = ["autosign", "manual"] %}
+
+include "policy/zsk-prepub.conf";
+include "named.common.conf";
+
+{% for tld in zones %}
+zone "step1.zsk-prepub.@tld@" {
+	type primary;
+	file "step1.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+zone "step2.zsk-prepub.@tld@" {
+	type primary;
+	file "step2.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+zone "step3.zsk-prepub.@tld@" {
+	type primary;
+	file "step3.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+zone "step4.zsk-prepub.@tld@" {
+	type primary;
+	file "step4.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+zone "step5.zsk-prepub.@tld@" {
+	type primary;
+	file "step5.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+zone "step6.zsk-prepub.@tld@" {
+	type primary;
+	file "step6.zsk-prepub.@tld@.db";
+	dnssec-policy "zsk-prepub-@tld@";
+};
+{% endfor %}

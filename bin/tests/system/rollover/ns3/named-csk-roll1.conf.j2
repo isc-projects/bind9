@@ -1,0 +1,48 @@
+{% set zones = ["autosign", "manual"] %}
+
+include "policy/csk-roll1.conf";
+include "named.common.conf";
+
+{% for tld in zones %}
+zone "step1.csk-roll1.@tld@" {
+	type primary;
+	file "step1.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step2.csk-roll1.@tld@" {
+	type primary;
+	file "step2.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step3.csk-roll1.@tld@" {
+	type primary;
+	file "step3.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step4.csk-roll1.@tld@" {
+	type primary;
+	file "step4.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step5.csk-roll1.@tld@" {
+	type primary;
+	file "step5.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step6.csk-roll1.@tld@" {
+	type primary;
+	file "step6.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step7.csk-roll1.@tld@" {
+	type primary;
+	file "step7.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+zone "step8.csk-roll1.@tld@" {
+	type primary;
+	file "step8.csk-roll1.@tld@.db";
+	dnssec-policy "csk-roll1-@tld@";
+};
+
+{% endfor %}
