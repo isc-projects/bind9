@@ -9,23 +9,11 @@ file, you can obtain one at https://mozilla.org/MPL/2.0/.
 
 See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
-
-For any query, returns hand-crafted RRSIG records whose Type-Covered
-field is selected by the leftmost label of QNAME. The label is parsed
-as a DNS type via `dns.rdatatype.from_text()`, so the resolver can be
-probed with any meta-type by querying e.g. `any.attacker.test.`,
-`axfr.attacker.test.`, `tsig.attacker.test.`, etc.
-
-Tripping the resolver's QP-cache RRSIG-pairing assertion needs a second
-RRSIG header co-located at the owner name, so when the covered type is
-itself a signature (`rrsig.attacker.test.`) the answer also carries two
-ordinary RRSIGs (covering A and AAAA) next to the RRSIG-covers-RRSIG
-poison. A single RRSIG-covers-RRSIG record is cached harmlessly.
 """
 
 from collections.abc import AsyncGenerator
 
-import dns.flags
+import dns.name
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
@@ -34,40 +22,65 @@ import dns.rrset
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
+    QnameHandler,
     QueryContext,
+    ResponseAction,
     ResponseHandler,
+    StaticResponseHandler,
 )
 
 
-class RrsigCoversHandler(ResponseHandler):
+def rrsig_covering(
+    owner: dns.name.Name | str, covered: dns.rdatatype.RdataType
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(
+        owner,
+        3600,
+        dns.rdataclass.IN,
+        dns.rdatatype.RRSIG,
+        f"TYPE{int(covered)} 8 2 3600 20300101000000 20200101000000 "
+        "12345 attacker.test. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    )
+
+
+class RrsigCoversRrsigHandler(QnameHandler, StaticResponseHandler):
+    """
+    An RRSIG covering RRSIG only trips the QP-cache RRSIG-pairing assertion when
+    a second RRSIG header shares the owner name, so serve two ordinary RRSIGs
+    (covering A and AAAA) alongside the RRSIG-covers-RRSIG poison.  A lone
+    RRSIG-covers-RRSIG record is cached harmlessly.
+    """
+
+    qnames = ["rrsig.attacker.test."]
+    answer = [
+        rrsig_covering(qnames[0], dns.rdatatype.A),
+        rrsig_covering(qnames[0], dns.rdatatype.AAAA),
+        rrsig_covering(qnames[0], dns.rdatatype.RRSIG),
+    ]
+
+
+class RrsigCoversTypeHandler(ResponseHandler):
+    """
+    Answer any other query with a single RRSIG whose Type-Covered field is the
+    leftmost QNAME label parsed as a DNS type, so the resolver can be probed
+    with any meta-type (e.g. any.attacker.test., axfr.attacker.test.).
+    """
+
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        covers_label = qctx.qname.labels[0].decode("ascii").upper()
-        covers = dns.rdatatype.from_text(covers_label)
-
-        def rrsig_covering(covered: dns.rdatatype.RdataType) -> dns.rrset.RRset:
-            return dns.rrset.from_text(
-                qctx.qname,
-                3600,
-                dns.rdataclass.IN,
-                dns.rdatatype.RRSIG,
-                f"TYPE{int(covered)} 8 2 3600 20300101000000 20200101000000 "
-                "12345 attacker.test. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            )
-
-        qctx.response.set_rcode(dns.rcode.NOERROR)
-        qctx.response.flags |= dns.flags.AA
-        if covers == dns.rdatatype.RRSIG:
-            qctx.response.answer.append(rrsig_covering(dns.rdatatype.A))
-            qctx.response.answer.append(rrsig_covering(dns.rdatatype.AAAA))
-        qctx.response.answer.append(rrsig_covering(covers))
+    ) -> AsyncGenerator[ResponseAction, None]:
+        covered_label = qctx.qname.labels[0].decode("ascii").upper()
+        covered = dns.rdatatype.from_text(covered_label)
+        qctx.response.answer.append(rrsig_covering(qctx.qname, covered))
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
-    server = AsyncDnsServer()
-    server.install_response_handler(RrsigCoversHandler())
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(
+        RrsigCoversRrsigHandler(),
+        RrsigCoversTypeHandler(),
+    )
     server.run()
 
 
