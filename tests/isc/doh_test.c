@@ -295,7 +295,6 @@ setup_test(void **state) {
 		return -1;
 	}
 	close(tcp_listen_sock);
-	tcp_listen_sock = -1;
 
 	if (env_workers != NULL) {
 		workers = atoi(env_workers);
