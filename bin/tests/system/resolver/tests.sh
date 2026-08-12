@@ -684,7 +684,7 @@ for i in $zerotonine $zerotonine $zerotonine $zerotonine; do
   ttl2=$(awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n})
   test "${ttl2:-1}" -eq 0 && break
   test "${ttl2:-1}" -ge "${ttl1:-0}" && break
-  "${PERL}" -e 'select(undef, undef, undef, 0.05);'
+  "${PYTHON}" -c 'import time; time.sleep(0.05)'
 done
 test "${ttl2:-1}" -eq 0 && ret=1
 test "${ttl2:-1}" -ge "${ttl1:-0}" || ret=1

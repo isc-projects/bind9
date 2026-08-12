@@ -61,7 +61,7 @@ sec_start() {
     if test "$START" != "$NOW"; then
       return
     fi
-    $PERL -e 'select(undef, undef, undef, 0.05)' || true
+    $PYTHON -c 'import time; time.sleep(0.05)' || true
   done
 }
 
