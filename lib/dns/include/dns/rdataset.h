@@ -193,6 +193,21 @@ struct dns_rdataset {
 		} slab;
 
 		/*
+		 * A proof rdataset is a view into a slabheader's noqname or
+		 * closest-encloser proof.  The header reference keeps the
+		 * proof memory alive for as long as the view is associated.
+		 * Keep the fields shared with 'slab' at the same offsets.
+		 */
+		struct {
+			struct dns_db	 *db;
+			dns_dbnode_t	 *node;
+			unsigned char	 *raw;
+			unsigned char	 *iter_pos;
+			unsigned int	  iter_count;
+			dns_slabheader_t *header;
+		} proof;
+
+		/*
 		 * A simple rdatalist, plus an optional dbnode used by
 		 * builtin and sdlz.
 		 */
