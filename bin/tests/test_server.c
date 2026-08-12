@@ -238,11 +238,12 @@ static void
 run(void) {
 	isc_result_t result;
 	isc_nmsocket_t *sock = NULL;
+	isc_nm_udplistener_t *udp_listener = NULL;
 
 	switch (protocol) {
 	case UDP:
 		result = isc_nm_listenudp(ISC_NM_LISTEN_ALL, &sockaddr, read_cb,
-					  NULL, &sock);
+					  NULL, &udp_listener);
 		break;
 	case TCP:
 		result = isc_nm_listenstreamdns(
@@ -284,8 +285,13 @@ run(void) {
 
 	test_server_yield();
 
-	isc_nm_stoplistening(sock);
-	isc_nmsocket_close(&sock);
+	if (udp_listener != NULL) {
+		isc_nm_udplistener_stop(udp_listener);
+		isc_nm_udplistener_detach(&udp_listener);
+	} else {
+		isc_nm_stoplistening(sock);
+		isc_nmsocket_close(&sock);
+	}
 }
 
 int

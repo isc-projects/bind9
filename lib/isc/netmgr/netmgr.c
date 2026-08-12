@@ -689,13 +689,11 @@ void
 isc_nmsocket_close(isc_nmsocket_t **sockp) {
 	REQUIRE(sockp != NULL);
 	REQUIRE(VALID_NMSOCK(*sockp));
-	REQUIRE((*sockp)->type == isc_nm_udplistener ||
-		(*sockp)->type == isc_nm_tcplistener ||
+	REQUIRE((*sockp)->type == isc_nm_tcplistener ||
 		(*sockp)->type == isc_nm_streamdnslistener ||
 		(*sockp)->type == isc_nm_tlslistener ||
 		(*sockp)->type == isc_nm_httplistener ||
-		(*sockp)->type == isc_nm_proxystreamlistener ||
-		(*sockp)->type == isc_nm_proxyudplistener);
+		(*sockp)->type == isc_nm_proxystreamlistener);
 
 	isc__nmsocket_detach(sockp);
 }
@@ -743,7 +741,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 
 	switch (type) {
 	case isc_nm_udpsocket:
-	case isc_nm_udplistener:
 		switch (family) {
 		case AF_INET:
 			sock->statsindex = udp4statsindex;
@@ -1661,7 +1658,6 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
-	case isc_nm_udplistener:
 		isc__nm_udp_send(handle, region, cb, cbarg);
 		break;
 	case isc_nm_tcpsocket:
@@ -1811,9 +1807,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	switch (sock->type) {
-	case isc_nm_udplistener:
-		isc__nm_udp_stoplistening(sock);
-		break;
 	case isc_nm_tcplistener:
 		isc__nm_tcp_stoplistening(sock);
 		break;
@@ -1831,9 +1824,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	case isc_nm_proxystreamlistener:
 		isc__nm_proxystream_stoplistening(sock);
 		break;
-	case isc_nm_proxyudplistener:
-		isc__nm_proxyudp_stoplistening(sock);
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1847,8 +1837,7 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(listener->type == isc_nm_httplistener ||
 		listener->type == isc_nm_tlslistener ||
 		listener->type == isc_nm_streamdnslistener ||
-		listener->type == isc_nm_proxystreamlistener ||
-		listener->type == isc_nm_proxyudplistener);
+		listener->type == isc_nm_proxystreamlistener);
 	REQUIRE(!listener->closing);
 
 	listener->closing = true;
@@ -2019,7 +2008,6 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_shutdown(sock);
 		break;
-	case isc_nm_udplistener:
 	case isc_nm_tcplistener:
 		return;
 	default:
@@ -2941,8 +2929,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 	switch (type) {
 	case isc_nm_udpsocket:
 		return "isc_nm_udpsocket";
-	case isc_nm_udplistener:
-		return "isc_nm_udplistener";
 	case isc_nm_tcpsocket:
 		return "isc_nm_tcpsocket";
 	case isc_nm_tcplistener:
@@ -2963,8 +2949,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return "isc_nm_proxystreamlistener";
 	case isc_nm_proxystreamsocket:
 		return "isc_nm_proxystreamsocket";
-	case isc_nm_proxyudplistener:
-		return "isc_nm_proxyudplistener";
 	case isc_nm_proxyudpsocket:
 		return "isc_nm_proxyudpsocket";
 	default:

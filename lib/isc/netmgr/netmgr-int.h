@@ -580,8 +580,6 @@ struct isc_nmsocket {
 		} proxy2;
 		bool header_processed;
 		bool extra_processed; /* data arrived past header processed */
-		isc_nmsocket_t **udp_server_socks; /* UDP sockets */
-		size_t udp_server_socks_num;
 	} proxy;
 
 	/*%
@@ -825,8 +823,7 @@ isc__nmsocket_reset(isc_nmsocket_t *sock);
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
- * Determine whether 'sock' is active by checking 'sock->active'
- * or, for child sockets, 'sock->parent->active'.
+ * Determine whether 'sock' is active by checking 'sock->active'.
  */
 
 void
@@ -892,12 +889,6 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock);
 /*%<
  * Called during the shutdown process to close and clean up connected
  * sockets.
- */
-
-void
-isc__nm_udp_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on 'sock'.
  */
 
 void
@@ -1281,9 +1272,6 @@ isc__nmhandle_proxystream_get_selected_alpn(isc_nmhandle_t *handle,
 void
 isc__nm_proxyudp_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result,
 				const bool async);
-
-void
-isc__nm_proxyudp_stoplistening(isc_nmsocket_t *listener);
 
 void
 isc__nm_proxyudp_cleanup_data(isc_nmsocket_t *sock);

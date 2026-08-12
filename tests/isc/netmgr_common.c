@@ -97,6 +97,8 @@ isc_refcount_t active_ssends = 0;
 isc_refcount_t active_sreads = 0;
 
 isc_nmsocket_t *listen_sock = NULL;
+isc_nm_udplistener_t *udp_listen_sock = NULL;
+isc_nm_proxyudplistener_t *proxyudp_listen_sock = NULL;
 
 isc_quota_t listener_quota;
 atomic_bool check_listener_quota = false;
@@ -236,6 +238,20 @@ stop_listening(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
+}
+
+static void
+stop_udp_listening(void *arg ISC_ATTR_UNUSED) {
+	isc_nm_udplistener_stop(udp_listen_sock);
+	isc_nm_udplistener_detach(&udp_listen_sock);
+	assert_null(udp_listen_sock);
+}
+
+static void
+stop_proxyudp_listening(void *arg ISC_ATTR_UNUSED) {
+	isc_nm_proxyudplistener_stop(proxyudp_listen_sock);
+	isc_nm_proxyudplistener_detach(&proxyudp_listen_sock);
+	assert_null(proxyudp_listen_sock);
 }
 
 /* Callbacks */
@@ -1344,15 +1360,21 @@ udp_start_listening(uint32_t nworkers, isc_nm_recv_cb_t cb) {
 
 	if (udp_use_PROXY) {
 		result = isc_nm_listenproxyudp(nworkers, &udp_listen_addr, cb,
-					       NULL, &listen_sock);
+					       NULL, &proxyudp_listen_sock);
 	} else {
 		result = isc_nm_listenudp(nworkers, &udp_listen_addr, cb, NULL,
-					  &listen_sock);
+					  &udp_listen_sock);
 	}
 
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_loop_teardown(isc_loop_main(), stop_listening, listen_sock);
+	if (udp_use_PROXY) {
+		isc_loop_teardown(isc_loop_main(), stop_proxyudp_listening,
+				  proxyudp_listen_sock);
+	} else {
+		isc_loop_teardown(isc_loop_main(), stop_udp_listening,
+				  udp_listen_sock);
+	}
 }
 
 static void
