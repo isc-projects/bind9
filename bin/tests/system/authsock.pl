@@ -15,6 +15,7 @@
 
 require 5.6.0;
 
+use IO::File;
 use IO::Socket::UNIX;
 use Getopt::Long;
 
@@ -27,6 +28,8 @@ GetOptions("path=s" => \$path,
 	   "type=s" => \$typeallowed,
 	   "pidfile=s" => \$pidfile,
 	   "timeout=i" => \$timeout);
+
+STDOUT->autoflush(1);
 
 if (!defined($path)) {
 	print("Usage: authsock.pl --path=<sockpath> --type=type --pidfile=pidfile\n");
