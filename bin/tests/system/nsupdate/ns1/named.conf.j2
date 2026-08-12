@@ -145,6 +145,14 @@ zone "keytests.nil" {
 	};
 };
 
+zone "grant-external.test" {
+	type primary;
+	file "grant-external.test.db";
+	update-policy {
+		grant "local:auth.sock" external * CNAME;
+	};
+};
+
 zone "many.test" {
 	type primary;
 	allow-update { any; };
