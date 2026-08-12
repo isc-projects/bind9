@@ -203,6 +203,28 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	assert_true(dns_name_caseequal(name1, name2));
 }
 
+static void
+make_rdatalist(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset,
+	       dns_rdata_t *rdata, dns_rdatatype_t type, dns_rdatatype_t covers,
+	       unsigned char *data, size_t length) {
+	dns_rdata_init(rdata);
+	rdata->data = data;
+	rdata->length = length;
+	rdata->rdclass = dns_rdataclass_in;
+	rdata->type = type;
+
+	dns_rdatalist_init(rdatalist);
+	rdatalist->rdclass = dns_rdataclass_in;
+	rdatalist->type = type;
+	rdatalist->covers = covers;
+	rdatalist->ttl = 60;
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+
+	dns_rdataset_init(rdataset);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+	rdataset->trust = dns_trust_answer;
+}
+
 /*
  * No operation water() callback. We need it to cause overmem condition, but
  * nothing has to be done in the callback.
@@ -368,11 +390,129 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 	isc_mem_destroy(&mctx2);
 }
 
+/*
+ * A noqname-encloser proof rdataset is a view into memory owned by
+ * the header of its parent rdataset.  Expiring the replacement must not
+ * reclaim the stale parent while a proof view or one of its clones remains
+ * associated.
+ */
+ISC_RUN_TEST_IMPL(proof_rdataset_survives_expiration_cleanup) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_rbtdb_t *rbtdb = NULL;
+	isc_mem_t *dbmctx = NULL;
+	isc_stdtime_t now;
+	dns_fixedname_t fname, fproof, ffound;
+	dns_name_t *name = NULL, *proofname = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rbtnode_t *rbtnode = NULL;
+	rdatasetheader_t *oldheader = NULL, *newheader = NULL;
+	dns_rdatalist_t oldlist, newlist, nseclist, siglist;
+	dns_rdataset_t oldset, newset, nsecset, sigset;
+	dns_rdataset_t oldbound, newbound;
+	dns_rdataset_t noqname, noqnamesig, noqnameclone;
+	dns_rdata_t oldrdata, newrdata, nsecrdata, sigrdata;
+	unsigned char olddata[] = { 192, 0, 2, 1 };
+	unsigned char newdata[] = { 192, 0, 2, 2 };
+	unsigned char nsecdata[] = { 0 };
+	unsigned char sigdata[] = { 0 };
+
+	UNUSED(state);
+
+	isc_stdtime_get(&now);
+	isc_mem_create(&dbmctx);
+	result = dns_db_create(dbmctx, "rbt", dns_rootname, dns_dbtype_cache,
+			       dns_rdataclass_in, 0, NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	rbtdb = (dns_rbtdb_t *)db;
+
+	dns_test_namefromstring("proof.example.", &fname);
+	name = dns_fixedname_name(&fname);
+	dns_test_namefromstring("nsec.example.", &fproof);
+	proofname = dns_fixedname_name(&fproof);
+
+	make_rdatalist(&oldlist, &oldset, &oldrdata, dns_rdatatype_a, 0,
+		       olddata, sizeof(olddata));
+	make_rdatalist(&newlist, &newset, &newrdata, dns_rdatatype_a, 0,
+		       newdata, sizeof(newdata));
+	make_rdatalist(&nseclist, &nsecset, &nsecrdata, dns_rdatatype_nsec, 0,
+		       nsecdata, sizeof(nsecdata));
+	make_rdatalist(&siglist, &sigset, &sigrdata, dns_rdatatype_rrsig,
+		       dns_rdatatype_nsec, sigdata, sizeof(sigdata));
+
+	ISC_LIST_APPEND(proofname->list, &nsecset, link);
+	ISC_LIST_APPEND(proofname->list, &sigset, link);
+	result = dns_rdataset_addnoqname(&oldset, proofname);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_findnode(db, name, true, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	rbtnode = (dns_rbtnode_t *)node;
+
+	dns_rdataset_init(&oldbound);
+	result = dns_db_addrdataset(db, node, NULL, now, &oldset, 0, &oldbound);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	oldheader = (rdatasetheader_t *)oldbound.private3 - 1;
+
+	dns_rdataset_init(&noqname);
+	dns_rdataset_init(&noqnamesig);
+	result = dns_rdataset_getnoqname(&oldbound,
+					 dns_fixedname_initname(&ffound),
+					 &noqname, &noqnamesig);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_ptr_equal(noqname.private6, oldheader);
+	assert_ptr_equal(noqnamesig.private6, oldheader);
+
+	dns_rdataset_init(&noqnameclone);
+	dns_rdataset_clone(&noqname, &noqnameclone);
+	assert_ptr_equal(noqnameclone.private6, oldheader);
+
+	/* Leave only the cache and proof views holding the old header. */
+	dns_rdataset_disassociate(&oldbound);
+	assert_int_equal(isc_refcount_current(&oldheader->references), 4);
+
+	dns_rdataset_init(&newbound);
+	result = dns_db_addrdataset(db, node, NULL, now, &newset, 0, &newbound);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	newheader = (rdatasetheader_t *)newbound.private3 - 1;
+	assert_ptr_equal(newheader->down, oldheader);
+	assert_int_equal(isc_refcount_current(&oldheader->references), 3);
+
+	/* RBTDB reclaims stale headers immediately when the top is expired. */
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
+	expire_header(rbtdb, newheader, false, expire_ttl);
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		    isc_rwlocktype_write);
+	assert_ptr_equal(newheader->down, oldheader);
+	assert_int_equal(dns_rdataset_count(&noqname), 1);
+	assert_int_equal(dns_rdataset_count(&noqnamesig), 1);
+	assert_int_equal(dns_rdataset_count(&noqnameclone), 1);
+
+	dns_rdataset_disassociate(&noqnameclone);
+	dns_rdataset_disassociate(&noqname);
+	dns_rdataset_disassociate(&noqnamesig);
+	assert_int_equal(isc_refcount_current(&oldheader->references), 0);
+
+	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		  isc_rwlocktype_write);
+	clean_stale_headers(rbtdb, rbtdb->common.mctx, newheader);
+	assert_null(newheader->down);
+	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
+		    isc_rwlocktype_write);
+
+	dns_rdataset_disassociate(&newbound);
+	dns_db_detachnode(db, &node);
+	dns_db_detach(&db);
+	isc_mem_detach(&dbmctx);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(ownercase)
 ISC_TEST_ENTRY(setownercase)
 ISC_TEST_ENTRY(overmempurge_bigrdata)
 ISC_TEST_ENTRY(overmempurge_longname)
+ISC_TEST_ENTRY(proof_rdataset_survives_expiration_cleanup)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
