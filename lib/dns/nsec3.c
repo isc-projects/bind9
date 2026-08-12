@@ -1844,9 +1844,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	/*
 	 * Is this zone the same or deeper than the current zone?
 	 */
-	if (dns_name_countlabels(zonename) == 0 ||
-	    dns_name_issubdomain(zone, zonename))
-	{
+	if (dns_name_empty(zonename) || dns_name_issubdomain(zone, zonename)) {
 		dns_name_copy(zone, zonename);
 	}
 
@@ -1985,7 +1983,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 		 */
 		if (order == 0) {
 			if (closest != NULL &&
-			    (dns_name_countlabels(closest) == 0 ||
+			    (dns_name_empty(closest) ||
 			     dns_name_issubdomain(qname, closest)) &&
 			    !dns_nsec3_typepresent(&rdata, dns_rdatatype_ds) &&
 			    !dns_nsec3_typepresent(&rdata,
@@ -2029,7 +2027,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 				 "name does not exist: '%s'",
 				 namebuf);
 			if (nearest != NULL &&
-			    (dns_name_countlabels(nearest) == 0 ||
+			    (dns_name_empty(nearest) ||
 			     dns_name_issubdomain(nearest, qname)))
 			{
 				dns_name_copy(qname, nearest);

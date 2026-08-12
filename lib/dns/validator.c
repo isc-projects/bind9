@@ -2813,7 +2813,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 	dns_rdataset_init(&trdataset);
 	wild = dns_fixedname_name(&val->wild);
 
-	if (dns_name_countlabels(wild) == 0) {
+	if (dns_name_empty(wild)) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "in checkwildcard: no wildcard to check");
 		return ISC_R_SUCCESS;
@@ -2933,7 +2933,7 @@ findnsec3proofs(dns_validator_t *val) {
 			CLEANUP(result);
 		}
 	}
-	if (dns_name_countlabels(zonename) == 0) {
+	if (dns_name_empty(zonename)) {
 		CLEANUP(ISC_R_SUCCESS);
 	}
 
@@ -2941,7 +2941,7 @@ findnsec3proofs(dns_validator_t *val) {
 	 * If the val->closest is set then we want to use it otherwise
 	 * we need to discover it.
 	 */
-	if (dns_name_countlabels(dns_fixedname_name(&val->closest)) != 0) {
+	if (!dns_name_empty(dns_fixedname_name(&val->closest))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(dns_fixedname_name(&val->closest), namebuf,
@@ -3025,11 +3025,11 @@ findnsec3proofs(dns_validator_t *val) {
 	 * at proofs from the parent zone.
 	 */
 	dns_name_t *wildsigner = dns_fixedname_name(&val->wildsigner);
-	if (dns_name_countlabels(closest) > 0 &&
+	if (!dns_name_empty(closest) &&
 	    dns_name_countlabels(nearest) ==
 		    dns_name_countlabels(closest) + 1 &&
 	    dns_name_issubdomain(nearest, closest) &&
-	    (dns_name_countlabels(wildsigner) == 0 ||
+	    (dns_name_empty(wildsigner) ||
 	     dns_name_equal(zonename, wildsigner)))
 	{
 		val->attributes |= VALATTR_FOUNDCLOSEST;
@@ -3271,8 +3271,7 @@ validate_nx(dns_validator_t *val, bool resume) {
 			marksecure(val, "validate_nx (noqname proof found)");
 			return ISC_R_SUCCESS;
 		} else if (FOUNDOPTOUT(val) &&
-			   dns_name_countlabels(
-				   dns_fixedname_name(&val->wild)) != 0)
+			   !dns_name_empty(dns_fixedname_name(&val->wild)))
 		{
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "optout proof found");

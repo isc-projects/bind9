@@ -9580,7 +9580,7 @@ rctx_referral(respctx_t *rctx) {
 	 * XXXRTH  We should check if we're in forward-only mode, and
 	 *		if so we should bail out.
 	 */
-	INSIST(dns_name_countlabels(fctx->domain) > 0);
+	INSIST(!dns_name_empty(fctx->domain));
 	fcount_decr(fctx);
 
 	dns_delegset_detach(&fctx->delegset);

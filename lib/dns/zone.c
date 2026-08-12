@@ -2348,7 +2348,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 * Is this name visible in the zone?
 		 */
 		if (!dns_name_issubdomain(name, &zone->origin) ||
-		    (dns_name_countlabels(bottom) > 0 &&
+		    (!dns_name_empty(bottom) &&
 		     dns_name_issubdomain(name, bottom)))
 		{
 			goto next;
