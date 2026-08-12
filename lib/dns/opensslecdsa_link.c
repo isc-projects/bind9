@@ -97,7 +97,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL) {
-		CLEANUP(dst__openssl_toresult(ISC_R_NOMEMORY));
+		return dst__openssl_toresult(ISC_R_NOMEMORY);
 	}
 	if (dctx->key->key_alg == DST_ALG_ECDSA256) {
 		type = isc__crypto_md[ISC_MD_SHA256];
@@ -112,9 +112,9 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 				       dctx->key->keydata.pkeypair.priv) != 1)
 		{
 			EVP_MD_CTX_destroy(evp_md_ctx);
-			CLEANUP(dst__openssl_toresult3(dctx->category,
-						       "EVP_DigestSignInit",
-						       ISC_R_FAILURE));
+			return dst__openssl_toresult3(dctx->category,
+						      "EVP_DigestSignInit",
+						      ISC_R_FAILURE);
 		}
 
 		if (!isc_crypto_fips_mode()) {
@@ -123,7 +123,8 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 			if (result != ISC_R_SUCCESS &&
 			    result != ISC_R_NOTIMPLEMENTED)
 			{
-				CLEANUP(result);
+				EVP_MD_CTX_destroy(evp_md_ctx);
+				return result;
 			}
 		}
 
@@ -132,16 +133,15 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 					 dctx->key->keydata.pkeypair.pub) != 1)
 		{
 			EVP_MD_CTX_destroy(evp_md_ctx);
-			CLEANUP(dst__openssl_toresult3(dctx->category,
-						       "EVP_DigestVerifyInit",
-						       ISC_R_FAILURE));
+			return dst__openssl_toresult3(dctx->category,
+						      "EVP_DigestVerifyInit",
+						      ISC_R_FAILURE);
 		}
 	}
 
 	dctx->ctxdata.evp_md_ctx = evp_md_ctx;
 	result = ISC_R_SUCCESS;
 
-cleanup:
 	return result;
 }
 
@@ -170,21 +170,20 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 		if (EVP_DigestSignUpdate(evp_md_ctx, data->base,
 					 data->length) != 1)
 		{
-			CLEANUP(dst__openssl_toresult3(dctx->category,
-						       "EVP_DigestSignUpdate",
-						       ISC_R_FAILURE));
+			return dst__openssl_toresult3(dctx->category,
+						      "EVP_DigestSignUpdate",
+						      ISC_R_FAILURE);
 		}
 	} else {
 		if (EVP_DigestVerifyUpdate(evp_md_ctx, data->base,
 					   data->length) != 1)
 		{
-			CLEANUP(dst__openssl_toresult3(dctx->category,
-						       "EVP_DigestVerifyUpdate",
-						       ISC_R_FAILURE));
+			return dst__openssl_toresult3(dctx->category,
+						      "EVP_DigestVerifyUpdate",
+						      ISC_R_FAILURE);
 		}
 	}
 
-cleanup:
 	return result;
 }
 
@@ -383,7 +382,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	keysize = opensslecdsa_key_alg_to_publickey_size(key->key_alg);
 	isc_buffer_availableregion(data, &r);
 	if (r.length < keysize) {
-		CLEANUP(ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
 
 	pkey = key->keydata.pkeypair.pub;
@@ -391,13 +390,13 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	case DST_ALG_ECDSA256:
 		if (isc_ossl_wrap_p256_public_region(pkey, r) != ISC_R_SUCCESS)
 		{
-			CLEANUP(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+			return dst__openssl_toresult(DST_R_OPENSSLFAILURE);
 		}
 		break;
 	case DST_ALG_ECDSA384:
 		if (isc_ossl_wrap_p384_public_region(pkey, r) != ISC_R_SUCCESS)
 		{
-			CLEANUP(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+			return dst__openssl_toresult(DST_R_OPENSSLFAILURE);
 		}
 		break;
 	default:
@@ -407,7 +406,6 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_buffer_add(data, keysize);
 	result = ISC_R_SUCCESS;
 
-cleanup:
 	return result;
 }
 
@@ -423,18 +421,18 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
-		CLEANUP(ISC_R_SUCCESS);
+		return ISC_R_SUCCESS;
 	}
 	if (r.length != len) {
-		CLEANUP(DST_R_INVALIDPUBLICKEY);
+		return DST_R_INVALIDPUBLICKEY;
 	}
 
 	switch (key->key_alg) {
 	case DST_ALG_ECDSA256:
-		CHECK(isc_ossl_wrap_load_p256_public_from_region(r, &pkey));
+		RETERR(isc_ossl_wrap_load_p256_public_from_region(r, &pkey));
 		break;
 	case DST_ALG_ECDSA384:
-		CHECK(isc_ossl_wrap_load_p384_public_from_region(r, &pkey));
+		RETERR(isc_ossl_wrap_load_p384_public_from_region(r, &pkey));
 		break;
 	default:
 		UNREACHABLE();
@@ -445,7 +443,6 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	key->keydata.pkeypair.pub = pkey;
 	result = ISC_R_SUCCESS;
 
-cleanup:
 	return result;
 }
 
