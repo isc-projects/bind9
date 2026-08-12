@@ -335,7 +335,7 @@ ISC_RUN_TEST_IMPL(qpiter) {
 
 		item[ival] = ival;
 
-		inserted = n = 0;
+		inserted = 0;
 
 		/* randomly insert or remove */
 		dns_qpkey_t key;

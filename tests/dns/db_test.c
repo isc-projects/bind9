@@ -350,6 +350,7 @@ ISC_LOOP_TEST_IMPL(version) {
 
 	/* Now we create a node with an empty parent */
 	result = dns_db_newversion(db, &new);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_test_namefromstring("long.ent.name.test.test.", &fname);
 	result = dns_db_findnode(db, name, true, &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
