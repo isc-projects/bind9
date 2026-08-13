@@ -128,8 +128,10 @@ get_rdataset(dns_message_t *msg, dns_section_t section, const char *owner,
 }
 
 /*
- * A record of a singleton type repeated with identical RDATA is kept once;
- * repeats of other types are all retained, as before.
+ * A record of a singleton type listed twice is a malformed message even
+ * when the RDATA is identical; repeats of other types are all retained,
+ * as before.  With best-effort parsing the problem is reported, but both
+ * singleton records are retained, keeping the message usable for inspection.
  */
 ISC_RUN_TEST_IMPL(parse_duplicate_singleton) {
 	unsigned char wirebuf[1024];
@@ -155,12 +157,17 @@ ISC_RUN_TEST_IMPL(parse_duplicate_singleton) {
 			"ns.example. hostmaster.example. 1 3600 600 86400 300");
 
 	result = parse(&wire, 0, &msg);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(result, DNS_R_FORMERR);
+	dns_message_detach(&msg);
+
+	isc_buffer_first(&wire);
+	result = parse(&wire, DNS_MESSAGEPARSE_BESTEFFORT, &msg);
+	assert_int_equal(result, DNS_R_RECOVERABLE);
 
 	rdataset = get_rdataset(msg, DNS_SECTION_ANSWER, "dup.example.",
 				dns_rdatatype_cname);
 	assert_non_null(rdataset);
-	assert_int_equal(dns_rdataset_count(rdataset), 1);
+	assert_int_equal(dns_rdataset_count(rdataset), 2);
 	assert_int_equal(rdataset->ttl, 300);
 
 	rdataset = get_rdataset(msg, DNS_SECTION_ANSWER, "target.example.",
@@ -172,14 +179,14 @@ ISC_RUN_TEST_IMPL(parse_duplicate_singleton) {
 	rdataset = get_rdataset(msg, DNS_SECTION_AUTHORITY, "example.",
 				dns_rdatatype_soa);
 	assert_non_null(rdataset);
-	assert_int_equal(dns_rdataset_count(rdataset), 1);
+	assert_int_equal(dns_rdataset_count(rdataset), 2);
 	assert_int_equal(rdataset->ttl, 0);
 
 	dns_message_detach(&msg);
 }
 
 /*
- * A singleton type with two different RDATA is still a malformed message.
+ * A singleton type with two different RDATA is a malformed message too.
  */
 ISC_RUN_TEST_IMPL(parse_conflicting_singleton) {
 	unsigned char wirebuf[1024];
@@ -200,7 +207,7 @@ ISC_RUN_TEST_IMPL(parse_conflicting_singleton) {
 
 	/*
 	 * With best-effort parsing the problem is reported but the message
-	 * is still usable, and only the first CNAME survives.
+	 * is still usable, and both CNAMEs are retained.
 	 */
 	isc_buffer_first(&wire);
 	result = parse(&wire, DNS_MESSAGEPARSE_BESTEFFORT, &msg);

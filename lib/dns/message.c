@@ -1428,20 +1428,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 				result = ISC_R_SUCCESS;
 				rdataset = found_rdataset;
 
-				if (!dns_rdatatype_issingleton(rdtype)) {
-					break;
-				}
-
-				dns_rdatalist_fromrdataset(rdataset,
-							   &rdatalist);
-				dns_rdata_t *first =
-					ISC_LIST_HEAD(rdatalist->rdata);
-				INSIST(first != NULL);
-				if (dns_rdata_compare(rdata, first) != 0) {
+				if (dns_rdatatype_issingleton(rdtype)) {
+					if (!best_effort) {
+						dns_message_puttemprdata(
+							msg, &rdata);
+					}
 					DO_ERROR(DNS_R_FORMERR);
-				}
-				if (!best_effort) {
-					dns_message_puttemprdata(msg, &rdata);
 				}
 				break;
 			case ISC_R_SUCCESS:
