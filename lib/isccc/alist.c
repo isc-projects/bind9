@@ -143,7 +143,7 @@ isccc_alist_delete(isccc_sexpr_t *alist, const char *key) {
 		if (caar->type == ISCCC_SEXPRTYPE_STRING &&
 		    strcmp(caar->value.as_string, key) == 0)
 		{
-			CDR(prev) = CDR(rest);
+			isccc_sexpr_setcdr(prev, CDR(rest));
 			CDR(rest) = NULL;
 			isccc_sexpr_free(&rest);
 			break;
@@ -184,7 +184,7 @@ isccc_alist_define(isccc_sexpr_t *alist, const char *key,
 		 * We've already got an entry for this key.  Replace it.
 		 */
 		isccc_sexpr_free(&CDR(kv));
-		CDR(kv) = value;
+		isccc_sexpr_setcdr(kv, value);
 	}
 
 	return kv;
