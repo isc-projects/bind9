@@ -883,7 +883,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	 * file and this rdataset has the same name as the
 	 * previous one.)
 	 */
-	if (dns_name_countlabels(owner_name) == 0) {
+	if (dns_name_empty(owner_name)) {
 		owner_name = NULL;
 	}
 

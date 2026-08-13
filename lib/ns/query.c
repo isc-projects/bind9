@@ -9393,7 +9393,7 @@ checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (dns_name_countlabels(signer) == 0) {
+		if (dns_name_empty(signer)) {
 			dns_name_copy(&rrsig.signer, signer);
 		} else if (!dns_name_equal(signer, &rrsig.signer)) {
 			return ISC_R_FAILURE;

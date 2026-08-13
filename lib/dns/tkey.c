@@ -192,7 +192,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	 * rejected in dst_gssapi_acceptctx(), so if we reach here the
 	 * negotiation is complete and the principal must be set.
 	 */
-	if (dns_name_countlabels(principal) == 0U) {
+	if (dns_name_empty(principal)) {
 		tkeyout->error = dns_tsigerror_badkey;
 		tkey_log("process_gsstkey(): "
 			 "completed context with empty principal");

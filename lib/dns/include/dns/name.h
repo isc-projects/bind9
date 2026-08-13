@@ -591,6 +591,20 @@ dns_name_offsets(const dns_name_t *name, dns_offsets_t offsets);
  *	individual labels in the name
  */
 
+static inline bool
+dns_name_empty(const dns_name_t *name) {
+	REQUIRE(DNS_NAME_VALID(name));
+
+	return name->length == 0;
+}
+/*%<
+ * Return whether the name is empty.
+ *
+ * Requires:
+ * \li	'name' is a valid name
+ *
+ */
+
 static inline uint8_t
 dns_name_countlabels(const dns_name_t *name) {
 	REQUIRE(DNS_NAME_VALID(name));

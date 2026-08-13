@@ -1268,14 +1268,14 @@ catz_process_coo(dns_catz_zone_t *catz, dns_label_t *mhash,
 
 	RETERR(dns_rdata_tostruct(&rdata, &ptr, NULL));
 
-	if (dns_name_countlabels(&ptr.ptr) == 0) {
+	if (dns_name_empty(&ptr.ptr)) {
 		CLEANUP(ISC_R_FAILURE);
 	}
 
 	CHECK(isc_ht_find(catz->entries, mhash->base, mhash->length,
 			  (void **)&entry));
 
-	if (dns_name_countlabels(&entry->name) == 0) {
+	if (dns_name_empty(&entry->name)) {
 		CLEANUP(ISC_R_FAILURE);
 	}
 
@@ -1318,7 +1318,7 @@ catz_process_zones_entry(dns_catz_zone_t *catz, dns_rdataset_t *value,
 	result = isc_ht_find(catz->entries, mhash->base, mhash->length,
 			     (void **)&entry);
 	if (result == ISC_R_SUCCESS) {
-		if (dns_name_countlabels(&entry->name) != 0) {
+		if (!dns_name_empty(&entry->name)) {
 			/* We have a duplicate. */
 			dns_rdata_freestruct(&ptr);
 			return ISC_R_FAILURE;

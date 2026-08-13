@@ -1,0 +1,23 @@
+@@
+constant ZERO =~ "^0[uUlL]*$";
+expression E;
+@@
+
+- dns_name_countlabels(E) > ZERO
++ !dns_name_empty(E)
+
+@@
+constant ZERO =~ "^0[uUlL]*$";
+expression E;
+@@
+
+- dns_name_countlabels(E) == ZERO
++ dns_name_empty(E)
+
+@@
+constant ZERO =~ "^0[uUlL]*$";
+expression E;
+@@
+
+- dns_name_countlabels(E) != ZERO
++ !dns_name_empty(E)
