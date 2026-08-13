@@ -737,10 +737,12 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
 $NSUPDATE
 
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
-	@10.53.0.3 any > dig.out.ns3.$n
+	@10.53.0.3 dnskey > dig.out.ns3.$n
+$DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+	@10.53.0.3 type65534 > dig.out.ns3.65534.$n
 
 grep "600.*DNSKEY" dig.out.ns3.$n > /dev/null || ret=1
-grep TYPE65534 dig.out.ns3.$n > /dev/null && ret=1
+grep TYPE65534 dig.out.ns3.65534.$n > /dev/null && ret=1
 if test $ret -ne 0
 then
 echo_i "failed"; status=1

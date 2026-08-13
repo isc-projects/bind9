@@ -284,7 +284,7 @@ n=`expr $n + 1`
 echo_i "testing with 'minimal-any yes;' over TCP ($n)"
 ret=0
 $DIG $DIGOPTS -t ANY +tcp www.rt.example @10.53.0.1 > dig.out.$n || ret=1
-grep "ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
 if [ $ret -eq 1 ] ; then
     echo_i "failed"; status=`expr status + 1`
 fi
