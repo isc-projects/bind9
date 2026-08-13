@@ -212,9 +212,9 @@ struct qpznode {
 
 struct qpzonedb {
 	/* Unlocked. */
-	dns_db_t common;
+	alignas(ISC_OS_CACHELINE_SIZE) dns_db_t common;
 	/* Locks the data in this struct */
-	__attribute__((aligned(ISC_OS_CACHELINE_SIZE))) isc_rwlock_t lock;
+	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t lock;
 
 	/*
 	 * NOTE: 'references' is NOT the global reference counter for
