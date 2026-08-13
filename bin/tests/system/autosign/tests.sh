@@ -30,15 +30,22 @@ showprivate() {
   echo "-- $@ --"
   $DIG $DIGOPTS +nodnssec +short @$2 -t ${4:-type65534} $1 | cut -f3 -d' ' \
     | while read record; do
-      $PERL -e 'my $rdata = pack("H*", @ARGV[0]);
-                die "invalid record" unless length($rdata) == 5 || length($rdata) == 7;
-                my ($dns, $key, $remove, $complete, $alg) = unpack("CnCCn", $rdata);
-                my $action = "signing";
-                $action = "removing" if $remove;
-                my $state = " (incomplete)";
-                $state = " (complete)" if $complete;
-                $alg = $dns if ! defined($alg);
-                print ("$action: alg: $alg, key: $key$state\n");' $record
+      $PYTHON - "$record" <<'EOF'
+import struct
+import sys
+
+rdata = bytes.fromhex(sys.argv[1])
+if len(rdata) not in (5, 7):
+    sys.exit(f"invalid signing record: {len(rdata)} bytes (expected 5 or 7)")
+
+alg, keyid, remove, complete = struct.unpack_from(">BHBB", rdata)
+if len(rdata) == 7:
+    alg = struct.unpack_from(">H", rdata, 5)[0]
+
+action = "removing" if remove else "signing"
+state = "complete" if complete else "incomplete"
+print(f"{action}: alg: {alg}, key: {keyid} ({state})")
+EOF
     done
 }
 
