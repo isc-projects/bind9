@@ -2072,11 +2072,11 @@ Boolean Options
 
 .. namedconf:statement:: minimal-any
    :tags: query
-   :short: Controls whether the server replies with only one of the RRsets for a query name, when generating a positive response to a query of type ANY over UDP.
+   :short: Controls whether the server replies with only one of the RRsets for a query name, when generating a positive response to a query of type ANY.
 
    If set to ``yes``, the server replies with only one of
    the RRsets for the query name, and its covering RRSIGs if any,
-   when generating a positive response to a query of type ANY over UDP,
+   when generating a positive response to a query of type ANY,
    instead of replying with all known RRsets for the name. Similarly, a
    query for type RRSIG is answered with the RRSIG records covering
    only one type. This can reduce the impact of some kinds of attack

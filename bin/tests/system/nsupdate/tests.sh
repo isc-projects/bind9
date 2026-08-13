@@ -1243,10 +1243,12 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
 $NSUPDATE update.in.$n
 
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
-  @10.53.0.3 any >dig.out.ns3.$n || ret=1
+  @10.53.0.3 dnskey >dig.out.ns3.$n || ret=1
+$DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
+  @10.53.0.3 type65534 >dig.out.ns3.65534.$n || ret=1
 
 grep "600.*DNSKEY" dig.out.ns3.$n >/dev/null || ret=1
-grep TYPE65534 dig.out.ns3.$n >/dev/null && ret=1
+grep TYPE65534 dig.out.ns3.65534.$n >/dev/null && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
   status=1
@@ -2173,16 +2175,19 @@ send
 END
 $DIG $DIGOPTS @10.53.0.6 \
   +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-  ANY -x 10.53.0.5 >dig.out.ns6.test$n || ret=1
+  A -x 10.53.0.5 >dig.out.ns6.a.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+  +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+  AAAA -x 10.53.0.5 >dig.out.ns6.aaaa.test$n || ret=1
 nextpart ns6/named.run >nextpart.out.test$n
 grep "attempt to add more records than permitted by policy" nextpart.out.test$n >/dev/null || ret=1
 # the policy is 'grant * tcp-self . PTR(1) ANY(2) A;' so all the A
 # records should have been added as there is no limit and the first 2
 # of the AAAA records added as they match ANY(2).
-c1=$(awk '$4 == "A" { print }' dig.out.ns6.test$n | wc -l)
-c2=$(awk '$4 == "AAAA" { print }' dig.out.ns6.test$n | wc -l)
+c1=$(awk '$4 == "A" { print }' dig.out.ns6.a.test$n | wc -l)
+c2=$(awk '$4 == "AAAA" { print }' dig.out.ns6.aaaa.test$n | wc -l)
 test "$c1" -eq 3 -a "$c2" -eq 2 || ret=1
-grep "::ffff:1.2.3.2" dig.out.ns6.test$n >/dev/null && ret=1
+grep "::ffff:1.2.3.2" dig.out.ns6.aaaa.test$n >/dev/null && ret=1
 if test $ret -ne 0; then
   echo_i "failed"
   status=1
@@ -2644,10 +2649,12 @@ EOF
   update add _xxx.self-srv-no-type.example.com 3600 IN TXT a txt record
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx.self-srv-no-type.example.com ANY >dig.out.ns7.test$n || ret=1
-  grep "status: NOERROR" dig.out.ns7.test$n >/dev/null || ret=1
-  grep '_xxx.self-srv-no-type.example.com.*SRV.*0 0 0 machine.example.com' dig.out.ns7.test$n >/dev/null || ret=1
-  grep '_xxx.self-srv-no-type.example.com.*TXT.*"a" "txt" "record"' dig.out.ns7.test$n >/dev/null || ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx.self-srv-no-type.example.com SRV >dig.out.ns7.srv.test$n || ret=1
+  grep "status: NOERROR" dig.out.ns7.srv.test$n >/dev/null || ret=1
+  grep '_xxx.self-srv-no-type.example.com.*SRV.*0 0 0 machine.example.com' dig.out.ns7.srv.test$n >/dev/null || ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx.self-srv-no-type.example.com TXT >dig.out.ns7.txt.test$n || ret=1
+  grep "status: NOERROR" dig.out.ns7.txt.test$n >/dev/null || ret=1
+  grep '_xxx.self-srv-no-type.example.com.*TXT.*"a" "txt" "record"' dig.out.ns7.txt.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
     status=1

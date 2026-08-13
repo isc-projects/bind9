@@ -130,11 +130,8 @@ ret=0
 $NSLOOKUP -port=${PORT} -type=ANY example.net 10.53.0.1 2>nslookup.err${n} >nslookup.out${n} || ret=1
 lines=$(grep -c 'Address:.10\.53\.0\.1#'"${PORT}" nslookup.out${n})
 test $lines -eq 1 || ret=1
-lines=$(grep -c 'origin = ns1\.example\.net' nslookup.out${n})
-test $lines -eq 1 || ret=1
-lines=$(grep -c 'mail addr = hostmaster\.example\.net' nslookup.out${n})
-test $lines -eq 1 || ret=1
-lines=$(grep -c 'nameserver = ns1\.example\.net.' nslookup.out${n})
+# the answer is minimized to a single RRset (SOA or NS)
+lines=$(grep -c -e 'origin = ns1\.example\.net' -e 'nameserver = ns1\.example\.net.' nslookup.out${n})
 test $lines -eq 1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
