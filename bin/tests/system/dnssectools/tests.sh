@@ -21,20 +21,12 @@ n=1
 
 # check that a zone file is raw format, version 0
 israw0() {
-  # shellcheck disable=SC2016
-  $PERL <"$1" -e 'binmode STDIN;
-	             read(STDIN, $input, 8);
-	             ($style, $version) = unpack("NN", $input);
-	             exit 1 if ($style != 2 || $version != 0);' || return $?
+  test "$($PYTHON -m isctest.tools.rawzone version "$1")" = "0"
 }
 
 # check that a zone file is raw format, version 1
 israw1() {
-  # shellcheck disable=SC2016
-  $PERL <"$1" -e 'binmode STDIN;
-		     read(STDIN, $input, 8);
-                     ($style, $version) = unpack("NN", $input);
-                     exit 1 if ($style != 2 || $version != 1);' || return $?
+  test "$($PYTHON -m isctest.tools.rawzone version "$1")" = "1"
 }
 
 echo_i "basic dnssec-signzone checks:"
