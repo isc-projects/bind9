@@ -20,11 +20,10 @@ status=0
 n=1
 
 israw() {
-  # shellcheck disable=SC2016
-  $PERL -e 'binmode STDIN;
-             read(STDIN, $input, 8);
-             ($style, $version) = unpack("NN", $input);
-             exit 1 if ($style != 2 || $version > 1);' <"$1" || return $?
+  case "$($PYTHON -m isctest.tools.rawzone version "$1")" in
+    0 | 1) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 isfull() {
@@ -37,39 +36,11 @@ isfull() {
 }
 
 rawversion() {
-  # shellcheck disable=SC2016
-  $PERL -e 'binmode STDIN;
-             read(STDIN, $input, 8);
-             if (length($input) < 8) { print "not raw\n"; exit 0; };
-             ($style, $version) = unpack("NN", $input);
-             print ($style == 2 || $style == 3 ? "$version\n" :
-		"not raw\n");' <"$1"
+  $PYTHON -m isctest.tools.rawzone version "$1"
 }
 
 sourceserial() {
-  # shellcheck disable=SC2016
-  $PERL -e 'binmode STDIN;
-             read(STDIN, $input, 20);
-             if (length($input) < 20) { print "UNSET\n"; exit; };
-             ($format, $version, $dumptime, $flags, $sourceserial) =
-                     unpack("NNNNN", $input);
-             if ($format != 2 || $version <  1) { print "UNSET\n"; exit; };
-             if ($flags & 02) {
-                     print $sourceserial . "\n";
-             } else {
-                     print "UNSET\n";
-             }' <"$1"
-}
-
-stomp() {
-  # shellcheck disable=SC2016
-  $PERL -e 'open(my $file, "+<", $ARGV[0]);
-              binmode $file;
-              seek($file, $ARGV[1], 0);
-              for (my $i = 0; $i < $ARGV[2]; $i++) {
-                      print $file pack("C", $ARGV[3]);
-              }
-              close($file);' "$@"
+  $PYTHON -m isctest.tools.rawzone sourceserial "$1"
 }
 
 restart() {
