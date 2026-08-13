@@ -609,8 +609,9 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_putuint48(&otherbuf, tsig.timesigned);
 	}
 
-	if ((key->key != NULL) && (tsig.error != dns_tsigerror_badsig) &&
-	    (tsig.error != dns_tsigerror_badkey))
+	if (key->key != NULL && tsig.error != dns_tsigerror_badsig &&
+	    tsig.error != dns_tsigerror_badkey &&
+	    tsig.error != dns_tsigerror_badtrunc)
 	{
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
@@ -981,6 +982,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		return result;
 	}
 	if (dns__tsig_algvalid(alg)) {
+		uint16_t digestbits = dst_key_getbits(key);
+
 		if (tsig.siglen > siglen) {
 			tsig_log(msg->tsigkey, 2, "signature length too big");
 			return DNS_R_FORMERR;
@@ -991,6 +994,21 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			tsig_log(msg->tsigkey, 2,
 				 "signature length below minimum");
 			return DNS_R_FORMERR;
+		}
+
+		if (tsig.siglen > 0 && digestbits != 0 &&
+		    tsig.siglen < ((digestbits + 7) / 8))
+		{
+			msg->tsigstatus = dns_tsigerror_badtrunc;
+			tsig_log(msg->tsigkey, 2,
+				 "truncated signature length too small");
+			return DNS_R_TSIGVERIFYFAILURE;
+		}
+		if (tsig.siglen > 0 && digestbits == 0 && tsig.siglen < siglen)
+		{
+			msg->tsigstatus = dns_tsigerror_badtrunc;
+			tsig_log(msg->tsigkey, 2, "signature length too small");
+			return DNS_R_TSIGVERIFYFAILURE;
 		}
 	}
 
@@ -1152,27 +1170,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		goto cleanup_context;
 	}
 
-	if (dns__tsig_algvalid(alg)) {
-		uint16_t digestbits = dst_key_getbits(key);
-
-		if (tsig.siglen > 0 && digestbits != 0 &&
-		    tsig.siglen < ((digestbits + 7) / 8))
-		{
-			msg->tsigstatus = dns_tsigerror_badtrunc;
-			tsig_log(msg->tsigkey, 2,
-				 "truncated signature length too small");
-			result = DNS_R_TSIGVERIFYFAILURE;
-			goto cleanup_context;
-		}
-		if (tsig.siglen > 0 && digestbits == 0 && tsig.siglen < siglen)
-		{
-			msg->tsigstatus = dns_tsigerror_badtrunc;
-			tsig_log(msg->tsigkey, 2, "signature length too small");
-			result = DNS_R_TSIGVERIFYFAILURE;
-			goto cleanup_context;
-		}
-	}
-
 	if (response && tsig.error != dns_rcode_noerror) {
 		msg->tsigstatus = tsig.error;
 		if (tsig.error == dns_tsigerror_badtime) {
@@ -1284,6 +1281,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			goto cleanup_querystruct;
 		}
 		if (dns__tsig_algvalid(alg)) {
+			uint16_t digestbits = dst_key_getbits(key);
+
 			if (tsig.siglen > siglen) {
 				tsig_log(tsigkey, 2,
 					 "signature length too big");
@@ -1297,6 +1296,26 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 				tsig_log(tsigkey, 2,
 					 "signature length below minimum");
 				result = DNS_R_FORMERR;
+				goto cleanup_querystruct;
+			}
+
+			if (tsig.siglen > 0 && digestbits != 0 &&
+			    tsig.siglen < ((digestbits + 7) / 8))
+			{
+				msg->tsigstatus = dns_tsigerror_badtrunc;
+				tsig_log(msg->tsigkey, 2,
+					 "truncated signature length "
+					 "too small");
+				result = DNS_R_TSIGVERIFYFAILURE;
+				goto cleanup_querystruct;
+			}
+			if (tsig.siglen > 0 && digestbits == 0 &&
+			    tsig.siglen < siglen)
+			{
+				msg->tsigstatus = dns_tsigerror_badtrunc;
+				tsig_log(msg->tsigkey, 2,
+					 "signature length too small");
+				result = DNS_R_TSIGVERIFYFAILURE;
 				goto cleanup_querystruct;
 			}
 		}
@@ -1454,35 +1473,6 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			tsig_log(msg->tsigkey, 2, "signature is in the future");
 			result = DNS_R_CLOCKSKEW;
 			goto cleanup_context;
-		}
-
-		alg = dst_key_alg(key);
-		result = dst_key_sigsize(key, &siglen);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_context;
-		}
-		if (dns__tsig_algvalid(alg)) {
-			uint16_t digestbits = dst_key_getbits(key);
-
-			if (tsig.siglen > 0 && digestbits != 0 &&
-			    tsig.siglen < ((digestbits + 7) / 8))
-			{
-				msg->tsigstatus = dns_tsigerror_badtrunc;
-				tsig_log(msg->tsigkey, 2,
-					 "truncated signature length "
-					 "too small");
-				result = DNS_R_TSIGVERIFYFAILURE;
-				goto cleanup_context;
-			}
-			if (tsig.siglen > 0 && digestbits == 0 &&
-			    tsig.siglen < siglen)
-			{
-				msg->tsigstatus = dns_tsigerror_badtrunc;
-				tsig_log(msg->tsigkey, 2,
-					 "signature length too small");
-				result = DNS_R_TSIGVERIFYFAILURE;
-				goto cleanup_context;
-			}
 		}
 
 		if (tsig.error != dns_rcode_noerror) {
