@@ -112,45 +112,52 @@ def check_no_dnssec_in_journal(server, zone):
     ), "dnssec record found in journal"
 
 
-def wait_for_serial(primary, server, zone):
+def get_soa_serial(server, zone):
+    fqdn = f"{zone}."
+    query = isctest.query.create(fqdn, dns.rdatatype.SOA)
+    response = isctest.query.tcp(
+        query, server.ip, server.ports.dns, timeout=3, attempts=1
+    )
+    assert response.rcode() == dns.rcode.NOERROR
+    soa = response.get_rrset(
+        response.answer,
+        dns.name.from_text(fqdn),
+        dns.rdataclass.IN,
+        dns.rdatatype.SOA,
+    )
+    assert soa is not None and len(soa) == 1
+    return soa[0].serial
+
+
+def wait_for_serial(primary, server, zone, previous_serial=None):
     if primary.identifier == server.identifier:
-        # No need to check if the transfer has been done.
+        assert previous_serial is not None
+
+        def check_prev_serial():
+            return get_soa_serial(server, zone) != previous_serial
+
+        isctest.run.retry_with_timeout(check_prev_serial, timeout=30)
         return
 
     def check_serial():
-        response = isctest.query.tcp(
-            query, primary.ip, primary.ports.dns, timeout=3, attempts=1
-        )
-        assert response.rcode() == dns.rcode.NOERROR
-        soa = response.get_rrset(
-            response.answer,
-            dns.name.from_text(fqdn),
-            dns.rdataclass.IN,
-            dns.rdatatype.SOA,
-        )
-        serial1 = soa[0].serial
-
-        response = isctest.query.tcp(
-            query, server.ip, server.ports.dns, timeout=3, attempts=1
-        )
-        assert response.rcode() == dns.rcode.NOERROR
-        soa = response.get_rrset(
-            response.answer,
-            dns.name.from_text(fqdn),
-            dns.rdataclass.IN,
-            dns.rdatatype.SOA,
-        )
-        serial2 = soa[0].serial
+        serial1 = get_soa_serial(primary, zone)
+        serial2 = get_soa_serial(server, zone)
 
         return (
             f"zone {zone}/IN (signed): serial {serial2} (unsigned {serial1})"
             in server.log
         )
 
-    fqdn = f"{zone}."
-    query = isctest.query.create(fqdn, dns.rdatatype.SOA)
-
     isctest.run.retry_with_timeout(check_serial, timeout=30)
+
+
+def nsupdate_and_wait(primary, server, zone, update_msg):
+    previous_serial = None
+    if primary.identifier == server.identifier:
+        previous_serial = get_soa_serial(server, zone)
+
+    primary.nsupdate(update_msg)
+    wait_for_serial(primary, server, zone, previous_serial)
 
 
 def check_add_zsk(server, zone, keys, expected, extra_keys, extra, primary=None):
@@ -168,9 +175,7 @@ def check_add_zsk(server, zone, keys, expected, extra_keys, extra, primary=None)
         dnskey = str(zsk.dnskey).split()
         rdata = " ".join(dnskey[4:])
         update_msg.add(f"{zone}.", TTL, "DNSKEY", rdata)
-    primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # Check the new DNSKEY RRset.
     isctest.log.info(
@@ -266,7 +271,6 @@ def check_remove_zsk(
         )
         update_msg = dns.update.UpdateMessage(zone)
         update_msg.delete(f"{zone}.", "DNSKEY")
-        primary.nsupdate(update_msg)
     else:
         # Remove actual ZSK.
         update_msg = dns.update.UpdateMessage(zone)
@@ -274,9 +278,7 @@ def check_remove_zsk(
             dnskey = str(zsk.dnskey).split()
             rdata = " ".join(dnskey[4:])
             update_msg.delete(f"{zone}.", "DNSKEY", rdata)
-        primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # We should have only the KSK and ZSK from server.
     isctest.log.info(
@@ -310,9 +312,7 @@ def check_add_cdnskey(server, zone, keys, expected, extra_keys, extra, primary=N
         dnskey = str(ksk.dnskey).split()
         rdata = " ".join(dnskey[4:])
         update_msg.add(f"{zone}.", TTL, "CDNSKEY", rdata)
-    primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # Now there should be two CDNSKEY records.
     isctest.log.info(
@@ -401,7 +401,6 @@ def check_remove_cdnskey(
         )
         update_msg = dns.update.UpdateMessage(zone)
         update_msg.delete(f"{zone}.", "CDNSKEY")
-        primary.nsupdate(update_msg)
     else:
         # Remove actual CDNSKEY.
         isctest.log.info(
@@ -413,9 +412,7 @@ def check_remove_cdnskey(
             dnskey = str(ksk.dnskey).split()
             rdata = " ".join(dnskey[4:])
             update_msg.delete(f"{zone}.", "CDNSKEY", rdata)
-        primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # Now there should be one CDNSKEY record again.
     isctest.log.info(
@@ -449,9 +446,7 @@ def check_add_cds(server, zone, keys, expected, extra_keys, extra, primary=None)
         ds = dsfromkey(ksk)
         rdata = " ".join(ds[4:])
         update_msg.add(f"{zone}.", TTL, "CDS", rdata)
-    primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # Now there should be two CDS records.
     isctest.log.info(
@@ -534,7 +529,6 @@ def check_remove_cds(
         )
         update_msg = dns.update.UpdateMessage(zone)
         update_msg.delete(f"{zone}.", "CDS")
-        primary.nsupdate(update_msg)
     else:
         # Remove actual CDS.
         isctest.log.info(
@@ -546,9 +540,7 @@ def check_remove_cds(
             ds = dsfromkey(ksk)
             rdata = " ".join(ds[4:])
             update_msg.delete(f"{zone}.", "CDS", rdata)
-        primary.nsupdate(update_msg)
-
-    wait_for_serial(primary, server, zone)
+    nsupdate_and_wait(primary, server, zone, update_msg)
 
     # Now there should be one CDS record again.
     isctest.log.info(
