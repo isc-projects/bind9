@@ -180,7 +180,8 @@ static dns_rdata_rrsig_t rrsig_test_data2 = {
 static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
-	uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
+	alignas(qpzonedb_t)
+		uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
 	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
@@ -345,7 +346,8 @@ verify_aaaa_records(dns_db_t *db, dns_dbversion_t *version,
 
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
-	uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
+	alignas(qpzonedb_t)
+		uint8_t qpdb_s[sizeof(qpzonedb_t) + sizeof(qpzone_bucket_t)];
 	qpzonedb_t *qpdb = (qpzonedb_t *)&qpdb_s;
 	*qpdb = (qpzonedb_t){
 		.common.methods = &qpdb_zonemethods,
