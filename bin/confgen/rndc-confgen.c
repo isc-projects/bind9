@@ -124,7 +124,7 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "aA:b:c:hk:Mmp:r:s:t:u:Vy")) != -1)
+					   "aA:b:c:hk:Mmp:qr:s:t:u:Vy")) != -1)
 	{
 		switch (ch) {
 		case 'a':
