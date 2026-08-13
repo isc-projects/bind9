@@ -44,6 +44,7 @@ ISC_LANG_BEGINDECLS
 struct isccc_dottedpair {
 	isccc_sexpr_t *car;
 	isccc_sexpr_t *cdr;
+	isccc_sexpr_t *parent;
 };
 
 /*% iscc_sexpr structure */
@@ -62,6 +63,7 @@ struct isccc_sexpr {
 #define ISCCC_SEXPRTYPE_DOTTEDPAIR 0x03
 #define ISCCC_SEXPRTYPE_BINARY	   0x04
 
+/* Do not assign, use isccc_sexpr_setcar/setcdr() to keep parent valid. */
 #define ISCCC_SEXPR_CAR(s) (s)->value.as_dottedpair.car
 #define ISCCC_SEXPR_CDR(s) (s)->value.as_dottedpair.cdr
 
