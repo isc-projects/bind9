@@ -15,6 +15,7 @@
 
 /*! \file */
 
+#include <stdalign.h>
 #include <stdbool.h>
 
 #include <isc/os.h>
@@ -362,20 +363,19 @@ struct dns_zonemgr {
  */
 struct dns_zone {
 	/* Unlocked */
-	unsigned int magic;
+	alignas(ISC_OS_CACHELINE_SIZE) unsigned int magic;
 	isc_mutex_t lock;
 #ifdef DNS_ZONE_CHECKLOCK
 	bool locked;
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 	isc_mem_t *mctx;
-	__attribute__((
-		aligned(ISC_OS_CACHELINE_SIZE))) isc_refcount_t references;
+	alignas(ISC_OS_CACHELINE_SIZE) isc_refcount_t references;
 	char *masterfile;
 	char *initfile;
 	const FILE *stream;		  /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes; /* Include files */
 
-	__attribute__((aligned(ISC_OS_CACHELINE_SIZE))) isc_rwlock_t dblock;
+	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
 
 	isc_tid_t tid;
