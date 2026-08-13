@@ -147,6 +147,15 @@ def soa_rr(
     )
 
 
+def cname_rr(*, target: bytes) -> bytes:
+    return rr(
+        root(),
+        dns.rdatatype.RdataType.CNAME,
+        dns.rdataclass.RdataClass.IN,
+        rdata=target,
+    )
+
+
 def nsec3_rr(
     *,
     owner: bytes,
@@ -341,6 +350,32 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
                 question(root(), dns.rdatatype.RdataType.SOA),
             ),
             id="dupans",
+        ),
+        pytest.param(
+            wire(
+                header(qdcount=1, ancount=2),
+                question(root(), dns.rdatatype.RdataType.SOA),
+                soa_rr(minimum=5),
+                soa_rr(minimum=5),
+            ),
+            wire(
+                formerr_response_header(qdcount=1),
+                question(root(), dns.rdatatype.RdataType.SOA),
+            ),
+            id="dupans-identical-soa",
+        ),
+        pytest.param(
+            wire(
+                header(qdcount=1, ancount=2),
+                question(root(), dns.rdatatype.RdataType.CNAME),
+                cname_rr(target=name("target.")),
+                cname_rr(target=name("target.")),
+            ),
+            wire(
+                formerr_response_header(qdcount=1),
+                question(root(), dns.rdatatype.RdataType.CNAME),
+            ),
+            id="dupans-identical-cname",
         ),
         pytest.param(
             wire(
