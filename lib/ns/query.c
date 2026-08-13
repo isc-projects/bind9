@@ -7790,7 +7790,7 @@ query_respond_any(query_ctx_t *qctx) {
 			 */
 			dns_rdataset_disassociate(qctx->rdataset);
 			hidden = true;
-		} else if (qctx->view->minimal_any && !TCP(qctx->client) &&
+		} else if (qctx->view->minimal_any &&
 			   !WANTDNSSEC(qctx->client) &&
 			   qctx->qtype == dns_rdatatype_any &&
 			   (qctx->rdataset->type == dns_rdatatype_sig ||
@@ -7799,8 +7799,8 @@ query_respond_any(query_ctx_t *qctx) {
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip signature");
 			dns_rdataset_disassociate(qctx->rdataset);
-		} else if (qctx->view->minimal_any && !TCP(qctx->client) &&
-			   onetype != 0 && qctx->rdataset->type != onetype &&
+		} else if (qctx->view->minimal_any && onetype != 0 &&
+			   qctx->rdataset->type != onetype &&
 			   qctx->rdataset->covers != onetype)
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
@@ -12046,9 +12046,7 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	/*
 	 * Maybe turn on minimal responses for ANY queries.
 	 */
-	if (qtype == dns_rdatatype_any && client->view->minimal_any &&
-	    !TCP(client))
-	{
+	if (qtype == dns_rdatatype_any && client->view->minimal_any) {
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 	}

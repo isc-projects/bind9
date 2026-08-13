@@ -15,6 +15,7 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 	dnssec-validation no;
+	minimal-any yes;
 };
 
 {% include "_common/controls.conf.j2" %}

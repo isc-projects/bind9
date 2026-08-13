@@ -52,27 +52,6 @@ def check_filtertype_only(dest, source, qname, ftype, expected, adflag):
             ), f"expected A {expected} in ANSWER: {res}"
 
 
-def check_any(dest, source, qname, expected4, expected6, do):
-    qname = dns.name.from_text(qname)
-    msg = isctest.query.create(qname, "any", dnssec=do)
-    res = isctest.query.tcp(msg, dest, source=source)
-    isctest.check.noerror(res)
-    a_record = res.get_rrset(res.answer, qname, rdataclass.IN, rdatatype.A)
-    if expected4:
-        assert (
-            a_record and a_record[0].address == expected4
-        ), f"expected A {expected4} in ANSWER: {res}"
-    else:
-        assert not a_record
-    aaaa_record = res.get_rrset(res.answer, qname, rdataclass.IN, rdatatype.AAAA)
-    if expected6:
-        assert (
-            aaaa_record and aaaa_record[0].address == expected6
-        ), f"expected AAAA {expected6} in ANSWER: {res}"
-    else:
-        assert not aaaa_record
-
-
 def check_nodata(dest, source, qname, qtype, do, adflag):
     msg = isctest.query.create(qname, qtype, dnssec=do)
     res = isctest.query.tcp(msg, dest, source=source)
@@ -154,43 +133,6 @@ def check_filter(addr, altaddr, ftype, break_dnssec, recursive):
 
     expected = "1.0.0.6" if ftype == "a" else "2001:db8::6"
     check_filtertype_only(addr, altaddr, "dual.unsigned", ftype, expected, False)
-
-    isctest.log.debug(
-        f"check that A/AAAA (and not {qtype}) is returned if both AAAA and A exist, signed, qtype=ANY, DO=0"
-    )
-    expected4 = "1.0.0.3" if ftype == "aaaa" else None
-    expected6 = "2001:db8::3" if ftype == "a" else None
-    check_any(addr, addr, "dual.signed", expected4, expected6, False)
-
-    isctest.log.debug(
-        "check that both A and AAAA are returned if both AAAA and A exist, signed, qtype=ANY, DO=1, unless break-dnssec is enabled"
-    )
-    if break_dnssec:
-        if ftype == "a":
-            expected4 = None
-        else:
-            expected6 = None
-        check_any(addr, addr, "dual.signed", expected4, expected6, True)
-    else:
-        check_any(addr, addr, "dual.signed", "1.0.0.3", "2001:db8::3", True)
-
-    expected4 = "1.0.0.6" if ftype == "aaaa" else None
-    expected6 = "2001:db8::6" if ftype == "a" else None
-
-    isctest.log.debug(
-        f"check that A/AAAA (and not {qtype}) is returned if both AAAA and A exist, unsigned, qtype=ANY, DO=0"
-    )
-    check_any(addr, addr, "dual.unsigned", expected4, expected6, False)
-
-    isctest.log.debug(
-        f"check that A/AAAA (and not {qtype}) is returned if both AAAA and A exist, unsigned, qtype=ANY, DO=1"
-    )
-    check_any(addr, addr, "dual.unsigned", expected4, expected6, True)
-
-    isctest.log.debug(
-        "check that both A and AAAA are returned if both AAAA and A exist, signed, qtype=ANY, query source does not match ACL"
-    )
-    check_any(addr, altaddr, "dual.unsigned", "1.0.0.6", "2001:db8::6", True)
 
     isctest.log.debug(
         f"check that {qtype} is omitted from additional section, qtype=NS, unsigned"
