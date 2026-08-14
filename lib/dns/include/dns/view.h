@@ -869,10 +869,9 @@ isc_result_t
 dns_view_flushcache(dns_view_t *view, bool fixuponly);
 /*%<
  * Flush the view's cache (and ADB).  If 'fixuponly' is true, it only updates
- * the internal reference to the cache DB with omitting actual flush operation.
+ * the internal reference to the cache DB, omitting actual flush operation.
  * 'fixuponly' is intended to be used for a view that shares a cache with
- * a different view.  dns_view_flushcache() is a backward compatible version
- * that always sets fixuponly to false.
+ * a different view.
  *
  * Requires:
  * 	'view' is valid.
