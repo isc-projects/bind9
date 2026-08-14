@@ -2748,7 +2748,7 @@ check_update_policy(const cfg_obj_t *policy) {
 		case dns_ssumatchtype_selfwild:
 			if (tresult == ISC_R_SUCCESS &&
 			    (!dns_name_equal(id, name) &&
-			     !dns_name_equal(dns_rootname, name)))
+			     !dns_name_isroot(name)))
 			{
 				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "identity and name fields are not "
@@ -2762,8 +2762,7 @@ check_update_policy(const cfg_obj_t *policy) {
 		case dns_ssumatchtype_selfsubms:
 		case dns_ssumatchtype_tcpself:
 		case dns_ssumatchtype_6to4self:
-			if (tresult == ISC_R_SUCCESS &&
-			    !dns_name_equal(dns_rootname, name))
+			if (tresult == ISC_R_SUCCESS && !dns_name_isroot(name))
 			{
 				cfg_obj_log(identity, ISC_LOG_ERROR,
 					    "name field not set to "
@@ -3492,7 +3491,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
-		if (dns_name_equal(zname, dns_rootname)) {
+		if (dns_name_isroot(zname)) {
 			root = true;
 		} else if (dns_name_isrfc1918(zname)) {
 			rfc1918 = true;
@@ -3809,7 +3808,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	if (ztype == CFG_ZONE_SECONDARY || ztype == CFG_ZONE_STUB ||
 	    (ztype == CFG_ZONE_MIRROR && zname != NULL &&
-	     !dns_name_equal(zname, dns_rootname)))
+	     !dns_name_isroot(zname)))
 	{
 		obj = NULL;
 		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "primaries",
@@ -4185,7 +4184,7 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		(void)get_zoneopt(zoptions, toptions, NULL, NULL,
 				  "log-report-channel", &obj);
 		if (obj != NULL && cfg_obj_asboolean(obj) &&
-		    dns_name_equal(zname, dns_rootname))
+		    dns_name_isroot(zname))
 		{
 			cfg_obj_log(zconfig, ISC_LOG_ERROR,
 				    "'log-report-channel' cannot be set in "
@@ -5100,9 +5099,7 @@ check_trust_anchor(const cfg_obj_t *key, unsigned int *flagsp) {
 			}
 		}
 
-		if (result == ISC_R_SUCCESS &&
-		    dns_name_equal(keyname, dns_rootname))
-		{
+		if (result == ISC_R_SUCCESS && dns_name_isroot(keyname)) {
 			/*
 			 * Flag any use of a root key, regardless of content.
 			 */
@@ -5157,9 +5154,7 @@ check_trust_anchor(const cfg_obj_t *key, unsigned int *flagsp) {
 				    isc_result_totext(tresult));
 			result = ISC_R_FAILURE;
 		}
-		if (result == ISC_R_SUCCESS &&
-		    dns_name_equal(keyname, dns_rootname))
-		{
+		if (result == ISC_R_SUCCESS && dns_name_isroot(keyname)) {
 			/*
 			 * Flag any use of a root key, regardless of content.
 			 */
@@ -5242,7 +5237,7 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 			isc_mem_free(mctx, p);
 		}
 
-		if (autovalidation && dns_name_equal(name, dns_rootname)) {
+		if (autovalidation && dns_name_isroot(name)) {
 			cfg_obj_log(obj, ISC_LOG_ERROR,
 				    "static trust anchor for root zone "
 				    "cannot be used with "

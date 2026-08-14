@@ -688,6 +688,64 @@ ISC_RUN_TEST_IMPL(isabsolute) {
 	}
 }
 
+/* dns_name_isroot */
+ISC_RUN_TEST_IMPL(isroot) {
+	struct {
+		const char *namestr;
+		bool expect;
+	} testcases[] = {
+		{ ".", true },
+		{ "x", false },
+		{ "x.", false },
+		{ "x.y.", false },
+	};
+	dns_name_t empty;
+
+	UNUSED(state);
+
+	dns_name_init(&empty);
+	assert_false(dns_name_isroot(&empty));
+
+	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
+		dns_fixedname_t fixed;
+		dns_name_t *name = dns_fixedname_initname(&fixed);
+		isc_result_t result = dns_name_fromstring(
+			name, testcases[i].namestr, NULL, 0, NULL);
+
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_int_equal(dns_name_isroot(name), testcases[i].expect);
+	}
+}
+
+/* dns_name_belowroot */
+ISC_RUN_TEST_IMPL(belowroot) {
+	struct {
+		const char *namestr;
+		bool expect;
+	} testcases[] = {
+		{ ".", false },
+		{ "x", true },
+		{ "x.", true },
+		{ "x.y.", true },
+	};
+	dns_name_t empty;
+
+	UNUSED(state);
+
+	dns_name_init(&empty);
+	assert_false(dns_name_belowroot(&empty));
+
+	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
+		dns_fixedname_t fixed;
+		dns_name_t *name = dns_fixedname_initname(&fixed);
+		isc_result_t result = dns_name_fromstring(
+			name, testcases[i].namestr, NULL, 0, NULL);
+
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_int_equal(dns_name_belowroot(name), testcases[i].expect);
+	}
+}
+
 /* dns_name_hash */
 ISC_RUN_TEST_IMPL(hash) {
 	struct {
@@ -1179,6 +1237,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 #endif /* DNS_BENCHMARK_TESTS */
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY(belowroot)
 ISC_TEST_ENTRY(buffer)
 ISC_TEST_ENTRY(collision)
 ISC_TEST_ENTRY(compression)
@@ -1192,6 +1251,7 @@ ISC_TEST_ENTRY(hash)
 ISC_TEST_ENTRY(init)
 ISC_TEST_ENTRY(invalidate)
 ISC_TEST_ENTRY(isabsolute)
+ISC_TEST_ENTRY(isroot)
 ISC_TEST_ENTRY(issubdomain)
 ISC_TEST_ENTRY(istat)
 ISC_TEST_ENTRY(maxlabels)

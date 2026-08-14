@@ -2001,7 +2001,7 @@ name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target) {
 		goto return_false;
 	}
 
-	if (dns_name_compare(origin, dns_rootname) == 0) {
+	if (dns_name_isroot(origin)) {
 		goto return_false;
 	}
 

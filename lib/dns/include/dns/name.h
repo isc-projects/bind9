@@ -1378,3 +1378,30 @@ dns_name_israd(const dns_name_t *name, const dns_name_t *rad);
  * Requires:
  * \li	'name' to be valid.
  */
+
+static inline bool
+dns_name_isroot(const dns_name_t *name) {
+	REQUIRE(DNS_NAME_VALID(name));
+
+	return name->length == 1 && name->ndata[0] == 0;
+}
+/*%<
+ * Return whether 'name' is the root name.
+ *
+ * Requires:
+ * \li	'name' to be valid.
+ */
+
+static inline bool
+dns_name_belowroot(const dns_name_t *name) {
+	REQUIRE(DNS_NAME_VALID(name));
+
+	return name->length != 0 && name->ndata[0] != 0;
+}
+/*%<
+ * Return whether 'name' is below root.  It checks whether there's at least one
+ * non-root label.
+ *
+ * Requires:
+ * \li	'name' to be valid.
+ */

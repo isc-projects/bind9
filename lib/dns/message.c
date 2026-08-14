@@ -1177,7 +1177,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			 * must be in the additional data section, and
 			 * it must be the first OPT we've seen.
 			 */
-			if (!dns_name_equal(dns_rootname, name) ||
+			if (!dns_name_isroot(name) ||
 			    sectionid != DNS_SECTION_ADDITIONAL ||
 			    msg->opt != NULL)
 			{
@@ -1275,7 +1275,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			if (covers == dns_rdatatype_none) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
 				    count != msg->counts[sectionid] - 1 ||
-				    !dns_name_equal(name, dns_rootname))
+				    !dns_name_isroot(name))
 				{
 					DO_ERROR(DNS_R_BADSIG0);
 				} else {

@@ -278,7 +278,7 @@ additionaldata_mx(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	if (dns_name_equal(&name, dns_rootname)) {
+	if (dns_name_isroot(&name)) {
 		return ISC_R_SUCCESS;
 	}
 

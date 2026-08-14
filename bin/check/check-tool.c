@@ -157,7 +157,7 @@ checkisservedby(dns_zone_t *zone, dns_rdatatype_t type,
 	/*
 	 * Turn off search.
 	 */
-	if (dns_name_countlabels(name) > 1U) {
+	if (dns_name_belowroot(name)) {
 		strlcat(namebuf, ".", sizeof(namebuf));
 	}
 	eai = getaddrinfo(namebuf, NULL, &hints, &ai);
@@ -244,7 +244,7 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	/*
 	 * Turn off search.
 	 */
-	if (dns_name_countlabels(name) > 1U) {
+	if (dns_name_belowroot(name)) {
 		strlcat(namebuf, ".", sizeof(namebuf));
 	}
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
@@ -445,7 +445,7 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 	/*
 	 * Turn off search.
 	 */
-	if (dns_name_countlabels(name) > 1U) {
+	if (dns_name_belowroot(name)) {
 		strlcat(namebuf, ".", sizeof(namebuf));
 	}
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));
@@ -534,7 +534,7 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 	/*
 	 * Turn off search.
 	 */
-	if (dns_name_countlabels(name) > 1U) {
+	if (dns_name_belowroot(name)) {
 		strlcat(namebuf, ".", sizeof(namebuf));
 	}
 	dns_name_format(owner, ownerbuf, sizeof(ownerbuf));

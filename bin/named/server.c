@@ -1903,7 +1903,7 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	str = cfg_obj_asstring(cfg_tuple_get(rpz_obj, "zone name"));
 	RETERR(configure_rpz_name(view, rpz_obj, &zone->origin, str, "zone"));
 
-	if (dns_name_equal(&zone->origin, dns_rootname)) {
+	if (dns_name_isroot(&zone->origin)) {
 		cfg_obj_log(rpz_obj, DNS_RPZ_ERROR_LEVEL,
 			    "invalid zone name '%s'", str);
 		return DNS_R_EMPTYLABEL;
@@ -2635,7 +2635,7 @@ configure_catz_zone(dns_view_t *view, dns_view_t *pview,
 
 	result = dns_name_fromstring(&origin, str, dns_rootname,
 				     DNS_NAME_DOWNCASE, view->mctx);
-	if (result == ISC_R_SUCCESS && dns_name_equal(&origin, dns_rootname)) {
+	if (result == ISC_R_SUCCESS && dns_name_isroot(&origin)) {
 		result = DNS_R_EMPTYLABEL;
 	}
 
@@ -6103,7 +6103,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 				      "zone '%s': 'file' not specified", zname);
 			CLEANUP(ISC_R_FAILURE);
 		}
-		if (dns_name_equal(origin, dns_rootname)) {
+		if (dns_name_isroot(origin)) {
 			const char *hintsfile = cfg_obj_asstring(fileobj);
 
 			CHECK(configure_rootdb(view, hintsfile));
@@ -11476,7 +11476,7 @@ flushnode_cache(dns_view_t *view, const dns_name_t *name, const char *target,
 	 * if some of the views share a single cache.  But since the
 	 * operation is lightweight we prefer simplicity here.
 	 */
-	if (dns_name_equal(name, dns_rootname)) {
+	if (dns_name_isroot(name)) {
 		result = dns_view_flushcache(view, false);
 	} else {
 		result = dns_view_flushnode(view, name, tree);
@@ -12574,7 +12574,7 @@ named_server_changezone(named_server_t *server, char *command,
 	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, 0));
 
 	if (redirect) {
-		if (!dns_name_equal(dnsname, dns_rootname)) {
+		if (!dns_name_isroot(dnsname)) {
 			(void)putstr(text, "redirect zones must be called "
 					   "\".\"");
 			CLEANUP(ISC_R_FAILURE);

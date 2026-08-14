@@ -1095,11 +1095,11 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 
 	dns_name_fromregion(&name, &region);
 
-	if (dns_name_equal(&name, dns_rootname)) {
+	if (dns_name_isroot(&name)) {
 		/*
 		 * "." only means owner name in service form.
 		 */
-		if (alias || dns_name_equal(owner, dns_rootname) ||
+		if (alias || dns_name_isroot(owner) ||
 		    !dns_name_ishostname(owner, false))
 		{
 			return ISC_R_SUCCESS;

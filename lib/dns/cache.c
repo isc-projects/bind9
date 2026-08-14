@@ -418,7 +418,7 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name, bool tree) {
 	dns_dbnode_t *node = NULL;
 	dns_db_t *db = NULL;
 
-	REQUIRE(!(tree && dns_name_equal(name, dns_rootname)));
+	REQUIRE(!(tree && dns_name_isroot(name)));
 
 	LOCK(&cache->lock);
 	if (cache->db != NULL) {

@@ -163,7 +163,7 @@ check_node(dns_rdataset_t *rootns, dns_name_t *name,
 		case dns_rdatatype_aaaa:
 			return in_rootns(rootns, name);
 		case dns_rdatatype_ns:
-			if (dns_name_compare(name, dns_rootname) == 0) {
+			if (dns_name_isroot(name)) {
 				return ISC_R_SUCCESS;
 			}
 			FALLTHROUGH;
