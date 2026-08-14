@@ -11476,7 +11476,11 @@ flushnode_cache(dns_view_t *view, const dns_name_t *name, const char *target,
 	 * if some of the views share a single cache.  But since the
 	 * operation is lightweight we prefer simplicity here.
 	 */
-	result = dns_view_flushnode(view, name, tree);
+	if (dns_name_equal(name, dns_rootname)) {
+		result = dns_view_flushcache(view, false);
+	} else {
+		result = dns_view_flushnode(view, name, tree);
+	}
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_ERROR,
