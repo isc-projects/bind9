@@ -12573,7 +12573,11 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 		 * if some of the views share a single cache.  But since the
 		 * operation is lightweight we prefer simplicity here.
 		 */
-		result = dns_view_flushnode(view, name, tree);
+		if (dns_name_equal(name, dns_rootname)) {
+			result = dns_view_flushcache(view, false);
+		} else {
+			result = dns_view_flushnode(view, name, tree);
+		}
 		if (result != ISC_R_SUCCESS) {
 			flushed = false;
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
