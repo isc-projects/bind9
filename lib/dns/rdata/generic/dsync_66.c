@@ -300,7 +300,7 @@ additionaldata_dsync(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 5);
 	dns_name_fromregion(&name, &region);
 
-	if (dns_name_equal(&name, dns_rootname)) {
+	if (dns_name_isroot(&name)) {
 		return ISC_R_SUCCESS;
 	}
 

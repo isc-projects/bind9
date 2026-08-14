@@ -1207,7 +1207,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message) {
 		if (dns_name_dynamic(&client->inner.rad)) {
 			rad = &client->inner.rad;
 		}
-		if (rad != NULL && !dns_name_equal(rad, dns_rootname)) {
+		if (rad != NULL && !dns_name_isroot(rad)) {
 			dns_ednsopt_t option = {
 				.code = DNS_OPT_REPORT_CHANNEL,
 				.length = rad->length,

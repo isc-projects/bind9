@@ -1536,7 +1536,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			CHECK(dns_name_fromstring(rad, adstr, dns_rootname, 0,
 						  mctx));
-			if (logreports || dns_name_equal(rad, dns_rootname)) {
+			if (logreports || dns_name_isroot(rad)) {
 				/* Disable RC for error-logging zones or root */
 				dns_zone_setrad(zone, NULL);
 			} else if (dns_name_equal(rad, zn)) {
@@ -1883,7 +1883,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		 * explicitly specified and this is a root zone mirror.
 		 */
 		if (obj == NULL && ztype == dns_zone_mirror &&
-		    dns_name_equal(dns_zone_getorigin(zone), dns_rootname))
+		    dns_name_isroot(dns_zone_getorigin(zone)))
 		{
 			result = named_config_getremotesdef(
 				config, "remote-servers",

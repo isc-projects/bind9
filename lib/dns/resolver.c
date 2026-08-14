@@ -3564,7 +3564,7 @@ fctx_getaddresses_forwarders(fetchctx_t *fctx) {
 		 * Strip label to get the correct forwarder (if any).
 		 */
 		if (dns_rdatatype_atparent(fctx->type) &&
-		    dns_name_countlabels(name) > 1)
+		    dns_name_belowroot(name))
 		{
 			unsigned int labels;
 			dns_name_init(&suffix);
@@ -5057,7 +5057,7 @@ fctx__create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		 * the forwarder).
 		 */
 		if (dns_rdatatype_atparent(fctx->type) &&
-		    dns_name_countlabels(name) > 1)
+		    dns_name_belowroot(name))
 		{
 			dns_name_init(&suffix);
 			labels = dns_name_countlabels(name);
@@ -8756,7 +8756,7 @@ rctx_answer_positive(respctx_t *rctx) {
 
 	if (rctx->ns_rdataset != NULL &&
 	    dns_name_equal(fctx->domain, rctx->ns_name) &&
-	    !dns_name_equal(rctx->ns_name, dns_rootname))
+	    !dns_name_isroot(rctx->ns_name))
 	{
 		trim_ns_ttl(fctx, rctx->ns_name, rctx->ns_rdataset);
 	}
@@ -9190,7 +9190,7 @@ rctx_answer_none(respctx_t *rctx) {
 
 	if (rctx->ns_rdataset != NULL &&
 	    dns_name_equal(fctx->domain, rctx->ns_name) &&
-	    !dns_name_equal(rctx->ns_name, dns_rootname))
+	    !dns_name_isroot(rctx->ns_name))
 	{
 		trim_ns_ttl(fctx, rctx->ns_name, rctx->ns_rdataset);
 	}
@@ -9221,7 +9221,7 @@ rctx_answer_none(respctx_t *rctx) {
 	    rctx->query->rmessage->rcode == dns_rcode_noerror &&
 	    fctx->type == dns_rdatatype_ds && rctx->soa_name != NULL &&
 	    dns_name_equal(rctx->soa_name, fctx->name) &&
-	    !dns_name_equal(fctx->name, dns_rootname))
+	    !dns_name_isroot(fctx->name))
 	{
 		return DNS_R_CHASEDSSERVERS;
 	}
@@ -9532,7 +9532,7 @@ rctx_referral(respctx_t *rctx) {
 	 * namespace checks, even if their address info uses the forwarder flag.
 	 */
 	if (ISFORWARDER(fctx->addrinfo) && !ISDUALSTACK(fctx->addrinfo) &&
-	    dns_name_equal(fctx->fwdname, dns_rootname))
+	    dns_name_isroot(fctx->fwdname))
 	{
 		log_formerr(fctx, "referral from global forwarder");
 		rctx->result = DNS_R_FORMERR;

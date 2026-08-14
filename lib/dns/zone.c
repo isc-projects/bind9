@@ -1799,7 +1799,7 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	/*
 	 * "." means the services does not exist.
 	 */
-	if (dns_name_equal(name, dns_rootname)) {
+	if (dns_name_isroot(name)) {
 		return true;
 	}
 
@@ -1900,7 +1900,7 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	/*
 	 * "." means the services does not exist.
 	 */
-	if (dns_name_equal(name, dns_rootname)) {
+	if (dns_name_isroot(name)) {
 		return true;
 	}
 
@@ -17806,7 +17806,7 @@ nsfetch_start(dns_zonefetch_t *fetch) {
 	nsfetch = &fetch->fetchdata.nsfetch;
 
 	/* Derive parent domain. Check for root domain. */
-	if (dns_name_countlabels(&nsfetch->pname) <= 1U) {
+	if (!dns_name_belowroot(&nsfetch->pname)) {
 		return ISC_R_NOTFOUND;
 	}
 

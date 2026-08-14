@@ -3402,7 +3402,7 @@ start_update(void) {
 		 */
 		tmprdataset = ISC_LIST_HEAD(firstname->list);
 		if (section == DNS_SECTION_UPDATE &&
-		    !dns_name_equal(firstname, dns_rootname) &&
+		    !dns_name_isroot(firstname) &&
 		    tmprdataset->type == dns_rdatatype_ds)
 		{
 			unsigned int labels = dns_name_countlabels(name);

@@ -3990,7 +3990,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			/*
 			 * Do nothing about "NS ."
 			 */
-			if (dns_name_equal(&ns.name, dns_rootname)) {
+			if (dns_name_isroot(&ns.name)) {
 				dns_rdata_freestruct(&ns);
 				result = dns_rdataset_next(st->r.ns_rdataset);
 				continue;
@@ -5135,7 +5135,7 @@ ns__query_start(query_ctx_t *qctx) {
 	 */
 	qctx->options = (dns_getdb_options_t){ .nolog = qctx->options.nolog };
 	if (dns_rdatatype_atparent(qctx->qtype) &&
-	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
+	    !dns_name_isroot(qctx->client->query.qname))
 	{
 		/*
 		 * If authoritative data for this QTYPE is supposed to live in
@@ -7133,7 +7133,7 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		return ns_query_done(qctx);
 	}
 
-	if (!dns_name_equal(qctx->client->query.qname, dns_rootname)) {
+	if (!dns_name_isroot(qctx->client->query.qname)) {
 		result = query_checkrpz(qctx, result);
 		if (result == ISC_R_NOTFOUND) {
 			/*
@@ -7774,7 +7774,7 @@ query_respond(query_ctx_t *qctx) {
 		 * Always add glue for root priming queries, regardless
 		 * of "minimal-responses" setting.
 		 */
-		if (dns_name_equal(qctx->client->query.qname, dns_rootname)) {
+		if (dns_name_isroot(qctx->client->query.qname)) {
 			qctx->client->query.noadditional = false;
 			dns_db_attach(qctx->db, &qctx->client->query.gluedb);
 		}

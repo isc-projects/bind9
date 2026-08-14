@@ -427,7 +427,7 @@ checkowner_opt(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return dns_name_equal(name, dns_rootname);
+	return dns_name_isroot(name);
 }
 
 static bool

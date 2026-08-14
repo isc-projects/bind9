@@ -2698,7 +2698,7 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 	/*
 	 * CNAME . means NXDOMAIN
 	 */
-	if (dns_name_equal(&cname.cname, dns_rootname)) {
+	if (dns_name_isroot(&cname.cname)) {
 		return DNS_RPZ_POLICY_NXDOMAIN;
 	}
 

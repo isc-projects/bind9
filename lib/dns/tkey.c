@@ -406,7 +406,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	case DNS_TKEYMODE_GSSAPI:
 		keyname = dns_fixedname_initname(&fkeyname);
 
-		if (!dns_name_equal(qname, dns_rootname)) {
+		if (!dns_name_isroot(qname)) {
 			unsigned int n = dns_name_countlabels(qname);
 			dns_name_copy(qname, keyname);
 			dns_name_getlabelsequence(keyname, 0, n - 1, keyname);
