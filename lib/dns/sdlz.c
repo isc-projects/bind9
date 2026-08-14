@@ -824,10 +824,10 @@ sdlz_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		}
 
 		/*
-		 * Look for a DNAME at the current label, unless this is
-		 * the qname.
+		 * Look for a DNAME at the current label, unless this is the
+		 * qname or glue is ok.
 		 */
-		if (i < nlabels) {
+		if (i < nlabels && (options & DNS_DBFIND_GLUEOK) == 0) {
 			result = findrdataset(
 				db, node, version, dns_rdatatype_dname, 0, now,
 				rdataset, sigrdataset DNS__DB_FLARG_PASS);
