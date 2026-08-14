@@ -340,6 +340,18 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	return dns_db_setcachestats(sampledb->db, stats);
 }
 
+static void
+addglue(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *owner_name,
+	dns_rdataset_t *rdataset, dns_message_t *msg,
+	dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
+	sampledb_t *sampledb = (sampledb_t *)db;
+
+	REQUIRE(VALID_SAMPLEDB(sampledb));
+
+	dns_db_addglue(sampledb->db, version, owner_name, rdataset, msg,
+		       methods, clientinfo);
+}
+
 /*
  * DB interface definition. Database driver uses this structure to
  * determine which implementation of dns_db_*() function to call.
@@ -367,6 +379,7 @@ static dns_dbmethods_t sampledb_methods = {
 	.findnode = findnode,
 	.find = find,
 	.setcachestats = setcachestats,
+	.addglue = addglue,
 };
 
 /* Auxiliary driver functions. */
