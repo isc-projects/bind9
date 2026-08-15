@@ -142,6 +142,7 @@ struct dns_validator {
 	dns_rdataset_t	      fsigrdataset;
 	dns_fixedname_t	      fname;
 	dns_fixedname_t	      wild;
+	dns_fixedname_t	      nseczone;
 	dns_fixedname_t	      closest;
 	ISC_LINK(dns_validator_t) link;
 	bool	       mustbesecure;
