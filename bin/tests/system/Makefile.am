@@ -157,6 +157,7 @@ TESTS =				\
 	names			\
 	notify			\
 	nsec3			\
+	nsec_wildcard_wrong_zone \
 	nslookup		\
 	nsupdate		\
 	nzd2nzf			\
