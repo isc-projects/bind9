@@ -3583,7 +3583,8 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			 * With more than one applicable policy, prefer
 			 * the earliest configured policy,
 			 * client-IP over QNAME over IP over NSDNAME over NSIP,
-			 * and the smallest name.
+			 * and the name that appears last in DNSSEC canonical
+			 * order.
 			 * We known st->m.rpz->num >= rpz->num  and either
 			 * st->m.rpz->num > rpz->num or st->m.type >= rpz_type
 			 */
