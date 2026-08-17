@@ -573,6 +573,7 @@ table_fromwire(isccc_region_t *source, isccc_region_t *secret,
 			goto bad;
 		}
 		if (isccc_alist_define(alist, key, value) == NULL) {
+			isccc_sexpr_free(&value);
 			result = ISC_R_NOMEMORY;
 			goto bad;
 		}
