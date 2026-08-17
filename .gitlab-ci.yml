@@ -725,7 +725,7 @@ misc:
     - sh util/check-jinja-include-indentation.sh
     - sh util/check-trailing-whitespace.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
-    - bash util/unused-headers.sh
+    - sh util/unused-headers.sh
     # Check dangling symlinks in the repository
     - if find . -xtype l | grep .; then exit 1; fi
   artifacts:
