@@ -5390,16 +5390,19 @@ create_gluelist(qpzonedb_t *qpdb, qpz_version_t *version,
 
 static void
 addglue(dns_db_t *db, dns_dbversion_t *dbversion, const dns_name_t *owner_name,
-	dns_rdataset_t *rdataset, dns_message_t *msg) {
+	dns_rdataset_t *rdataset, dns_message_t *msg,
+	dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpz_version_t *version = (qpz_version_t *)dbversion;
 	dns_vecheader_t *header = dns_vecheader_getheader(rdataset);
 	dns_glue_t *glue = NULL;
 	isc_statscounter_t counter = dns_gluecachestatscounter_hits_absent;
 
+	UNUSED(methods);
+	UNUSED(clientinfo);
+
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(qpdb == version->qpdb);
-	REQUIRE(!IS_STUB(qpdb));
 
 	rcu_read_lock();
 
@@ -5441,7 +5444,11 @@ addglue(dns_db_t *db, dns_dbversion_t *dbversion, const dns_name_t *owner_name,
 
 	rcu_read_unlock();
 
-	/* We have a cached result. Add it to the message and return. */
+	/*
+	 * Stub zones also use the qpzone glue cache above, but zone.c only
+	 * attaches glue cache stats to primary, secondary, and mirror zones.
+	 * A NULL stats object is expected for stub zones.
+	 */
 	if (qpdb->gluecachestats != NULL) {
 		isc_stats_increment(qpdb->gluecachestats, counter);
 	}

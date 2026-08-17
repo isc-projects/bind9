@@ -177,6 +177,9 @@ static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx);
 
 static isc_result_t
+query_prepare_zone_delegation_response(query_ctx_t *qctx);
+
+static isc_result_t
 acquire_recursionquota(ns_client_t *client);
 
 static void
@@ -319,9 +322,10 @@ ns__query_callhook_noreturn(uint8_t id, query_ctx_t *qctx,
  * 8. The answer was not found in the database (query_notfound().
  *    Set up a referral and go to 9.
  *
- * 9. Handle a delegation response (query_delegation()). If we need
- *    to and are allowed to recurse (query_delegation_recurse()), go to 5,
- *    otherwise go to 15 to clean up and return the delegation to the client.
+ * 9. Handle a delegation response (query_zone_delegation() or
+ *    query_cache_delegation()). If we need to and are allowed to recurse,
+ *    go to 5, otherwise go to 15 to clean up and return the delegation to
+ *    the client.
  *
  * 10. No such domain (query_nxdomain()). Attempt redirection; if
  *     unsuccessful, add authority section records (query_addsoa(),
@@ -419,7 +423,7 @@ static isc_result_t
 query_zone_delegation(query_ctx_t *qctx);
 
 static isc_result_t
-query_delegation(query_ctx_t *qctx);
+query_cache_delegation(query_ctx_t *qctx);
 
 static isc_result_t
 query_delegation_recurse(query_ctx_t *qctx);
@@ -2128,7 +2132,6 @@ static void
 query_additional(query_ctx_t *qctx, dns_name_t *name,
 		 dns_rdataset_t *rdataset) {
 	ns_client_t *client = qctx->client;
-	isc_result_t result;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional");
 
@@ -2142,6 +2145,8 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 	if (rdataset->type == dns_rdatatype_ns &&
 	    client->query.gluedb != NULL && dns_db_iszone(client->query.gluedb))
 	{
+		dns_clientinfomethods_t cm;
+		dns_clientinfo_t ci;
 		ns_dbversion_t *dbversion = NULL;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
@@ -2149,11 +2154,12 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 			goto regular;
 		}
 
-		result = dns_db_addglue(qctx->db, dbversion->version, name,
-					rdataset, client->message);
-		if (result == ISC_R_SUCCESS) {
-			return;
-		}
+		dns_clientinfomethods_init(&cm, ns_client_sourceip);
+		dns_clientinfo_init(&ci, client, NULL);
+
+		dns_db_addglue(qctx->db, dbversion->version, name, rdataset,
+			       client->message, &cm, &ci);
+		return;
 	}
 
 regular:
@@ -2166,34 +2172,42 @@ regular:
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional: done");
 }
 
-static void
-query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
-	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
-	       isc_buffer_t *dbuf, dns_section_t section) {
+/*
+ * Add an RRset and its optional signature to a message section. Additional
+ * data processing is left to the caller.
+ *
+ * Return true if the RRset was added, or false if it was already present.
+ */
+static bool
+query_add_to_message(query_ctx_t *qctx, dns_name_t **namep,
+		     dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
+		     isc_buffer_t *dbuf, dns_section_t section,
+		     dns_name_t **mnamep) {
 	isc_result_t result;
 	ns_client_t *client = qctx->client;
 	dns_name_t *name = *namep, *mname = NULL;
 	dns_rdataset_t *rdataset = *rdatasetp, *mrdataset = NULL;
 	dns_rdataset_t *sigrdataset = NULL;
 
-	CTRACE(ISC_LOG_DEBUG(3), "query_addrrset");
+	CCTRACE(ISC_LOG_DEBUG(3), "query_add_to_message");
 
 	REQUIRE(name != NULL);
 	REQUIRE(rdataset != NULL);
+	REQUIRE(mnamep != NULL && *mnamep == NULL);
 
 	if (sigrdatasetp != NULL) {
 		sigrdataset = *sigrdatasetp;
 	}
 
 	/*%
-	 * To the current response for 'client', add the answer RRset
+	 * To the current response for 'client', add the RRset
 	 * '*rdatasetp' and an optional signature set '*sigrdatasetp', with
 	 * owner name '*namep', to section 'section', unless they are
-	 * already there.  Also add any pertinent additional data.
+	 * already there.
 	 *
 	 * If 'dbuf' is not NULL, then '*namep' is the name whose data is
-	 * stored in 'dbuf'.  In this case, query_addrrset() guarantees that
-	 * when it returns the name will either have been kept or released.
+	 * stored in 'dbuf'. In this case, query_add_to_message() guarantees
+	 * that when it returns the name will either have been kept or released.
 	 */
 	result = dns_message_findname(client->message, section, name,
 				      rdataset->type, rdataset->covers, &mname,
@@ -2202,15 +2216,17 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 		/*
 		 * We've already got an RRset of the given name and type.
 		 */
-		CTRACE(ISC_LOG_DEBUG(3), "query_addrrset: dns_message_findname "
-					 "succeeded: done");
+		CCTRACE(ISC_LOG_DEBUG(3),
+			"query_add_to_message: "
+			"dns_message_findname succeeded: done");
 		if (dbuf != NULL) {
 			ns_client_releasename(client, namep);
 		}
 		if (rdataset->attributes.required) {
 			mrdataset->attributes.required = true;
 		}
-		return;
+		*mnamep = mname;
+		return false;
 	} else if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The name doesn't exist.
@@ -2235,12 +2251,10 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 	}
 
 	/*
-	 * Update message name, set rdataset order, and do additional
-	 * section processing if needed.
+	 * Update message name and set rdataset order.
 	 */
 	query_addtoname(mname, rdataset);
 	query_setorder(qctx, mname, rdataset);
-	query_additional(qctx, mname, rdataset);
 
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so
@@ -2256,7 +2270,59 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 		*sigrdatasetp = NULL;
 	}
 
-	CTRACE(ISC_LOG_DEBUG(3), "query_addrrset: done");
+	*mnamep = mname;
+	CCTRACE(ISC_LOG_DEBUG(3), "query_add_to_message: done");
+	return true;
+}
+
+static void
+query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
+	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
+	       isc_buffer_t *dbuf, dns_section_t section) {
+	dns_name_t *mname = NULL;
+	dns_rdataset_t *rdataset = *rdatasetp;
+
+	CCTRACE(ISC_LOG_DEBUG(3), "query_addrrset");
+
+	if (!query_add_to_message(qctx, namep, rdatasetp, sigrdatasetp, dbuf,
+				  section, &mname))
+	{
+		return;
+	}
+
+	query_additional(qctx, mname, rdataset);
+
+	CCTRACE(ISC_LOG_DEBUG(3), "query_addrrset: done");
+}
+
+static void
+query_zone_delegation_rrset(query_ctx_t *qctx, dns_name_t **namep,
+			    dns_rdataset_t **rdatasetp,
+			    dns_rdataset_t **sigrdatasetp, isc_buffer_t *dbuf) {
+	ns_client_t *client = qctx->client;
+	dns_name_t *mname = NULL;
+	dns_rdataset_t *rdataset = *rdatasetp;
+	dns_clientinfomethods_t cm;
+	dns_clientinfo_t ci;
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_zone_delegation_rrset");
+
+	REQUIRE(qctx->client->query.isreferral);
+	REQUIRE(qctx->version != NULL);
+	REQUIRE(!client->query.noadditional);
+
+	if (!query_add_to_message(qctx, namep, rdatasetp, sigrdatasetp, dbuf,
+				  DNS_SECTION_AUTHORITY, &mname))
+	{
+		return;
+	}
+
+	dns_clientinfomethods_init(&cm, ns_client_sourceip);
+	dns_clientinfo_init(&ci, client, NULL);
+	dns_db_addglue(qctx->db, qctx->version, mname, rdataset,
+		       client->message, &cm, &ci);
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_zone_delegation_rrset: done");
 }
 
 static void
@@ -6296,14 +6362,8 @@ query_hookresume(void *arg) {
 		case NS_QUERY_NOTFOUND_BEGIN:
 			(void)query_notfound(qctx);
 			break;
-		case NS_QUERY_PREP_DELEGATION_BEGIN:
-			(void)query_prepare_delegation_response(qctx);
-			break;
 		case NS_QUERY_ZONE_DELEGATION_BEGIN:
 			(void)query_zone_delegation(qctx);
-			break;
-		case NS_QUERY_DELEGATION_BEGIN:
-			(void)query_delegation(qctx);
 			break;
 		case NS_QUERY_DELEGATION_RECURSE_BEGIN:
 			(void)query_delegation_recurse(qctx);
@@ -7186,7 +7246,10 @@ root_key_sentinel:
 		return query_notfound(qctx);
 
 	case DNS_R_DELEGATION:
-		return query_delegation(qctx);
+		if (qctx->is_zone) {
+			return query_zone_delegation(qctx);
+		}
+		return query_cache_delegation(qctx);
 
 	case DNS_R_EMPTYNAME:
 	case DNS_R_NXRRSET:
@@ -8029,7 +8092,7 @@ query_filter64(query_ctx_t *qctx) {
 /*%
  * Handle the case of a name not being found in a database lookup.
  * Called from query_gotanswer(). Passes off processing to
- * query_delegation() for a root referral if appropriate.
+ * query_cache_delegation() for a root referral if appropriate.
  */
 static isc_result_t
 query_notfound(query_ctx_t *qctx) {
@@ -8108,7 +8171,7 @@ query_notfound(query_ctx_t *qctx) {
 		}
 	}
 
-	return query_delegation(qctx);
+	return query_cache_delegation(qctx);
 
 cleanup:
 	return result;
@@ -8120,11 +8183,8 @@ cleanup:
  */
 static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx) {
-	isc_result_t result = ISC_R_UNSET;
 	dns_rdataset_t **sigrdatasetp = NULL;
 	bool detach = false;
-
-	CALL_HOOK(NS_QUERY_PREP_DELEGATION_BEGIN, qctx);
 
 	/*
 	 * qctx->fname could be released in query_addrrset(), so save a copy of
@@ -8163,9 +8223,45 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	query_addds(qctx);
 
 	return ns_query_done(qctx);
+}
 
-cleanup:
-	return result;
+/*%
+ * We have an authoritative zone delegation, so return the delegation to the
+ * client.
+ */
+static isc_result_t
+query_prepare_zone_delegation_response(query_ctx_t *qctx) {
+	dns_rdataset_t **sigrdatasetp = NULL;
+
+	/*
+	 * qctx->fname could be released in query_zone_delegation_rrset(), so
+	 * save a copy of it here in case we need it.
+	 */
+	dns_fixedname_init(&qctx->dsname);
+	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname));
+
+	/*
+	 * This is the best answer.
+	 */
+	qctx->client->query.isreferral = true;
+
+	/*
+	 * We must ensure NOADDITIONAL is off, because the generation of
+	 * additional data is required in delegations.
+	 */
+	qctx->client->query.noadditional = false;
+	if (qctx->client->inner.wantdnssec && qctx->sigrdataset != NULL) {
+		sigrdatasetp = &qctx->sigrdataset;
+	}
+	query_zone_delegation_rrset(qctx, &qctx->fname, &qctx->rdataset,
+				    sigrdatasetp, qctx->dbuf);
+
+	/*
+	 * Add DS/NSEC(3) record(s) if needed.
+	 */
+	query_addds(qctx);
+
+	return ns_query_done(qctx);
 }
 
 /*%
@@ -8178,7 +8274,13 @@ static isc_result_t
 query_zone_delegation(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
 
+	CCTRACE(ISC_LOG_DEBUG(3), "query_zone_delegation");
+
+	qctx->authoritative = false;
+
 	CALL_HOOK(NS_QUERY_ZONE_DELEGATION_BEGIN, qctx);
+
+	INSIST(qctx->is_zone);
 
 	/*
 	 * If the query type is DS, look to see if we are
@@ -8239,8 +8341,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 		 * rdataset, and sigrdataset.  We'll then go looking for
 		 * QNAME in the cache.  If we find something better, we'll
 		 * use it instead. If not, then query_lookup() calls
-		 * query_notfound() which calls query_delegation(), and
-		 * we'll restore these values there.
+		 * query_notfound() which calls query_cache_delegation(),
+		 * and we'll restore these values there.
 		 */
 		ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 		qctx->zdb = MOVE_OWNERSHIP(qctx->db);
@@ -8271,33 +8373,24 @@ query_zone_delegation(query_ctx_t *qctx) {
 		return result;
 	}
 
-	return query_prepare_delegation_response(qctx);
+	return query_prepare_zone_delegation_response(qctx);
 
 cleanup:
 	return result;
 }
 
 /*%
- * Handle delegation responses, including root referrals.
- *
- * If the delegation was returned from authoritative data,
- * call query_zone_delgation().  Otherwise, we can start
- * recursion if allowed; or else return the delegation to the
- * client and call ns_query_done().
+ * Handle delegation responses from cache data, including root referrals.
  */
 static isc_result_t
-query_delegation(query_ctx_t *qctx) {
+query_cache_delegation(query_ctx_t *qctx) {
 	isc_result_t result = ISC_R_UNSET;
 
-	CCTRACE(ISC_LOG_DEBUG(3), "query_delegation");
+	CCTRACE(ISC_LOG_DEBUG(3), "query_cache_delegation");
 
-	CALL_HOOK(NS_QUERY_DELEGATION_BEGIN, qctx);
+	INSIST(!qctx->is_zone);
 
 	qctx->authoritative = false;
-
-	if (qctx->is_zone) {
-		return query_zone_delegation(qctx);
-	}
 
 	if (qctx->zfname != NULL &&
 	    (!dns_name_issubdomain(qctx->fname, qctx->zfname) ||
@@ -8349,14 +8442,11 @@ query_delegation(query_ctx_t *qctx) {
 	}
 
 	return query_prepare_delegation_response(qctx);
-
-cleanup:
-	return result;
 }
 
 /*%
- * Handle recursive queries that are triggered as part of the
- * delegation process.
+ * Handle recursive queries that are triggered as part of the delegation
+ * process.
  */
 static isc_result_t
 query_delegation_recurse(query_ctx_t *qctx) {
@@ -8364,6 +8454,8 @@ query_delegation_recurse(query_ctx_t *qctx) {
 	dns_name_t *qname = qctx->client->query.qname;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_delegation_recurse");
+
+	INSIST(!qctx->is_zone);
 
 	if (!qctx->client->query.recursionok) {
 		return ISC_R_COMPLETE;
