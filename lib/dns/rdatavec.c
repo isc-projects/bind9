@@ -454,6 +454,7 @@ typedef struct vecinfo {
 	unsigned char *pos;
 	dns_rdata_t rdata;
 	bool dup;
+	uint32_t length;
 } vecinfo_t;
 
 isc_result_t
@@ -464,7 +465,7 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char *ocurrent = NULL, *ncurrent = NULL, *tcurrent = NULL;
 	unsigned int ocount, ncount, tcount = 0;
-	uint32_t tlength;
+	size_t rlength = 0, tlength = 0;
 	vecinfo_t *oinfo = NULL, *ninfo = NULL;
 	size_t o = 0, n = 0;
 
@@ -484,12 +485,6 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	}
 
 	/*
-	 * Figure out the target length. Start with the header,
-	 * plus 2 octets for the count.
-	 */
-	tlength = header_size(oheader) + 2;
-
-	/*
 	 * Allocate both info arrays up front so the cleanup path is
 	 * always safe to call regardless of where we exit.
 	 */
@@ -497,66 +492,58 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	ninfo = isc_mem_cget(mctx, ncount, sizeof(struct vecinfo));
 
 	/*
-	 * Gather the rdatas in the old vec and add their lengths to
-	 * the larget length.
+	 * Gather the rdatas in the old vec.
 	 */
 	for (size_t i = 0; i < ocount; i++) {
 		oinfo[i].pos = ocurrent;
 		dns_rdata_init(&oinfo[i].rdata);
 		rdata_from_vecitem(&ocurrent, rdclass, type, &oinfo[i].rdata);
-		tlength += (uint32_t)(ocurrent - oinfo[i].pos);
-		if (tlength - header_size(oheader) - 2 > DNS_RDATA_MAXLENGTH) {
-			CLEANUP(ISC_R_NOSPACE);
-		}
+		oinfo[i].length = (uint32_t)(ocurrent - oinfo[i].pos);
 	}
 
 	/*
-	 * Then add the length of rdatas in the new vec that aren't
-	 * duplicated in the old vec.
+	 * Gather the rdatas in the new vec.
 	 */
 	for (size_t i = 0; i < ncount; i++) {
 		ninfo[i].pos = ncurrent;
 		dns_rdata_init(&ninfo[i].rdata);
 		rdata_from_vecitem(&ncurrent, rdclass, type, &ninfo[i].rdata);
-
-		for (size_t j = 0; j < ocount; j++) {
-			if (oinfo[j].dup) {
-				/*
-				 * This was already found to be
-				 * duplicated; no need to compare
-				 * it again.
-				 */
-				continue;
-			}
-
-			if (dns_rdata_compare(&oinfo[j].rdata,
-					      &ninfo[i].rdata) == 0)
-			{
-				/*
-				 * Found a dup. Mark the old copy as a
-				 * duplicate so we don't check it again;
-				 * mark the new copy as a duplicate so we
-				 * don't copy it to the target.
-				 */
-				oinfo[j].dup = ninfo[i].dup = true;
-				break;
-			}
-		}
-
-		if (ninfo[i].dup) {
-			continue;
-		}
-
-		/*
-		 * We will be copying this item to the target, so
-		 * add its length to tlength and increment tcount.
-		 */
-		tlength += (uint32_t)(ncurrent - ninfo[i].pos);
-		if (tlength - header_size(oheader) - 2 > DNS_RDATA_MAXLENGTH) {
-			CLEANUP(ISC_R_NOSPACE);
-		}
-		tcount++;
+		ninfo[i].length = (uint32_t)(ncurrent - ninfo[i].pos);
 	}
+
+	/*
+	 * The old and new vecs are both sorted in DNSSEC order, so
+	 * duplicates can be found with a linear walk.
+	 */
+	for (size_t oi = 0, ni = 0; oi < ocount && ni < ncount;) {
+		int cmp = dns_rdata_compare(&oinfo[oi].rdata,
+					    &ninfo[ni].rdata);
+		bool is_dup = cmp == 0;
+
+		oinfo[oi].dup = ninfo[ni].dup = is_dup;
+		oi += cmp <= 0;
+		ni += cmp >= 0;
+	}
+
+	/*
+	 * Compute the target length and count. All old rdatas are copied;
+	 * only new rdatas that are not duplicated in the old vec are copied.
+	 */
+	for (size_t i = 0; i < ocount; i++) {
+		rlength += oinfo[i].length;
+	}
+
+	for (size_t i = 0; i < ncount; i++) {
+		bool not_dup = !ninfo[i].dup;
+		rlength += not_dup * ninfo[i].length;
+		tcount += not_dup;
+	}
+
+	if (rlength > DNS_RDATA_MAXLENGTH) {
+		CLEANUP(ISC_R_NOSPACE);
+	}
+
+	tlength = header_size(oheader) + 2 + rlength;
 
 	/*
 	 * If the EXACT flag is set, there can't be any rdata in
