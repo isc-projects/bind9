@@ -1767,6 +1767,7 @@ gcc:asan:
 system:gcc:asan:
   variables:
     LSAN_OPTIONS: "suppressions=$CI_PROJECT_DIR/suppr-lsan.txt"
+    TEST_PARALLEL_JOBS: 3
   <<: *fedora_44_amd64_image
   <<: *system_test_job
   needs:
@@ -1790,6 +1791,8 @@ clang:asan:
   <<: *build_job
 
 system:clang:asan:
+  variables:
+    TEST_PARALLEL_JOBS: 3
   <<: *base_image
   <<: *system_test_job
   <<: *extra_system_tests_triggering_rules
