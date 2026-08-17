@@ -955,8 +955,19 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	handle->sock->tlsstream.tlssocket = tlssock;
 
 	result = initialize_tls(tlssock, true);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	/* TODO: catch failure code, detach tlssock, and log the error */
+	if (result != ISC_R_SUCCESS) {
+		isc__nmsocket_log(tlssock, ISC_LOG_ERROR,
+				  "TLS initialization failed: %s",
+				  isc_result_totext(result));
+		handle->sock->tlsstream.tlssocket = NULL;
+		isc_nmhandle_detach(&tlssock->outerhandle);
+		tlssock->closed = true;
+		isc_tlsctx_free(&tlssock->tlsstream.ctx);
+		isc__nmsocket_detach(&tlssock->listener);
+		isc__nmsocket_detach(&tlssock->server);
+		isc__nmsocket_detach(&tlssock);
+		return result;
+	}
 
 	tls_try_to_enable_tcp_nodelay(tlssock);
 

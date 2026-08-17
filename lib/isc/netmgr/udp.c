@@ -291,7 +291,7 @@ route_socket(uv_os_sock_t *fdp) {
 	isc_result_t result;
 	uv_os_sock_t fd = -1;
 #ifdef USE_NETLINK
-	struct sockaddr_nl sa;
+	struct sockaddr_nl sa = { 0 };
 	int r;
 #endif
 
@@ -306,8 +306,9 @@ route_socket(uv_os_sock_t *fdp) {
 	sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR;
 	r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
 	if (r < 0) {
+		result = isc_errno_toresult(errno);
 		isc__nm_closesocket(fd);
-		return isc_errno_toresult(r);
+		return result;
 	}
 #endif
 
