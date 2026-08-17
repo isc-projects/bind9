@@ -209,9 +209,33 @@ sub start_server {
 
 	chdir "$testdir/$server" or die "unable to chdir \"$testdir/$server\" ($OS_ERROR)\n";
 
+	my %saved_env;
+
+	$saved_env{'OPENSSL_CONF'} = $ENV{'OPENSSL_CONF'} if exists $ENV{'OPENSSL_CONF'};
+	if (-e "openssl.cnf") {
+		$ENV{'OPENSSL_CONF'} = abs_path("$testdir/$server/openssl.cnf");
+	} elsif (-e "$testdir/openssl.cnf") {
+		$ENV{'OPENSSL_CONF'} = abs_path("$testdir/openssl.cnf");
+	}
+
+	$saved_env{'KRYOPTIC_CONF'} = $ENV{'KRYOPTIC_CONF'} if exists $ENV{'KRYOPTIC_CONF'};
+	if (-e "kryoptic.toml") {
+		$ENV{'KRYOPTIC_CONF'} = abs_path("$testdir/$server/kryoptic.toml");
+	} elsif (-e "$testdir/kryoptic.toml") {
+		$ENV{'KRYOPTIC_CONF'} = abs_path("$testdir/kryoptic.toml");
+	}
+
 	# start the server
 	my $child = `$command`;
 	chomp($child);
+
+	foreach my $var ('OPENSSL_CONF', 'KRYOPTIC_CONF') {
+		if (exists $saved_env{$var}) {
+			$ENV{$var} = $saved_env{$var};
+		} else {
+			delete $ENV{$var};
+		}
+	}
 
 	# wait up to 90 seconds for the server to start and to write the
 	# pid file otherwise kill this server and any others that have
