@@ -337,7 +337,7 @@ Pytest marks control test collection and setup:
 - `@pytest.mark.requires_zones_loaded("ns1", ...)` delays the test until the
   listed servers have loaded all zones.
 - `isctest.mark` has skip-unless conditions for environment prerequisites,
-  e.g. `isctest.mark.with_dnstap`, `isctest.mark.softhsm2_environment`,
+  e.g. `isctest.mark.with_dnstap`, `isctest.mark.kryoptic_environment`,
   `isctest.mark.live_internet_test`.
 
 ### Parametrization
