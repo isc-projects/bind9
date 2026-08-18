@@ -1024,7 +1024,7 @@ pre_parse_args(int argc, char **argv) {
 					continue;
 				}
 				dns_rdatatype_format(t, buf, sizeof(buf));
-				if (strncmp(buf, "TYPE", 4) != 0) {
+				if (!isc_string_hasprefix(buf, "TYPE")) {
 					fprintf(stdout, "%s\n", buf);
 				}
 			}
@@ -1037,7 +1037,7 @@ pre_parse_args(int argc, char **argv) {
 					continue;
 				}
 				dns_rdatatype_format(t, buf, sizeof(buf));
-				if (strncmp(buf, "TYPE", 4) != 0) {
+				if (!isc_string_hasprefix(buf, "TYPE")) {
 					fprintf(stdout, "%s\n", buf);
 				}
 			}

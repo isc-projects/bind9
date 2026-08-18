@@ -1933,7 +1933,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		if (strncmp(rv[0], "%", 1) == 0) {
+		if (isc_string_hasprefix(rv[0], "%")) {
 			break;
 		}
 		if (rv[0][0] == '@') {

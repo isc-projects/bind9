@@ -367,7 +367,7 @@ dlz_findzonedb(void *dbdata, const char *name, dns_clientinfomethods_t *methods,
 	 * from 10.53.0.1.
 	 */
 	if (strcasecmp(name, "test.example.net") == 0 &&
-	    strncmp(addrbuf, "10.53.0.1", 9) == 0)
+	    isc_string_hasprefix(addrbuf, "10.53.0.1"))
 	{
 		return ISC_R_NOMORE;
 	}
@@ -725,7 +725,7 @@ dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 	UNUSED(keydatalen);
 	UNUSED(keydata);
 
-	if (strncmp(name, "deny.", 5) == 0) {
+	if (isc_string_hasprefix(name, "deny.")) {
 		loginfo("dlz_example: denying update of name=%s by %s", name,
 			signer);
 		return false;

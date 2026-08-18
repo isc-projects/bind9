@@ -119,7 +119,7 @@ main(int argc, char *argv[]) {
 					continue;
 				}
 				dns_rdataclass_format(t, text, sizeof(text));
-				if (strncmp(text, "CLASS", 5) != 0) {
+				if (!isc_string_hasprefix(text, "CLASS")) {
 					fprintf(stdout, "%s\n", text);
 				}
 			}
@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
 					continue;
 				}
 				dns_rdatatype_format(t, text, sizeof(text));
-				if (strncmp(text, "TYPE", 4) != 0) {
+				if (!isc_string_hasprefix(text, "TYPE")) {
 					fprintf(stdout, "%s\n", text);
 				}
 			}
@@ -144,7 +144,7 @@ main(int argc, char *argv[]) {
 					continue;
 				}
 				dns_rdatatype_format(t, text, sizeof(text));
-				if (strncmp(text, "TYPE", 4) != 0) {
+				if (!isc_string_hasprefix(text, "TYPE")) {
 					fprintf(stdout, "%s\n", text);
 				}
 			}

@@ -20,6 +20,7 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -110,7 +111,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 			continue;
 		}
 		dns_rdatatype_format(t, typebuf, sizeof(typebuf));
-		if (strncmp(typebuf, "TYPE", 4) != 0) {
+		if (!isc_string_hasprefix(typebuf, "TYPE")) {
 			/* Assert when we need to grow typelist. */
 			assert(types < sizeof(typelist) / sizeof(typelist[0]));
 			typelist[types++] = t;

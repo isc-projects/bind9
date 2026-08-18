@@ -2016,7 +2016,8 @@ dns_name_isdnssvcb(const dns_name_t *name) {
 		ndata++;
 	}
 
-	if (len == 4U && strncasecmp((const char *)ndata, "_dns", 4) == 0) {
+	if (len == 4U && isc_string_casehasprefix((const char *)ndata, "_dns"))
+	{
 		return true;
 	}
 

@@ -452,7 +452,7 @@ main(int argc, char **argv) {
 			inputformat = dns_masterformat_text;
 		} else if (strcasecmp(inputformatstr, "raw") == 0) {
 			inputformat = dns_masterformat_raw;
-		} else if (strncasecmp(inputformatstr, "raw=", 4) == 0) {
+		} else if (isc_string_casehasprefix(inputformatstr, "raw=")) {
 			inputformat = dns_masterformat_raw;
 			fprintf(stderr, "WARNING: input format raw, version "
 					"ignored\n");
