@@ -1535,7 +1535,8 @@ static dig_lookup_t *
 plus_option(char *option, bool is_batchfile, bool *need_clone,
 	    dig_lookup_t *lookup) {
 	isc_result_t result;
-	char *cmd, *value, *last = NULL, *code, *extra;
+	const char *cmd, *tail;
+	char *value, *last = NULL, *code, *extra;
 	uint32_t num;
 	bool state = true;
 	size_t n;
@@ -1546,8 +1547,9 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		printf(";; Invalid option %s\n", option);
 		return lookup;
 	}
-	if (strncasecmp(cmd, "no", 2) == 0) {
-		cmd += 2;
+	tail = isc_string_casestripprefix(cmd, "no");
+	if (tail != NULL) {
+		cmd = tail;
 		state = false;
 	}
 	/* parse the rest of the string */
