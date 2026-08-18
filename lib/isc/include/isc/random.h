@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/types.h>
 
 /*! \file isc/random.h
@@ -37,7 +38,7 @@ isc_random32(void);
  */
 
 void
-isc_random_buf(void *buf, size_t buflen);
+isc_random_buf(void *buf, size_t buflen) ISC_ATTR_ACCESS(write_only, 1, 2);
 /*!<
  * \brief Fills the region buf of length buflen with random data.
  */

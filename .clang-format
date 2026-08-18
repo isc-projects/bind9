@@ -83,3 +83,4 @@ ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each
 RemoveParentheses: ReturnStatement
 RemoveSemicolon: true
 SpaceBeforeParens: ControlStatementsExceptControlMacros
+AttributeMacros: ['ISC_ATTR_ACCESS', 'ISC_ATTR_COUNTED_BY', 'ISC_ATTR_COUNTED_BY_PTR', 'ISC_ATTR_SIZED_BY_PTR']

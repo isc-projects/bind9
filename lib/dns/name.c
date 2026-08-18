@@ -689,7 +689,7 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 			INSIST(nlabels < DNS_NAME_MAXLABELS);
 			nlabels++;
 
-			count = name->ndata[offset];
+			count = r->base[offset];
 			INSIST(count <= DNS_NAME_LABELLEN);
 
 			offset += count + 1;
@@ -1261,9 +1261,9 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name) {
 	name->ndata = (uint8_t *)name->buffer->base + name->buffer->used;
 
 	/* label lengths are < 64 so tolower() does not affect them */
+	name->length = source->length;
 	isc_ascii_lowercopy(name->ndata, source->ndata, source->length);
 
-	name->length = source->length;
 	name->attributes = (struct dns_name_attrs){
 		.absolute = source->attributes.absolute
 	};

@@ -15,15 +15,16 @@
 
 /*! \file isc/region.h */
 
+#include <isc/attributes.h>
 #include <isc/types.h>
 
 struct isc_region {
-	unsigned char *base;
+	unsigned char *base ISC_ATTR_COUNTED_BY_PTR(length);
 	unsigned int   length;
 };
 
 struct isc_textregion {
-	char	    *base;
+	char	    *base ISC_ATTR_COUNTED_BY_PTR(length);
 	unsigned int length;
 };
 
@@ -31,12 +32,12 @@ struct isc_textregion {
  * discussing the region api.
  */
 struct isc_constregion {
-	const void  *base;
+	const void  *base ISC_ATTR_SIZED_BY_PTR(length);
 	unsigned int length;
 };
 
 struct isc_consttextregion {
-	const char  *base;
+	const char  *base ISC_ATTR_COUNTED_BY_PTR(length);
 	unsigned int length;
 };
 

@@ -111,7 +111,7 @@ struct dns_name {
 		bool update	  : 1; /*%< Used by client. */
 		bool hasupdaterec : 1; /*%< Used by client. */
 	} attributes;
-	unsigned char *ndata;
+	unsigned char *ndata ISC_ATTR_COUNTED_BY_PTR(length);
 	isc_buffer_t  *buffer;
 	ISC_LINK(dns_name_t) link;
 	ISC_LIST(dns_rdataset_t) list;

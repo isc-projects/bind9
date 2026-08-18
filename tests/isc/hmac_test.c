@@ -180,17 +180,17 @@ ISC_RUN_TEST_IMPL(isc_hmac_update) {
 ISC_RUN_TEST_IMPL(isc_hmac_final) {
 	isc_hmac_key_t *key = NULL;
 	isc_hmac_t *hmac_st = *state;
+	unsigned char digest[ISC_MAX_MD_SIZE];
 	assert_non_null(hmac_st);
 
 	assert_int_equal(
 		isc_hmac_key_create(ISC_MD_SHA512, "", 0, isc_g_mctx, &key),
 		ISC_R_SUCCESS);
 
-	unsigned char digest[ISC_MAX_MD_SIZE];
 	isc_buffer_t digestbuf;
 
 	/* Fail when output buffer is empty */
-	isc_buffer_init(&digestbuf, NULL, 0);
+	isc_buffer_initnull(&digestbuf);
 	assert_int_equal(isc_hmac_final(hmac_st, &digestbuf), ISC_R_NOSPACE);
 
 	/* Fail when the digest length is empty */

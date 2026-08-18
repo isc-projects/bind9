@@ -700,8 +700,8 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	 * wire format RR data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&j->it.source, NULL, 0);
-	isc_buffer_init(&j->it.target, NULL, 0);
+	isc_buffer_initnull(&j->it.source);
+	isc_buffer_initnull(&j->it.target);
 	j->it.dctx = DNS_DECOMPRESS_NEVER;
 
 	j->state = writable ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;
@@ -1460,8 +1460,8 @@ dns_journal_rollforward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&source, NULL, 0);
-	isc_buffer_init(&target, NULL, 0);
+	isc_buffer_initnull(&source);
+	isc_buffer_initnull(&target);
 
 	/*
 	 * Create the new database version.
@@ -1638,8 +1638,8 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 	 * wire format transaction data.  They will be reallocated
 	 * later.
 	 */
-	isc_buffer_init(&source, NULL, 0);
-	isc_buffer_init(&target, NULL, 0);
+	isc_buffer_initnull(&source);
+	isc_buffer_initnull(&target);
 
 	start_serial = dns_journal_first_serial(j);
 	end_serial = dns_journal_last_serial(j);

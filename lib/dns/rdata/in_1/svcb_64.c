@@ -183,11 +183,15 @@ svc_keyfromregion(isc_textregion_t *region, char sep, uint16_t *value,
 	/* Look for known key names.  */
 	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		size_t len = strlen(sbpr[i].name);
-		if (strncasecmp(region->base, sbpr[i].name, len) != 0 ||
-		    (region->base[len] != 0 && region->base[len] != sep))
-		{
+		if (strncasecmp(region->base, sbpr[i].name, len) != 0) {
 			continue;
 		}
+
+		INSIST(region->length >= len);
+		if (region->length != len && region->base[len] != sep) {
+			continue;
+		}
+
 		isc_textregion_consume(region, len);
 		ul = sbpr[i].value;
 		goto finish;
@@ -245,13 +249,16 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 
 	for (i = 0; i < ARRAY_SIZE(sbpr); i++) {
 		len = strlen(sbpr[i].name);
-		if (strncmp(region->base, sbpr[i].name, len) != 0 ||
-		    (region->base[len] != 0 && region->base[len] != '='))
-		{
+		if (strncmp(region->base, sbpr[i].name, len) != 0) {
 			continue;
 		}
 
-		if (region->base[len] == '=') {
+		INSIST(region->length >= len);
+		if (region->length != len) {
+			if (region->base[len] != '=') {
+				continue;
+			}
+
 			len++;
 		}
 
@@ -270,7 +277,9 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			RETERR(alpn_fromtxt(region, target));
 			break;
 		case sbpr_port:
-			if (!isdigit((unsigned char)*region->base)) {
+			if (region->length == 0 ||
+			    !isdigit((unsigned char)region->base[0]))
+			{
 				return DNS_R_SYNTAX;
 			}
 			ul = strtoul(region->base, &e, 10);

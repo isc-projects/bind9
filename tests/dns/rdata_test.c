@@ -12,8 +12,8 @@
  */
 
 #include <inttypes.h>
-#include <sched.h> /* IWYU pragma: keep */
-#include <setjmp.h>
+#include <sched.h>  /* IWYU pragma: keep */
+#include <setjmp.h> /* IWYU pragma: keep */
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -35,8 +35,11 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <dns/keyvalues.h>
 #include <dns/lib.h>
+#include <dns/masterdump.h>
 #include <dns/rdata.h>
+#include <dns/secalg.h>
 
 #include "../isc/openssl_shim.c"
 #include "../isc/openssl_shim.h"
@@ -3657,6 +3660,55 @@ ISC_RUN_TEST_IMPL(iszonecutauth) {
 #undef UNR
 }
 
+/*
+ * Check that DHCID multiline text output includes the trailing
+ * comment with the identifier type, digest type and digest length
+ * ("<base64> ) ; 2 1 6" for the wire data below).
+ */
+ISC_RUN_TEST_IMPL(dhcid_multiline) {
+	unsigned char wire[] = {
+		0x00, 0x02, 0x01, 'c', 'o', 'f', 'f', 'e', 'e'
+	};
+
+	isc_region_t region = { .base = wire, .length = sizeof(wire) };
+	isc_buffer_t target;
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	char buf[128];
+
+	dns_rdata_fromregion(&rdata, dns_rdataclass_in, dns_rdatatype_dhcid,
+			     &region);
+
+	isc_buffer_init(&target, buf, sizeof(buf) - 1);
+	result = dns_rdata_tofmttext(&rdata, NULL, DNS_STYLEFLAG_MULTILINE, 80,
+				     80, "\n", &target);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	buf[isc_buffer_usedlength(&target)] = '\0';
+
+	assert_string_equal(buf, "( AAIBY29mZmVl ) ; 2 1 6");
+}
+
+/*
+ * dns_secalg_format() must NUL-terminate without overflowing or
+ * aborting, including when the mnemonic exactly fills the buffer
+ * and when it does not fit at all.
+ */
+ISC_RUN_TEST_IMPL(secalg_format) {
+	char no_nul_space[sizeof("RSASHA256") - 1];
+	char exact[sizeof("RSASHA256")];
+	char small[5];
+
+	dns_secalg_format(DNS_KEYALG_RSASHA256, exact, sizeof(exact));
+	assert_string_equal(exact, "RSASHA256");
+
+	dns_secalg_format(DNS_KEYALG_RSASHA256, no_nul_space,
+			  sizeof(no_nul_space));
+	assert_string_equal(no_nul_space, "");
+
+	dns_secalg_format(DNS_KEYALG_RSASHA256, small, sizeof(small));
+	assert_string_equal(small, "");
+}
+
 ISC_TEST_LIST_START
 
 /* types */
@@ -3666,6 +3718,7 @@ ISC_TEST_ENTRY(atma)
 ISC_TEST_ENTRY(brid)
 ISC_TEST_ENTRY(cdnskey)
 ISC_TEST_ENTRY(csync)
+ISC_TEST_ENTRY(dhcid_multiline)
 ISC_TEST_ENTRY(dnskey)
 ISC_TEST_ENTRY(doa)
 ISC_TEST_ENTRY(ds)
@@ -3698,6 +3751,7 @@ ISC_TEST_ENTRY(edns_rad)
 ISC_TEST_ENTRY(atcname)
 ISC_TEST_ENTRY(atparent)
 ISC_TEST_ENTRY(iszonecutauth)
+ISC_TEST_ENTRY(secalg_format)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

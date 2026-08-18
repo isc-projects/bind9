@@ -480,6 +480,7 @@ isc__mem_put(isc_mem_t *, void *, size_t, int _ISC_MEM_FLARG);
 void
 isc__mem_free(isc_mem_t *, void *, int _ISC_MEM_FLARG);
 
+ISC_ATTR_RETURNS_NONNULL
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mem_put, 2)
 void *
 isc__mem_get(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
@@ -488,6 +489,7 @@ ISC_ATTR_DEALLOCATOR_IDX(isc__mem_put, 2)
 void *
 isc__mem_reget(isc_mem_t *, void *, size_t, size_t, int _ISC_MEM_FLARG);
 
+ISC_ATTR_RETURNS_NONNULL
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mem_free, 2)
 void *
 isc__mem_allocate(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
@@ -501,6 +503,7 @@ ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mem_free, 2)
 char *
 isc__mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
 
+ISC_ATTR_RETURNS_NONNULL
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mempool_put, 2)
 void *
 isc__mempool_get(isc_mempool_t *_ISC_MEM_FLARG);

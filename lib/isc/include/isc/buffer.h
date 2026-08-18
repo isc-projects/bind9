@@ -104,6 +104,7 @@
 #include <stdbool.h>
 
 #include <isc/assertions.h>
+#include <isc/attributes.h>
 #include <isc/endian.h>
 #include <isc/formatcheck.h>
 #include <isc/list.h>
@@ -169,7 +170,7 @@
 
 struct isc_buffer {
 	unsigned int magic;
-	void	    *base;
+	void	    *base ISC_ATTR_SIZED_BY_PTR(length);
 	/*@{*/
 	/*! The following integers are byte offsets from 'base'. */
 	unsigned int length;
@@ -246,7 +247,17 @@ isc_buffer_free(isc_buffer_t **restrict dynbuffer);
  */
 
 static inline void
+isc_buffer_init(isc_buffer_t *restrict b, void *base, const unsigned int length)
+	ISC_ATTR_DIAGNOSE_IF(base == NULL && length == 0,
+			     "use isc_buffer_initnull", "error");
+
+static inline void
 isc_buffer_initnull(isc_buffer_t *restrict b);
+/**<
+ * \brief
+ * Initialize a buffer `b` with a null data field and zero length.
+ * This can later be grown as needed and swapped in place.
+ */
 
 static inline void
 isc_buffer_reinit(isc_buffer_t *restrict b, void *base,
@@ -261,6 +272,54 @@ isc_buffer_reinit(isc_buffer_t *restrict b, void *base,
  *
  *\li	'base' is a pointer to a sequence of 'length' bytes.
  *
+ */
+
+static inline void
+isc_buffer_add(isc_buffer_t *restrict b, const unsigned int n)
+	ISC_ATTR_DIAGNOSE_IF(n == 0, "no-op buffer add", "error");
+/**<
+ * \brief
+ * Increase the `used` region of `b` by `n` bytes.
+ *
+ * Requires:
+ * \li `b` points to a valid buffer
+ * \li `used + n <= length`
+ */
+
+static inline void
+isc_buffer_subtract(isc_buffer_t *restrict b, const unsigned int n)
+	ISC_ATTR_DIAGNOSE_IF(n == 0, "no-op buffer subtract", "error");
+/**<
+ * \brief
+ * Decrease the `used` region of `b` by `n` bytes.
+ *
+ * Requires:
+ * \li `b` points to a valid buffer
+ * \li `used >= n`
+ */
+
+static inline void
+isc_buffer_forward(isc_buffer_t *restrict b, const unsigned int n)
+	ISC_ATTR_DIAGNOSE_IF(n == 0, "no-op buffer forward", "error");
+/**<
+ * \brief
+ * Increase the `consumed` region of `b` by `n` bytes.
+ *
+ * Requires:
+ * \li `b` points to a valid buffer
+ * \li `current + n <= used`
+ */
+
+static inline void
+isc_buffer_back(isc_buffer_t *restrict b, const unsigned int n)
+	ISC_ATTR_DIAGNOSE_IF(n == 0, "no-op buffer back", "error");
+/**<
+ * \brief
+ * Decrease the `consumed` region of `b` by `n` bytes.
+ *
+ * Requires:
+ * \li `b` points to a valid buffer
+ * \li `n <= current`
  */
 
 static inline void
@@ -532,10 +591,6 @@ isc_buffer_init(isc_buffer_t *restrict b, void *base,
 	};
 }
 
-/*!
- *\brief Initialize a buffer 'b' with a null data field and zero length.
- * This can later be grown as needed and swapped in place.
- */
 static inline void
 isc_buffer_initnull(isc_buffer_t *restrict b) {
 	*b = (isc_buffer_t){
@@ -639,15 +694,6 @@ isc_buffer_availableregion(isc_buffer_t *restrict b, isc_region_t *restrict r) {
 	r->length = isc_buffer_availablelength(b);
 }
 
-/*!
- * \brief Increase the 'used' region of 'b' by 'n' bytes.
- *
- * Requires:
- *
- *\li	'b' is a valid buffer
- *
- *\li	used + n <= length
- */
 static inline void
 isc_buffer_add(isc_buffer_t *restrict b, const unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
@@ -656,15 +702,6 @@ isc_buffer_add(isc_buffer_t *restrict b, const unsigned int n) {
 	b->used += n;
 }
 
-/*!
- * \brief Decrease the 'used' region of 'b' by 'n' bytes.
- *
- * Requires:
- *
- *\li	'b' is a valid buffer
- *
- *\li	used >= n
- */
 static inline void
 isc_buffer_subtract(isc_buffer_t *restrict b, const unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
@@ -793,15 +830,6 @@ isc_buffer_first(isc_buffer_t *restrict b) {
 	b->current = 0;
 }
 
-/*!
- * \brief Increase the 'consumed' region of 'b' by 'n' bytes.
- *
- * Requires:
- *
- *\li	'b' is a valid buffer
- *
- *\li	current + n <= used
- */
 static inline void
 isc_buffer_forward(isc_buffer_t *restrict b, const unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
@@ -810,15 +838,6 @@ isc_buffer_forward(isc_buffer_t *restrict b, const unsigned int n) {
 	b->current += n;
 }
 
-/*!
- * \brief Decrease the 'consumed' region of 'b' by 'n' bytes.
- *
- * Requires:
- *
- *\li	'b' is a valid buffer
- *
- *\li	n <= current
- */
 static inline void
 isc_buffer_back(isc_buffer_t *restrict b, const unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));

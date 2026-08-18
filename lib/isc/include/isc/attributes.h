@@ -25,6 +25,10 @@
 #define __has_attribute(x) 0
 #endif /* __has_attribute */
 
+#ifndef __clang_major__
+#define __clang_major__ 0
+#endif
+
 #if __has_c_attribute(noreturn) && __STDC_VERSION__ >= 202311L
 #define ISC_NORETURN [[noreturn]]
 #else
@@ -119,6 +123,18 @@
 #define ISC_ATTR_COUNTED_BY(x)
 #endif
 
+#if __GNUC__ >= 16 || __clang_major__ >= 22
+#define ISC_ATTR_COUNTED_BY_PTR(x) __attribute__((__counted_by__(x)))
+#else
+#define ISC_ATTR_COUNTED_BY_PTR(x)
+#endif
+
+#if __clang_major__ >= 22
+#define ISC_ATTR_SIZED_BY_PTR(x) __attribute__((__sized_by__(x)))
+#else
+#define ISC_ATTR_SIZED_BY_PTR(x)
+#endif
+
 #if __has_attribute(__nonnull__)
 #define ISC_ATTR_NONNULL(...) __attribute__((__nonnull__(__VA_ARGS__)))
 #else
@@ -130,3 +146,15 @@
 #else /* if __GNUC__ >= 8 && !defined(__clang__) */
 #define ISC_NONSTRING
 #endif /* __GNUC__ */
+
+#if __has_attribute(access)
+#define ISC_ATTR_ACCESS(...) __attribute__((access(__VA_ARGS__)))
+#else
+#define ISC_ATTR_ACCESS(...)
+#endif
+
+#if __has_attribute(diagnose_if)
+#define ISC_ATTR_DIAGNOSE_IF(...) __attribute__((diagnose_if(__VA_ARGS__)))
+#else
+#define ISC_ATTR_DIAGNOSE_IF(...)
+#endif
