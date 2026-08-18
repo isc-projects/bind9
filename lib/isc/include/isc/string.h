@@ -59,4 +59,26 @@ isc_string_casehasprefix(const char *str, const char *prefix) {
 	return strncasecmp(str, prefix, strlen(prefix)) == 0;
 }
 
+/*
+ * Match the beginning of 'str' against 'prefix' (case sensitively)
+ * and strip the prefix: return the remainder of 'str' after 'prefix',
+ * or NULL when 'str' does not begin with 'prefix'.
+ */
+static inline const char *
+isc_string_stripprefix(const char *str, const char *prefix) {
+	size_t len = strlen(prefix);
+	return strncmp(str, prefix, len) == 0 ? str + len : NULL;
+}
+
+/*
+ * Match the beginning of 'str' against 'prefix' (case insensitively)
+ * and strip the prefix: return the remainder of 'str' after 'prefix',
+ * or NULL when 'str' does not begin with 'prefix'.
+ */
+static inline const char *
+isc_string_casestripprefix(const char *str, const char *prefix) {
+	size_t len = strlen(prefix);
+	return strncasecmp(str, prefix, len) == 0 ? str + len : NULL;
+}
+
 ISC_LANG_ENDDECLS
