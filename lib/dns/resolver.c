@@ -5555,27 +5555,14 @@ validated(void *arg) {
 		inc_stats(res, dns_resstatscounter_valfail);
 		fctx->valfail++;
 		fctx->vresult = val->result;
-		if (fctx->vresult != DNS_R_BROKENCHAIN) {
-			result = ISC_R_NOTFOUND;
-			if (val->rdataset != NULL) {
-				result = dns_db_findnode(fctx->cache, val->name,
-							 false, &node);
+		switch (fctx->vresult) {
+		case DNS_R_BROKENCHAIN:
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
+			if (negative) {
+				break;
 			}
-			if (result == ISC_R_SUCCESS) {
-				(void)dns_db_deleterdataset(fctx->cache, node,
-							    NULL, val->type, 0);
-			}
-			if (result == ISC_R_SUCCESS && val->sigrdataset != NULL)
-			{
-				(void)dns_db_deleterdataset(
-					fctx->cache, node, NULL,
-					dns_rdatatype_rrsig, val->type);
-			}
-			if (result == ISC_R_SUCCESS) {
-				dns_db_detachnode(fctx->cache, &node);
-			}
-		}
-		if (fctx->vresult == DNS_R_BROKENCHAIN && !negative) {
 			/*
 			 * Cache the data as pending for later
 			 * validation.
@@ -5599,6 +5586,27 @@ validated(void *arg) {
 			if (result == ISC_R_SUCCESS) {
 				dns_db_detachnode(fctx->cache, &node);
 			}
+			break;
+		default:
+			result = ISC_R_NOTFOUND;
+			if (val->rdataset != NULL) {
+				result = dns_db_findnode(fctx->cache, val->name,
+							 false, &node);
+			}
+			if (result == ISC_R_SUCCESS) {
+				(void)dns_db_deleterdataset(fctx->cache, node,
+							    NULL, val->type, 0);
+			}
+			if (result == ISC_R_SUCCESS && val->sigrdataset != NULL)
+			{
+				(void)dns_db_deleterdataset(
+					fctx->cache, node, NULL,
+					dns_rdatatype_rrsig, val->type);
+			}
+			if (result == ISC_R_SUCCESS) {
+				dns_db_detachnode(fctx->cache, &node);
+			}
+			break;
 		}
 		result = fctx->vresult;
 		add_bad(fctx, message, addrinfo, result, badns_validation);
@@ -5614,10 +5622,21 @@ validated(void *arg) {
 		} else if (sentresponse) {
 			done = true;
 			goto cleanup_fetchctx;
-		} else if (result == DNS_R_BROKENCHAIN) {
+		}
+
+		/*
+		 * A broken trust chain isn't recoverable, and neither is an
+		 * exhausted DNSSEC validation budget: retrying would only do
+		 * more validation work against the same quota.
+		 */
+		switch (result) {
+		case DNS_R_BROKENCHAIN:
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
 			done = true;
 			goto cleanup_fetchctx;
-		} else {
+		default:
 			fctx_try(fctx, true);
 			goto cleanup_fetchctx;
 		}

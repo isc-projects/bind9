@@ -120,6 +120,13 @@ enum valattr {
 #define MAXVALIDATIONFAILS(r) \
 	(((r)->attributes & VALATTR_MAXVALIDATIONFAILS) != 0)
 
+/*
+ * How many DS x DNSKEY matching combinations to allow per validation
+ * permitted by max-validations-per-fetch; matching a DS against a DNSKEY
+ * (a keytag computation) is far cheaper than a signature validation.
+ */
+#define DS_DNSKEY_COMBINATIONS_PER_VALIDATION 2
+
 static void
 destroy_validator(dns_validator_t *val);
 
@@ -553,6 +560,12 @@ over_max_fails(dns_validator_t *val);
 static void
 consume_validation_fail(dns_validator_t *val);
 
+static void
+validate_answer_finish(void *arg);
+
+static void
+validator_cancel_finish(dns_validator_t *validator);
+
 static isc_result_t
 resume_answer_with_key(void *arg) {
 	dns_validator_t *val = arg;
@@ -582,17 +595,22 @@ static void
 resume_answer_with_key_done(void *arg) {
 	dns_validator_t *val = arg;
 
+	val->attributes &= ~VALATTR_OFFLOADED;
+	if (CANCELING(val)) {
+		validator_cancel_finish(val);
+		val->result = ISC_R_CANCELED;
+	}
+
 	switch (val->result) {
 	case ISC_R_CANCELED:	 /* Validation was canceled */
 	case ISC_R_SHUTTINGDOWN: /* Server shutting down */
 	case ISC_R_QUOTA:	 /* Validation fails quota reached */
-		dns_validator_cancel(val);
-		break;
+		validate_answer_finish(val);
+		return;
 	default:
+		resume_answer(val);
 		break;
 	}
-
-	resume_answer(val);
 }
 
 /*%
@@ -650,6 +668,12 @@ fetch_callback_dnskey(void *arg) {
 		} else {
 			result = validate_async_run(val, resume_answer);
 		}
+		break;
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_QUOTA:
+		/* Abort, abort, abort */
+		result = eresult;
 		break;
 	default:
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -730,6 +754,12 @@ fetch_callback_ds(void *arg) {
 				      isc_result_totext(eresult));
 			result = proveunsecure(val, false, false);
 			break;
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
+			/* Abort, abort, abort */
+			result = eresult;
+			break;
 		default:
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "fetch_callback_ds: got %s",
@@ -793,6 +823,12 @@ fetch_callback_ds(void *arg) {
 			 * the break point in the chain of trust.
 			 */
 			result = proveunsecure(val, false, true);
+			break;
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
+			/* Abort, abort, abort */
+			result = eresult;
 			break;
 		default:
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -1870,9 +1906,6 @@ static void
 validate_answer_iter_done(dns_validator_t *val, isc_result_t result);
 
 static void
-validator_cancel_finish(dns_validator_t *validator);
-
-static void
 validate_answer_iter_start(dns_validator_t *val) {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -1930,9 +1963,6 @@ cleanup:
 
 	(void)validate_async_run(val, validate_answer_process);
 }
-
-static void
-validate_answer_finish(void *arg);
 
 static void
 validate_answer_signing_key_done(void *arg);
@@ -2100,18 +2130,7 @@ validate_answer_finish(void *arg) {
 		validate_async_done(val, val->result);
 		return;
 	case ISC_R_QUOTA:
-		if (MAXVALIDATIONS(val)) {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "maximum number of validations exceeded");
-		} else if (MAXVALIDATIONFAILS(val)) {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "maximum number of validation failures "
-				      "exceeded");
-		} else {
-			validator_log(
-				val, ISC_LOG_DEBUG(3),
-				"unknown error: validation quota exceeded");
-		}
+		/* validate_async_done() logs the specific quota reason. */
 		validate_async_done(val, val->result);
 		return;
 	default:
@@ -2232,6 +2251,22 @@ validate_work_enqueue(dns_validator_t *val, isc_work_cb cb) {
 
 static void
 validate_async_done(dns_validator_t *val, isc_result_t result) {
+	if (result == ISC_R_QUOTA) {
+		/*
+		 * Log the reason on the validator that actually hit the quota
+		 * (it set the attribute); a parent that merely inherits the
+		 * quota result from a sub-validation stays quiet.
+		 */
+		if (MAXVALIDATIONS(val)) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "maximum number of validations exceeded");
+		} else if (MAXVALIDATIONFAILS(val)) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "maximum number of validation failures "
+				      "exceeded");
+		}
+	}
+
 	if (result == DNS_R_NOVALIDSIG &&
 	    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
 	{
@@ -2379,6 +2414,7 @@ validate_dnskey_dsset_done(dns_validator_t *val, isc_result_t result) {
 	switch (result) {
 	case ISC_R_CANCELED:
 	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_QUOTA:
 		/* Abort, abort, abort! */
 		break;
 	case ISC_R_SUCCESS:
@@ -2418,7 +2454,6 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	isc_result_t result;
 	dns_rdata_ds_t ds;
 
-	dns_rdata_reset(&dsrdata);
 	dns_rdataset_current(val->dsset, &dsrdata);
 	result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -2445,7 +2480,31 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		return DNS_R_BADALG;
 	}
 
-	val->validation_attempts++;
+	val->matchds_attempts++;
+
+	/*
+	 * Matching one DS against the DNSKEY RRset derives a key tag for
+	 * every DNSKEY, so each DS that reaches this point costs one key-tag
+	 * computation per key.  Bound the accumulated DS-by-DNSKEY work at
+	 * DS_DNSKEY_COMBINATIONS_PER_VALIDATION key tags per allowed
+	 * validation and stop once it is exceeded, so a flood of mismatched
+	 * (or matching but unsigned) DS records cannot force unbounded
+	 * matching.  Ignored DS (unsupported digest or algorithm) return
+	 * above without being counted.  A trust-anchor dsset is locally
+	 * configured, not attacker supplied, and its rdataset has no count
+	 * method.
+	 */
+	if (val->nvalidations != NULL && val->dsset != &val->fdsset) {
+		size_t keycount = dns_rdataset_count(val->rdataset);
+
+		if ((size_t)val->matchds_attempts * keycount >
+		    (size_t)isc_counter_getlimit(val->nvalidations) *
+			    DS_DNSKEY_COMBINATIONS_PER_VALIDATION)
+		{
+			val->attributes |= VALATTR_MAXVALIDATIONS;
+			return ISC_R_QUOTA;
+		}
+	}
 
 	/*
 	 * Find the DNSKEY matching the DS...
@@ -2453,15 +2512,35 @@ validate_dnskey_dsset(dns_validator_t *val) {
 	result = dns_dnssec_matchdskey(val->name, &dsrdata, val->rdataset,
 				       &keyrdata);
 	if (result != ISC_R_SUCCESS) {
+		val->validation_attempts++;
 		validator_log(val, ISC_LOG_DEBUG(3), "no DNSKEY matching DS");
+		/*
+		 * A DS that matches no DNSKEY is wasted key-tag matching
+		 * work; count it against the validation quota so a flood of
+		 * mismatched DS records cannot force unbounded matching.
+		 */
+		consume_validation(val);
+		if (over_max_validations(val)) {
+			return ISC_R_QUOTA;
+		}
 		return DNS_R_NOKEYMATCH;
 	}
+
+	val->validation_attempts++;
 
 	/*
 	 * ... and check that it signed the DNSKEY RRset.
 	 */
 	result = check_signer(val, &keyrdata, ds.key_tag, ds.algorithm);
-	if (result != ISC_R_SUCCESS) {
+	switch (result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_CANCELED:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_QUOTA:
+		/* Abort, abort, abort */
+		return result;
+	default:
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no RRSIG matching DS key");
 
@@ -2506,14 +2585,21 @@ validate_dnskey_dsset_next_done(void *arg) {
 	switch (result) {
 	case ISC_R_CANCELED:
 	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_QUOTA:
 		/* Abort, abort, abort! */
 		break;
 	case ISC_R_SUCCESS:
 	case ISC_R_NOMORE:
-		/* We are done */
 		break;
 	default:
-		/* Continue validation until we have success or no more data */
+		/*
+		 * A DS that matched no DNSKEY, or matched one that did not
+		 * sign the RRset (for example a standby KSK), is not a
+		 * validation failure: mismatched DS records are already
+		 * charged against the quota in validate_dnskey_dsset() and
+		 * signature failures inside verify().  Continue until we
+		 * have success or no more data.
+		 */
 		(void)validate_work_enqueue(val, validate_dnskey_dsset_next);
 		return;
 	}
@@ -2529,25 +2615,18 @@ validate_dnskey_dsset_next_done(void *arg) {
 
 static void
 validate_dnskey_dsset_first(dns_validator_t *val) {
-	isc_result_t result;
-
 	if (CANCELED(val) || CANCELING(val)) {
-		result = ISC_R_CANCELED;
+		val->result = ISC_R_CANCELED;
 	} else {
-		result = dns_rdataset_first(val->dsset);
+		val->result = dns_rdataset_first(val->dsset);
 	}
 
-	if (result == ISC_R_SUCCESS) {
+	if (val->result == ISC_R_SUCCESS) {
 		/* continue async run */
-		result = validate_dnskey_dsset(val);
-		if (result != ISC_R_SUCCESS) {
-			(void)validate_work_enqueue(val,
-						    validate_dnskey_dsset_next);
-			return;
-		}
+		val->result = validate_dnskey_dsset(val);
 	}
 
-	validate_dnskey_dsset_done(val, result);
+	(void)validate_async_run(val, validate_dnskey_dsset_next_done);
 }
 
 static void
