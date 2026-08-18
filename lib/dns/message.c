@@ -1440,6 +1440,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 				if (dns_rdata_compare(rdata, first) != 0) {
 					DO_ERROR(DNS_R_FORMERR);
 				}
+				if (!best_effort) {
+					dns_message_puttemprdata(msg, &rdata);
+				}
 				break;
 			case ISC_R_SUCCESS:
 				ISC_LIST_APPEND(name->list, rdataset, link);
@@ -1465,8 +1468,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		}
 
 		/* Append this rdata to the rdataset. */
-		dns_rdatalist_fromrdataset(rdataset, &rdatalist);
-		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+		if (rdata != NULL) {
+			dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+			ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+		}
 
 		/*
 		 * If this is an OPT, SIG(0) or TSIG record, remember it.
