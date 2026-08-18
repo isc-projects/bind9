@@ -152,7 +152,6 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 			 * code points).
 			 */
 			if (rdata->data[3] == DST_ALG_DH ||
-			    rdata->data[3] == DST_ALG_GSSAPI ||
 			    (rdata->data[3] >= DST_ALG_HMAC_FIRST &&
 			     rdata->data[3] <= DST_ALG_HMAC_LAST))
 			{

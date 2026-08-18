@@ -101,7 +101,6 @@ typedef enum dst_algorithm {
 	 */
 	DST_ALG_HMACMD5 = 157,
 	DST_ALG_HMAC_FIRST = DST_ALG_HMACMD5,
-	DST_ALG_GSSAPI = 160,	  /* Internal use only. Exception. */
 	DST_ALG_HMACSHA1 = 161,	  /* XXXMPA */
 	DST_ALG_HMACSHA224 = 162, /* XXXMPA */
 	DST_ALG_HMACSHA256 = 163, /* XXXMPA */
@@ -121,10 +120,9 @@ typedef enum dst_algorithm {
 #ifdef TEST_PRIVATEDNS
 	DST_ALG_RSASHA256PRIVATEDNS = 258, /* rsasha256.example.org. */
 	DST_ALG_RSASHA512PRIVATEDNS = 259, /* rsasha512.example.org. */
-	DST_MAX_ALGS = 260,
-#else
-	DST_MAX_ALGS = 258,
 #endif
+	DST_ALG_GSSAPI = 260, /* Internal use only. */
+	DST_MAX_ALGS = 261,
 } dst_algorithm_t;
 
 /*% 'Type' for dst_read_key() */
