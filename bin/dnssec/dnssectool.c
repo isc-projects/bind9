@@ -277,6 +277,7 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	int64_t val, offset;
 	isc_result_t result;
 	const char *orig = str;
+	const char *tail;
 	char *endp;
 	size_t n;
 	struct tm tm;
@@ -324,9 +325,9 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	{
 		base = strtoll(str, &endp, 0);
 		str += 10;
-	} else if (strncmp(str, "now", 3) == 0) {
+	} else if ((tail = isc_string_stripprefix(str, "now")) != NULL) {
 		base = now;
-		str += 3;
+		str = tail;
 	} else if (str[0] >= 'A' && str[0] <= 'Z') {
 		/* parse ctime() format as written by `dnssec-settime -p` */
 		endp = isc_tm_strptime(str, "%a %b %d %H:%M:%S %Y", &tm);

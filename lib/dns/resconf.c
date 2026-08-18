@@ -48,6 +48,7 @@
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <irs/resconf.h>
@@ -476,6 +477,7 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 	int delim;
 	isc_result_t result = ISC_R_SUCCESS;
 	char word[RESCONFMAXLINELEN];
+	const char *value = NULL;
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
@@ -485,12 +487,18 @@ resconf_parseoption(irs_resconf_t *conf, FILE *fp) {
 	while (strlen(word) > 0U) {
 		if (strcmp("debug", word) == 0) {
 			conf->resdebug = 1;
-		} else if (strncmp("ndots:", word, 6) == 0) {
-			CHECK(resconf_optionnumber(word + 6, &conf->ndots));
-		} else if (strncmp("attempts:", word, 9) == 0) {
-			CHECK(resconf_optionnumber(word + 9, &conf->attempts));
-		} else if (strncmp("timeout:", word, 8) == 0) {
-			CHECK(resconf_optionnumber(word + 8, &conf->timeout));
+		} else if ((value = isc_string_stripprefix(word, "ndots:")) !=
+			   NULL)
+		{
+			CHECK(resconf_optionnumber(value, &conf->ndots));
+		} else if ((value = isc_string_stripprefix(word, "attempts"
+								 ":")) != NULL)
+		{
+			CHECK(resconf_optionnumber(value, &conf->attempts));
+		} else if ((value = isc_string_stripprefix(word, "timeout:")) !=
+			   NULL)
+		{
+			CHECK(resconf_optionnumber(value, &conf->timeout));
 		}
 
 		if (delim == EOF || delim == '\n') {

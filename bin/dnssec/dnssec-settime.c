@@ -185,7 +185,8 @@ main(int argc, char **argv) {
 	const char *filename = NULL;
 	char *directory = NULL;
 	char keystr[DST_KEY_FORMATSIZE];
-	char *endp, *p;
+	char *endp;
+	const char *p, *tail;
 	int ch;
 	const char *predecessor = NULL;
 	dst_key_t *prevkey = NULL;
@@ -439,13 +440,17 @@ main(int argc, char **argv) {
 					printcreate = true;
 					break;
 				case 'D':
-					if (!strncmp(p, "sync", 4)) {
-						p += 4;
+					if ((tail = isc_string_stripprefix(
+						     p, "sync")) != NULL)
+					{
+						p = tail;
 						printsyncdel = true;
 						break;
 					}
-					if (!strncmp(p, "ds", 2)) {
-						p += 2;
+					if ((tail = isc_string_stripprefix(
+						     p, "ds")) != NULL)
+					{
+						p = tail;
 						printdsdel = true;
 						break;
 					}
@@ -455,13 +460,17 @@ main(int argc, char **argv) {
 					printinact = true;
 					break;
 				case 'P':
-					if (!strncmp(p, "sync", 4)) {
-						p += 4;
+					if ((tail = isc_string_stripprefix(
+						     p, "sync")) != NULL)
+					{
+						p = tail;
 						printsyncadd = true;
 						break;
 					}
-					if (!strncmp(p, "ds", 2)) {
-						p += 2;
+					if ((tail = isc_string_stripprefix(
+						     p, "ds")) != NULL)
+					{
+						p = tail;
 						printdsadd = true;
 						break;
 					}

@@ -553,6 +553,7 @@ set_ndots(const char *value) {
 static void
 setoption(char *opt) {
 	size_t l = strlen(opt);
+	const char *val = NULL;
 
 #define CHECKOPT(A, N) \
 	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
@@ -597,30 +598,31 @@ setoption(char *opt) {
 			strlcpy(deftype, &opt[2], sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "domain=", 7) == 0) {
-		strlcpy(domainopt, &opt[7], sizeof(domainopt));
+	} else if ((val = isc_string_casestripprefix(opt, "domain=")) != NULL) {
+		strlcpy(domainopt, val, sizeof(domainopt));
 		set_search_domain(domainopt);
 		usesearch = true;
-	} else if (strncasecmp(opt, "do=", 3) == 0) {
-		strlcpy(domainopt, &opt[3], sizeof(domainopt));
+	} else if ((val = isc_string_casestripprefix(opt, "do=")) != NULL) {
+		strlcpy(domainopt, val, sizeof(domainopt));
 		set_search_domain(domainopt);
 		usesearch = true;
-	} else if (strncasecmp(opt, "port=", 5) == 0) {
-		set_port(&opt[5]);
-	} else if (strncasecmp(opt, "po=", 3) == 0) {
-		set_port(&opt[3]);
-	} else if (strncasecmp(opt, "timeout=", 8) == 0) {
-		set_timeout(&opt[8]);
-	} else if (strncasecmp(opt, "t=", 2) == 0) {
-		set_timeout(&opt[2]);
+	} else if ((val = isc_string_casestripprefix(opt, "port=")) != NULL) {
+		set_port(val);
+	} else if ((val = isc_string_casestripprefix(opt, "po=")) != NULL) {
+		set_port(val);
+	} else if ((val = isc_string_casestripprefix(opt, "timeout=")) != NULL)
+	{
+		set_timeout(val);
+	} else if ((val = isc_string_casestripprefix(opt, "t=")) != NULL) {
+		set_timeout(val);
 	} else if (CHECKOPT("recurse", 3)) {
 		recurse = true;
 	} else if (CHECKOPT("norecurse", 5)) {
 		recurse = false;
-	} else if (strncasecmp(opt, "retry=", 6) == 0) {
-		set_tries(&opt[6]);
-	} else if (strncasecmp(opt, "ret=", 4) == 0) {
-		set_tries(&opt[4]);
+	} else if ((val = isc_string_casestripprefix(opt, "retry=")) != NULL) {
+		set_tries(val);
+	} else if ((val = isc_string_casestripprefix(opt, "ret=")) != NULL) {
+		set_tries(val);
 	} else if (CHECKOPT("defname", 3)) {
 		usesearch = true;
 	} else if (CHECKOPT("nodefname", 5)) {
@@ -651,8 +653,8 @@ setoption(char *opt) {
 		nofail = false;
 	} else if (CHECKOPT("nofail", 5)) {
 		nofail = true;
-	} else if (strncasecmp(opt, "ndots=", 6) == 0) {
-		set_ndots(&opt[6]);
+	} else if ((val = isc_string_casestripprefix(opt, "ndots=")) != NULL) {
+		set_ndots(val);
 	} else {
 		printf("*** Invalid option: %s\n", opt);
 	}

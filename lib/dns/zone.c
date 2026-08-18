@@ -2245,6 +2245,7 @@ zone_check_dup(dns_zone_t *zone, dns_db_t *db) {
 static bool
 isspf(const dns_rdata_t *rdata) {
 	char buf[1024];
+	const char *tail;
 	const unsigned char *data = rdata->data;
 	unsigned int rdl = rdata->length, i = 0, tl, len;
 
@@ -2267,7 +2268,8 @@ isspf(const dns_rdata_t *rdata) {
 	}
 
 	buf[i] = 0;
-	if (strncmp(buf, "v=spf1", 6) == 0 && (buf[6] == 0 || buf[6] == ' ')) {
+	tail = isc_string_stripprefix(buf, "v=spf1");
+	if (tail != NULL && (*tail == 0 || *tail == ' ')) {
 		return true;
 	}
 	return false;

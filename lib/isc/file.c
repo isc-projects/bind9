@@ -535,6 +535,7 @@ isc_file_basename(const char *filename) {
 void
 isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	const char *base;
+	const char *tail;
 	size_t len;
 
 	REQUIRE(filename != NULL);
@@ -546,8 +547,9 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	 * Libtool doesn't preserve the program name prior to final
 	 * installation.  Remove the libtool prefix ("lt-").
 	 */
-	if (strncmp(base, "lt-", 3) == 0) {
-		base += 3;
+	tail = isc_string_stripprefix(base, "lt-");
+	if (tail != NULL) {
+		base = tail;
 	}
 
 	len = strlen(base) + 1;
