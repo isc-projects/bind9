@@ -865,7 +865,7 @@ parse_args(int argc, char **argv) {
 	for (argc--, argv++; argc > 0 && argv[0] != NULL; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
-			if (strncasecmp(argv[0], "-ver", 4) == 0) {
+			if (isc_string_casehasprefix(argv[0], "-ver")) {
 				printf("nslookup %s\n", PACKAGE_VERSION);
 				exit(EXIT_SUCCESS);
 			} else if (argv[0][1] != 0) {
