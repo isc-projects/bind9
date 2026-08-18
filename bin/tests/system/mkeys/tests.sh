@@ -879,7 +879,7 @@ count=$(grep -c "keyid: " rndc.out.$n) || true
 count=$(grep -c "trust" rndc.out.$n) || true
 [ "$count" -eq 2 ] || ret=1
 # log when an unsupported algorithm is encountered during rollover
-wait_for_log 20 "Cannot compute tag for key in zone .: algorithm is unsupported" ns6/named.run || ret=1
+wait_for_log 20 "Managed keys for '.' skipping unsupported algorithm 255" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

@@ -3428,22 +3428,19 @@ delete_keydata(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
  * Compute the DNSSEC key ID for a DNSKEY record.
  */
 static isc_result_t
-compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
-	    dns_keytag_t *tag) {
+compute_tag(dns_rdata_dnskey_t *dnskey, dns_keytag_t *tag) {
 	isc_result_t result;
+	isc_region_t r;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t buffer;
-	dst_key_t *dstkey = NULL;
 
 	isc_buffer_init(&buffer, data, sizeof(data));
 
 	CHECK(dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
 				   dns_rdatatype_dnskey, dnskey, &buffer));
-	CHECK(dns_dnssec_keyfromrdata(name, &rdata, mctx, &dstkey));
-
-	*tag = dst_key_id(dstkey);
-	dst_key_free(&dstkey);
+	dns_rdata_toregion(&rdata, &r);
+	*tag = dst_region_computeid(&r);
 
 cleanup:
 	return result;
@@ -5094,7 +5091,11 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	while (result == ISC_R_SUCCESS && count < maxkeys) {
 		pubkey = NULL;
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
+
+		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
+		if (result != ISC_R_SUCCESS) {
+			goto next;
+		}
 		dst_key_setttl(pubkey, rdataset.ttl);
 
 		if (!ZONEKEY(pubkey)) {
@@ -9051,6 +9052,7 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	dns_keynode_t *keynode = NULL;
 	dns_rdataset_t *dnskeys = NULL, *dnskeysigs = NULL;
 	dns_rdataset_t *keydataset = NULL, dsset;
+	bool skipped[256] = { false };
 
 	REQUIRE(fetch != NULL);
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
@@ -9211,7 +9213,7 @@ anchors_done:
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		dns_keydata_todnskey(&keydata, &dnskey, NULL);
-		result = compute_tag(keyname, &dnskey, mctx, &keytag);
+		result = compute_tag(&dnskey, &keytag);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * Skip if we cannot compute the key tag.
@@ -9219,8 +9221,7 @@ anchors_done:
 			 */
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "Cannot compute tag for key in zone %s: "
-				     "%s "
-				     "(skipping)",
+				     "%s (skipping)",
 				     namebuf, isc_result_totext(result));
 			continue;
 		}
@@ -9343,7 +9344,7 @@ anchors_done:
 			continue;
 		}
 
-		result = compute_tag(keyname, &dnskey, mctx, &keytag);
+		result = compute_tag(&dnskey, &keytag);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * Skip if we cannot compute the key tag.
@@ -9351,12 +9352,25 @@ anchors_done:
 			 */
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "Cannot compute tag for key in zone %s: "
-				     "%s "
-				     "(skipping)",
+				     "%s (skipping)",
 				     namebuf, isc_result_totext(result));
 			continue;
 		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		if (!dns_resolver_algorithm_supported(
+			    zone->view->resolver, keyname, dnskey.algorithm,
+			    dnskey.data, dnskey.datalen))
+		{
+			if (!skipped[dnskey.algorithm]) {
+				dns_zone_log(zone, ISC_LOG_INFO,
+					     "Managed keys for '%s' skipping "
+					     "unsupported algorithm %u",
+					     namebuf, dnskey.algorithm);
+			}
+			skipped[dnskey.algorithm] = true;
+			continue;
+		}
 
 		revoked = ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0);
 
