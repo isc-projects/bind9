@@ -682,8 +682,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 
 		/* Try to find the zone in the view */
 		find_result = dns_view_findzone(catz->catzs->view,
-						dns_catz_entry_getname(nentry),
-						DNS_ZTFIND_EXACT, &zone);
+						&nentry->name, DNS_ZTFIND_EXACT,
+						&zone);
 		if (find_result == ISC_R_SUCCESS) {
 			char pczname[DNS_NAME_FORMATSIZE];
 			bool coo_match = false;
