@@ -13021,6 +13021,11 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dns_notify_t *notify = NULL;
 		dns_view_t *view = dns_zone_getview(zone);
 
+		dst = dns_remote_curraddr(&zone->notify);
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
+
 		if (dns_remote_keyname(&zone->notify) != NULL) {
 			dns_name_t *keyname = dns_remote_keyname(&zone->notify);
 			(void)dns_view_gettsig(view, keyname, &key);
@@ -13050,19 +13055,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			flags |= DNS_NOTIFY_TCP;
 		}
 
-		dst = dns_remote_curraddr(&zone->notify);
 		src = dns_remote_sourceaddr(&zone->notify);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
-
-		if (isc_sockaddr_disabled(&dst)) {
-			if (key != NULL) {
-				dns_tsigkey_detach(&key);
-			}
-			if (transport != NULL) {
-				dns_transport_detach(&transport);
-			}
-			goto next;
-		}
 
 		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
@@ -21808,6 +21802,11 @@ checkds_send(dns_zone_t *zone) {
 
 		i++;
 
+		dst = dns_remote_curraddr(&zone->parentals);
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
+
 		if (dns_remote_keyname(&zone->parentals) != NULL) {
 			dns_name_t *keyname =
 				dns_remote_keyname(&zone->parentals);
@@ -21837,19 +21836,8 @@ checkds_send(dns_zone_t *zone) {
 			}
 		}
 
-		dst = dns_remote_curraddr(&zone->parentals);
 		src = dns_remote_sourceaddr(&zone->parentals);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
-
-		if (isc_sockaddr_disabled(&dst)) {
-			if (key != NULL) {
-				dns_tsigkey_detach(&key);
-			}
-			if (transport != NULL) {
-				dns_transport_detach(&transport);
-			}
-			goto next;
-		}
 
 		if (checkds_isqueued(zone, NULL, &dst, key, transport)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
