@@ -15,7 +15,9 @@
 
 /*! \file isc/string.h */
 
+#include <stdbool.h>
 #include <string.h>
+#include <strings.h>
 
 #include <isc/lang.h>
 
@@ -38,5 +40,23 @@ strnstr(const char *s, const char *find, size_t slen);
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen);
+
+/*
+ * Return true when 'str' begins with 'prefix', compared case
+ * sensitively.
+ */
+static inline bool
+isc_string_hasprefix(const char *str, const char *prefix) {
+	return strncmp(str, prefix, strlen(prefix)) == 0;
+}
+
+/*
+ * Return true when 'str' begins with 'prefix', compared case
+ * insensitively.
+ */
+static inline bool
+isc_string_casehasprefix(const char *str, const char *prefix) {
+	return strncasecmp(str, prefix, strlen(prefix)) == 0;
+}
 
 ISC_LANG_ENDDECLS
