@@ -850,15 +850,8 @@ vecheader_first(rdatavec_iter_t *iter, dns_vecheader_t *header,
 		return ISC_R_NOMORE;
 	}
 
-	/*
-	 * iter.iter_count is the number of rdata beyond the cursor
-	 * position, so we decrement the total count by one before
-	 * storing it.
-	 *
-	 * 'raw' points to the first record.
-	 */
 	iter->iter_pos = raw;
-	iter->iter_count = count - 1;
+	iter->iter_count = count;
 	iter->iter_rdclass = rdclass;
 	iter->iter_type = DNS_TYPEPAIR_TYPE(header->typepair);
 
@@ -867,16 +860,14 @@ vecheader_first(rdatavec_iter_t *iter, dns_vecheader_t *header,
 
 isc_result_t
 vecheader_next(rdatavec_iter_t *iter) {
-	uint16_t count = iter->iter_count;
-	if (count == 0) {
+	unsigned int count = iter->iter_count;
+	if (count <= 1) {
 		iter->iter_pos = NULL;
+		iter->iter_count = 0;
 		return ISC_R_NOMORE;
 	}
 	iter->iter_count = count - 1;
 
-	/*
-	 * Skip forward one record (length + 4) or one offset (4).
-	 */
 	unsigned char *raw = iter->iter_pos;
 	uint16_t length = peek_uint16(raw);
 	raw += length;
@@ -895,10 +886,6 @@ vecheader_current(rdatavec_iter_t *iter, dns_rdata_t *rdata) {
 	raw = iter->iter_pos;
 	REQUIRE(raw != NULL);
 
-	/*
-	 * Find the start of the record if not already in iter_pos
-	 * then skip the length and order fields.
-	 */
 	length = get_uint16(raw);
 
 	if (iter->iter_type == dns_rdatatype_rrsig) {
