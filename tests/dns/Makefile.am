@@ -31,6 +31,7 @@ check_PROGRAMS =		\
 	dst_test		\
 	ede_test		\
 	keytable_test		\
+	message_test		\
 	name_test		\
 	nametree_test		\
 	nsec3_test		\
