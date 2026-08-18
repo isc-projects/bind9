@@ -750,6 +750,20 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 			continue;
 		}
 
+		/*
+		 * If member name in the old entry is not equal to the member
+		 * name in the new entry, it means the unique label is the same
+		 * but the member name has been changed. We should add the
+		 * member from the new entry while making sure to pass 'oentry'
+		 * as NULL below, so it remains in the hash table and the member
+		 * zone is properly deleted.
+		 */
+		if (!dns_name_equal(&oentry->name, &nentry->name)) {
+			catz_entry_add_or_mod(catz, toadd, key, keysize, nentry,
+					      NULL, "adding", zname, czname);
+			continue;
+		}
+
 		if (find_result != ISC_R_SUCCESS) {
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_CATZ, ISC_LOG_DEBUG(3),
