@@ -454,28 +454,72 @@ typedef struct vecinfo {
 	unsigned char *pos;
 	dns_rdata_t rdata;
 	bool dup;
-	uint32_t length;
 } vecinfo_t;
+
+typedef struct vecmerge_iter {
+	rdatavec_iter_t left;
+	rdatavec_iter_t right;
+} vecmerge_iter_t;
+
+static void
+vecmerge_first(vecmerge_iter_t *iter, dns_vecheader_t *left,
+	       dns_vecheader_t *right, dns_rdataclass_t rdclass) {
+	INSIST(vecheader_first(&iter->left, left, rdclass) == ISC_R_SUCCESS);
+	INSIST(vecheader_first(&iter->right, right, rdclass) == ISC_R_SUCCESS);
+}
+
+static bool
+vecmerge_next(vecmerge_iter_t *iter, dns_rdata_t *rdata) {
+	bool have_left = iter->left.iter_count > 0;
+	bool have_right = iter->right.iter_count > 0;
+
+	if (!have_left && !have_right) {
+		return false;
+	}
+
+	dns_rdata_reset(rdata);
+
+	if (!have_right) {
+		vecheader_current(&iter->left, rdata);
+		(void)vecheader_next(&iter->left);
+	} else if (!have_left) {
+		vecheader_current(&iter->right, rdata);
+		(void)vecheader_next(&iter->right);
+	} else {
+		dns_rdata_t left = DNS_RDATA_INIT, right = DNS_RDATA_INIT;
+		int cmp;
+
+		vecheader_current(&iter->left, &left);
+		vecheader_current(&iter->right, &right);
+
+		cmp = dns_rdata_compare(&left, &right);
+		*rdata = cmp <= 0 ? left : right;
+
+		(void)vecheader_next(cmp <= 0 ? &iter->left : &iter->right);
+		if (cmp == 0) {
+			(void)vecheader_next(&iter->right);
+		}
+	}
+
+	return true;
+}
 
 isc_result_t
 dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		   isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, unsigned int flags,
 		   uint32_t maxrrperset, dns_vecheader_t **theaderp) {
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned char *ocurrent = NULL, *ncurrent = NULL, *tcurrent = NULL;
+	unsigned char *tcurrent = NULL;
 	unsigned int ocount, ncount, tcount = 0;
+	unsigned int ndup;
 	size_t rlength = 0, tlength = 0;
-	vecinfo_t *oinfo = NULL, *ninfo = NULL;
-	size_t o = 0, n = 0;
+	vecmerge_iter_t iter;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(theaderp != NULL && *theaderp == NULL);
 	REQUIRE(oheader != NULL && nheader != NULL);
 
-	ocurrent = rdatavec_data(oheader);
 	ocount = rdatavec_count(oheader);
-
-	ncurrent = rdatavec_data(nheader);
 	ncount = rdatavec_count(nheader);
 
 	INSIST(ocount > 0 && ncount > 0);
@@ -484,98 +528,45 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		return DNS_R_TOOMANYRECORDS;
 	}
 
-	/*
-	 * Allocate both info arrays up front so the cleanup path is
-	 * always safe to call regardless of where we exit.
-	 */
-	oinfo = isc_mem_cget(mctx, ocount, sizeof(struct vecinfo));
-	ninfo = isc_mem_cget(mctx, ncount, sizeof(struct vecinfo));
+	vecmerge_first(&iter, oheader, nheader, rdclass);
 
-	/*
-	 * Gather the rdatas in the old vec.
-	 */
-	for (size_t i = 0; i < ocount; i++) {
-		oinfo[i].pos = ocurrent;
-		dns_rdata_init(&oinfo[i].rdata);
-		rdata_from_vecitem(&ocurrent, rdclass, type, &oinfo[i].rdata);
-		oinfo[i].length = (uint32_t)(ocurrent - oinfo[i].pos);
+	while (vecmerge_next(&iter, &rdata)) {
+		rlength += sizeof(uint16_t) + rdata.length +
+			   (type == dns_rdatatype_rrsig);
+		tcount++;
 	}
-
-	/*
-	 * Gather the rdatas in the new vec.
-	 */
-	for (size_t i = 0; i < ncount; i++) {
-		ninfo[i].pos = ncurrent;
-		dns_rdata_init(&ninfo[i].rdata);
-		rdata_from_vecitem(&ncurrent, rdclass, type, &ninfo[i].rdata);
-		ninfo[i].length = (uint32_t)(ncurrent - ninfo[i].pos);
-	}
-
-	/*
-	 * The old and new vecs are both sorted in DNSSEC order, so
-	 * duplicates can be found with a linear walk.
-	 */
-	for (size_t oi = 0, ni = 0; oi < ocount && ni < ncount;) {
-		int cmp = dns_rdata_compare(&oinfo[oi].rdata,
-					    &ninfo[ni].rdata);
-		bool is_dup = cmp == 0;
-
-		oinfo[oi].dup = ninfo[ni].dup = is_dup;
-		oi += cmp <= 0;
-		ni += cmp >= 0;
-	}
-
-	/*
-	 * Compute the target length and count. All old rdatas are copied;
-	 * only new rdatas that are not duplicated in the old vec are copied.
-	 */
-	for (size_t i = 0; i < ocount; i++) {
-		rlength += oinfo[i].length;
-	}
-
-	for (size_t i = 0; i < ncount; i++) {
-		bool not_dup = !ninfo[i].dup;
-		rlength += not_dup * ninfo[i].length;
-		tcount += not_dup;
-	}
+	ndup = ocount + ncount - tcount;
 
 	if (rlength > DNS_RDATA_MAXLENGTH) {
-		CLEANUP(ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
-
-	tlength = header_size(oheader) + 2 + rlength;
 
 	/*
 	 * If the EXACT flag is set, there can't be any rdata in
-	 * the new vec that was also in the old. If tcount is less
-	 * than ncount, then we found such a duplicate.
+	 * the new vec that was also in the old.
 	 */
-	if (((flags & DNS_RDATAVEC_EXACT) != 0) && (tcount < ncount)) {
-		CLEANUP(DNS_R_NOTEXACT);
+	if (((flags & DNS_RDATAVEC_EXACT) != 0) && (ndup != 0)) {
+		return DNS_R_NOTEXACT;
 	}
 
 	/*
 	 * If nothing's being copied in from the new vec, and the
 	 * FORCE flag isn't set, we're done.
 	 */
-	if (tcount == 0 && (flags & DNS_RDATAVEC_FORCE) == 0) {
-		CLEANUP(DNS_R_UNCHANGED);
+	if (ndup == ncount && (flags & DNS_RDATAVEC_FORCE) == 0) {
+		return DNS_R_UNCHANGED;
 	}
-
-	/* Add to tcount the total number of items from the old vec. */
-	tcount += ocount;
-
-	/* Resposition ncurrent at the first item. */
-	ncurrent = rdatavec_data(nheader);
 
 	/* Single types can't have more than one RR. */
 	if (tcount > 1 && dns_rdatatype_issingleton(type)) {
-		CLEANUP(DNS_R_SINGLETON);
+		return DNS_R_SINGLETON;
 	}
 
 	if (tcount > 0xffff) {
-		CLEANUP(ISC_R_NOSPACE);
+		return ISC_R_NOSPACE;
 	}
+
+	tlength = header_size(oheader) + 2 + rlength;
 
 	/*
 	 * Allocate the target buffer and initialize the header.
@@ -612,42 +603,17 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	 * Now walk the sets together, adding each item in DNSSEC order,
 	 * and skipping over any more dups in the new vec.
 	 */
-	while (o < ocount || n < ncount) {
-		bool fromold;
+	vecmerge_first(&iter, oheader, nheader, rdclass);
 
-		/* Skip to the next non-duplicate in the new vec. */
-		for (; n < ncount && ninfo[n].dup; n++)
-			;
-
-		if (o == ocount) {
-			fromold = false;
-		} else if (n == ncount) {
-			fromold = true;
-		} else {
-			fromold = dns_rdata_compare(&oinfo[o].rdata,
-						    &ninfo[n].rdata) < 0;
-		}
-
-		if (fromold) {
-			rdata_to_vecitem(&tcurrent, type, &oinfo[o].rdata);
-			if (++o < ocount) {
-				/* Skip to the next rdata in the old vec */
-				continue;
-			}
-		} else {
-			rdata_to_vecitem(&tcurrent, type, &ninfo[n++].rdata);
-		}
+	while (vecmerge_next(&iter, &rdata)) {
+		rdata_to_vecitem(&tcurrent, type, &rdata);
 	}
 
 	INSIST(tcurrent == tstart + tlength);
 
 	*theaderp = (dns_vecheader_t *)tstart;
 
-cleanup:
-	isc_mem_cput(mctx, oinfo, ocount, sizeof(struct vecinfo));
-	isc_mem_cput(mctx, ninfo, ncount, sizeof(struct vecinfo));
-
-	return result;
+	return ISC_R_SUCCESS;
 }
 
 isc_result_t
