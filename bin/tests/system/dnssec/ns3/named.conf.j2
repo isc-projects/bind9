@@ -113,6 +113,7 @@ zone "dynamic.example" {
 	type primary;
 	file "dynamic.example.db.signed";
 	allow-update { any; };
+	max-records-per-type 3;
 };
 
 zone "insecure.example" {
