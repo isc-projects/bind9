@@ -387,6 +387,7 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 	uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
+	const char *bits = NULL;
 
 	REQUIRE(hmac_alg != NULL);
 	REQUIRE(hmacstr != NULL);
@@ -401,9 +402,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		*hmac_alg = DST_ALG_HMACMD5;
-	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-md5-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACMD5;
-		result = isc_parse_uint16(&digestbits, &buf[9], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
 			error("digest-bits out of range [0..128]");
 			return false;
@@ -411,9 +414,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
 		*hmac_alg = DST_ALG_HMACSHA1;
-	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha1-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACSHA1;
-		result = isc_parse_uint16(&digestbits, &buf[10], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 160) {
 			error("digest-bits out of range [0..160]");
 			return false;
@@ -421,9 +426,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
 		*hmac_alg = DST_ALG_HMACSHA224;
-	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha224-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACSHA224;
-		result = isc_parse_uint16(&digestbits, &buf[12], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 224) {
 			error("digest-bits out of range [0..224]");
 			return false;
@@ -431,9 +438,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
 		*hmac_alg = DST_ALG_HMACSHA256;
-	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha256-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACSHA256;
-		result = isc_parse_uint16(&digestbits, &buf[12], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 256) {
 			error("digest-bits out of range [0..256]");
 			return false;
@@ -441,9 +450,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
 		*hmac_alg = DST_ALG_HMACSHA384;
-	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha384-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACSHA384;
-		result = isc_parse_uint16(&digestbits, &buf[12], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 384) {
 			error("digest-bits out of range [0..384]");
 			return false;
@@ -451,9 +462,11 @@ parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac_alg,
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
 		*hmac_alg = DST_ALG_HMACSHA512;
-	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha512-")) !=
+		   NULL)
+	{
 		*hmac_alg = DST_ALG_HMACSHA512;
-		result = isc_parse_uint16(&digestbits, &buf[12], 10);
+		result = isc_parse_uint16(&digestbits, bits, 10);
 		if (result != ISC_R_SUCCESS || digestbits > 512) {
 			error("digest-bits out of range [0..512]");
 			return false;

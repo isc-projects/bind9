@@ -5522,11 +5522,13 @@ get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
 static void
 root_key_sentinel_detect(query_ctx_t *qctx) {
 	const char *ndata = (const char *)qctx->client->query.qname->ndata;
+	const char *keyid = NULL;
 
 	if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
-	    strncasecmp(ndata + 1, "root-key-sentinel-is-ta-", 24) == 0)
+	    (keyid = isc_string_casestripprefix(ndata + 1, "root-key-sentinel-"
+							   "is-ta-")) != NULL)
 	{
-		if (!get_root_key_sentinel_id(qctx, ndata + 25)) {
+		if (!get_root_key_sentinel_id(qctx, keyid)) {
 			return;
 		}
 		qctx->client->query.root_key_sentinel_is_ta = true;
@@ -5539,9 +5541,10 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-is-ta query label found");
 	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
-		   strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
+		   (keyid = isc_string_casestripprefix(
+			    ndata + 1, "root-key-sentinel-not-ta-")) != NULL)
 	{
-		if (!get_root_key_sentinel_id(qctx, ndata + 26)) {
+		if (!get_root_key_sentinel_id(qctx, keyid)) {
 			return;
 		}
 		qctx->client->query.root_key_sentinel_not_ta = true;

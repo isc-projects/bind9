@@ -2627,6 +2627,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	struct in6_addr in6;
 	in_port_t srcport;
 	char *hash, *cmd;
+	const char *ixfrserial = NULL;
 	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
@@ -2790,7 +2791,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return value_from_next;
 	case 't':
 		*open_type_class = false;
-		if (strncasecmp(value, "ixfr=", 5) == 0) {
+		if ((ixfrserial = isc_string_casestripprefix(value, "ixfr=")) !=
+		    NULL)
+		{
 			rdtype = dns_rdatatype_ixfr;
 			result = ISC_R_SUCCESS;
 		} else {
@@ -2813,7 +2816,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				uint32_t serial;
 				(*lookup)->rdtype = dns_rdatatype_ixfr;
 				(*lookup)->rdtypeset = true;
-				result = parse_uint(&serial, &value[5],
+				result = parse_uint(&serial, ixfrserial,
 						    MAXSERIAL, "serial number");
 				if (result != ISC_R_SUCCESS) {
 					fatal("Couldn't parse serial number");
@@ -3016,6 +3019,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 	char *bargv[64];
 	int rc;
 	char **rv;
+	const char *ixfrserial = NULL;
 #ifndef NOPOSIX
 	char *homedir;
 	char rcfile[PATH_MAX];
@@ -3139,7 +3143,9 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 			 * Anything which isn't an option
 			 */
 			if (open_type_class) {
-				if (strncasecmp(rv[0], "ixfr=", 5) == 0) {
+				if ((ixfrserial = isc_string_casestripprefix(
+					     rv[0], "ixfr=")) != NULL)
+				{
 					rdtype = dns_rdatatype_ixfr;
 					result = ISC_R_SUCCESS;
 				} else {
@@ -3171,7 +3177,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 							dns_rdatatype_ixfr;
 						lookup->rdtypeset = true;
 						result = parse_uint(&serial,
-								    &rv[0][5],
+								    ixfrserial,
 								    MAXSERIAL,
 								    "serial "
 								    "number");

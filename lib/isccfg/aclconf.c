@@ -585,12 +585,14 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "asnum") == 0) {
 		const char *s = search;
+		const char *tail;
 		uint32_t val;
 
 		/* check asnum validity */
 		subtype = dns_geoip_as_asnum;
-		if (strncasecmp(s, "AS", 2) == 0) {
-			s += 2;
+		tail = isc_string_casestripprefix(s, "AS");
+		if (tail != NULL) {
+			s = tail;
 		}
 		if (isc_parse_uint32(&val, s, 10) != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
