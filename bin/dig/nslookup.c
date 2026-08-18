@@ -528,12 +528,12 @@ show_settings(bool full, bool serv_only) {
 }
 
 static bool
-testtype(char *typetext) {
+testtype(const char *typetext) {
 	isc_result_t result;
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 
-	tr.base = typetext;
+	tr.base = UNCONST(typetext);
 	tr.length = strlen(typetext);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	if (result == ISC_R_SUCCESS) {
@@ -545,12 +545,12 @@ testtype(char *typetext) {
 }
 
 static bool
-testclass(char *typetext) {
+testclass(const char *typetext) {
 	isc_result_t result;
 	isc_textregion_t tr;
 	dns_rdataclass_t rdclass;
 
-	tr.base = typetext;
+	tr.base = UNCONST(typetext);
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	if (result == ISC_R_SUCCESS) {
@@ -608,42 +608,44 @@ setoption(char *opt) {
 
 	if (CHECKOPT("all", 3)) {
 		show_settings(true, false);
-	} else if (strncasecmp(opt, "class=", 6) == 0) {
-		if (testclass(&opt[6])) {
-			strlcpy(defclass, &opt[6], sizeof(defclass));
+	} else if ((val = isc_string_casestripprefix(opt, "class=")) != NULL) {
+		if (testclass(val)) {
+			strlcpy(defclass, val, sizeof(defclass));
 		}
-	} else if (strncasecmp(opt, "cl=", 3) == 0) {
-		if (testclass(&opt[3])) {
-			strlcpy(defclass, &opt[3], sizeof(defclass));
+	} else if ((val = isc_string_casestripprefix(opt, "cl=")) != NULL) {
+		if (testclass(val)) {
+			strlcpy(defclass, val, sizeof(defclass));
 		}
-	} else if (strncasecmp(opt, "type=", 5) == 0) {
-		if (testtype(&opt[5])) {
-			strlcpy(deftype, &opt[5], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "type=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "ty=", 3) == 0) {
-		if (testtype(&opt[3])) {
-			strlcpy(deftype, &opt[3], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "ty=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
-		if (testtype(&opt[10])) {
-			strlcpy(deftype, &opt[10], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "querytype"
+							  "=")) != NULL)
+	{
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "query=", 6) == 0) {
-		if (testtype(&opt[6])) {
-			strlcpy(deftype, &opt[6], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "query=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "qu=", 3) == 0) {
-		if (testtype(&opt[3])) {
-			strlcpy(deftype, &opt[3], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "qu=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "q=", 2) == 0) {
-		if (testtype(&opt[2])) {
-			strlcpy(deftype, &opt[2], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "q=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
 	} else if ((val = isc_string_casestripprefix(opt, "domain=")) != NULL) {
