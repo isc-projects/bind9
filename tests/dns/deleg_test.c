@@ -951,8 +951,9 @@ roothintsloadtests(ISC_ATTR_UNUSED void *arg) {
 		dns_rdataclass_in, DNS_MASTER_HINT, &callbacks, isc_g_mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_delegdb_rootns_checkandcleanup(&callbacks);
+	result = dns_delegdb_rootns_commit(&callbacks);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegdb_rootns_cleanup(&callbacks);
 
 	/*
 	 * Hints are inserted with a TTL of 0, so the lookup reports them
@@ -977,6 +978,48 @@ roothintsloadtests(ISC_ATTR_UNUSED void *arg) {
 	shutdowntest(&db);
 }
 
+static void
+roothintsloadfailtests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_delegset_t *delegset = NULL;
+	dns_rdatacallbacks_t callbacks;
+	isc_buffer_t source;
+	isc_result_t result;
+	static char hints[] =
+		". 518400 IN NS a.root-servers.test.\n"
+		". 518400 IN NS b.root-servers.test.\n"
+		"a.root-servers.test. 518400 IN A 192.0.2.1\n"
+		"b.root-servers.test. 518400 IN A not-an-address\n";
+	size_t len = strlen(hints);
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_rdatacallbacks_init(&callbacks);
+	dns_delegdb_rootns_prepare(db, &callbacks);
+
+	isc_buffer_init(&source, hints, len);
+	isc_buffer_add(&source, len);
+	result = dns_master_loadbuffer(
+		&source, (dns_name_t *)dns_rootname, (dns_name_t *)dns_rootname,
+		dns_rdataclass_in, DNS_MASTER_HINT, &callbacks, isc_g_mctx);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+
+	dns_delegdb_rootns_cleanup(&callbacks);
+
+	/*
+	 * The partially loaded delegation set (it got the glue of
+	 * a.root-servers.test before the load failed) must not have been
+	 * inserted into the DB.
+	 */
+	result = dns_delegdb_lookup(db, dns_rootname, 0, DNS_DBFIND_HINTOK,
+				    NULL, NULL, &delegset);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_null(delegset);
+
+	shutdowntest(&db);
+}
+
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
 ISC_RUN_TEST_IMPL(dns_deleg_ttltests) { rundelegtest(ttltests); }
 ISC_RUN_TEST_IMPL(dns_deleg_noexacttests) { rundelegtest(noexacttests); }
@@ -985,6 +1028,9 @@ ISC_RUN_TEST_IMPL(dns_deleg_cleanuptests) { rundelegtest(cleanuptests); }
 ISC_RUN_TEST_IMPL(dns_deleg_longnametests) { rundelegtest(longnametests); }
 ISC_RUN_TEST_IMPL(dns_deleg_roothints) { rundelegtest(roothintstests); }
 ISC_RUN_TEST_IMPL(dns_deleg_roothintsload) { rundelegtest(roothintsloadtests); }
+ISC_RUN_TEST_IMPL(dns_deleg_roothintsloadfail) {
+	rundelegtest(roothintsloadfailtests);
+}
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(dns_deleg_basictests)
@@ -995,6 +1041,7 @@ ISC_TEST_ENTRY(dns_deleg_cleanuptests)
 ISC_TEST_ENTRY(dns_deleg_longnametests)
 ISC_TEST_ENTRY(dns_deleg_roothints)
 ISC_TEST_ENTRY(dns_deleg_roothintsload)
+ISC_TEST_ENTRY(dns_deleg_roothintsloadfail)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
