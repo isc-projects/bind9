@@ -8308,6 +8308,7 @@ query_addanswer(query_ctx_t *qctx) {
 		}
 	} else if (qctx->client->query.dns64_aaaaok != NULL) {
 		query_filter64(qctx);
+		qctx->noqname = NULL;
 		ns_client_putrdataset(qctx->client, &qctx->rdataset);
 		isc_mem_put(qctx->client->mctx,
 			    qctx->client->query.dns64_aaaaok,
