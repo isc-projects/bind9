@@ -46,6 +46,7 @@ SRCS =		acl_test.c \
 		peer_test.c \
 		private_test.c \
 		rbt_test.c \
+		rbtdb_test.c \
 		rbt_serialize_test.c \
 		rdata_test.c \
 		rdataset_test.c \
@@ -79,6 +80,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		peer_test@EXEEXT@ \
 		private_test@EXEEXT@ \
 		rbt_test@EXEEXT@ \
+		rbtdb_test@EXEEXT@ \
 		rbt_serialize_test@EXEEXT@ \
 		rdata_test@EXEEXT@ \
 		rdataset_test@EXEEXT@ \
@@ -103,6 +105,11 @@ acl_test@EXEEXT@: acl_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 db_test@EXEEXT@: db_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ db_test.@O@ dnstest.@O@ ${DNSLIBS} \
+		${ISCLIBS} ${LIBS}
+
+rbtdb_test@EXEEXT@: rbtdb_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ rbtdb_test.@O@ dnstest.@O@ ${DNSLIBS} \
 		${ISCLIBS} ${LIBS}
 
 dbdiff_test@EXEEXT@: dbdiff_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

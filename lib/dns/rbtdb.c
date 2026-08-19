@@ -8992,12 +8992,19 @@ static void
 rdataset_disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
+	rdatasetheader_t *header;
 
 	if (rdataset->methods == &rdataset_methods) {
-		rdatasetheader_t *header = rdataset->private3;
+		header = rdataset->private3;
 		header--;
-		isc_refcount_decrement(&header->references, NULL);
+	} else {
+		/*
+		 * A noqname/closest proof view; 'private6' is the header
+		 * that owns the proof data.
+		 */
+		header = rdataset->private6;
 	}
+	isc_refcount_decrement(&header->references, NULL);
 
 	detachnode(db, &node);
 }
@@ -9108,13 +9115,16 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_db_t *db = source->private1;
 	dns_dbnode_t *node = source->private2;
 	dns_dbnode_t *cloned_node = NULL;
+	rdatasetheader_t *header;
 
 	attachnode(db, node, &cloned_node);
 	if (source->methods == &rdataset_methods) {
-		rdatasetheader_t *header = source->private3;
+		header = source->private3;
 		header--;
-		isc_refcount_increment(&header->references, NULL);
+	} else {
+		header = source->private6;
 	}
+	isc_refcount_increment(&header->references, NULL);
 	INSIST(!ISC_LINK_LINKED(target, link));
 	*target = *source;
 	ISC_LINK_INIT(target, link);
@@ -9143,10 +9153,18 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 	dns_dbnode_t *cloned_node;
+	rdatasetheader_t *header = rdataset->private3;
 	struct noqname *noqname = rdataset->private6;
+
+	/*
+	 * The proof rdatasets are views into memory owned by the header
+	 * of 'rdataset', so they hold a reference to it (in private6).
+	 */
+	header--;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
+	isc_refcount_increment(&header->references, NULL);
 	nsec->methods = &slab_methods;
 	nsec->rdclass = db->rdclass;
 	nsec->type = noqname->type;
@@ -9158,10 +9176,11 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsec->private3 = noqname->neg;
 	nsec->privateuint4 = 0;
 	nsec->private5 = NULL;
-	nsec->private6 = NULL;
+	nsec->private6 = header;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
+	isc_refcount_increment(&header->references, NULL);
 	nsecsig->methods = &slab_methods;
 	nsecsig->rdclass = db->rdclass;
 	nsecsig->type = dns_rdatatype_rrsig;
@@ -9173,7 +9192,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsecsig->private3 = noqname->negsig;
 	nsecsig->privateuint4 = 0;
 	nsecsig->private5 = NULL;
-	nsec->private6 = NULL;
+	nsecsig->private6 = header;
 
 	dns_name_clone(&noqname->name, name);
 
