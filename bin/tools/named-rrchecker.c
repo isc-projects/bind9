@@ -121,7 +121,7 @@ main(int argc, char *argv[]) {
 					continue;
 				}
 				dns_rdataclass_format(t, text, sizeof(text));
-				if (strncmp(text, "CLASS", 4) != 0) {
+				if (strncmp(text, "CLASS", 5) != 0) {
 					fprintf(stdout, "%s\n", text);
 				}
 			}
