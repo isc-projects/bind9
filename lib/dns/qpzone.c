@@ -5188,8 +5188,6 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 			newheader = dns_vecheader_new(db->mctx);
 			newheader->ttl = 0;
 			newheader->typepair = foundtop->typepair;
-			atomic_init(&newheader->attributes,
-				    DNS_VECHEADERATTR_NONEXISTENT);
 			newheader->serial = version->serial;
 		} else {
 			LOCK(&qpdb->heap->lock);
@@ -5276,7 +5274,6 @@ qpzone_deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	newheader = dns_vecheader_new(db->mctx);
 	newheader->typepair = DNS_TYPEPAIR_VALUE(type, covers);
 	newheader->ttl = 0;
-	atomic_init(&newheader->attributes, DNS_VECHEADERATTR_NONEXISTENT);
 	newheader->serial = version->serial;
 
 	dns_name_copy(&node->name, nodename);

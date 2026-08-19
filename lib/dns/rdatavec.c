@@ -46,10 +46,7 @@
  *		data		(data length bytes)
  *
  * A "bare" rdatavec is everything after the header. The first two bytes
- * contain the count of rdata records in the rdatavec. For records with
- * the DNS_VECHEADERATTR_NONEXISTENT attribute, the record count is omitted
- * entirely.
- *
+ * contain the count of rdata records in the rdatavec.
  * After the count, the rdata records are stored sequentially in memory.
  * Each record consists of a length field, optional metadata, and the actual
  * rdata bytes.
@@ -427,8 +424,8 @@ typedef struct vecmerge_iter {
 static void
 vecmerge_first(vecmerge_iter_t *iter, dns_vecheader_t *left,
 	       dns_vecheader_t *right, dns_rdataclass_t rdclass) {
-	INSIST(vecheader_first(&iter->left, left, rdclass) == ISC_R_SUCCESS);
-	INSIST(vecheader_first(&iter->right, right, rdclass) == ISC_R_SUCCESS);
+	(void)vecheader_first(&iter->left, left, rdclass);
+	(void)vecheader_first(&iter->right, right, rdclass);
 }
 
 static bool
@@ -512,8 +509,6 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 
 	ocount = rdatavec_count(oheader);
 	ncount = rdatavec_count(nheader);
-
-	INSIST(ocount > 0 && ncount > 0);
 
 	if (maxrrperset > 0 && ocount + ncount > maxrrperset) {
 		return DNS_R_TOOMANYRECORDS;
@@ -625,8 +620,6 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 	ocount = rdatavec_count(oheader);
 	scount = rdatavec_count(sheader);
 
-	INSIST(ocount > 0 && scount > 0);
-
 	vecmerge_first(&iter, oheader, sheader, rdclass);
 
 	while (vecsubtract_next(&iter, &rdata)) {
@@ -736,11 +729,12 @@ dns_vecheader_t *
 dns_vecheader_new(isc_mem_t *mctx) {
 	dns_vecheader_t *h = NULL;
 
-	h = isc_mem_get(mctx, sizeof(*h));
+	h = isc_mem_get(mctx, sizeof(*h) + sizeof(uint16_t));
 	*h = (dns_vecheader_t){
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.mctx = isc_mem_ref(mctx),
 	};
+	ISC_U16TO8_BE(h->raw, 0);
 	return h;
 }
 
@@ -922,10 +916,7 @@ dns_vectop_destroy(isc_mem_t *mctx, dns_vectop_t **topp) {
 
 static void
 vecheader_destroy(dns_vecheader_t *header) {
-	unsigned int size = EXISTS(header) ? dns_rdatavec_size(header)
-					   : sizeof(*header);
-
-	isc_mem_putanddetach(&header->mctx, header, size);
+	isc_mem_putanddetach(&header->mctx, header, dns_rdatavec_size(header));
 }
 
 /*
