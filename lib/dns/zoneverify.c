@@ -704,7 +704,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 					     &rdataset, NULL);
 	}
 	if (result != ISC_R_SUCCESS &&
-	    (!delegation || (empty && !optout) ||
+	    (!delegation || !optout ||
 	     (!empty && dns_nsec_isset(types, dns_rdatatype_ds))))
 	{
 		dns_name_format(name, namebuf, sizeof(namebuf));
