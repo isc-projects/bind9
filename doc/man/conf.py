@@ -181,6 +181,13 @@ man_pages = [
         author,
         1,
     ),
+    (
+        "named-wireformat",
+        "named-wireformat",
+        "parse DNS wire format messages",
+        author,
+        1,
+    ),
     ("named.conf", "named.conf", "configuration file for **named**", author, 5),
     ("named", "named", "Internet domain name server", author, 8),
     ("nsec3hash", "nsec3hash", "generate NSEC3 hash", author, 1),

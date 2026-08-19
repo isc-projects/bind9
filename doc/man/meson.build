@@ -83,6 +83,7 @@ if fs.is_file('arpaname.1.in')
             'named-makejournal.1.in',
             'named-nzd2nzf.1.in',
             'named-rrchecker.1.in',
+            'named-wireformat.1.in',
             'named.8.in',
             'named.conf.5.in',
             'nsec3hash.1.in',

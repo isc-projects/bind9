@@ -28,6 +28,7 @@ manrst_srcset.add(
         'named-makejournal.rst',
         'named-nzd2nzf.rst',
         'named-rrchecker.rst',
+        'named-wireformat.rst',
         'nsec3hash.rst',
     ),
 )
