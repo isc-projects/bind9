@@ -845,7 +845,7 @@ parse_port(char *arg) {
 		value = arg + 6;
 		ptype = HTTPSPORT;
 	} else if (strncmp(arg, "http=", 5) == 0) {
-		value = arg + 6;
+		value = arg + 5;
 		ptype = HTTPPORT;
 	}
 
