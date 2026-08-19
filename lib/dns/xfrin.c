@@ -19,6 +19,7 @@
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/mem.h>
+#include <isc/queue.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -127,8 +128,7 @@ struct dns_xfrin {
 
 	/* Diff queue */
 	bool diff_running;
-	struct __cds_wfcq_head diff_head;
-	struct cds_wfcq_tail diff_tail;
+	isc_queue_t diff_queue;
 
 	_Atomic xfrin_state_t state;
 	uint32_t expireopt;
@@ -411,7 +411,7 @@ axfr_finalize(dns_xfrin_t *xfr) {
 
 typedef struct ixfr_apply_data {
 	dns_diff_t diff; /*%< Pending database changes */
-	struct cds_wfcq_node wfcq_node;
+	isc_queue_node_t queue_node;
 } ixfr_apply_data_t;
 
 static isc_result_t
@@ -539,21 +539,17 @@ ixfr_apply(void *arg) {
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	struct __cds_wfcq_head diff_head;
-	struct cds_wfcq_tail diff_tail;
+	isc_queue_t diff_queue;
 
-	/* Initialize local wfcqueue */
-	__cds_wfcq_init(&diff_head, &diff_tail);
+	/* Initialize local queue */
+	isc_queue_init(&diff_queue);
 
-	enum cds_wfcq_ret ret = __cds_wfcq_splice_blocking(
-		&diff_head, &diff_tail, &xfr->diff_head, &xfr->diff_tail);
-	INSIST(ret == CDS_WFCQ_RET_DEST_EMPTY);
+	if (!isc_queue_splice(&diff_queue, &xfr->diff_queue)) {
+		return ISC_R_SUCCESS;
+	}
 
-	struct cds_wfcq_node *node, *next;
-	__cds_wfcq_for_each_blocking_safe(&diff_head, &diff_tail, node, next) {
-		ixfr_apply_data_t *data =
-			caa_container_of(node, ixfr_apply_data_t, wfcq_node);
-
+	ixfr_apply_data_t *data = NULL, *next = NULL;
+	isc_queue_for_each_entry_safe(&diff_queue, data, next, queue_node) {
 		if (atomic_load(&xfr->shuttingdown)) {
 			result = ISC_R_SHUTTINGDOWN;
 		}
@@ -584,9 +580,7 @@ ixfr_apply_done(void *arg, isc_result_t result) {
 	CHECK(result);
 
 	/* Reschedule */
-	if (!xfr->retry_axfr &&
-	    !cds_wfcq_empty(&xfr->diff_head, &xfr->diff_tail))
-	{
+	if (!xfr->retry_axfr && !isc_queue_empty(&xfr->diff_queue)) {
 		isc_work_enqueue(xfr->loop, ISC_WORKLANE_SLOW, ixfr_apply,
 				 ixfr_apply_done, xfr);
 		return;
@@ -645,7 +639,7 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	ixfr_apply_data_t *data = isc_mem_get(xfr->mctx, sizeof(*data));
 
 	*data = (ixfr_apply_data_t){ 0 };
-	cds_wfcq_node_init(&data->wfcq_node);
+	isc_queue_node_init(&data->queue_node);
 
 	if (xfr->ver == NULL) {
 		CHECK(dns_db_newversion(xfr->db, &xfr->ver));
@@ -655,8 +649,7 @@ ixfr_commit(dns_xfrin_t *xfr) {
 	/* FIXME: Should we add dns_diff_move() */
 	ISC_LIST_MOVE(data->diff.tuples, xfr->diff.tuples);
 
-	(void)cds_wfcq_enqueue(&xfr->diff_head, &xfr->diff_tail,
-			       &data->wfcq_node);
+	isc_queue_enqueue(&xfr->diff_queue, &data->queue_node);
 
 	if (!xfr->diff_running) {
 		dns_xfrin_ref(xfr);
@@ -1244,7 +1237,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_loop_t *loop,
 	dns_view_weakattach(dns_zone_getview(zone), &xfr->view);
 	dns_name_init(&xfr->name, NULL);
 
-	__cds_wfcq_init(&xfr->diff_head, &xfr->diff_tail);
+	isc_queue_init(&xfr->diff_queue);
 
 	atomic_init(&xfr->is_ixfr, false);
 
@@ -2087,11 +2080,16 @@ cleanup:
 
 static void
 xfrin_ixfrcleanup(dns_xfrin_t *xfr) {
-	struct cds_wfcq_node *node, *next;
-	__cds_wfcq_for_each_blocking_safe(&xfr->diff_head, &xfr->diff_tail,
-					  node, next) {
-		ixfr_apply_data_t *data =
-			caa_container_of(node, ixfr_apply_data_t, wfcq_node);
+	isc_queue_t diff_queue;
+
+	/* Leave the shared queue empty before freeing its entries. */
+	isc_queue_init(&diff_queue);
+	if (!isc_queue_splice(&diff_queue, &xfr->diff_queue)) {
+		return;
+	}
+
+	ixfr_apply_data_t *data = NULL, *next = NULL;
+	isc_queue_for_each_entry_safe(&diff_queue, data, next, queue_node) {
 		/* We need to clear and free all data chunks */
 		dns_diff_clear(&data->diff);
 		isc_mem_put(xfr->mctx, data, sizeof(*data));

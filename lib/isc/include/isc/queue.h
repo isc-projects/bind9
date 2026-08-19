@@ -10,6 +10,7 @@
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
+#pragma once
 
 #include <isc/os.h>
 #include <isc/urcu.h>
