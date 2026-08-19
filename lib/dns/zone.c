@@ -11080,6 +11080,11 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dns_notify_t *notify = NULL;
 		dns_view_t *view = dns_zone_getview(zone);
 
+		dst = dns_remote_curraddr(&zone->alsonotify);
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
+
 		if (dns_remote_keyname(&zone->alsonotify) != NULL) {
 			dns_name_t *keyname =
 				dns_remote_keyname(&zone->alsonotify);
@@ -11112,21 +11117,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 			flags |= DNS_NOTIFY_TCP;
 		}
 
-		/* TODO: glue the transport to the notify */
-
-		dst = dns_remote_curraddr(&zone->alsonotify);
 		src = dns_remote_sourceaddr(&zone->alsonotify);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
-
-		if (isc_sockaddr_disabled(&dst)) {
-			if (key != NULL) {
-				dns_tsigkey_detach(&key);
-			}
-			if (transport != NULL) {
-				dns_transport_detach(&transport);
-			}
-			goto next;
-		}
 
 		if (dns_notify_isqueued(&zone->notifysoa, dns_rdatatype_soa,
 					zone->view->dstport, flags, NULL, &dst,
@@ -17481,6 +17473,7 @@ checkds_send_toaddr(void *arg) {
 	unsigned int options;
 	bool have_checkdssource = false;
 	bool canceled = checkds->rlevent->canceled;
+	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
 
@@ -17590,18 +17583,24 @@ checkds_send_toaddr(void *arg) {
 		     "checkds: create request for DS query to %s", addrbuf);
 
 	options |= DNS_REQUESTOPT_TCP;
+
+	dns__zonemgr_tlsctx_attach(checkds->zone->zmgr, &zmgr_tlsctx_cache);
 	const unsigned int connect_timeout = isc_nm_getinitialtimeout() /
 					     MS_PER_SEC;
+
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
-		UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES, checkds->zone->loop,
-		checkds_done, checkds, &checkds->request);
+		checkds->transport, zmgr_tlsctx_cache, options, key,
+		connect_timeout, TCP_REQUEST_TIMEOUT, UDP_REQUEST_TIMEOUT,
+		UDP_REQUEST_RETRIES, checkds->zone->loop, checkds_done, checkds,
+		&checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 			     "checkds: dns_request_create() to %s failed: %s",
 			     addrbuf, isc_result_totext(result));
 	}
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
 cleanup_key:
 	if (key != NULL) {
@@ -17658,11 +17657,6 @@ checkds_send_tons(dns_checkds_t *checkds) {
 		default:
 			UNREACHABLE();
 		}
-		/*
-		 * XXXWMM: Should we attach key and transport here?
-		 * Probably not, because we expect the name servers to be
-		 * publicly available on the default transport protocol.
-		 */
 
 		CHECK(isc_ratelimiter_enqueue(newcheckds->zone->zmgr->checkdsrl,
 					      newcheckds->zone->loop,
@@ -17708,6 +17702,11 @@ checkds_send(dns_zone_t *zone) {
 
 		i++;
 
+		dst = dns_remote_curraddr(&zone->parentals);
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
+
 		if (dns_remote_keyname(&zone->parentals) != NULL) {
 			dns_name_t *keyname =
 				dns_remote_keyname(&zone->parentals);
@@ -17717,28 +17716,28 @@ checkds_send(dns_zone_t *zone) {
 		if (dns_remote_tlsname(&zone->parentals) != NULL) {
 			dns_name_t *tlsname =
 				dns_remote_tlsname(&zone->parentals);
-			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
-						    tlsname, &transport);
-			dns_zone_logc(
-				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
-				"got TLS configuration for zone transfer");
+			result = dns_view_gettransport(view, DNS_TRANSPORT_TLS,
+						       tlsname, &transport);
+			if (result == ISC_R_SUCCESS) {
+				dns_zone_logc(
+					zone, DNS_LOGCATEGORY_XFER_IN,
+					ISC_LOG_INFO,
+					"got TLS configuration for checkds");
+			} else {
+				dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+					      ISC_LOG_ERROR,
+					      "could not get TLS configuration "
+					      "for checkds: %s",
+					      isc_result_totext(result));
+				if (key != NULL) {
+					dns_tsigkey_detach(&key);
+				}
+				goto next;
+			}
 		}
 
-		dst = dns_remote_curraddr(&zone->parentals);
 		src = dns_remote_sourceaddr(&zone->parentals);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
-
-		if (isc_sockaddr_disabled(&dst)) {
-			if (key != NULL) {
-				dns_tsigkey_detach(&key);
-			}
-			if (transport != NULL) {
-				dns_transport_detach(&transport);
-			}
-			goto next;
-		}
-
-		/* TODO: glue the transport to the checkds request */
 
 		if (checkds_isqueued(zone, NULL, &dst, key, transport)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
