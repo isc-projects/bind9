@@ -9,7 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import os
+
 import pytest
+
+import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -24,11 +28,11 @@ pytestmark = pytest.mark.extra_artifacts(
         "*/dsset-*",
         "*/*.signed",
         "dsset-*",
+        "conf/*.conf",
         "signer.err.*",
         "signer.out.*",
         "verify.err.*",
         "verify.out.*",
-        "conf/*.conf",
         "signer/bad.db",
         "signer/example.com",
         "signer/dnssec-records.*",
@@ -54,5 +58,28 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 
-def test_dnssec(run_tests_sh):
-    run_tests_sh()
+# run named-checkconf
+def checkconf(cfgfile):
+    checkconf_cmd = [os.environ.get("CHECKCONF"), "-k", cfgfile]
+    return isctest.run.cmd(checkconf_cmd, raise_on_exception=False)
+
+
+# run dnssec-keygen
+def keygen(*args):
+    keygen_cmd = [os.environ.get("KEYGEN")]
+    keygen_cmd.extend(args)
+    return isctest.run.cmd(keygen_cmd, raise_on_exception=False)
+
+
+def test_keygen_keystore_keydirectory():
+    zone = "keystore-keydirectory.example."
+    conf = "conf/keystore-keydirectory.conf"
+    policy = "csk"
+
+    # named-checkconf should complain about the key-store name.
+    result = checkconf(conf)
+    assert "name 'key-directory' not allowed" in result.out
+
+    # dnssec-keygen should also complain about the key-store name.
+    result = keygen("-k", policy, "-l", conf, zone)
+    assert "key-store: duplicate key-store found 'key-directory'" in result.err
