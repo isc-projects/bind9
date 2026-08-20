@@ -1878,20 +1878,6 @@ dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 	return result;
 }
 
-static isc_result_t
-digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
-	   size_t hashlen) {
-	unsigned int i;
-	for (i = 0; i < digestlen; i++) {
-		size_t left = hashlen - i * 2;
-		int ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
-		if (ret < 0 || (size_t)ret >= left) {
-			return ISC_R_NOSPACE;
-		}
-	}
-	return ISC_R_SUCCESS;
-}
-
 isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 				 isc_buffer_t **buffer) {
@@ -1951,7 +1937,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 
 		CHECK(isc_md(ISC_MD_SHA256, r.base, r.length, digest,
 			     &digestlen));
-		CHECK(digest2hex(digest, digestlen, hash, sizeof(hash)));
+		CHECK(isc_md_digest2hex(digest, digestlen, hash, sizeof(hash)));
 		isc_buffer_putstr(*buffer, hash);
 	} else {
 		isc_buffer_copyregion(*buffer, &r);

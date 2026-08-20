@@ -17,6 +17,8 @@
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
 
+#include <isc/buffer.h>
+#include <isc/hex.h>
 #include <isc/md.h>
 #include <isc/ossl_wrap.h>
 #include <isc/util.h>
@@ -157,4 +159,18 @@ end:
 	isc_md_free(md);
 
 	return res;
+}
+
+isc_result_t
+isc_md_digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
+		  size_t hashlen) {
+	isc_buffer_t b;
+	isc_region_t r = { .base = digest, .length = digestlen };
+	isc_buffer_init(&b, hash, hashlen);
+	RETERR(isc_hex_totextlower(&r, hashlen, "", &b));
+	if (isc_buffer_availablelength(&b) < 1) {
+		return ISC_R_NOSPACE;
+	}
+	isc_buffer_putuint8(&b, 0);
+	return ISC_R_SUCCESS;
 }

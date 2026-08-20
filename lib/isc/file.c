@@ -686,21 +686,6 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 
 #define DISALLOW "\\/ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-static isc_result_t
-digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
-	   size_t hashlen) {
-	unsigned int i;
-	int ret;
-	for (i = 0; i < digestlen; i++) {
-		size_t left = hashlen - i * 2;
-		ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
-		if (ret < 0 || (size_t)ret >= left) {
-			return ISC_R_NOSPACE;
-		}
-	}
-	return ISC_R_SUCCESS;
-}
-
 isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		  char *path, size_t length) {
@@ -737,8 +722,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	/* Check whether the full-length SHA256 hash filename exists */
 	RETERR(isc_md(ISC_MD_SHA256, (const unsigned char *)base, strlen(base),
 		      digest, &digestlen));
-
-	RETERR(digest2hex(digest, digestlen, hash, sizeof(hash)));
+	RETERR(isc_md_digest2hex(digest, digestlen, hash, sizeof(hash)));
 
 	snprintf(buf, sizeof(buf), "%s%s%s%s%s", dir != NULL ? dir : "",
 		 dir != NULL ? "/" : "", hash, ext != NULL ? "." : "",
