@@ -1947,13 +1947,12 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 	if (special || tbuf->used > ISC_SHA256_DIGESTLENGTH * 2 + 1) {
 		unsigned char digest[ISC_MAX_MD_SIZE];
 		unsigned int digestlen;
+		char hash[ISC_SHA256_DIGESTLENGTH * 2 + 1];
 
-		/* we can do that because digest string < 2 * DNS_NAME */
 		CHECK(isc_md(ISC_MD_SHA256, r.base, r.length, digest,
 			     &digestlen));
-		CHECK(digest2hex(digest, digestlen, (char *)r.base,
-				 ISC_SHA256_DIGESTLENGTH * 2 + 1));
-		isc_buffer_putstr(*buffer, (char *)r.base);
+		CHECK(digest2hex(digest, digestlen, hash, sizeof(hash)));
+		isc_buffer_putstr(*buffer, hash);
 	} else {
 		isc_buffer_copyregion(*buffer, &r);
 	}
