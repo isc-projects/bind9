@@ -1123,6 +1123,9 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp);
 isc_nmhandle_t *
 isc__nm_httpsession_handle(isc_nm_http_session_t *session);
 
+bool
+isc__nm_httpsession_active(isc_nm_http_session_t *session);
+
 void
 isc__nm_http_set_tlsctx(isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx);
 
