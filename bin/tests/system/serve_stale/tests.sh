@@ -1846,12 +1846,11 @@ stop_server --use-rndc --port ${CONTROLPORT} ns5
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
 cp ns5/named_dump.db.test$n ns5/named_dump.db
-# Despite the name, this has always been the constant 19700101000500
-# (epoch + 300 s), not a timestamp five minutes in the past.
 FIVEMINUTESAGO=$($PYTHON -c '
 import time
 
-print(time.strftime("%Y%m%d%H%M%S", time.gmtime(300)))
+five_minutes_ago = time.time() - 300
+print(time.strftime("%Y%m%d%H%M%S", time.gmtime(five_minutes_ago)))
 ')
 
 n=$((n + 1))
