@@ -4,6 +4,10 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation yes;
 	minimal-responses no;
+	// Keep the DS insecurity proof deterministic: without this, a cached
+	// NSEC from an earlier forgery lets aggressive-NSEC synthesis answer the
+	// grandchild query before the DS fetch that drives is_insecure_referral().
+	synth-from-dnssec no;
 };
 
 {% include "_common/controls.conf.j2" %}

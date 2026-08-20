@@ -32,12 +32,22 @@ from isctest.asyncserver import (
 TTL = 300
 PARENT = "p031.test."
 CHILD = f"c.{PARENT}"
+# The attacker-controlled sibling zone: a genuine, correctly delegated and
+# signed zone under the same parent as CHILD.  Its crafted NSEC3 is made
+# to sort first in the ncache via the salt choice below (see _ordering_salts).
+SIBLING = f"attacker.{PARENT}"
+# #5967 (grandparent-zone NSEC/NSEC3): a grandchild whose forged NSEC/NSEC3
+# insecure-delegation proof is owned by its grandparent zone.
 GRANDCHILD = f"grand.{CHILD}"
 GRANDCHILD3 = f"grand3.{CHILD}"
+# #6234 (sibling-zone NSEC3): a grandchild whose forged NSEC3
+# insecure-delegation proof is owned by an unrelated but correctly delegated
+# and signed sibling zone.
+GRANDCHILD3_SIBLING = f"grandsib.{CHILD}"
+# The names under attack.
 ATTACK = f"www-bind.{GRANDCHILD}"
 ATTACK3 = f"www-bind.{GRANDCHILD3}"
 FORGED_A = "6.6.6.60"
-CHILD_DS = "12345 13 2 abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
 
 
 @dataclass(frozen=True)
@@ -51,19 +61,41 @@ def name(text: str) -> dns.name.Name:
     return dns.name.from_text(text)
 
 
-def load_key() -> Key:
+def _ordering_salts(qname: str) -> tuple[str, str]:
+    # Pick NSEC3 salts (as hex) so the sibling's owner hash sorts strictly
+    # before the child's.  The ncache slab is ordered by wire-format owner
+    # name -- i.e. by the leftmost hash label -- and is_insecure_referral()'s
+    # trynsec3 arm returns on the *first* exact hash match, so the sibling's
+    # crafted NS-set NSEC3 must precede the child's genuine NS-clear NODATA
+    # proof.  Deterministic search over one-octet salts keeps this true no
+    # matter what GRANDCHILD3_SIBLING is named.
+    hashes = sorted(
+        (dns.dnssec.nsec3_hash(name(qname), f"{i:02X}", 0, 1).lower(), f"{i:02X}")
+        for i in range(256)
+    )
+    return hashes[0][1], hashes[-1][1]
+
+
+# Sibling salt yields the smallest hash, child salt the largest.
+SIBLING_SALT, CHILD_SALT = _ordering_salts(GRANDCHILD3_SIBLING)
+
+
+def load_keys() -> dict[str, Key]:
     path = Path(__file__).resolve().parent / "keys.json"
     with path.open(encoding="utf-8") as keys_file:
-        raw_key = json.load(keys_file)[PARENT]
+        raw = json.load(keys_file)
 
-    private_key = serialization.load_pem_private_key(
-        raw_key["private_pem"].encode("ascii"),
-        password=None,
-    )
-    dnskey = dns.rdata.from_text(
-        dns.rdataclass.IN, dns.rdatatype.DNSKEY, raw_key["dnskey"]
-    )
-    return Key(name(PARENT), private_key, dnskey)
+    keys: dict[str, Key] = {}
+    for zone, raw_key in raw.items():
+        private_key = serialization.load_pem_private_key(
+            raw_key["private_pem"].encode("ascii"),
+            password=None,
+        )
+        dnskey = dns.rdata.from_text(
+            dns.rdataclass.IN, dns.rdatatype.DNSKEY, raw_key["dnskey"]
+        )
+        keys[zone] = Key(name(zone), private_key, dnskey)
+    return keys
 
 
 def rrset(owner: str, rdtype: dns.rdatatype.RdataType, *rdatas: str) -> dns.rrset.RRset:
@@ -101,22 +133,47 @@ def nsec_rrset(owner: str, next_name: str, *types: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.NSEC, f"{next_name} {' '.join(types)}")
 
 
-def child_ds_rrset() -> dns.rrset.RRset:
-    return rrset(CHILD, dns.rdatatype.DS, CHILD_DS)
+def child_soa_rrset() -> dns.rrset.RRset:
+    return rrset(
+        CHILD,
+        dns.rdatatype.SOA,
+        f"ns.{CHILD} hostmaster.{CHILD} 1 3600 600 86400 300",
+    )
 
 
 def grandchild_nsec_lie() -> dns.rrset.RRset:
     return nsec_rrset(GRANDCHILD, f"grandz.{CHILD}", "NS", "RRSIG", "NSEC")
 
 
+def nsec3_ns_lie(
+    qname: str, zone: str, salt: str | None, salt_text: str
+) -> dns.rrset.RRset:
+    # An NSEC3 owned by 'zone' whose owner hash matches 'qname' under this
+    # record's own parameters, showing an (insecure) delegation: NS bit set, DS
+    # bit clear.  is_insecure_referral()'s trynsec3 arm takes the exact-match
+    # branch (order == 0) before it ever consults the "next" field, so reusing
+    # the owner digest as the next hash is sufficient for it to parse.
+    digest = dns.dnssec.nsec3_hash(name(qname), salt, 0, 1).lower()
+    owner = f"{digest}.{zone}"
+    return rrset(owner, dns.rdatatype.NSEC3, f"1 0 0 {salt_text} {digest} NS")
+
+
+def nsec3_nodata(
+    qname: str, zone: str, salt: str | None, salt_text: str
+) -> dns.rrset.RRset:
+    # A genuine matching NSEC3 for 'qname' in 'zone' with the DS bit clear: a
+    # legitimate NODATA-DS proof (the name exists as an ordinary, non-delegation
+    # node).  The NS bit is clear, so it does not itself assert a delegation.
+    digest = dns.dnssec.nsec3_hash(name(qname), salt, 0, 1).lower()
+    owner = f"{digest}.{zone}"
+    return rrset(owner, dns.rdatatype.NSEC3, f"1 0 0 {salt_text} {digest} TXT RRSIG")
+
+
 def grandchild3_nsec3_lie() -> dns.rrset.RRset:
-    # An NSEC3 owned by the grandparent zone P that matches the hash of the
-    # grandchild name and shows an (insecure) delegation: NS bit set, DS bit
-    # clear.  Same forgery as grandchild_nsec_lie(), but expressed as NSEC3 so
-    # that the resolver reaches is_insecure_referral()'s trynsec3 arm.
-    digest = dns.dnssec.nsec3_hash(name(GRANDCHILD3), None, 0, 1).lower()
-    owner = f"{digest}.{PARENT}"
-    return rrset(owner, dns.rdatatype.NSEC3, f"1 0 0 - {digest} NS")
+    # Same forgery as grandchild_nsec_lie(), but expressed as an NSEC3 signed by
+    # the grandparent so that the resolver reaches is_insecure_referral()'s
+    # trynsec3 arm.
+    return nsec3_ns_lie(GRANDCHILD3, PARENT, None, "-")
 
 
 def add_parent_nodata(
@@ -124,6 +181,32 @@ def add_parent_nodata(
 ) -> None:
     add_signed(response.authority, soa_rrset(), parent_key)
     add_signed(response.authority, nsec, parent_key)
+
+
+def add_nsec3_nodata_from_sibling(
+    response: dns.message.Message, child_key: Key, sibling_key: Key
+) -> None:
+    # #6234: a genuinely signed NSEC3 owned by an unrelated sibling zone whose
+    # owner hash matches the grandchild under the sibling's own parameters and
+    # whose NS bit is set.  Its owner hash sorts before the child proof's (the
+    # salts are chosen for exactly that, see _ordering_salts), so the ncache
+    # iterates it first; trynsec3 matches it and derives the signer as
+    # owner-minus-hash-label -> SIBLING (4 labels), which empties
+    # closer_secure_ds_exists().  No owner-zone relevance check rejects it.  The
+    # child-signed NSEC3 that follows is the real NODATA-DS proof:
+    # dns_nsec3_noexistnodata() ignores the sibling record as out-of-zone, so
+    # the negative answer still validates normally.
+    add_signed(
+        response.authority,
+        nsec3_ns_lie(GRANDCHILD3_SIBLING, SIBLING, SIBLING_SALT, SIBLING_SALT),
+        sibling_key,
+    )
+    add_signed(
+        response.authority,
+        nsec3_nodata(GRANDCHILD3_SIBLING, CHILD, CHILD_SALT, CHILD_SALT),
+        child_key,
+    )
+    add_signed(response.authority, child_soa_rrset(), child_key)
 
 
 def prepare_response(qctx: QueryContext) -> dns.message.Message:
@@ -134,12 +217,16 @@ def prepare_response(qctx: QueryContext) -> dns.message.Message:
 
 
 class GrandparentNsecHandler(ResponseHandler):
-    def __init__(self, parent_key: Key) -> None:
-        self.parent_key = parent_key
+    def __init__(self, keys: dict[str, Key]) -> None:
+        self.parent_key = keys[PARENT]
+        self.child_key = keys[CHILD]
+        self.sibling_key = keys[SIBLING]
         self.parent = name(PARENT)
         self.child = name(CHILD)
+        self.sibling = name(SIBLING)
         self.grandchild = name(GRANDCHILD)
         self.grandchild3 = name(GRANDCHILD3)
+        self.grandchild3_sibling = name(GRANDCHILD3_SIBLING)
 
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname.is_subdomain(self.parent)
@@ -160,17 +247,59 @@ class GrandparentNsecHandler(ResponseHandler):
             # Priming, parent SOA
             add_signed(response.answer, soa_rrset(), self.parent_key)
         elif qctx.qname == self.child and qctx.qtype == dns.rdatatype.DS:
-            # Priming, child DS
-            add_signed(response.answer, child_ds_rrset(), self.parent_key)
+            # Priming, child DS.
+            #
+            # A real DS matching the child key, signed by the parent.  It must
+            # be real rather than a placeholder because the sibling-zone
+            # variant includes an NSEC3 signed by the child, so the child's
+            # DNSKEY has to chain to the parent.  It is also the secure DS at
+            # CHILD that closer_secure_ds_exists() finds when it refuses the
+            # grandparent-signed proofs of the #5967 variants.
+            ds = dns.dnssec.make_ds(self.child, self.child_key.dnskey, "SHA256")
+            add_signed(
+                response.answer,
+                dns.rrset.from_rdata(self.child, TTL, ds),
+                self.parent_key,
+            )
+        elif qctx.qname == self.child and qctx.qtype == dns.rdatatype.DNSKEY:
+            # Priming, child DNSKEY.
+            add_signed(
+                response.answer,
+                rrset_from_rdata(CHILD, self.child_key.dnskey),
+                self.child_key,
+            )
+        elif qctx.qname == self.sibling and qctx.qtype == dns.rdatatype.DS:
+            # Priming, sibling DS.
+            #
+            # The sibling zone is a genuine secure delegation: real DS signed by
+            # the parent, so its own NSEC3 (used in the sibling-zone attack
+            # variant) really validates.
+            ds = dns.dnssec.make_ds(self.sibling, self.sibling_key.dnskey, "SHA256")
+            add_signed(
+                response.answer,
+                dns.rrset.from_rdata(self.sibling, TTL, ds),
+                self.parent_key,
+            )
+        elif qctx.qname == self.sibling and qctx.qtype == dns.rdatatype.DNSKEY:
+            # Priming, sibling DNSKEY.
+            add_signed(
+                response.answer,
+                rrset_from_rdata(SIBLING, self.sibling_key.dnskey),
+                self.sibling_key,
+            )
         elif qctx.qname == self.grandchild and qctx.qtype == dns.rdatatype.DS:
-            # Forge no data for grand child DS (NSEC variant)
+            # #5967: Forge no data for grand child DS (NSEC variant).
             add_parent_nodata(response, self.parent_key, grandchild_nsec_lie())
         elif qctx.qname == self.grandchild3 and qctx.qtype == dns.rdatatype.DS:
-            # Forge no data for grand child DS (NSEC3 variant)
+            # #5967: Forge no data for grand child DS (NSEC3 variant).
             add_parent_nodata(response, self.parent_key, grandchild3_nsec3_lie())
+        elif qctx.qname == self.grandchild3_sibling and qctx.qtype == dns.rdatatype.DS:
+            # #6234: Sibling-zone-signed NSEC3 ahead of the real child proof.
+            add_nsec3_nodata_from_sibling(response, self.child_key, self.sibling_key)
         elif (
             qctx.qname.is_subdomain(self.grandchild)
             or qctx.qname.is_subdomain(self.grandchild3)
+            or qctx.qname.is_subdomain(self.grandchild3_sibling)
         ) and qctx.qtype == dns.rdatatype.A:
             # Attack query
             response.answer.append(
@@ -184,7 +313,7 @@ class GrandparentNsecHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True)
-    server.install_response_handlers(GrandparentNsecHandler(load_key()))
+    server.install_response_handlers(GrandparentNsecHandler(load_keys()))
     server.run()
 
 
