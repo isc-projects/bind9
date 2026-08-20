@@ -1388,8 +1388,8 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 						    DNS_KEYSTORE_KEYDIRECTORY);
 					if (result == ISC_R_SUCCESS) {
 						result = ISC_R_FAILURE;
-						continue;
 					}
+					continue;
 				}
 
 				kopt = cfg_tuple_get(kconfig, "options");
