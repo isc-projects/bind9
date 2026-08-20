@@ -713,9 +713,21 @@ xfr_rr(dns_xfrin_t *xfr, dns_name_t *name, uint32_t ttl, dns_rdata_t *rdata) {
 	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		xfrin_log(xfr, ISC_LOG_DEBUG(3), "SOA name mismatch: '%s'",
+		xfrin_log(xfr, ISC_LOG_NOTICE, "SOA name mismatch: '%s'",
 			  namebuf);
 		CLEANUP(DNS_R_NOTZONETOP);
+	}
+
+	/*
+	 * Immediately reject the entire transfer if the owner of the RR that is
+	 * currently being processed is out of the zone.
+	 */
+	if (!dns_name_issubdomain(name, &xfr->name)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		xfrin_log(xfr, ISC_LOG_NOTICE,
+			  "out-of-zone data received: '%s'", namebuf);
+		CLEANUP(DNS_R_FORMERR);
 	}
 
 redo:
