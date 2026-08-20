@@ -1615,10 +1615,10 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	REQUIRE(DNS_NAME_BINDABLE(target));
 
 	target->ndata = isc_mem_get(mctx, source->length);
+	target->length = source->length;
 
 	memmove(target->ndata, source->ndata, source->length);
 
-	target->length = source->length;
 	target->attributes = (struct dns_name_attrs){ .dynamic = true };
 	target->attributes.absolute = source->attributes.absolute;
 }
