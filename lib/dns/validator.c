@@ -421,6 +421,8 @@ trynsec3:
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
 	name = dns_fixedname_name(&fixed);
+	unsigned int nlabels = dns_name_countlabels(name);
+
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
@@ -435,23 +437,38 @@ trynsec3:
 			continue;
 		}
 
-		/*
-		 * Remember this NSEC3's zone (the owner name's parent) as the
-		 * signer to bound. It is refreshed for every record so that,
-		 * when one below triggers the terminal condition, 'signer'
-		 * reflects that record -- not some earlier non-matching NSEC3.
-		 * The bound check walks the cache and would disassociate
-		 * 'rdataset' (== val->frdataset), so it runs only after the
-		 * loop, at checksigner.
-		 */
 		unsigned int labels = dns_name_countlabels(&nsec3name);
-		if (labels > 1) {
-			dns_name_t parent = DNS_NAME_INITEMPTY;
-			dns_name_getlabelsequence(&nsec3name, 1, labels - 1,
-						  &parent);
-			signer = dns_fixedname_initname(&fsigner);
-			dns_name_copy(&parent, signer);
+		if (labels < 2 || (labels - 1) > nlabels) {
+			/* An NSEC3 owner is a hash label below its zone. */
+			continue;
 		}
+
+		/*
+		 * Only an NSEC3 whose zone encloses the DS name can say
+		 * anything about it; dns_nsec3_noexistnodata() applies the
+		 * same relevance gate.
+		 */
+		dns_name_t zone = DNS_NAME_INITEMPTY;
+		dns_name_getlabelsequence(&nsec3name, 1, labels - 1, &zone);
+		if (!dns_name_issubdomain(name, &zone)) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "is_insecure_referral: NSEC3 owner zone "
+				      "does not enclose the DS name; ignoring");
+			signer = NULL;
+			continue;
+		}
+
+		/*
+		 * Remember this NSEC3's zone as the signer to bound. It is
+		 * refreshed for every record so that, when one below triggers
+		 * the terminal condition, 'signer' reflects that record -- not
+		 * some earlier NSEC3. The bound check walks the cache and
+		 * would disassociate 'rdataset' (== val->frdataset), which
+		 * 'nsec3name' points into, so the zone is copied and the check
+		 * runs only after the loop, at checksigner.
+		 */
+		signer = dns_fixedname_initname(&fsigner);
+		dns_name_copy(&zone, signer);
 
 		dns_name_getlabel(&nsec3name, 0, &hashlabel);
 		isc_region_consume(&hashlabel, 1);
