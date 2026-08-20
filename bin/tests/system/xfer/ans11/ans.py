@@ -31,7 +31,8 @@ from isctest.asyncserver import (
 
 ZONE = "ixfr-race."
 NS_NAME = f"ns.{ZONE}"
-NUM_RECORDS = 400
+FIRST_DIFF_RECORDS = 50
+SECOND_DIFF_RECORDS = 200
 
 
 def rrset(
@@ -57,37 +58,38 @@ def ns() -> dns.rrset.RRset:
     return rrset(ZONE, 3600, dns.rdatatype.NS, NS_NAME)
 
 
-def host_a_records(second_octet: int) -> list[dns.rrset.RRset]:
+def host_a_records(prefix: str, second_octet: int, count: int) -> list[dns.rrset.RRset]:
     return [
-        a(f"host-{i}.{ZONE}", f"10.{second_octet}.{(i >> 8) & 0xFF}.{i & 0xFF}")
-        for i in range(NUM_RECORDS)
+        a(f"{prefix}-{i}.{ZONE}", f"10.{second_octet}.{(i >> 8) & 0xFF}.{i & 0xFF}")
+        for i in range(count)
     ]
 
 
-def ixfr_diff() -> list[dns.rrset.RRset]:
+def ixfr_diffs() -> list[dns.rrset.RRset]:
     """
-    Craft the answer of a valid IXFR diff (serial 1 -> 3) whose trailing
-    boundary SOA triggers ixfr_commit() on the receiving secondary.
+    Craft two complete IXFR diffs, but omit the terminating SOA.
 
-    The sections are, in order: end SOA (serial 3), old SOA (serial 1) opening
-    the deletions, the deleted A records, the mid SOA (serial 2) opening the
-    additions, the added A records, and finally the boundary SOA (serial 2)
-    which drives ixfr_commit() and enqueues the diff-applying worker thread.
+    Committing the first diff starts the apply worker.  Parsing the second,
+    larger diff gives that worker time to splice the first chunk from the
+    shared queue before the second chunk is committed.  The second chunk is
+    then left on xfr->diff_head for the following SERVFAIL to expose GL#6114.
     """
     return [
-        soa(3),
+        soa(4),
         soa(1),
-        *host_a_records(0),
         soa(2),
-        *host_a_records(1),
+        *host_a_records("first", 1, FIRST_DIFF_RECORDS),
         soa(2),
+        soa(3),
+        *host_a_records("second", 2, SECOND_DIFF_RECORDS),
+        soa(3),
     ]
 
 
 class TransferState:
     """
     Flag toggled once the initial AXFR (serial 1) has been served.  The SOA
-    handlers read it to advertise serial 1 before the transfer and serial 3
+    handlers read it to advertise serial 1 before the transfer and serial 4
     after it, so the secondary's next refresh switches from AXFR to IXFR.
     """
 
@@ -113,7 +115,7 @@ class InitialSoaHandler(TransferHandler, StaticResponseHandler):
 
 
 class RefreshSoaHandler(TransferHandler, StaticResponseHandler):
-    answer = [soa(3)]
+    answer = [soa(4)]
 
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qtype == dns.rdatatype.SOA and self._progress.initial_axfr_served
@@ -126,7 +128,6 @@ class InitialAxfrHandler(TransferHandler, AxfrHandler):
     zone_contents = [
         ns(),
         a(NS_NAME, "127.0.0.1"),
-        *host_a_records(0),
     ]
     final_soa = soa(1)
 
@@ -152,13 +153,13 @@ class TruncatedIxfrHandler(ResponseHandler):
 
 class RaceIxfrHandler(ResponseHandler):
     """
-    Reproduce the IXFR->AXFR use-after-free race (GL#5767).
+    Reproduce the IXFR->AXFR use-after-free races (GL#5767 and GL#6114).
 
-    Over TCP, send a large valid IXFR diff whose boundary SOA triggers
-    ixfr_commit() and enqueues a diff-applying worker thread, immediately
-    followed by a SERVFAIL response that makes xfrin_recv_done() fall through to
-    try_axfr() -> xfrin_reset(), tearing down the journal/version while that
-    worker is still running.
+    Over TCP, send two valid IXFR diffs.  The first starts the apply worker and
+    the second remains queued after that worker splices the first chunk.
+    Immediately follow them with a SERVFAIL response that makes
+    xfrin_recv_done() defer the AXFR retry until the worker finishes.  Cleanup
+    then has to detach the queued second chunk before freeing it.
     """
 
     def match(self, qctx: QueryContext) -> bool:
@@ -167,7 +168,7 @@ class RaceIxfrHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        for rrset_ in ixfr_diff():
+        for rrset_ in ixfr_diffs():
             qctx.response.answer.append(rrset_)
         yield DnsResponseSend(qctx.response)
 
