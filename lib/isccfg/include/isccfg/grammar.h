@@ -268,17 +268,6 @@ struct cfg_parser {
 	cfg_obj_t *open_files;
 
 	/*%
-	 * Names of files that we have parsed and closed
-	 * and were previously on the open_file list.
-	 * We keep these objects around after closing
-	 * the files because the file names may still be
-	 * referenced from other configuration objects
-	 * for use in reporting semantic errors after
-	 * parsing is complete.
-	 */
-	cfg_obj_t *closed_files;
-
-	/*%
 	 * Name of a buffer being parsed; used only for
 	 * logging.
 	 */

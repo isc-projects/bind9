@@ -689,7 +689,6 @@ parser_create(cfg_parser_t **ret) {
 	pctx->errors = 0;
 	pctx->warnings = 0;
 	pctx->open_files = NULL;
-	pctx->closed_files = NULL;
 	pctx->line = 0;
 	pctx->token.type = isc_tokentype_unknown;
 	pctx->flags = 0;
@@ -712,8 +711,6 @@ parser_create(cfg_parser_t **ret) {
 
 	create_list(cfg_parser_currentfile(pctx), pctx->line,
 		    &cfg_type_filelist, &pctx->open_files);
-	create_list(cfg_parser_currentfile(pctx), pctx->line,
-		    &cfg_type_filelist, &pctx->closed_files);
 
 	*ret = pctx;
 }
@@ -733,7 +730,6 @@ parser_destroy(cfg_parser_t **pctxp) {
 	 * by closing the lexer.
 	 */
 	CLEANUP_OBJ(pctx->open_files);
-	CLEANUP_OBJ(pctx->closed_files);
 	isc_mem_put(isc_g_mctx, pctx, sizeof(*pctx));
 }
 
@@ -806,7 +802,6 @@ isc_result_t
 cfg_parse_file(const char *filename, const cfg_type_t *type, unsigned int flags,
 	       cfg_obj_t **ret) {
 	isc_result_t result;
-	cfg_listelt_t *elt;
 	cfg_parser_t *pctx = NULL;
 
 	REQUIRE(filename != NULL);
@@ -821,11 +816,17 @@ cfg_parse_file(const char *filename, const cfg_type_t *type, unsigned int flags,
 
 	result = parse2(pctx, type, ret);
 
-	/* Clean up the opened file */
-	elt = ISC_LIST_TAIL(*pctx->open_files->value.list);
-	INSIST(elt != NULL);
-	ISC_LIST_UNLINK(*pctx->open_files->value.list, elt, link);
-	ISC_LIST_APPEND(*pctx->closed_files->value.list, elt, link);
+	/*
+	 * Clean up the opened file. There are specific cases (unexpected EOF)
+	 * where included files wouldn't have been removed from the
+	 * `open_files`. In principle `parse2()` should take care of this (as it
+	 * does when correctly closing the file within the lexer) but there are
+	 * complex interactions with `cfg_parser_error()`. This would require
+	 * some wider rework.
+	 */
+	ISC_LIST_FOREACH(*pctx->open_files->value.list, name, link) {
+		cfg_list_unlink(pctx->open_files, name);
+	}
 
 cleanup:
 	parser_destroy(&pctx);
@@ -3682,10 +3683,7 @@ redo:
 				elt = ISC_LIST_TAIL(
 					*pctx->open_files->value.list);
 				INSIST(elt != NULL);
-				ISC_LIST_UNLINK(*pctx->open_files->value.list,
-						elt, link);
-				ISC_LIST_APPEND(*pctx->closed_files->value.list,
-						elt, link);
+				cfg_list_unlink(pctx->open_files, elt);
 				goto redo;
 			}
 			pctx->seen_eof = true;

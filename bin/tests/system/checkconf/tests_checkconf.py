@@ -35,3 +35,18 @@ def test_checkconf_builtin():
     # builtin-trust-anchors is non documented and internal clause only, it must
     # not be visible.
     assert "builtin-trust-anchors" not in cmd.out
+
+
+# Because this is specifically testing an issue occuring in an included file,
+# the `bad-` pattern can't be used here.
+def test_checkconf_included_unexpectedeof():
+    cmd = isctest.run.cmd(
+        [os.environ["CHECKCONF"], "truncated-with-include.conf"],
+        raise_on_exception=False,
+    )
+
+    assert (
+        b"included-truncated.conf:1: unknown option 'b'\nincluded-truncated.conf:1: unexpected end of input \nincluded-truncated.conf:1: isc_symtab_define() failed \n"
+        == cmd.proc.stdout
+    )
+    assert cmd.proc.returncode != 0
