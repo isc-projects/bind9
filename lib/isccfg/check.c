@@ -4225,8 +4225,9 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
-	} else if (!dlz && (obj == NULL ||
-			    strcmp(ZONEDB_DEFAULT, cfg_obj_asstring(obj)) == 0))
+	} else if (zname != NULL && !dlz &&
+		   (obj == NULL ||
+		    strcmp(ZONEDB_DEFAULT, cfg_obj_asstring(obj)) == 0))
 	{
 		const cfg_obj_t *fileobj = NULL;
 		(void)get_zoneopt(zoptions, toptions, NULL, NULL, "file",
