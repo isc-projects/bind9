@@ -2994,6 +2994,18 @@ parse_token(cfg_parser_t *pctx, const cfg_type_t *type ISC_ATTR_UNUSED,
 
 cleanup:
 	if (obj != NULL) {
+		/*
+		 * This is an odd specific case.
+		 *
+		 * `cfg_obj_detach()` can't be used here because if no token is
+		 * found, and obj->value.string == NULL. And because `obj` type
+		 * representation is a string, the free_string() function would
+		 * attempt to free a NULL pointer.
+		 *
+		 * As a consequence, we need to detach the file, otherwise it
+		 * will leak.
+		 */
+		cfg_obj_detach(&obj->file);
 		isc_mem_put(isc_g_mctx, obj, sizeof(*obj));
 	}
 	return result;
