@@ -117,11 +117,6 @@ newvec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 static isc_result_t
 makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	uint32_t maxrrperset) {
-	/*
-	 * Use &removed as a sentinel pointer for duplicate
-	 * rdata as rdata.data == NULL is valid.
-	 */
-	static unsigned char removed;
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
 	unsigned int headerlen = sizeof(dns_vecheader_t);
@@ -189,7 +184,6 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdata_init(&rdata[i]);
 		dns_rdataset_current(rdataset, &rdata[i]);
-		INSIST(rdata[i].data != &removed);
 		result = dns_rdataset_next(rdataset);
 	}
 	if (i != nalloc || result != ISC_R_NOMORE) {
@@ -209,6 +203,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	if (nalloc > 1U) {
 		qsort(rdata, nalloc, sizeof(rdata[0]), compare_rdata);
 	}
+	nitems = 0;
 
 	/*
 	 * Remove duplicates and compute the total storage required.
@@ -218,39 +213,22 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * just the rdata, so our overhead is 2 bytes for the length of each
 	 * rdata, plus the rdata itself.
 	 */
-	for (i = 1; i < nalloc; i++) {
-		if (compare_rdata(&rdata[i - 1], &rdata[i]) == 0) {
-			rdata[i - 1].data = &removed;
-			nitems--;
-		} else {
-			buflen += 2 + rdata[i - 1].length;
-			/*
-			 * Provide space to store the per RR meta data.
-			 */
-			if (rdataset->type == dns_rdatatype_rrsig) {
-				buflen++;
-			}
-			if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
-				result = ISC_R_NOSPACE;
-				goto free_rdatas;
-			}
+	for (i = 0; i < nalloc; i++) {
+		bool duplicate = i + 1 < nalloc &&
+				 compare_rdata(&rdata[i], &rdata[i + 1]) == 0;
+
+		if (duplicate) {
+			continue;
 		}
-	}
 
-	/*
-	 * Don't forget the last item!
-	 */
-	buflen += 2 + rdata[i - 1].length;
+		buflen += sizeof(uint16_t) + rdata[i].length +
+			  (rdataset->type == dns_rdatatype_rrsig);
+		if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
+			result = ISC_R_NOSPACE;
+			goto free_rdatas;
+		}
 
-	/*
-	 * Provide space to store the per RR meta data.
-	 */
-	if (rdataset->type == dns_rdatatype_rrsig) {
-		buflen++;
-	}
-	if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
-		result = ISC_R_NOSPACE;
-		goto free_rdatas;
+		rdata[nitems++] = rdata[i];
 	}
 
 	/*
@@ -271,10 +249,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 */
 	rawbuf = newvec(rdataset, mctx, region, buflen, nitems);
 
-	for (i = 0; i < nalloc; i++) {
-		if (rdata[i].data == &removed) {
-			continue;
-		}
+	for (i = 0; i < nitems; i++) {
 		length = rdata[i].length;
 		if (rdataset->type == dns_rdatatype_rrsig) {
 			length++;
