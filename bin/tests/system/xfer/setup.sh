@@ -15,7 +15,7 @@
 
 dnspython_genzone() (
   servers="$@"
-  # Drop unusual RR sets and RR types (AMTRELAY, GPOS, URI, apl02) dnspython
+  # Drop unusual RR sets and RR types (AMTRELAY, GPOS, apl02) that dnspython
   # can't handle. For more information see
   # https://github.com/rthalley/dnspython/issues/1034#issuecomment-1896541899.
   # - BRID and HHIT are not supported by dnspython at all.
@@ -29,7 +29,6 @@ dnspython_genzone() (
       -e '/GPOS.*"" "" ""/d' \
       -e '/HHIT/d' \
       -e '/RESINFO/d' \
-      -e '/URI.*30 40 ""/d' \
       -e '/WALLET/d' \
       -e '/apl02/d' \
     | tr "\t" " "
