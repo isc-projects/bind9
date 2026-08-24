@@ -49,11 +49,13 @@ fromtext_uri(ARGS_FROMTEXT) {
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
-	 * Target URI
+	 * Target URI (non empty).
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      false));
-	if (token.type != isc_tokentype_qstring) {
+	if (token.type != isc_tokentype_qstring ||
+	    token.value.as_textregion.length == 0)
+	{
 		RETTOK(DNS_R_SYNTAX);
 	}
 	RETTOK(multitxt_fromtext(&token.value.as_textregion, target));
@@ -107,16 +109,12 @@ fromwire_uri(ARGS_FROMWIRE) {
 	UNUSED(dctx);
 
 	/*
-	 * Priority, weight
+	 * Priority, weight and target URI (non empty).
 	 */
 	isc_buffer_activeregion(source, &region);
-	if (region.length < 4) {
+	if (region.length < 5) {
 		return ISC_R_UNEXPECTEDEND;
 	}
-
-	/*
-	 * Priority, weight and target URI
-	 */
 	isc_buffer_forward(source, region.length);
 	return mem_tobuffer(target, region.base, region.length);
 }
@@ -208,7 +206,7 @@ tostruct_uri(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == dns_rdatatype_uri);
 	REQUIRE(uri != NULL);
-	REQUIRE(rdata->length >= 4);
+	REQUIRE(rdata->length > 4);
 
 	DNS_RDATACOMMON_INIT(uri, rdata->type, rdata->rdclass);
 
