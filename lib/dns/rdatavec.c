@@ -38,18 +38,15 @@
 /*
  * The memory structure of an rdatavec is as follows:
  *
- *	header		(dns_vecheader_t)
- *	record count	(2 bytes, big endian)
+ *	header		(dns_vecheader_t, including record count)
  *	data records
  *		data length	(2 bytes, big endian)
  *		meta data	(1 byte for RRSIG, 0 bytes for all other types)
  *		data		(data length bytes)
  *
- * A "bare" rdatavec is everything after the header. The first two bytes
- * contain the count of rdata records in the rdatavec.
- * After the count, the rdata records are stored sequentially in memory.
- * Each record consists of a length field, optional metadata, and the actual
- * rdata bytes.
+ * A "bare" rdatavec is everything after the header. The data records are
+ * stored sequentially in memory. Each record consists of a length field,
+ * optional metadata, and the actual rdata bytes.
  *
  * The rdata format depends on the RR type and is defined by the type-specific
  * *_fromwire and *_towire functions (e.g., lib/dns/rdata/in_1/a_1.c for A
@@ -95,39 +92,13 @@ compare_rdata(const void *p1, const void *p2) {
 	return dns_rdata_compare(p1, p2);
 }
 
-static size_t
-header_size(const dns_vecheader_t *header) {
-	UNUSED(header);
-	return sizeof(dns_vecheader_t);
-}
-
-static unsigned char *
-rdatavec_raw(dns_vecheader_t *header) {
-	unsigned char *as_char_star = (unsigned char *)header;
-	unsigned char *raw = as_char_star + header_size(header);
-
-	return raw;
-}
-
-static unsigned char *
-rdatavec_data(dns_vecheader_t *header) {
-	return rdatavec_raw(header) + 2;
-}
-
-static unsigned int
-rdatavec_count(dns_vecheader_t *header) {
-	unsigned char *raw = rdatavec_raw(header);
-	unsigned int count = get_uint16(raw);
-
-	return count;
-}
-
 static unsigned char *
 newvec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-       size_t size) {
+       size_t size, uint16_t count) {
 	dns_vecheader_t *header = isc_mem_get(mctx, size);
 
 	*header = (dns_vecheader_t){
+		.count = count,
 		.next_header = ISC_SLINK_INITIALIZER,
 		.trust = rdataset->trust,
 		.ttl = rdataset->ttl,
@@ -138,7 +109,7 @@ newvec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	region->base = (unsigned char *)header;
 	region->length = size;
 
-	return (unsigned char *)header + sizeof(*header);
+	return header->raw;
 }
 
 static isc_result_t
@@ -152,7 +123,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	dns_rdata_t *rdata = NULL;
 	unsigned char *rawbuf = NULL;
 	unsigned int headerlen = sizeof(dns_vecheader_t);
-	uint32_t buflen = headerlen + 2;
+	uint32_t buflen = headerlen;
 	isc_result_t result;
 	unsigned int nitems;
 	unsigned int nalloc;
@@ -169,11 +140,10 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		dns_vecheader_t *header = dns_vecheader_getheader(rdataset);
 		buflen = dns_rdatavec_size(header);
 
-		rawbuf = newvec(rdataset, mctx, region, buflen);
+		rawbuf = newvec(rdataset, mctx, region, buflen, header->count);
 
 		INSIST(headerlen <= buflen);
-		memmove(rawbuf, (unsigned char *)header + headerlen,
-			buflen - headerlen);
+		memmove(rawbuf, header->raw, buflen - headerlen);
 		return ISC_R_SUCCESS;
 	}
 
@@ -186,8 +156,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
 		}
-		rawbuf = newvec(rdataset, mctx, region, buflen);
-		put_uint16(rawbuf, 0);
+		(void)newvec(rdataset, mctx, region, buflen, 0);
 		return ISC_R_SUCCESS;
 	}
 
@@ -244,9 +213,8 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 *
 	 * If an rdata is not a duplicate, accumulate the storage size
 	 * required for the rdata.  We do not store the class, type, etc,
-	 * just the rdata, so our overhead is 2 bytes for the number of
-	 * records, and 2 bytes for the length of each rdata, plus the
-	 * rdata itself.
+	 * just the rdata, so our overhead is 2 bytes for the length of each
+	 * rdata, plus the rdata itself.
 	 */
 	for (i = 1; i < nalloc; i++) {
 		if (compare_rdata(&rdata[i - 1], &rdata[i]) == 0) {
@@ -260,7 +228,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 			if (rdataset->type == dns_rdatatype_rrsig) {
 				buflen++;
 			}
-			if (buflen - headerlen - 2 > DNS_RDATA_MAXLENGTH) {
+			if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
 				result = ISC_R_NOSPACE;
 				goto free_rdatas;
 			}
@@ -278,7 +246,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	if (rdataset->type == dns_rdatatype_rrsig) {
 		buflen++;
 	}
-	if (buflen - headerlen - 2 > DNS_RDATA_MAXLENGTH) {
+	if (buflen - headerlen > DNS_RDATA_MAXLENGTH) {
 		result = ISC_R_NOSPACE;
 		goto free_rdatas;
 	}
@@ -299,8 +267,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = newvec(rdataset, mctx, region, buflen);
-	put_uint16(rawbuf, nitems);
+	rawbuf = newvec(rdataset, mctx, region, buflen, nitems);
 
 	for (i = 0; i < nalloc; i++) {
 		if (rdata[i].data == &removed) {
@@ -359,6 +326,7 @@ dns_rdatavec_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		 * Reset the vecheader content, but keep the refcount and mctx.
 		 */
 		*new = (dns_vecheader_t){
+			.count = new->count,
 			.next_header = ISC_SLINK_INITIALIZER,
 			.typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
 						       rdataset->covers),
@@ -376,25 +344,22 @@ unsigned int
 dns_rdatavec_size(dns_vecheader_t *header) {
 	REQUIRE(header != NULL);
 
-	unsigned char *vec = rdatavec_raw(header);
-	INSIST(vec != NULL);
-
-	unsigned char *current = rdatavec_data(header);
-	uint16_t count = rdatavec_count(header);
+	unsigned char *current = header->raw;
+	uint16_t count = header->count;
 
 	while (count-- > 0) {
 		uint16_t length = get_uint16(current);
 		current += length;
 	}
 
-	return (unsigned int)(current - vec) + header_size(header);
+	return (unsigned int)(current - (unsigned char *)header);
 }
 
 unsigned int
 dns_rdatavec_count(dns_vecheader_t *header) {
 	REQUIRE(header != NULL);
 
-	return rdatavec_count(header);
+	return header->count;
 }
 
 static void
@@ -497,18 +462,17 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		   isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, unsigned int flags,
 		   uint32_t maxrrperset, dns_vecheader_t **theaderp) {
-	unsigned char *tcurrent = NULL;
 	unsigned int ocount, ncount, tcount = 0;
 	unsigned int ndup;
-	size_t rlength = 0, tlength = 0;
+	size_t rlength = 0, tlength;
 	vecmerge_iter_t iter;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(theaderp != NULL && *theaderp == NULL);
 	REQUIRE(oheader != NULL && nheader != NULL);
 
-	ocount = rdatavec_count(oheader);
-	ncount = rdatavec_count(nheader);
+	ocount = oheader->count;
+	ncount = nheader->count;
 
 	if (maxrrperset > 0 && ocount + ncount > maxrrperset) {
 		return DNS_R_TOOMANYRECORDS;
@@ -552,22 +516,22 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		return ISC_R_NOSPACE;
 	}
 
-	tlength = header_size(oheader) + 2 + rlength;
+	tlength = sizeof(*oheader) + rlength;
 
 	/*
 	 * Allocate the target buffer and initialize the header.
 	 * Preserve the case of the old header, but the rest from the
 	 * new header.
 	 */
-	unsigned char *tstart = isc_mem_get(mctx, tlength);
-	dns_vecheader_t *as_header = (dns_vecheader_t *)tstart;
+	dns_vecheader_t *theader = isc_mem_get(mctx, tlength);
 	uint16_t attrs = DNS_VECHEADER_GETATTR(
 		oheader,
 		DNS_VECHEADERATTR_CASESET | DNS_VECHEADERATTR_CASEFULLYLOWER);
 	if (RESIGN(nheader)) {
 		attrs |= DNS_VECHEADERATTR_RESIGN;
 	}
-	*as_header = (dns_vecheader_t){
+	*theader = (dns_vecheader_t){
+		.count = tcount,
 		.typepair = nheader->typepair,
 		.mctx = isc_mem_ref(mctx),
 		.serial = nheader->serial,
@@ -575,15 +539,12 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		.resign = nheader->resign,
 		.next_header = ISC_SLINK_INITIALIZER,
 	};
-	isc_refcount_init(&as_header->references, 1);
-	atomic_init(&as_header->attributes, attrs);
-	atomic_init(&as_header->trust, atomic_load_acquire(&nheader->trust));
-	memmove(as_header->upper, oheader->upper, sizeof(oheader->upper));
+	isc_refcount_init(&theader->references, 1);
+	atomic_init(&theader->attributes, attrs);
+	atomic_init(&theader->trust, atomic_load_acquire(&nheader->trust));
+	memmove(theader->upper, oheader->upper, sizeof(oheader->upper));
 
-	tcurrent = tstart + header_size(nheader);
-
-	/* Write the new count, then start merging the vecs. */
-	put_uint16(tcurrent, tcount);
+	unsigned char *tcurrent = theader->raw;
 
 	/*
 	 * Now walk the sets together, adding each item in DNSSEC order,
@@ -595,9 +556,9 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 		rdata_to_vecitem(&tcurrent, type, &rdata);
 	}
 
-	INSIST(tcurrent == tstart + tlength);
+	INSIST(tcurrent == (unsigned char *)theader + tlength);
 
-	*theaderp = (dns_vecheader_t *)tstart;
+	*theaderp = theader;
 
 	return ISC_R_SUCCESS;
 }
@@ -607,7 +568,6 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 		      isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		      dns_rdatatype_t type, unsigned int flags,
 		      dns_vecheader_t **theaderp) {
-	unsigned char *tcurrent = NULL;
 	unsigned int ocount, scount;
 	unsigned int tcount = 0, rcount;
 	size_t rlength = 0, tlength;
@@ -617,8 +577,8 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 	REQUIRE(theaderp != NULL && *theaderp == NULL);
 	REQUIRE(oheader != NULL && sheader != NULL);
 
-	ocount = rdatavec_count(oheader);
-	scount = rdatavec_count(sheader);
+	ocount = oheader->count;
+	scount = sheader->count;
 
 	vecmerge_first(&iter, oheader, sheader, rdclass);
 
@@ -658,15 +618,15 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 		return DNS_R_UNCHANGED;
 	}
 
-	tlength = header_size(oheader) + 2 + rlength;
+	tlength = sizeof(*oheader) + rlength;
 
 	/*
 	 * Allocate the target buffer and copy the old vec's header.
 	 */
-	unsigned char *tstart = isc_mem_get(mctx, tlength);
-	dns_vecheader_t *as_header = (dns_vecheader_t *)tstart;
+	dns_vecheader_t *theader = isc_mem_get(mctx, tlength);
 	uint16_t attrs = RESIGN(oheader) ? DNS_VECHEADERATTR_RESIGN : 0;
-	*as_header = (dns_vecheader_t){
+	*theader = (dns_vecheader_t){
+		.count = tcount,
 		.typepair = oheader->typepair,
 		.mctx = isc_mem_ref(mctx),
 		.serial = oheader->serial,
@@ -674,17 +634,12 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 		.resign = oheader->resign,
 		.next_header = ISC_SLINK_INITIALIZER,
 	};
-	isc_refcount_init(&as_header->references, 1);
-	atomic_init(&as_header->attributes, attrs);
-	atomic_init(&as_header->trust, atomic_load_acquire(&oheader->trust));
-	memmove(as_header->upper, oheader->upper, sizeof(oheader->upper));
+	isc_refcount_init(&theader->references, 1);
+	atomic_init(&theader->attributes, attrs);
+	atomic_init(&theader->trust, atomic_load_acquire(&oheader->trust));
+	memmove(theader->upper, oheader->upper, sizeof(oheader->upper));
 
-	tcurrent = tstart + header_size(oheader);
-
-	/*
-	 * Write the new count.
-	 */
-	put_uint16(tcurrent, tcount);
+	unsigned char *tcurrent = theader->raw;
 
 	/*
 	 * Copy the parts of the old vec that didn't have duplicates.
@@ -695,9 +650,9 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 		rdata_to_vecitem(&tcurrent, type, &rdata);
 	}
 
-	INSIST(tcurrent == tstart + tlength);
+	INSIST(tcurrent == (unsigned char *)theader + tlength);
 
-	*theaderp = (dns_vecheader_t *)tstart;
+	*theaderp = theader;
 
 	return ISC_R_SUCCESS;
 }
@@ -727,14 +682,11 @@ dns_vecheader_setownercase(dns_vecheader_t *header, const dns_name_t *name) {
 
 dns_vecheader_t *
 dns_vecheader_new(isc_mem_t *mctx) {
-	dns_vecheader_t *h = NULL;
-
-	h = isc_mem_get(mctx, sizeof(*h) + sizeof(uint16_t));
+	dns_vecheader_t *h = isc_mem_get(mctx, sizeof(*h));
 	*h = (dns_vecheader_t){
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.mctx = isc_mem_ref(mctx),
 	};
-	ISC_U16TO8_BE(h->raw, 0);
 	return h;
 }
 
@@ -743,20 +695,16 @@ dns_vecheader_new(isc_mem_t *mctx) {
 isc_result_t
 vecheader_first(rdatavec_iter_t *iter, dns_vecheader_t *header,
 		dns_rdataclass_t rdclass) {
-	unsigned char *raw = rdatavec_data(header);
-	uint16_t count = rdatavec_count(header);
-	if (count == 0) {
-		iter->iter_pos = NULL;
-		iter->iter_count = 0;
-		return ISC_R_NOMORE;
-	}
+	uint16_t count = header->count;
 
-	iter->iter_pos = raw;
-	iter->iter_count = count;
-	iter->iter_rdclass = rdclass;
-	iter->iter_type = DNS_TYPEPAIR_TYPE(header->typepair);
+	*iter = (rdatavec_iter_t){
+		.iter_pos = count == 0 ? NULL : header->raw,
+		.iter_count = count,
+		.iter_rdclass = rdclass,
+		.iter_type = DNS_TYPEPAIR_TYPE(header->typepair),
+	};
 
-	return ISC_R_SUCCESS;
+	return count == 0 ? ISC_R_NOMORE : ISC_R_SUCCESS;
 }
 
 isc_result_t
@@ -840,7 +788,7 @@ rdataset_clone(const dns_rdataset_t *source,
 
 static unsigned int
 rdataset_count(dns_rdataset_t *rdataset) {
-	return rdatavec_count(rdataset->vec.header);
+	return rdataset->vec.header->count;
 }
 
 static void

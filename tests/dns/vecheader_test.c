@@ -114,8 +114,7 @@ ISC_RUN_TEST_IMPL(zero_count_vecheader) {
 					     dns_rdatatype_none);
 
 	assert_int_equal(dns_rdatavec_count(empty), 0);
-	assert_int_equal(dns_rdatavec_size(empty),
-			 sizeof(dns_vecheader_t) + sizeof(uint16_t));
+	assert_int_equal(dns_rdatavec_size(empty), sizeof(dns_vecheader_t));
 
 	CHECK(create_vecheader(mctx, dns_rdatatype_a, dns_rdataclass_in, 300,
 			       "192.0.2.1", &header));
@@ -174,7 +173,7 @@ ISC_RUN_TEST_IMPL(merge_headers) {
 
 	/* Test: merged size should be first_size + second_size - sizeof(header)
 	 * - count_field_size */
-	expected_size = size1 + size2 - sizeof(dns_vecheader_t) - 2;
+	expected_size = size1 + size2 - sizeof(dns_vecheader_t);
 	assert_int_equal(merged_size, expected_size);
 
 	/* Test: merged count should be first_count + second_count */

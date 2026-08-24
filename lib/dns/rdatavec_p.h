@@ -17,15 +17,12 @@
 
 #include <dns/rdatavec.h>
 
-#define peek_uint16(buffer) ISC_U8TO16_BE(buffer)
-
 #define CASEFULLYLOWER(header)                         \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_CASEFULLYLOWER) != 0)
 #define CASESET(header)                                \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_CASESET) != 0)
-#define EXISTS(header) (peek_uint16((header)->raw) != 0)
 #define IGNORE(header)                                 \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_IGNORE) != 0)
@@ -36,6 +33,7 @@
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_RESIGN) != 0)
 
+#define peek_uint16(buffer) ISC_U8TO16_BE(buffer)
 #define get_uint16(buffer)                            \
 	({                                            \
 		uint16_t __ret = peek_uint16(buffer); \
