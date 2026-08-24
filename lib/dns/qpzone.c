@@ -201,7 +201,7 @@ struct qpznode {
 	isc_refcount_t references;
 	isc_refcount_t erefs;
 
-	_Atomic(dns_namespace_t) nspace;
+	/* const */ dns_namespace_t nspace;
 	atomic_bool havensec;
 	atomic_bool wild;
 	atomic_bool delegating;
