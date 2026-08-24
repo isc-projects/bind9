@@ -100,6 +100,8 @@ newvec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	*header = (dns_vecheader_t){
 		.count = count,
 		.next_header = ISC_SLINK_INITIALIZER,
+		.typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
+					       rdataset->covers),
 		.trust = rdataset->trust,
 		.ttl = rdataset->ttl,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
@@ -305,39 +307,18 @@ free_rdatas:
 isc_result_t
 dns_rdatavec_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			  isc_region_t *region, uint32_t maxrrperset) {
-	isc_result_t result;
-
 	if (rdataset->type == dns_rdatatype_none &&
 	    rdataset->covers == dns_rdatatype_none)
 	{
 		return DNS_R_DISALLOWED;
 	}
 
-	result = makevec(rdataset, mctx, region, maxrrperset);
-	if (result == ISC_R_SUCCESS) {
-		dns_vecheader_t *new = (dns_vecheader_t *)region->base;
+	INSIST(!rdataset->attributes.negative);
+	INSIST(rdataset->type != dns_rdatatype_none);
+	INSIST(dns_rdatatype_issig(rdataset->type) ||
+	       rdataset->covers == dns_rdatatype_none);
 
-		INSIST(!rdataset->attributes.negative);
-		INSIST(rdataset->type != dns_rdatatype_none);
-		INSIST(dns_rdatatype_issig(rdataset->type) ||
-		       rdataset->covers == dns_rdatatype_none);
-
-		/*
-		 * Reset the vecheader content, but keep the refcount and mctx.
-		 */
-		*new = (dns_vecheader_t){
-			.count = new->count,
-			.next_header = ISC_SLINK_INITIALIZER,
-			.typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
-						       rdataset->covers),
-			.trust = rdataset->trust,
-			.ttl = rdataset->ttl,
-			.references = atomic_load_acquire(&new->references),
-			.mctx = new->mctx,
-		};
-	}
-
-	return result;
+	return makevec(rdataset, mctx, region, maxrrperset);
 }
 
 unsigned int
