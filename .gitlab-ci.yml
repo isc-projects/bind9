@@ -205,10 +205,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-trixie-386"
   <<: *linux_amd64
 
-.debian-sid-amd64: &debian_sid_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
-  <<: *linux_amd64
-
 # openSUSE Tumbleweed
 
 .tumbleweed-latest-amd64: &tumbleweed_latest_amd64_image
@@ -1259,6 +1255,7 @@ gcc:trixie:amd64:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
     EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT}"
+    GNUMAKEFLAGS: "--shuffle=reverse"
     RUN_MAKE_INSTALL: 1
   <<: *debian_trixie_amd64_image
   <<: *build_job
@@ -1325,35 +1322,6 @@ unit:gcc:trixie:386:
   <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:trixie:386
-      artifacts: true
-
-
-# Jobs for regular GCC builds on Debian "sid" (amd64)
-# Also tests configration option: --without-lmdb.
-
-gcc:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb ${WITH_READLINE}"
-    GNUMAKEFLAGS: "--shuffle=reverse"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  <<: *extra_system_tests_triggering_rules
-  needs:
-    - job: gcc:sid:amd64
-      artifacts: true
-
-unit:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:sid:amd64
       artifacts: true
 
 # Job for out-of-tree GCC build on Debian 13 "trixie" (amd64)
@@ -1490,8 +1458,8 @@ unit:gcc:jammy:amd64:
 gcc:noble:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb"
   <<: *ubuntu_noble_amd64_image
   <<: *build_job
 
