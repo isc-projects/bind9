@@ -1113,6 +1113,12 @@ validator_callback_nsec(void *arg) {
 				unsigned int clabels;
 
 				val->attributes |= VALATTR_FOUNDNOQNAME;
+				if (subvalidator->siginfo != NULL) {
+					dns_name_copy(
+						&subvalidator->siginfo->signer,
+						dns_fixedname_name(
+							&val->nseczone));
+				}
 
 				closest = dns_fixedname_name(&val->closest);
 				clabels = dns_name_countlabels(closest);
@@ -2826,6 +2832,79 @@ val_rdataset_next(dns_validator_t *val, dns_name_t **namep,
 	return result;
 }
 
+static dns_rdataset_t *
+find_sigrdataset(const dns_name_t *name, dns_rdatatype_t covers) {
+	for (dns_rdataset_t *sigrdataset = ISC_LIST_HEAD(name->list);
+	     sigrdataset != NULL;
+	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
+	{
+		if (sigrdataset->type == dns_rdatatype_rrsig &&
+		    sigrdataset->covers == covers)
+		{
+			return sigrdataset;
+		}
+	}
+	return NULL;
+}
+
+/*%
+ * Return ISC_R_SUCCESS if every RRSIG covering an NSEC is signed by 'zonename'.
+ */
+static isc_result_t
+valid_nsec_signer(dns_validator_t *val, dns_name_t *name,
+		  dns_name_t *zonename) {
+	isc_result_t result = DNS_R_NOVALIDNSEC;
+	dns_rdataset_t sigset = DNS_RDATASET_INIT;
+	dns_rdataset_t *sigrdataset = NULL;
+
+	if (zonename == NULL || dns_name_countlabels(zonename) == 0) {
+		return DNS_R_EMPTYNAME;
+	}
+
+	if (val->message != NULL) {
+		sigrdataset = find_sigrdataset(name, dns_rdatatype_nsec);
+		if (sigrdataset == NULL) {
+			return DNS_R_NOVALIDNSEC;
+		}
+	} else {
+		RETERR(dns_ncache_getsigrdataset(val->rdataset, name,
+						 dns_rdatatype_nsec, &sigset));
+
+		sigrdataset = &sigset;
+	}
+
+	if (sigrdataset->trust != dns_trust_secure) {
+		result = DNS_R_NOVALIDNSEC;
+		goto cleanup;
+	}
+
+	for (isc_result_t r = dns_rdataset_first(sigrdataset);
+	     r == ISC_R_SUCCESS; r = dns_rdataset_next(sigrdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_rrsig_t sig = { 0 };
+
+		dns_rdataset_current(sigrdataset, &rdata);
+		CHECK(dns_rdata_tostruct(&rdata, &sig, NULL));
+
+		bool equal = dns_name_equal(zonename, &sig.signer);
+		dns_rdata_freestruct(&sig);
+		if (!equal) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "ignoring NSEC wildcard proof from a "
+				      "different zone");
+			result = DNS_R_NOVALIDNSEC;
+			goto cleanup;
+		}
+	}
+
+cleanup:
+	if (sigrdataset == &sigset && dns_rdataset_isassociated(&sigset)) {
+		dns_rdataset_disassociate(&sigset);
+	}
+	return result;
+}
+
 /*%
  * Look for NODATA at the wildcard and NOWILDCARD proofs in the
  * previously validated NSEC records.  As these proofs are mutually
@@ -2874,58 +2953,53 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 			continue;
 		}
 
-		if (rdataset->type == dns_rdatatype_nsec &&
-		    (NEEDNODATA(val) || NEEDNOWILDCARD(val)) &&
-		    !FOUNDNODATA(val) && !FOUNDNOWILDCARD(val) &&
-		    dns_nsec_noexistnodata(val->type, wild, name, rdataset,
-					   &exists, &data, NULL, validator_log,
-					   val) == ISC_R_SUCCESS)
+		if ((!NEEDNODATA(val) && !NEEDNOWILDCARD(val)) ||
+		    FOUNDNODATA(val) || FOUNDNOWILDCARD(val))
 		{
-			dns_name_t **proofs = val->proofs;
-			if (exists && !data) {
-				val->attributes |= VALATTR_FOUNDNODATA;
-			}
-			if (exists && !data && NEEDNODATA(val)) {
-				proofs[DNS_VALIDATOR_NODATAPROOF] = name;
-			}
-			if (!exists) {
-				val->attributes |= VALATTR_FOUNDNOWILDCARD;
-			}
-			if (!exists && NEEDNOQNAME(val)) {
-				proofs[DNS_VALIDATOR_NOWILDCARDPROOF] = name;
-			}
-			if (dns_rdataset_isassociated(&trdataset)) {
-				dns_rdataset_disassociate(&trdataset);
-			}
-			return ISC_R_SUCCESS;
+			continue;
 		}
 
-		if (rdataset->type == dns_rdatatype_nsec3 &&
-		    (NEEDNODATA(val) || NEEDNOWILDCARD(val)) &&
-		    !FOUNDNODATA(val) && !FOUNDNOWILDCARD(val) &&
-		    dns_nsec3_noexistnodata(
-			    val->type, wild, name, rdataset, zonename, &exists,
-			    &data, NULL, NULL, NULL, NULL, NULL, NULL,
-			    validator_log, val) == ISC_R_SUCCESS)
-		{
-			dns_name_t **proofs = val->proofs;
-			if (exists && !data) {
-				val->attributes |= VALATTR_FOUNDNODATA;
+		dns_name_t **proofs = val->proofs;
+		switch (rdataset->type) {
+		case dns_rdatatype_nsec:
+			result = valid_nsec_signer(val, name, zonename);
+			if (result != ISC_R_SUCCESS) {
+				continue;
 			}
-			if (exists && !data && NEEDNODATA(val)) {
-				proofs[DNS_VALIDATOR_NODATAPROOF] = name;
+			result = dns_nsec_noexistnodata(
+				val->type, wild, name, rdataset, &exists, &data,
+				NULL, validator_log, val);
+
+			if (result != ISC_R_SUCCESS) {
+				continue;
 			}
-			if (!exists) {
-				val->attributes |= VALATTR_FOUNDNOWILDCARD;
+			break;
+		case dns_rdatatype_nsec3:
+			result = dns_nsec3_noexistnodata(
+				val->type, wild, name, rdataset, zonename,
+				&exists, &data, NULL, NULL, NULL, NULL, NULL,
+				NULL, validator_log, val);
+			if (result != ISC_R_SUCCESS) {
+				continue;
 			}
-			if (!exists && NEEDNOQNAME(val)) {
-				proofs[DNS_VALIDATOR_NOWILDCARDPROOF] = name;
-			}
-			if (dns_rdataset_isassociated(&trdataset)) {
-				dns_rdataset_disassociate(&trdataset);
-			}
-			return ISC_R_SUCCESS;
+			break;
+		default:
+			continue;
 		}
+
+		if (exists && !data) {
+			val->attributes |= VALATTR_FOUNDNODATA;
+		}
+		if (exists && !data && NEEDNODATA(val)) {
+			proofs[DNS_VALIDATOR_NODATAPROOF] = name;
+		}
+		if (!exists) {
+			val->attributes |= VALATTR_FOUNDNOWILDCARD;
+		}
+		if (!exists && NEEDNOQNAME(val)) {
+			proofs[DNS_VALIDATOR_NOWILDCARDPROOF] = name;
+		}
+		break;
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
@@ -3236,16 +3310,7 @@ validate_authority(dns_validator_t *val, bool resume) {
 				continue;
 			}
 
-			for (sigrdataset = ISC_LIST_HEAD(name->list);
-			     sigrdataset != NULL;
-			     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
-			{
-				if (sigrdataset->type == dns_rdatatype_rrsig &&
-				    sigrdataset->covers == rdataset->type)
-				{
-					break;
-				}
-			}
+			sigrdataset = find_sigrdataset(name, rdataset->type);
 
 			result = validate_neg_rrset(val, name, rdataset,
 						    sigrdataset);
@@ -3392,10 +3457,12 @@ validate_nx(dns_validator_t *val, bool resume) {
 	/*
 	 * Do we need to check for the wildcard?
 	 */
-	if (FOUNDNOQNAME(val) && FOUNDCLOSEST(val) &&
+	dns_name_t *nseczone = dns_fixedname_name(&val->nseczone);
+	if (dns_name_countlabels(nseczone) != 0 && FOUNDNOQNAME(val) &&
+	    FOUNDCLOSEST(val) &&
 	    ((NEEDNODATA(val) && !FOUNDNODATA(val)) || NEEDNOWILDCARD(val)))
 	{
-		result = checkwildcard(val, dns_rdatatype_nsec, NULL);
+		result = checkwildcard(val, dns_rdatatype_nsec, nseczone);
 		if (result != ISC_R_SUCCESS) {
 			return result;
 		}
@@ -3979,6 +4046,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_fixedname_init(&val->wild);
 	dns_fixedname_init(&val->wildsigner);
+	dns_fixedname_init(&val->nseczone);
 	dns_fixedname_init(&val->closest);
 	val->start = isc_stdtime_now();
 	val->magic = VALIDATOR_MAGIC;
