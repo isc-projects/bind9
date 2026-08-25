@@ -39,6 +39,18 @@ def test_wildcard_applies_at_closest_encloser():
     assert rrsets(res.answer, dns.rdatatype.A)[0][0].to_text() == "198.51.100.45"
 
 
+def test_wildcard_occluded_by_empty_non_terminal():
+    """
+    RFC 4592 3.3.1: ent.example. is an empty non-terminal, so it -- not
+    example. -- is the closest encloser of y.ent.example.  The source of
+    synthesis is therefore *.ent.example., which does not exist, and "there is
+    no search for an alternate".
+    """
+    res = query("y.ent.example.", "A")
+    isctest.check.nxdomain(res)
+    isctest.check.empty_answer(res)
+
+
 def test_empty_non_terminal_is_nodata():
     res = query("ent.example.", "A")
     isctest.check.noerror(res)
