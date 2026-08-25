@@ -97,37 +97,6 @@ towire_any_tsig(ARGS_TOWIRE) {
 
 
 static isc_result_t
-towire_ch_a(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t sregion;
-	isc_region_t tregion;
-
-	REQUIRE(rdata->type == dns_rdatatype_a);
-	REQUIRE(rdata->rdclass == dns_rdataclass_ch);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, true);
-
-	dns_name_init(&name);
-
-	dns_rdata_toregion(rdata, &sregion);
-
-	dns_name_fromregion(&name, &sregion);
-	isc_region_consume(&sregion, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
-
-	isc_buffer_availableregion(target, &tregion);
-	if (tregion.length < 2) {
-		return ISC_R_NOSPACE;
-	}
-
-	memmove(tregion.base, sregion.base, 2);
-	isc_buffer_add(target, 2);
-	return ISC_R_SUCCESS;
-}
-
-
-static isc_result_t
 towire_afsdb(ARGS_TOWIRE) {
 	isc_region_t tr;
 	isc_region_t sr;
@@ -1248,26 +1217,6 @@ towire_zonemd(ARGS_TOWIRE) {
 
 
 static isc_result_t
-towire_hs_a(ARGS_TOWIRE) {
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_a);
-	REQUIRE(rdata->rdclass == dns_rdataclass_hs);
-	REQUIRE(rdata->length == 4);
-
-	UNUSED(cctx);
-
-	isc_buffer_availableregion(target, &region);
-	if (region.length < rdata->length) {
-		return ISC_R_NOSPACE;
-	}
-	memmove(region.base, rdata->data, rdata->length);
-	isc_buffer_add(target, 4);
-	return ISC_R_SUCCESS;
-}
-
-
-static isc_result_t
 towire_in_a6(ARGS_TOWIRE) {
 	isc_region_t sr;
 	dns_name_t name;
@@ -1545,8 +1494,6 @@ towire_in_wks(ARGS_TOWIRE) {
 	switch (rdata->type) { \
 	case 1: switch (rdata->rdclass) { \
 		case 1: result = towire_in_a(rdata, cctx, target); break; \
-		case 3: result = towire_ch_a(rdata, cctx, target); break; \
-		case 4: result = towire_hs_a(rdata, cctx, target); break; \
 		default: use_default = true; break; \
 		} \
 		break; \
