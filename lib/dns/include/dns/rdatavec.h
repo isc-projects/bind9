@@ -82,7 +82,8 @@ struct dns_vecheader {
 	_Atomic(dns_trust_t) trust;
 
 	dns_typepair_t typepair;
-	uint16_t count;
+	uint16_t       count;
+	uint32_t       raw_length;
 
 	isc_refcount_t references;
 

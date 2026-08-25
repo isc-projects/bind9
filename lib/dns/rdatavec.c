@@ -94,11 +94,13 @@ compare_rdata(const void *p1, const void *p2) {
 
 static unsigned char *
 newvec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
-       size_t size, uint16_t count) {
+       uint16_t count, uint32_t raw_length) {
+	size_t size = sizeof(dns_vecheader_t) + raw_length;
 	dns_vecheader_t *header = isc_mem_get(mctx, size);
 
 	*header = (dns_vecheader_t){
 		.count = count,
+		.raw_length = raw_length,
 		.next_header = ISC_SLINK_INITIALIZER,
 		.typepair = DNS_TYPEPAIR_VALUE(rdataset->type,
 					       rdataset->covers),
@@ -135,12 +137,10 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 */
 	if (rdataset->methods == &dns_rdatavec_rdatasetmethods) {
 		dns_vecheader_t *header = dns_vecheader_getheader(rdataset);
-		buflen = dns_rdatavec_size(header);
 
-		rawbuf = newvec(rdataset, mctx, region, buflen, header->count);
-
-		INSIST(headerlen <= buflen);
-		memmove(rawbuf, header->raw, buflen - headerlen);
+		rawbuf = newvec(rdataset, mctx, region, header->count,
+				header->raw_length);
+		memmove(rawbuf, header->raw, header->raw_length);
 		return ISC_R_SUCCESS;
 	}
 
@@ -153,7 +153,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 		if (rdataset->type != 0) {
 			return ISC_R_FAILURE;
 		}
-		(void)newvec(rdataset, mctx, region, buflen, 0);
+		(void)newvec(rdataset, mctx, region, 0, 0);
 		return ISC_R_SUCCESS;
 	}
 
@@ -247,7 +247,7 @@ makevec(dns_rdataset_t *rdataset, isc_mem_t *mctx, isc_region_t *region,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = newvec(rdataset, mctx, region, buflen, nitems);
+	rawbuf = newvec(rdataset, mctx, region, nitems, buflen - headerlen);
 
 	for (i = 0; i < nitems; i++) {
 		length = rdata[i].length;
@@ -300,15 +300,7 @@ unsigned int
 dns_rdatavec_size(dns_vecheader_t *header) {
 	REQUIRE(header != NULL);
 
-	unsigned char *current = header->raw;
-	uint16_t count = header->count;
-
-	while (count-- > 0) {
-		uint16_t length = get_uint16(current);
-		current += length;
-	}
-
-	return (unsigned int)(current - (unsigned char *)header);
+	return sizeof(*header) + header->raw_length;
 }
 
 unsigned int
@@ -488,6 +480,7 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	}
 	*theader = (dns_vecheader_t){
 		.count = tcount,
+		.raw_length = rlength,
 		.typepair = nheader->typepair,
 		.mctx = isc_mem_ref(mctx),
 		.serial = nheader->serial,
@@ -583,6 +576,7 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 	uint16_t attrs = RESIGN(oheader) ? DNS_VECHEADERATTR_RESIGN : 0;
 	*theader = (dns_vecheader_t){
 		.count = tcount,
+		.raw_length = rlength,
 		.typepair = oheader->typepair,
 		.mctx = isc_mem_ref(mctx),
 		.serial = oheader->serial,
