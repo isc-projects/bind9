@@ -1,0 +1,12 @@
+; The shape of nsec.test.: ent.nsec3.test. exists only through
+; deep.ent.nsec3.test.  RFC 5155 7.1 gives every empty non-terminal its own
+; NSEC3, so ent.nsec3.test. is matched by one, not covered by one.
+;
+; m.nsec3.test. keeps the three NSEC3 records RFC 5155 7.2.2 asks for
+; distinct: its hash sorts between the hash of ent.nsec3.test. and the hash
+; of *.ent.nsec3.test.
+nsec3.test.		300	IN SOA	ns.nsec3.test. hostmaster.nsec3.test. 1 3600 600 86400 300
+nsec3.test.		300	IN NS	ns.nsec3.test.
+ns.nsec3.test.		300	IN A	@ns.ip@
+deep.ent.nsec3.test.	300	IN A	192.0.2.1
+m.nsec3.test.		300	IN A	192.0.2.2
