@@ -79,13 +79,6 @@ isc_md(isc_md_type_t type, const unsigned char *buf, const size_t len,
        unsigned char *digest, unsigned int *digestlen);
 
 /**
- * This function converts the binary message digest to hex string.
- */
-isc_result_t
-isc_md_digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
-		  size_t hashlen);
-
-/**
  * isc_md_new:
  *
  * This function allocates, initializes and returns a digest context.

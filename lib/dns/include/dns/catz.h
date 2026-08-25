@@ -238,9 +238,9 @@ dns_catz_zone_resetdefoptions(dns_catz_zone_t *catz);
 
 isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
-				 isc_buffer_t **buffer);
+				 isc_buffer_t *buffer);
 /*%<
- * Generate master file name and put it into *buffer (might be reallocated).
+ * Generate master file name and put it into buffer.
  * The general format of the file name is:
  * __catz__catalog.zone.name__member_zone_name.db
  * But if it's too long it's shortened to:
@@ -249,7 +249,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
  * Requires:
  * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'entry' is a valid dns_catz_entry_t.
- * \li	'buffer' is not NULL and '*buffer' is not NULL.
+ * \li	'buffer' is a valid isc_buffer_t.
  */
 
 isc_result_t
