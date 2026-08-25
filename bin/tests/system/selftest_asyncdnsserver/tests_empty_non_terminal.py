@@ -18,6 +18,8 @@ encloser walked up with dns.zone.get_node() steps over the empty non-terminal,
 because dnspython creates no node for it, and lands on the zone apex instead.
 """
 
+import dns.dnssec
+import dns.dnssectypes
 import dns.message
 import dns.name
 import dns.rdatatype
@@ -38,9 +40,11 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 
 NSEC_ZONE = "nsec.test."
+NSEC3_ZONE = "nsec3.test."
 
 SIGNZONE_PARAMS = {
     NSEC_ZONE: "",
+    NSEC3_ZONE: "-3 -",
 }
 
 
@@ -67,6 +71,21 @@ def owners(section: list, rdtype: dns.rdatatype.RdataType) -> set:
     return {rrset.name for rrset in section if rrset.rdtype == rdtype}
 
 
+def nsec3_owner(zone: str, name: str = "@") -> dns.name.Name:
+    """
+    The owner of the NSEC3 record for `name`, given relative to `zone`: the
+    name the record is hashed from, which is the one it matches or, for a
+    covering record, the last existing name before the gap it spans.
+    """
+    hashed = dns.dnssec.nsec3_hash(
+        dns.name.from_text(name, origin=dns.name.from_text(zone)),
+        None,
+        0,
+        dns.dnssectypes.NSEC3Hash.SHA1,
+    )
+    return dns.name.from_text(f"{hashed}.{zone}")
+
+
 def test_nsec_denial_uses_empty_non_terminal_as_closest_encloser():
     """
     RFC 4035 3.1.3.2: an NXDOMAIN denies the QNAME and the wildcard.  The
@@ -84,5 +103,32 @@ def test_nsec_denial_uses_empty_non_terminal_as_closest_encloser():
 
 def test_nsec_denial_validates():
     res = resolve(f"y.ent.{NSEC_ZONE}")
+    isctest.check.nxdomain(res)
+    isctest.check.adflag(res)
+
+
+# The NSEC3 cases come last: each of them can fail in a way that raises out of
+# the prover, which takes the whole server down -- including the nsec.test.
+# zone checked above.  They are ordered so that a server which only gets part
+# of the way still reports the first case it cannot handle.
+
+
+def test_nsec3_denial_uses_empty_non_terminal_as_closest_encloser():
+    """
+    RFC 5155 7.2.2: an NXDOMAIN needs a closest encloser proof.  m.nsec3.test.
+    exists only to keep the three records distinct: without it the NSEC3
+    matching the closest encloser would cover the wildcard as well.
+    """
+    res = auth(f"y.ent.{NSEC3_ZONE}")
+    isctest.check.nxdomain(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(NSEC3_ZONE, "ent"),  # matches the closest encloser
+        nsec3_owner(NSEC3_ZONE, "ns"),  # covers y.ent.nsec3.test.
+        nsec3_owner(NSEC3_ZONE, "m"),  # covers *.ent.nsec3.test.
+    }
+
+
+def test_nsec3_denial_validates():
+    res = resolve(f"y.ent.{NSEC3_ZONE}")
     isctest.check.nxdomain(res)
     isctest.check.adflag(res)
