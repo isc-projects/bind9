@@ -16,6 +16,12 @@ deep.ent.<zone>., so the closest encloser of y.ent.<zone>. is ent.<zone>. and
 the wildcard the NXDOMAIN proof has to deny is *.ent.<zone>.  A closest
 encloser walked up with dns.zone.get_node() steps over the empty non-terminal,
 because dnspython creates no node for it, and lands on the zone apex instead.
+
+Walking up over the nodes the zone does have is not enough either.  RFC 5155
+1.3 calls what an NSEC3 proof needs the closest *provable* encloser, and 7.1
+leaves an empty non-terminal derived only from an insecure delegation with no
+NSEC3 of its own, so in optout.test. the two enclosers differ: ent.<zone>. is
+both, while for ent2.<zone>. only the apex is provable.
 """
 
 import dns.dnssec
@@ -41,10 +47,12 @@ pytestmark = pytest.mark.extra_artifacts(
 
 NSEC_ZONE = "nsec.test."
 NSEC3_ZONE = "nsec3.test."
+OPTOUT_ZONE = "optout.test."
 
 SIGNZONE_PARAMS = {
     NSEC_ZONE: "",
     NSEC3_ZONE: "-3 -",
+    OPTOUT_ZONE: "-3 - -A",
 }
 
 
@@ -132,3 +140,56 @@ def test_nsec3_denial_validates():
     res = resolve(f"y.ent.{NSEC3_ZONE}")
     isctest.check.nxdomain(res)
     isctest.check.adflag(res)
+
+
+def test_optout_denial_uses_empty_non_terminal_as_closest_encloser():
+    """
+    RFC 5155 7.1: Opt-Out exempts only the empty non-terminals derived from
+    the insecure delegations it covers.  ent.optout.test. is not one of those
+    -- it exists through the authoritative deep.ent.optout.test. -- so it is
+    matched by an NSEC3, and asking for one covering it instead fails.
+    """
+    res = auth(f"y.ent.{OPTOUT_ZONE}")
+    isctest.check.nxdomain(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(OPTOUT_ZONE, "ent"),  # matches the closest encloser
+        nsec3_owner(OPTOUT_ZONE, "deep.ent"),  # covers y.ent.optout.test.
+        nsec3_owner(OPTOUT_ZONE, "shim2"),  # covers *.ent.optout.test.
+    }
+
+
+def test_optout_denial_validates():
+    """
+    RFC 5155 9.2 makes an Opt-Out chain unable to prove that a name does not
+    exist, since the gap the QNAME falls in may hold an insecure delegation,
+    so the answer is NXDOMAIN without the AD bit rather than a secure one.  A
+    proof the validator could not follow at all would be SERVFAIL.
+    """
+    res = resolve(f"y.ent.{OPTOUT_ZONE}")
+    isctest.check.nxdomain(res)
+    isctest.check.noadflag(res)
+
+
+def test_optout_denial_falls_back_to_the_closest_provable_encloser():
+    """
+    RFC 5155 1.3: what the proof needs is the closest *provable* encloser.
+    ent2.optout.test. exists only through the insecure delegation
+    deep.ent2.optout.test., which the Opt-Out chain skips, so RFC 5155 7.1
+    leaves it with no NSEC3 and the proof has to climb past it to the apex.
+    Both a closest encloser taken from the nodes the zone has and one taken
+    from the NSEC3 chain answer ent.optout.test. above; this is the case that
+    tells them apart.
+    """
+    res = auth(f"x.ent2.{OPTOUT_ZONE}")
+    isctest.check.nxdomain(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(OPTOUT_ZONE),  # matches the closest provable encloser
+        nsec3_owner(OPTOUT_ZONE, "deep.ent"),  # covers ent2.optout.test.
+        nsec3_owner(OPTOUT_ZONE, "shim1"),  # covers *.optout.test.
+    }
+
+
+def test_optout_denial_falls_back_and_validates():
+    res = resolve(f"x.ent2.{OPTOUT_ZONE}")
+    isctest.check.nxdomain(res)
+    isctest.check.noadflag(res)

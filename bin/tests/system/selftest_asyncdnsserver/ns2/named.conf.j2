@@ -34,6 +34,11 @@ zone "nsec3.test" {
 	server-addresses { @ans1.ip@; };
 };
 
+zone "optout.test" {
+	type static-stub;
+	server-addresses { @ans1.ip@; };
+};
+
 // Only tests_empty_non_terminal.py serves signed zones; its bootstrap()
 // supplies the trust anchors, and without them validation is left off.
 {% if trust_anchors is defined %}
