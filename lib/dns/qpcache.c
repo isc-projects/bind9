@@ -991,35 +991,6 @@ bindrdatasets(qpcache_t *qpdb, qpcnode_t *qpnode, dns_slabheader_t *found,
 	}
 }
 
-static isc_result_t
-setup_delegation(qpc_search_t *search, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset, isc_rwlocktype_t nlocktype,
-		 isc_rwlocktype_t tlocktype DNS__DB_FLARG) {
-	REQUIRE(search != NULL);
-	REQUIRE(search->zonecut != NULL);
-	REQUIRE(search->zonecut_header != NULL);
-	REQUIRE(nlocktype == isc_rwlocktype_none);
-
-	qpcnode_t *node = search->zonecut;
-	dns_typepair_t typepair = search->zonecut_header->typepair;
-	isc_rwlock_t *nlock = NULL;
-
-	if (rdataset != NULL) {
-		nlock = &search->qpdb->buckets[node->locknum].lock;
-		NODE_RDLOCK(nlock, &nlocktype);
-		bindrdatasets(search->qpdb, node, search->zonecut_header,
-			      search->zonecut_sigheader, search->now, nlocktype,
-			      tlocktype, rdataset,
-			      sigrdataset DNS__DB_FLARG_PASS);
-		NODE_UNLOCK(nlock, &nlocktype);
-	}
-
-	if (typepair == DNS_TYPEPAIR_VALUE(dns_rdatatype_dname, 0)) {
-		return DNS_R_DNAME;
-	}
-	return DNS_R_DELEGATION;
-}
-
 static bool
 check_stale_header(dns_slabheader_t *header, qpc_search_t *search) {
 	if (ACTIVE(header, search->now)) {
@@ -1485,15 +1456,9 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				goto tree_exit;
 			}
 		}
-		if (search.zonecut != NULL) {
-			result = setup_delegation(&search, rdataset,
-						  sigrdataset, nlocktype,
-						  tlocktype DNS__DB_FLARG_PASS);
-			goto tree_exit;
-		} else {
-			result = ISC_R_NOTFOUND;
-			goto tree_exit;
-		}
+
+		result = ISC_R_NOTFOUND;
+		goto tree_exit;
 	} else if (result != ISC_R_SUCCESS) {
 		goto tree_exit;
 	}
