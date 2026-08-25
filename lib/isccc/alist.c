@@ -170,11 +170,13 @@ isccc_alist_define(isccc_sexpr_t *alist, const char *key,
 		}
 		kv = isccc_sexpr_cons(k, value);
 		if (kv == NULL) {
-			isccc_sexpr_free(&kv);
+			isccc_sexpr_free(&k);
 			return NULL;
 		}
 		elt = isccc_sexpr_addtolist(&alist, kv);
 		if (elt == NULL) {
+			/* 'value' is freed by caller */
+			CDR(kv) = NULL;
 			isccc_sexpr_free(&kv);
 			return NULL;
 		}
