@@ -42,6 +42,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "zones/*.good",
         "zones/*.out*",
         "zones/*.tmp",
+        "zones/nsec",
         "zones/updated*",
         "zones/bad-nsec3param-hash*",
         "zones/nsec-bad-nsec3param-hash*",
@@ -225,7 +226,6 @@ def test_verify_bad_zone_files_expired(zone):
 @pytest.mark.parametrize(
     "zone",
     [
-        "ksk+zsk.nsec.out-of-zone-nsec",
         "ksk+zsk.nsec.below-bottom-of-zone-nsec",
         "ksk+zsk.nsec.below-dname-nsec",
     ],
@@ -233,6 +233,13 @@ def test_verify_bad_zone_files_expired(zone):
 def test_verify_bad_zone_files_unexpected_nsec_rrset(zone):
     cmd = verify_bad_zone(zone)
     assert "unexpected NSEC RRset at" in cmd.err
+
+
+def test_verify_bad_zone_files_out_of_zone_nsec():
+    # out-of-zone records are rejected when the zone is loaded, before
+    # the NSEC chain is even examined
+    cmd = verify_bad_zone("ksk+zsk.nsec.out-of-zone-nsec")
+    assert "out-of-zone data" in cmd.err
 
 
 def test_verify_bad_zone_files_bad_nsec_record():
@@ -268,9 +275,9 @@ def test_verify_bad_zone_files_missing_nsec3_at_insecure_delegation():
 # checking error message when -o is not used
 # and a SOA record not at top of zone is found
 def test_verify_soa_not_at_top_error():
-    # when -o is not used, origin is set to zone file name,
-    # which should cause an error in this case
-    cmd = isctest.run.cmd([VERIFY, "zones/ksk+zsk.nsec.good"], raise_on_exception=False)
+    # when -o is not used, origin is set to zone file name; "nsec" is a
+    # copy of the ksk+zsk.nsec zone, so the SOA ends up below the origin
+    cmd = isctest.run.cmd([VERIFY, "zones/nsec"], raise_on_exception=False)
     assert "not at top of zone" in cmd.err
     assert "use -o to specify a different zone origin" in cmd.err
 
@@ -279,11 +286,19 @@ def test_verify_soa_not_at_top_error():
 # and a SOA record not at top of zone is found
 def test_verify_invalid_o_option_soa_not_at_top_error():
     cmd = isctest.run.cmd(
-        [VERIFY, "-o", "invalid.origin", "zones/ksk+zsk.nsec.good"],
+        [VERIFY, "-o", "nsec", "zones/ksk+zsk.nsec.good"],
         raise_on_exception=False,
     )
     assert "not at top of zone" in cmd.err
     assert "use -o to specify a different zone origin" not in cmd.err
+
+
+# checking error message when -o is not used and the origin taken from
+# the zone file name does not cover the zone's records at all
+def test_verify_out_of_zone_error():
+    cmd = isctest.run.cmd([VERIFY, "zones/ksk+zsk.nsec.good"], raise_on_exception=False)
+    assert "out-of-zone data" in cmd.err
+    assert "use -o to specify a different zone origin" in cmd.err
 
 
 # checking dnssec-verify -J reads journal file

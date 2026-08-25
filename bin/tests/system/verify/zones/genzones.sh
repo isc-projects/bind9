@@ -43,6 +43,9 @@ setup ksk+zsk.nsec good
 $KEYGEN -a ${DEFAULT_ALGORITHM} ${zone} >kg1.out$n 2>&1 || dumpit kg1.out$n
 $KEYGEN -a ${DEFAULT_ALGORITHM} -fK ${zone} >kg2.out$n 2>&1 || dumpit kg2.out$n
 $SIGNER -SPx -o ${zone} -f ${file} unsigned.db >s.out$n || dumpit s.out$n
+# a copy named after the parent of the zone's apex, so that an origin
+# taken from the file name puts the SOA below the top of the zone
+cp ${file} nsec
 
 setup ksk+zsk.nsec.apex-dname good
 zsk=$($KEYGEN -a ${DEFAULT_ALGORITHM} ${zone} 2>kg1.out$n) || dumpit kg1.out$n
@@ -180,14 +183,15 @@ $SIGNER -P -O full -o ${zone} -f ${file} ${file} $ksk >s.out$n || dumpit s.out$n
 awk '$4 == "NSEC" && /SOA/ { $6=""; print } { print }' ${file} >${file}.tmp
 $SIGNER -Px -Z nonsecify -o ${zone} -f ${file} ${file}.tmp $zsk >s.out$n || dumpit s.out$n
 
-# extra NSEC record out side of zone
+# extra NSEC record out side of zone; appended after signing, as the
+# signer no longer loads zone files holding out-of-zone data
 setup ksk+zsk.nsec.out-of-zone-nsec bad
 zsk=$($KEYGEN -a ${DEFAULT_ALGORITHM} ${zone} 2>kg1.out$n) || dumpit kg1.out$n
 ksk=$($KEYGEN -a ${DEFAULT_ALGORITHM} -fK ${zone} 2>kg2.out$n) || dumpit kg2.out$n
 cat unsigned.db $ksk.key $zsk.key >$file
 $SIGNER -P -O full -o ${zone} -f ${file} ${file} $ksk >s.out$n || dumpit s.out$n
-echo "out-of-zone. 3600 IN NSEC ${zone}. A" >>${file}
 $SIGNER -Px -Z nonsecify -O full -o ${zone} -f ${file} ${file} $zsk >s.out$n || dumpit s.out$n
+echo "out-of-zone. 3600 IN NSEC ${zone}. A" >>${file}
 
 # extra NSEC record below bottom of zone
 setup ksk+zsk.nsec.below-bottom-of-zone-nsec bad
@@ -262,8 +266,8 @@ echo "insecure.${zone}. 3600 IN NS a.name.server." >>$file
 
 # sign and verify with journal file
 setup updated other
-$KEYGEN -a ${DEFAULT_ALGORITHM} ${zone} >kg1.out$n 2>&1 || dumpit kg1.out$n
-$KEYGEN -a ${DEFAULT_ALGORITHM} -fK ${zone} >kg2.out$n 2>&1 || dumpit kg2.out$n
+zsk=$($KEYGEN -a ${DEFAULT_ALGORITHM} ${zone} 2>kg1.out$n) || dumpit kg1.out$n
+ksk=$($KEYGEN -a ${DEFAULT_ALGORITHM} -fK ${zone} 2>kg2.out$n) || dumpit kg2.out$n
 cat unsigned.db $ksk.key $zsk.key >$file
 $SIGNER -SPx -o ${zone} -f $file $file >s.out$n || dumpit s.out$n
 sed -e '/serial/s/0/1/' $file >${file}.update

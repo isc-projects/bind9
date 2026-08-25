@@ -398,42 +398,26 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
-zone=example
-key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
-(
-  cd signer || exit 1
-  cat example.db.in "$key1.key" "$key2.key" >example.db
-  $SIGNER -o example -f example.db example.db >/dev/null
-) || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-ret=0
-echo_i "checking that we can sign a zone with out-of-zone records and dnssec-only ($n)"
+echo_i "checking that signing a zone with out-of-zone records fails ($n)"
 zone=example
 key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
 key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM $zone)
 (
   cd signer || exit 1
   cat example.db.in "$key1.key" "$key2.key" >example.db || exit 1
-  $SIGNER -o example -f example.db example.db >/dev/null || exit 1
-  # add an out-of-zone record that will be emitted by -D
   echo "out-of-zone. 0 NSEC example. A" >>example.db || exit 1
-  $SIGNER -o example -f dnssec-records.$n -DP -Z nonsecify example.db >/dev/null || exit 1
-  grep "^out-of-zone\.[[:blank:]]*0[[:blank:]]*IN[[:blank:]]NSEC[[:blank:]]*example\. A" dnssec-records.$n >/dev/null || exit 1
-  # but it shouldn't be signed
-  grep "^out-of-zone\.[[:blank:]]*0[[:blank:]]*IN[[:blank:]]RRSIG[[:blank:]]*NSEC " dnssec-records.$n >/dev/null && exit 1
-  exit 0
 ) || ret=1
+# If dnssec-signzone fails, the test script will exit immediately.  Prevent
+# that from happening, and also trigger a test failure if dnssec-signzone
+# unexpectedly succeeds, by using "&& ret=1".
+$SIGNER -o example -f signer/example.db.signed signer/example.db >dnssectools.out.test$n 2>&1 && ret=1
+grep -q "out-of-zone data" dnssectools.out.test$n || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
+echo_i "checking that we can sign a zone (NSEC3) ($n)"
 ret=0
 zone=example
 key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM $zone)
@@ -839,8 +823,8 @@ status=$((status + ret))
 
 echo_i "checking dnssec-signzone without -o and zone is in directory (incorrect basename) ($n)"
 ret=0
-cp signer/general/test13.db signer/bad.db
-$SIGNER -O full -S signer/bad.db 2>signer.err.$n && ret=1
+cp signer/general/test13.db signer/com
+$SIGNER -O full -S signer/com 2>signer.err.$n && ret=1
 grep "example.com: not at top of zone" signer.err.$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -857,7 +841,8 @@ status=$((status + ret))
 
 echo_i "checking dnssec-verify without -o and zone is in directory (incorrect basename) ($n)"
 ret=0
-$VERIFY signer/example.com.signed 2>verify.err.$n && ret=1
+cp signer/example.com.signed signer/com
+$VERIFY signer/com 2>verify.err.$n && ret=1
 grep "example.com: not at top of zone" verify.err.$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"

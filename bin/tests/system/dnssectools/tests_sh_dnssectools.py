@@ -29,7 +29,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "verify.err.*",
         "verify.out.*",
         "conf/*.conf",
-        "signer/bad.db",
+        "signer/com",
         "signer/example.com",
         "signer/dnssec-records.*",
         "signer/example.db",

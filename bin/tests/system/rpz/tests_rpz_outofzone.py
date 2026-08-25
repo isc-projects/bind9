@@ -16,17 +16,16 @@ from isctest.instance import NamedInstance
 
 def test_rpz_out_of_zone_owner_name(ns3: NamedInstance) -> None:
     """
-    ns3 loads a policy zone holding "com.", whose two labels are fewer than
-    the three of the "outofzone.tld2." origin that gets stripped from an
-    owner name to build the trigger name.  That used to underflow an
-    unsigned label count and fail an assertion, taking named down as the
-    policy zone was loaded - so reaching this test at all is most of the
-    check.
+    ns3's "outofzone.tld2." policy zone is pre-seeded with a backup file
+    holding a "com." record, whose two labels are fewer than the three of
+    the origin that gets stripped from an owner name to build the trigger
+    name.  Such a record used to underflow an unsigned label count in the
+    RPZ code and fail an assertion, taking named down as the policy zone
+    was loaded.  The zone database now refuses to load out-of-zone data
+    altogether, so the record can no longer get anywhere near the RPZ
+    code - reaching this test at all is most of the check.
     """
-    assert 'invalid rpz owner name "com"; not within the policy zone' in ns3.log
-
-    # Only the record above was dropped; the rest of the zone still loads.
     assert (
-        "rpz: outofzone.tld2: adding node never-queried.example.outofzone.tld2"
-        in ns3.log
+        "zone outofzone.tld2/IN: loading from master file outofzone.db "
+        "failed: out-of-zone data" in ns3.log
     )

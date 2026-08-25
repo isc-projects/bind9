@@ -475,26 +475,21 @@ def test_tcp_message_compression_makes_difference(named_port, ns8):
     assert len(ns8.log.grep("sending TCP message of")) > 300
 
 
-# test that a zone with out-of-zone data is rejected
-def test_mapped_zone(named_port, ns3):
-    with ns3.watch_log_from_start() as watcher:
-        watcher.wait_for_sequence(
-            [
-                isctest.transfer.transfer_message(
-                    "mapped",
-                    "10.53.0.2",
-                    "out-of-zone data received: 'example.aa'",
-                    named_port,
-                ),
-                isctest.transfer.transfer_message(
-                    "mapped", "10.53.0.2", "Transfer status: FORMERR", named_port
-                ),
-            ]
+# ns2 is a secondary for the mapped. zone whose primary never responds, so it
+# used to serve the zone from a pre-seeded backup file that contains
+# out-of-zone data.  The zone database now refuses to load such a file,
+# leaving both ns2 and its downstream secondary ns3 without the zone.
+def test_load_rejects_out_of_zone_data(ns2, ns3):
+    with ns2.watch_log_from_start() as watcher:
+        watcher.wait_for_line(
+            "zone mapped/IN: loading from master file mapped.db failed: "
+            "out-of-zone data"
         )
 
     msg = dns.message.make_query("mapped.", "SOA")
-    res = isctest.query.tcp(msg, "10.53.0.3")
-    isctest.check.servfail(res)
+    for addr in (ns2.ip, ns3.ip):
+        res = isctest.query.tcp(msg, addr)
+        isctest.check.servfail(res)
 
 
 # test that a zone with too many records is rejected (AXFR)
