@@ -909,6 +909,8 @@ key_required(void **state, dns_rdatatype_t type, size_t size) {
 
 /* APL RDATA manipulations */
 ISC_RUN_TEST_IMPL(apl) {
+	dns_rdata_t empty_rdata = DNS_RDATA_INIT;
+	isc_region_t empty_region = { .base = NULL, .length = 0 };
 	text_ok_t text_ok[] = {
 		/* empty list */
 		TEXT_VALID_LOOP(0, ""),
@@ -951,9 +953,19 @@ ISC_RUN_TEST_IMPL(apl) {
 				 */
 				WIRE_SENTINEL()
 	};
+	unsigned char buf[1];
+	isc_result_t result;
+	size_t length;
 
 	check_rdata(text_ok, wire_ok, NULL, true, dns_rdataclass_in,
 		    dns_rdatatype_apl, sizeof(dns_rdata_in_apl_t));
+
+	/* A zero-length region is permitted to have a NULL base. */
+	dns_rdata_fromregion(&empty_rdata, dns_rdataclass_in, dns_rdatatype_apl,
+			     &empty_region);
+	result = rdata_towire(&empty_rdata, buf, sizeof(buf), &length);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(length, 0);
 }
 
 /*
