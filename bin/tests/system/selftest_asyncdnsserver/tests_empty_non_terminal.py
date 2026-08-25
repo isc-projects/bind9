@@ -22,6 +22,10 @@ Walking up over the nodes the zone does have is not enough either.  RFC 5155
 leaves an empty non-terminal derived only from an insecure delegation with no
 NSEC3 of its own, so in optout.test. the two enclosers differ: ent.<zone>. is
 both, while for ent2.<zone>. only the apex is provable.
+
+optout.test. and salt.test. also exercise the NSEC3 parameters, which are
+Opt-Out in the first zone and a non-empty salt in the second; a proof built
+with hardcoded parameters finds none of the records it needs in either.
 """
 
 import dns.dnssec
@@ -48,11 +52,15 @@ pytestmark = pytest.mark.extra_artifacts(
 NSEC_ZONE = "nsec.test."
 NSEC3_ZONE = "nsec3.test."
 OPTOUT_ZONE = "optout.test."
+SALTED_ZONE = "salt.test."
+
+SALT = bytes.fromhex("DEADBEEF")
 
 SIGNZONE_PARAMS = {
     NSEC_ZONE: "",
     NSEC3_ZONE: "-3 -",
     OPTOUT_ZONE: "-3 - -A",
+    SALTED_ZONE: f"-3 {SALT.hex()}",
 }
 
 
@@ -79,7 +87,7 @@ def owners(section: list, rdtype: dns.rdatatype.RdataType) -> set:
     return {rrset.name for rrset in section if rrset.rdtype == rdtype}
 
 
-def nsec3_owner(zone: str, name: str = "@") -> dns.name.Name:
+def nsec3_owner(zone: str, name: str = "@", salt: bytes | None = None) -> dns.name.Name:
     """
     The owner of the NSEC3 record for `name`, given relative to `zone`: the
     name the record is hashed from, which is the one it matches or, for a
@@ -87,7 +95,7 @@ def nsec3_owner(zone: str, name: str = "@") -> dns.name.Name:
     """
     hashed = dns.dnssec.nsec3_hash(
         dns.name.from_text(name, origin=dns.name.from_text(zone)),
-        None,
+        salt,
         0,
         dns.dnssectypes.NSEC3Hash.SHA1,
     )
@@ -138,6 +146,27 @@ def test_nsec3_denial_uses_empty_non_terminal_as_closest_encloser():
 
 def test_nsec3_denial_validates():
     res = resolve(f"y.ent.{NSEC3_ZONE}")
+    isctest.check.nxdomain(res)
+    isctest.check.adflag(res)
+
+
+def test_salted_nsec3_denial_hashes_with_the_zones_parameters():
+    """
+    RFC 5155 4: the hash parameters are the ones in the zone's NSEC3PARAM.
+    salt.test. is the same shape as nsec3.test. signed with a salt, so a proof
+    hashed with no salt looks up three names none of which is in the chain.
+    """
+    res = auth(f"y.ent.{SALTED_ZONE}")
+    isctest.check.nxdomain(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(SALTED_ZONE, "ent", SALT),  # matches the closest encloser
+        nsec3_owner(SALTED_ZONE, salt=SALT),  # covers y.ent.salt.test.
+        nsec3_owner(SALTED_ZONE, "deep.ent", SALT),  # covers *.ent.salt.test.
+    }
+
+
+def test_salted_nsec3_denial_validates():
+    res = resolve(f"y.ent.{SALTED_ZONE}")
     isctest.check.nxdomain(res)
     isctest.check.adflag(res)
 
