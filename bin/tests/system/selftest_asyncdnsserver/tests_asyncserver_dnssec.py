@@ -68,6 +68,19 @@ def test_nodata_through_cname_carries_soa():
     assert rrsets(res.authority, dns.rdatatype.SOA)
 
 
+def test_referral_with_do_carries_ds_and_rrsig():
+    """
+    The DS is only added when DO is set, so this is the one query that reaches
+    QueryContext.get_rrsig() with a non-SOA RRset before qctx.node is set.
+    """
+    res = query("www.child.example.", "A", dnssec=True)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert rrsets(res.authority, dns.rdatatype.NS)
+    assert rrsets(res.authority, dns.rdatatype.DS)
+    assert rrsets(res.authority, dns.rdatatype.RRSIG)
+
+
 def test_referral_without_do_has_no_ds():
     res = query("www.child.example.", "A")
     isctest.check.noerror(res)
