@@ -98,3 +98,14 @@ def test_ds_at_delegation_is_answered_from_parent():
     res = query("child.example.", "DS")
     isctest.check.noerror(res)
     assert rrsets(res.answer, dns.rdatatype.DS)
+
+
+def test_ds_below_delegation_is_referred():
+    """
+    The parent zone holds no data under the cut, so it must not deny that the
+    name exists.
+    """
+    res = query("www.child.example.", "DS")
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert rrsets(res.authority, dns.rdatatype.NS)
