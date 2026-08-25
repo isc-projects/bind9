@@ -47,6 +47,9 @@ extern const uint8_t isc__hex_char[256];
 isc_result_t
 isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 	       isc_buffer_t *target);
+isc_result_t
+isc_hex_totextlower(isc_region_t *source, int wordlength, const char *wordbreak,
+		    isc_buffer_t *target);
 /*!<
  * \brief Convert data into hex encoded text.
  *
@@ -55,6 +58,9 @@ isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
  *	words of at most 'wordlength' characters, separated by
  * 	the 'wordbreak' string.  No parentheses will surround
  *	the text.
+ *
+ *	isc_hex_totext emits uppercase hex digits.
+ *	isc_hex_totextlower emits lowercase hex digits.
  *
  * Requires:
  *\li	'source' is a region containing binary data

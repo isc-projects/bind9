@@ -47,11 +47,12 @@ str_totext(const char *source, isc_buffer_t *target);
 static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
-static const char hex[] = "0123456789ABCDEF";
+static const char upperhex[] = "0123456789ABCDEF";
+static const char lowerhex[] = "0123456789abcdef";
 
-isc_result_t
-isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
-	       isc_buffer_t *target) {
+static isc_result_t
+hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
+	   const char *hex, isc_buffer_t *target) {
 	char buf[3];
 	unsigned int loops = 0;
 
@@ -74,6 +75,18 @@ isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
 		}
 	}
 	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
+	       isc_buffer_t *target) {
+	return hex_totext(source, wordlength, wordbreak, upperhex, target);
+}
+
+isc_result_t
+isc_hex_totextlower(isc_region_t *source, int wordlength, const char *wordbreak,
+		    isc_buffer_t *target) {
+	return hex_totext(source, wordlength, wordbreak, lowerhex, target);
 }
 
 void
