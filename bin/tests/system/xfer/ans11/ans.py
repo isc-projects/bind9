@@ -98,7 +98,9 @@ class TransferState:
 
 
 class TransferHandler(ResponseHandler):
-    """Base for the handlers that share a single TransferState."""
+    """
+    Base for the handlers that share a single TransferState.
+    """
 
     def __init__(self, progress: TransferState) -> None:
         super().__init__()
@@ -122,7 +124,9 @@ class RefreshSoaHandler(TransferHandler, StaticResponseHandler):
 
 
 class InitialAxfrHandler(TransferHandler, AxfrHandler):
-    """Serve the initial zone (serial 1) and mark the transfer as done."""
+    """
+    Serve the initial zone (serial 1) and mark the transfer as done.
+    """
 
     initial_soa = soa(1)
     zone_contents = [
@@ -139,7 +143,9 @@ class InitialAxfrHandler(TransferHandler, AxfrHandler):
 
 
 class TruncatedIxfrHandler(ResponseHandler):
-    """Set TC on an IXFR received over UDP to force the secondary to retry over TCP."""
+    """
+    Set TC on an IXFR received over UDP to force the secondary to retry over TCP.
+    """
 
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qtype == dns.rdatatype.IXFR and qctx.protocol == DnsProtocol.UDP

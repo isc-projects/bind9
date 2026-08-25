@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Derive the complete set of issues "covered by" the release.
+"""
+Derive the complete set of issues "covered by" the release.
 
 Sources:
   1. Every :gl:`#NNNN` in the generated changelog and notes files for this
@@ -47,9 +48,11 @@ def git(*args):
 
 
 def read_doc(path):
-    """Read a doc file's content even if it has been reverted out of HEAD by
+    """
+    Read a doc file's content even if it has been reverted out of HEAD by
     the DROP changelog-revert: try HEAD, then the worktree, then the most
-    recent commit that still has the blob."""
+    recent commit that still has the blob.
+    """
     try:
         return git("show", f"HEAD:{path}")
     except subprocess.CalledProcessError:

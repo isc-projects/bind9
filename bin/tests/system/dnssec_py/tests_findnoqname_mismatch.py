@@ -108,7 +108,9 @@ def _check_rrsig(response, section, owner, rdtype, signer, labels=None):
 
 
 def _check_proof(response, owner, rdtype, signed):
-    """Check the denial type 'rdtype' is present at 'owner', signed or not."""
+    """
+    Check the denial type 'rdtype' is present at 'owner', signed or not.
+    """
     assert _rrset(response, response.authority, owner, rdtype), response.to_text()
     rrsig = _rrset(response, response.authority, owner, dns.rdatatype.RRSIG, rdtype)
     if signed:

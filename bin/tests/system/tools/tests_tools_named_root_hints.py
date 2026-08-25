@@ -21,7 +21,9 @@ NAMED_ROOT_URL = "https://www.internic.net/zones/named.root"
 
 
 def normalize_text(text):
-    """Omit lines we don't want to compare"""
+    """
+    Omit lines we don't want to compare
+    """
     skip_starts_with = (
         ";       last update:",
         ";       related version of root zone:",

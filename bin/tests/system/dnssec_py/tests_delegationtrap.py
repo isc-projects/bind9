@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""DelegationTrap characterization (issue #5347, part of the #5341 ReTrap set).
+"""
+DelegationTrap characterization (issue #5347, part of the #5341 ReTrap set).
 
 An attacker who controls a DNSSEC-signed zone can hand out a deep chain of
 secure delegations so that a single query forces the resolver to build a
@@ -62,7 +63,8 @@ DEEP = ".".join(["w"] * 32) + ".attack.delegationtrap"
 
 
 def bootstrap():
-    """Set up the delegationtrap hierarchy and the attacker key material.
+    """
+    Set up the delegationtrap hierarchy and the attacker key material.
 
     The attacker zone attack.delegationtrap. is served dynamically by ans4;
     only its key needs to exist on disk.  It is written both as a PEM (read
@@ -88,7 +90,8 @@ def bootstrap():
 
 
 def test_delegationtrap_shallow_secure(ns9):
-    """A shallow name under the attacker zone still validates as secure.
+    """
+    A shallow name under the attacker zone still validates as secure.
 
     Its chain of trust is short (well under the query budget), so the
     resolver answers NOERROR with the AD bit set.  This guards against the
@@ -101,7 +104,8 @@ def test_delegationtrap_shallow_secure(ns9):
 
 
 def test_delegationtrap_bounded(ns9):
-    """A deep delegation chain is bounded by max-recursion-queries.
+    """
+    A deep delegation chain is bounded by max-recursion-queries.
 
     Building the chain of trust for the 32-label name needs a DNSKEY and a DS
     fetch at every label -- more outbound queries than the default

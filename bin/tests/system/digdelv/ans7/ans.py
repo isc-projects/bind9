@@ -26,13 +26,17 @@ from isctest.asyncserver import (
 
 
 class SilentHandler(DomainHandler, IgnoreAllQueries):
-    """Handler that doesn't respond."""
+    """
+    Handler that doesn't respond.
+    """
 
     domains = ["silent.example"]
 
 
 class CloseHandler(DomainHandler):
-    """Handler that doesn't respond and closes TCP connection."""
+    """
+    Handler that doesn't respond and closes TCP connection.
+    """
 
     domains = ["close.example"]
 
@@ -43,7 +47,9 @@ class CloseHandler(DomainHandler):
 
 
 class SilentThenServfailHandler(DomainHandler):
-    """Handler that drops one query and response to the next one with SERVFAIL."""
+    """
+    Handler that drops one query and response to the next one with SERVFAIL.
+    """
 
     domains = ["silent-then-servfail.example"]
     counter = 0

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""List the merge commits of the current release cycle with their parsed
+"""
+List the merge commits of the current release cycle with their parsed
 action/audience tags, and what each one generates.
 
 Cycle boundary: the most recent first-parent commit whose subject matches

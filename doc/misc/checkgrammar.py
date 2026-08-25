@@ -27,7 +27,8 @@ import parsegrammar
 
 
 def statement2block(grammar, path):
-    """Return mapping statement name to "path" where it is allowed.
+    """
+    Return mapping statement name to "path" where it is allowed.
     _top is placeholder name for the namesless topmost context.
 
     E.g. {
@@ -51,7 +52,8 @@ def statement2block(grammar, path):
 
 
 def get_statement_grammar(grammar, path, name):
-    """Descend into grammar dict using provided path
+    """
+    Descend into grammar dict using provided path
     and return final dict found there.
 
     Intermediate steps into "_mapbody" subkeys are done automatically.
@@ -102,10 +104,14 @@ def diff_statements(whole_grammar, places):
 
 
 def pformat_grammar(node, level=1):
-    """Pretty print a given grammar node in the same way as cfg_test would"""
+    """
+    Pretty print a given grammar node in the same way as cfg_test would
+    """
 
     def sortkey(item):
-        """Treat 'type' specially and always put it first, for zone types"""
+        """
+        Treat 'type' specially and always put it first, for zone types
+        """
         key, _ = item
         if key == "type":
             return ""

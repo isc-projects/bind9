@@ -11,12 +11,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Test that NSEC records received via IXFR produce correct denial-of-existence
+"""
+Test that NSEC records received via IXFR produce correct denial-of-existence
 proofs for empty non-terminal names.
 
 When a secondary receives NSEC records via IXFR (transitioning from an unsigned
 zone to an NSEC-signed zone), queries for empty non-terminal names should return
-the NSEC record that covers the ENT, not the zone apex NSEC."""
+the NSEC record that covers the ENT, not the zone apex NSEC.
+"""
 
 import shutil
 
@@ -30,7 +32,8 @@ QNAME = dns.name.from_text("wildcard.example.")
 
 
 def test_nsec_ixfr_empty_nonterminal(ns1, ns2):
-    """Verify correct NSEC proof for ENT after IXFR from unsigned to signed.
+    """
+    Verify correct NSEC proof for ENT after IXFR from unsigned to signed.
 
     1. Wait for ns2 to have the unsigned zone (serial 1) via AXFR.
     2. Switch ns1 to the signed zone (serial 2), reload.

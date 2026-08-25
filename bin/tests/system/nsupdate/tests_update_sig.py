@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Regression tests for GL#5818: legacy DNSSEC types on the dynamic-update path.
+"""
+Regression tests for GL#5818: legacy DNSSEC types on the dynamic-update path.
 
 SIG (24) and NXT (30) are obsolete DNSSEC record types, superseded by RRSIG
 and NSEC in RFC 3755.  Allowing a client to inject them via dynamic update
@@ -25,7 +26,6 @@ exposed two bugs in sequence:
 
 The adopted defence is to treat the legacy SIG and NXT records as normal RR
 records without any special processing.
-
 """
 
 from re import compile as Re
@@ -65,7 +65,8 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def _make_sig_rdata(text):
-    """Create a SIG rdata from text.
+    """
+    Create a SIG rdata from text.
 
     dnspython has no native text parser for the legacy SIG type (24),
     but the wire format is identical to RRSIG (46).  Parse as RRSIG,
@@ -77,7 +78,8 @@ def _make_sig_rdata(text):
 
 
 def _make_nxt_rdata():
-    """Create a minimal NXT rdata.
+    """
+    Create a minimal NXT rdata.
 
     NXT wire format (RFC 2535) is: next-name + type-bitmap.  The exact
     content does not matter for the refusal test; we just need a
@@ -89,7 +91,8 @@ def _make_nxt_rdata():
 
 
 def test_tcp_self_sig_record(ns6):
-    """SIG (type 24) updates are accepted and stored as opaque rdata.
+    """
+    SIG (type 24) updates are accepted and stored as opaque rdata.
 
     Per RFC 3755 SIG is obsolete (superseded by RRSIG).  BIND treats
     incoming SIG records as a generic unknown type with no covered-type
@@ -125,7 +128,8 @@ def test_tcp_self_sig_record(ns6):
 
 
 def test_tcp_self_nxt_record(ns6):
-    """NXT (type 30) updates are accepted and stored as opaque rdata.
+    """
+    NXT (type 30) updates are accepted and stored as opaque rdata.
 
     NXT is the legacy DNSSEC denial-of-existence type, obsolete since
     RFC 3755 replaced it with NSEC.  BIND treats it as a generic
@@ -157,7 +161,8 @@ def test_tcp_self_nxt_record(ns6):
 
 
 def test_sig_axfr_stored_opaque(ns6):
-    """SIG records received via AXFR are stored as opaque rdata.
+    """
+    SIG records received via AXFR are stored as opaque rdata.
 
     ans11 serves an AXFR for sigaxfr.nil. containing two SIG rdatas at
     the same owner with different "covered type" body fields (A, MX).

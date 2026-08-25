@@ -32,7 +32,9 @@ import isctest
 
 
 def load_bind_private_key(filename):
-    """Parses a BIND 9 .private key file."""
+    """
+    Parses a BIND 9 .private key file.
+    """
     with open(filename, "r", encoding="utf-8") as f:
         lines = f.readlines()
 

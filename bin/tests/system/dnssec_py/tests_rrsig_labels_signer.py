@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Tests for RRSIG Labels vs signer name label count validation.
+"""
+Tests for RRSIG Labels vs signer name label count validation.
 
 Zone hierarchy used by this module:
   .                              (ns1)  signed
@@ -31,7 +32,8 @@ pytestmark = DNSSEC_PY_MARK
 
 
 def bootstrap():
-    """Set up the four-zone hierarchy and generate attacker key material.
+    """
+    Set up the four-zone hierarchy and generate attacker key material.
 
     Writes attacker_rrsig_labels_signer.pem to ans4/ so the custom server can read it
     at startup.  Attaches a PythonZoneKey to the attacker Zone so that
@@ -58,7 +60,8 @@ def bootstrap():
 
 
 def test_rrsig_labels_underflow_rejected(ns9):
-    """Fixed BIND rejects RRSIG where Labels < signer_labels - 1.
+    """
+    Fixed BIND rejects RRSIG where Labels < signer_labels - 1.
 
     Q1: www.attacker.rrsig-labels-signer./A DO
     The attacker returns A 192.0.2.1 + RRSIG(Labels=1, signer=attacker.rrsig-labels-signer.)
@@ -73,7 +76,8 @@ def test_rrsig_labels_underflow_rejected(ns9):
 
 
 def test_rrsig_labels_no_wildcard_cache_poison(ns9):
-    """Labels underflow must not enable synth-from-dnssec cache poisoning.
+    """
+    Labels underflow must not enable synth-from-dnssec cache poisoning.
 
     The labels-underflow bug lets an attacker who controls
     attacker.rrsig-labels-signer. cache a wildcard *.rrsig-labels-signer.

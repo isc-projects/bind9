@@ -51,7 +51,9 @@ def bootstrap():
 
 
 def test_rollover_ksk_three_is_a_crowd(ns3, default_algorithm):
-    """Test #2375: Scheduled rollovers are happening faster than they can finish."""
+    """
+    Test #2375: Scheduled rollovers are happening faster than they can finish.
+    """
     zone = "three-is-a-crowd.kasp"
 
     isctest.kasp.wait_keymgr_done(ns3, zone)

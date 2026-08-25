@@ -372,7 +372,8 @@ def test_tcp_big(ns7: NamedInstance, named_port: int) -> None:
 
 
 def wait_for_stable_tcp_requests(ns: NamedInstance, timeout: int = 10) -> int:
-    """Read the TCP request counter until it stops changing.
+    """
+    Read the TCP request counter until it stops changing.
 
     The counter is incremented on request receipt, so a client response
     implies its upstream queries are already counted; this only needs to
@@ -481,7 +482,9 @@ def debug_level(ns: NamedInstance) -> int:
 
 @contextlib.contextmanager
 def temporary_trace_level(ns: NamedInstance, level: int) -> Iterator[None]:
-    """Lower the debug level for a noisy section, then restore the default."""
+    """
+    Lower the debug level for a noisy section, then restore the default.
+    """
     prev_level = debug_level(ns)
     ns.rndc(f"trace {level}")
     try:

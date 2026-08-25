@@ -47,7 +47,9 @@ KEYALGO = dns.tsig.HMAC_SHA256
 
 
 def make_update():
-    """Create a TSIG-signed UpdateMessage for the example zone."""
+    """
+    Create a TSIG-signed UpdateMessage for the example zone.
+    """
     return dns.update.UpdateMessage(
         "example.",
         keyring=KEYRING,
@@ -57,7 +59,9 @@ def make_update():
 
 
 def count_txt(ns1, name):
-    """Query for TXT records at name and return the count."""
+    """
+    Query for TXT records at name and return the count.
+    """
     msg = isctest.query.create(name, "TXT")
     try:
         res = isctest.query.udp(msg, ns1.ip, port=ns1.ports.dns, attempts=3)
@@ -70,7 +74,9 @@ def count_txt(ns1, name):
 
 
 def test_ssu_max_basic(ns1):
-    """Verify that update-policy max limit is enforced for normal updates."""
+    """
+    Verify that update-policy max limit is enforced for normal updates.
+    """
     # Add 4 TXT records; policy allows max 3
     up = make_update()
     up.add("basic.example.", 300, "TXT", "record1")
@@ -83,7 +89,9 @@ def test_ssu_max_basic(ns1):
 
 
 def test_ssu_max_across_updates(ns1):
-    """Quota is enforced across multiple UPDATE messages."""
+    """
+    Quota is enforced across multiple UPDATE messages.
+    """
     # Fill up to the limit
     up = make_update()
     up.add("multi.example.", 300, "TXT", "first")
@@ -100,7 +108,9 @@ def test_ssu_max_across_updates(ns1):
 
 
 def test_ssu_max_cname_padding_bypass(ns1):
-    """CNAME-conflict padding must not shift the maxbytype counter."""
+    """
+    CNAME-conflict padding must not shift the maxbytype counter.
+    """
     # 4 CNAME+A padding pairs: the A records will be silently skipped
     # because a CNAME already exists at each pad name.  Without the fix,
     # this shifts the maxbytype counter by 4, causing the subsequent TXT
@@ -126,7 +136,9 @@ def test_ssu_max_cname_padding_bypass(ns1):
 
 
 def count_a(ns1, name):
-    """Query for A records at name and return the count."""
+    """
+    Query for A records at name and return the count.
+    """
     msg = isctest.query.create(name, "A")
     try:
         res = isctest.query.udp(msg, ns1.ip, port=ns1.ports.dns, attempts=3)
@@ -139,7 +151,9 @@ def count_a(ns1, name):
 
 
 def test_max_records_per_type(ns1):
-    """Zone option max-records-per-type rejects updates that exceed the limit."""
+    """
+    Zone option max-records-per-type rejects updates that exceed the limit.
+    """
     # Add 10 A records; zone allows max 10 per type
     up = dns.update.UpdateMessage("maxrrperset.")
     for i in range(1, 11):

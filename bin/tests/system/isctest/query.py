@@ -149,7 +149,9 @@ def create(
     ad: bool = True,
     message_id: int | None = None,
 ) -> dns.message.Message:
-    """Create DNS query with defaults suitable for our tests."""
+    """
+    Create DNS query with defaults suitable for our tests.
+    """
     msg = dns.message.make_query(
         qname,
         qtype,

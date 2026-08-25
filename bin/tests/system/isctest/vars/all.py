@@ -21,10 +21,12 @@ from .ports import PORT_VARS
 
 
 class VarLookup(ChainMap):
-    """A dictionary-like structure to coalesce the variables from different
+    """
+    A dictionary-like structure to coalesce the variables from different
     modules without making a copy (which would prevent updating these values
     from inside the modules). Values which are None are treated as unset when
-    iterating."""
+    iterating.
+    """
 
     def __init__(self, *maps):
         keys = set()

@@ -49,7 +49,8 @@ TKEY_NAME = "duptest.sig-example.nil."
 
 
 def run_nsupdate_gss(ns1, tkey_name, record_name, record_value):
-    """Run nsupdate -g with a fixed TKEY name.
+    """
+    Run nsupdate -g with a fixed TKEY name.
 
     Returns the subprocess result.
     """
@@ -78,7 +79,8 @@ def run_nsupdate_gss(ns1, tkey_name, record_name, record_value):
 
 
 def test_tkey_duplicate_name_rejected(ns1):
-    """Second TKEY query for an existing key name must return BADKEY.
+    """
+    Second TKEY query for an existing key name must return BADKEY.
 
     RFC 3645 Section 4.1.1: if a non-expired TSIG key exists for the
     name, the server must reject a new TKEY query for that name.

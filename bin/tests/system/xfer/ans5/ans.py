@@ -84,7 +84,9 @@ class SignResponses(ResponseHandlerWrapper):
 
 
 class SignFirstAndLastResponses(ResponseHandlerWrapper):
-    """Sign the first and last of the three responses yielded by AxfrHandler."""
+    """
+    Sign the first and last of the three responses yielded by AxfrHandler.
+    """
 
     def __init__(self, inner: ResponseHandler, key: dns.tsig.Key = DEFAULT_KEY) -> None:
         super().__init__(inner)

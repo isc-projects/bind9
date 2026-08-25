@@ -76,7 +76,8 @@ KEY_REGEX = re.compile("[a-zA-Z0-9-]+")
 
 
 def split_comments(line):
-    """Split line on comment boundary and strip right-side whitespace.
+    """
+    Split line on comment boundary and strip right-side whitespace.
     Supports only #, //, and /* comments which end at the end of line.
     It does NOT handle:
     - quoted strings
@@ -107,7 +108,9 @@ def split_comments(line):
 
 
 def parse_line(filein):
-    """Consume single line from input, return non-comment and comment."""
+    """
+    Consume single line from input, return non-comment and comment.
+    """
     for line in filein:
         line, comment = split_comments(line)
         line = line.strip()
@@ -118,7 +121,9 @@ def parse_line(filein):
 
 
 def parse_flags(comments):
-    """Extract known flags from comments. Must match exact strings used by cfg_test."""
+    """
+    Extract known flags from comments. Must match exact strings used by cfg_test.
+    """
     out = []
     for flag in FLAGS:
         if flag in comments:
@@ -127,7 +132,8 @@ def parse_flags(comments):
 
 
 def parse_mapbody(filein):
-    """Parse body of a "map" in ISC config format.
+    """
+    Parse body of a "map" in ISC config format.
 
     Input lines can be only:
     - whitespace & comments only -> ignore
@@ -185,7 +191,9 @@ def parse_mapbody(filein):
 
 
 def main():
-    """Read stdin or filename provided on command line"""
+    """
+    Read stdin or filename provided on command line
+    """
     with fileinput.input() as filein:
         grammar = parse_mapbody(filein)
     print(json.dumps(grammar, indent=4))

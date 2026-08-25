@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Handler for the attacker.rrsig-labels-signer. zone.
+"""
+Handler for the attacker.rrsig-labels-signer. zone.
 
 Serves crafted DNSSEC responses that exercise the RRSIG Labels underflow
 check: an A query for any name under attacker.rrsig-labels-signer. returns:
@@ -67,12 +68,16 @@ PEM_PATH = Path("attacker_rrsig_labels_signer.pem")
 
 
 def _to_b32hex_lower(data: bytes) -> str:
-    """Base32hex-encode bytes, lowercase, no padding (NSEC3 owner-name form)."""
+    """
+    Base32hex-encode bytes, lowercase, no padding (NSEC3 owner-name form).
+    """
     return base64.b32hexencode(data).decode().rstrip("=").lower()
 
 
 def _nsec3_sha1(name: str) -> bytes:
-    """SHA-1 NSEC3 hash of name (0 iterations, empty salt)."""
+    """
+    SHA-1 NSEC3 hash of name (0 iterations, empty salt).
+    """
     wire = dns.name.from_text(name).canonicalize().to_wire()
     return hashlib.sha1(wire).digest()
 
@@ -97,7 +102,9 @@ def _dec_bytes(b: bytes) -> bytes:
 
 
 def _type_bitmap(*types: int) -> bytes:
-    """Build NSEC / NSEC3 type bitmap bytes (window 0, types 0–255)."""
+    """
+    Build NSEC / NSEC3 type bitmap bytes (window 0, types 0–255).
+    """
     size = (max(types) >> 3) + 1
     bm = bytearray(size)
     for t in types:
@@ -106,7 +113,9 @@ def _type_bitmap(*types: int) -> bytes:
 
 
 class AttackerZoneHandler(DomainHandler):
-    """Serve attacker.rrsig-labels-signer. with crafted wildcard RRSIG."""
+    """
+    Serve attacker.rrsig-labels-signer. with crafted wildcard RRSIG.
+    """
 
     domains = [ZONE_NAME]
 

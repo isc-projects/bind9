@@ -86,7 +86,9 @@ def noraflag(message: dns.message.Message) -> None:
 def _extract_ede_options(
     message: dns.message.Message,
 ) -> list[EDEOption]:
-    """Extract EDE options from the DNS message."""
+    """
+    Extract EDE options from the DNS message.
+    """
     return cast(
         list[EDEOption],
         [
@@ -98,13 +100,17 @@ def _extract_ede_options(
 
 
 def noede(message: dns.message.Message) -> None:
-    """Check that message contains no EDE option."""
+    """
+    Check that message contains no EDE option.
+    """
     ede_options = _extract_ede_options(message)
     assert not ede_options, f"unexpected EDE options {ede_options} in {message}"
 
 
 def ede(message: dns.message.Message, code: EDECode, text: str | None = None) -> None:
-    """Check if message contains expected EDE code (and its text)."""
+    """
+    Check if message contains expected EDE code (and its text).
+    """
     msg_opts = _extract_ede_options(message)
     matching_opts = [opt for opt in msg_opts if opt.code == code]
 
@@ -151,7 +157,9 @@ def rrsets_equal(
     second_rrset: dns.rrset.RRset,
     compare_ttl: bool | None = False,
 ) -> None:
-    """Compare two RRset (optionally including TTL)"""
+    """
+    Compare two RRset (optionally including TTL)
+    """
 
     def compare_rrs(rr1, rrset):
         rr2 = next((other_rr for other_rr in rrset if rr1 == other_rr), None)
@@ -180,7 +188,9 @@ def zones_equal(
     second_zone: dns.zone.Zone,
     compare_ttl: bool | None = False,
 ) -> None:
-    """Compare two zones (optionally including TTL)"""
+    """
+    Compare two zones (optionally including TTL)
+    """
 
     isctest.log.debug(
         "%s() first zone:\n%s",

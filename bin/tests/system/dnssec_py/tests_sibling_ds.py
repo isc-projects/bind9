@@ -55,7 +55,9 @@ def bootstrap():
 
 
 def test_sibling_ds_rejected(ns9):
-    """Resolver must reject a referral that contains DS for a sibling zone."""
+    """
+    Resolver must reject a referral that contains DS for a sibling zone.
+    """
     log_ds_mismatch = Re(r"DS doesn't match the delegation owner name")
 
     msg = isctest.query.create("a.child.sibling-ds.", "A")

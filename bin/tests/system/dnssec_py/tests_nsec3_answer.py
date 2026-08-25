@@ -104,7 +104,9 @@ def do_test_query(
     )
 )
 def test_nodata(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """An existing name, no wildcards, but a query type for RRset which does not exist"""
+    """
+    An existing name, no wildcards, but a query type for RRset which does not exist
+    """
     _, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
     check_nodata(qname, nsec3check)
 
@@ -116,7 +118,9 @@ def test_nodata(server: str, qname: dns.name.Name, named_port: int) -> None:
     )
 )
 def test_nodata_ds(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """Auth sends proof of nonexistance with referral without DS RR. Opt-out is not supported."""
+    """
+    Auth sends proof of nonexistance with referral without DS RR. Opt-out is not supported.
+    """
     response, nsec3check = do_test_query(qname, dns.rdatatype.HINFO, server, named_port)
 
     nsrr = None
@@ -156,7 +160,9 @@ def assume_nx_and_no_delegation(qname: dns.name.Name) -> None:
 )
 @given(qname=dns_names(suffix=SUFFIX))
 def test_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """A real NXDOMAIN, no wildcards involved"""
+    """
+    A real NXDOMAIN, no wildcards involved
+    """
     assume_nx_and_no_delegation(qname)
     wname = ZONE.source_of_synthesis(qname)
     assume(wname not in ZONE.reachable_wildcards)
@@ -170,7 +176,9 @@ def test_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
 )
 @given(qname=sampled_from(sorted(ZONE.get_names_with_type(dns.rdatatype.CNAME))))
 def test_cname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """CNAME which terminates by NXDOMAIN, no wildcards involved"""
+    """
+    CNAME which terminates by NXDOMAIN, no wildcards involved
+    """
     response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
     chain = response.resolve_chaining()
     assume_nx_and_no_delegation(chain.canonical_name)
@@ -186,7 +194,9 @@ def test_cname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> N
 )
 @given(qname=dns_names(suffix=ZONE.get_names_with_type(dns.rdatatype.DNAME)))
 def test_dname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """DNAME which terminates by NXDOMAIN, no wildcards involved"""
+    """
+    DNAME which terminates by NXDOMAIN, no wildcards involved
+    """
     assume(qname not in ZONE.reachable)
 
     response, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
@@ -204,7 +214,9 @@ def test_dname_nxdomain(server: str, qname: dns.name.Name, named_port: int) -> N
 )
 @given(qname=dns_names(suffix=ZONE.ents))
 def test_ents(server: str, qname: dns.name.Name, named_port: int) -> None:
-    """ENT can have a wildcard under it"""
+    """
+    ENT can have a wildcard under it
+    """
     assume_nx_and_no_delegation(qname)
 
     _, nsec3check = do_test_query(qname, dns.rdatatype.A, server, named_port)
@@ -271,7 +283,9 @@ def check_nxdomain(qname: dns.name.Name, nsec3check: "NSEC3Checker") -> None:
 
 
 def check_wildcard_synthesis(qname: dns.name.Name, nsec3check: "NSEC3Checker") -> None:
-    """Expect wildcard response with a signed A RRset"""
+    """
+    Expect wildcard response with a signed A RRset
+    """
     assert nsec3check.response.rcode() is dns.rcode.NOERROR
 
     answer_sig = nsec3check.response.get_rrset(
@@ -310,7 +324,9 @@ def check_wildcard_synthesis(qname: dns.name.Name, nsec3check: "NSEC3Checker") -
 
 @dataclass(frozen=True)
 class NSEC3Params:
-    """Common values from a single DNS response"""
+    """
+    Common values from a single DNS response
+    """
 
     algorithm: int
     flags: int
@@ -418,7 +434,9 @@ class NSEC3Checker:
         return dns.name.from_text(nhash, SUFFIX)
 
     def prove_name_does_not_exist(self, name: dns.name.Name) -> dns.rrset.RRset:
-        """Hash of a given name must fall between an NSEC3 owner and 'next' name"""
+        """
+        Hash of a given name must fall between an NSEC3 owner and 'next' name
+        """
         hashed_name = self.hash_name(name)
         for rrset in self.rrsets:
             name_is_covered = self.nsec3_covers(rrset, hashed_name)
@@ -431,7 +449,9 @@ class NSEC3Checker:
         ), f"Expected covering NSEC3 for {name} (hash={hashed_name}) not found:\n{self.response}"
 
     def prove_name_exists(self, owner: dns.name.Name) -> dns.rrset.RRset:
-        """Check response has NSEC3 RR matching given owner name, i.e. the name exists."""
+        """
+        Check response has NSEC3 RR matching given owner name, i.e. the name exists.
+        """
         nsec3_owner = self.hash_name(owner)
         for rrset in self.rrsets:
             if rrset.match(
@@ -444,7 +464,9 @@ class NSEC3Checker:
         ), f"Expected matching NSEC3 for {owner} (hash={nsec3_owner}) not found:\n{self.response}"
 
     def check_extraneous_rrs(self) -> None:
-        """Check that all NSEC3 RRs present in the message were actually needed for proofs"""
+        """
+        Check that all NSEC3 RRs present in the message were actually needed for proofs
+        """
         assert (
             self.owners_used == self.owners_present
         ), f"extraneous NSEC3 RRs detected\n{self.response}"

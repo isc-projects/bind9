@@ -80,7 +80,9 @@ ns2 A 10.53.0.2
 
 
 def _serve(ns2, system_test_dir, variant):
-    """Make ns2 serve the 'full' or 'empty' (a.example-less) signed zone."""
+    """
+    Make ns2 serve the 'full' or 'empty' (a.example-less) signed zone.
+    """
     src = system_test_dir / "ns2" / f"example-{variant}.db.signed"
     dst = system_test_dir / "ns2" / "example.db.signed"
     # Ensure that the modification time of 'dst' increases on
@@ -100,7 +102,9 @@ def _serve(ns2, system_test_dir, variant):
 
 
 def _prime_secure_a(ns1):
-    """Cache a.example/A at trust=secure and confirm it validated (AD=1)."""
+    """
+    Cache a.example/A at trust=secure and confirm it validated (AD=1).
+    """
     ns1.rndc("flush")
     res = isctest.query.tcp(isctest.query.create("a.example", "A"), RESOLVER)
     isctest.check.noerror(res)

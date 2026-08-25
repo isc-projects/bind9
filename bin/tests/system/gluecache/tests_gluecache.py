@@ -17,7 +17,8 @@ import isctest
 
 
 def test_gluecache_inzone_ns_target(ns1):
-    """Exercise the glue cache path where the NS target is authoritative
+    """
+    Exercise the glue cache path where the NS target is authoritative
     in-zone data (not glue below a zone cut).
 
     When sub.example. is delegated to ns.example. and ns.example. lives

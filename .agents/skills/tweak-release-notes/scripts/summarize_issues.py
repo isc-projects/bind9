@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Summarize issue JSON dumps: close-status and version-affecting labels.
+"""
+Summarize issue JSON dumps: close-status and version-affecting labels.
 
 This is the deterministic *parsing* half of the close-status / substance
 checks. The *fetching* half is a network operation: pull each issue's JSON

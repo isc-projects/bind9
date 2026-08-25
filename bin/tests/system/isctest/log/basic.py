@@ -86,7 +86,9 @@ def indent_message(msg):
 
 
 def log(lvl: int, msg: str, *args, **kwargs):
-    """Log message with the most-specific logger currently available."""
+    """
+    Log message with the most-specific logger currently available.
+    """
     logger = LOGGERS["test"]
     if logger is None:
         logger = LOGGERS["module"]

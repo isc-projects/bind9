@@ -1382,7 +1382,8 @@ def test_unknown_algorithms():
 
 
 def test_legacy_dnssec_types_are_signed():
-    """SIG (24), NXT (30) and KEY (25) records carry a covering RRSIG.
+    """
+    SIG (24), NXT (30) and KEY (25) records carry a covering RRSIG.
 
     Per RFC 3755 SIG and NXT are obsolete and treated as opaque zone
     data; KEY remains valid for SIG(0)/TKEY use.  All three are

@@ -152,7 +152,9 @@ class DnsExplicitImportsChecker(BaseChecker):
 
     @staticmethod
     def _infer_module_name(node):
-        """Infer `dns.<module>` for a node; return None if inference is unsure."""
+        """
+        Infer `dns.<module>` for a node; return None if inference is unsure.
+        """
         try:
             for inferred in node.infer():
                 if inferred is astroid.util.Uninferable:
