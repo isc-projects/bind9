@@ -2531,9 +2531,8 @@ validate_remotes_key(const cfg_obj_t *voptions, const cfg_obj_t *config,
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(key, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
-		}
-
-		if (!lookup_key(voptions, nm)) {
+			result = ISC_R_FAILURE;
+		} else if (!lookup_key(voptions, nm)) {
 			if (!lookup_key(config, nm)) {
 				cfg_obj_log(key, ISC_LOG_ERROR,
 					    "key '%s' is not defined",
