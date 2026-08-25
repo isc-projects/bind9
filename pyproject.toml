@@ -60,6 +60,7 @@ load-plugins = [
   "re_compile_checker",
   "dns_import_checker",
   "docstring_format_checker",
+  "file_header_checker",
 ]
 
 [tool.vulture]
@@ -77,6 +78,7 @@ exclude = [
   "re_compile_checker.py",
   "dns_import_checker.py",
   "docstring_format_checker.py",
+  "file_header_checker.py",
 ]
 ignore_decorators = [
   "@pytest.fixture",
