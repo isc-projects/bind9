@@ -73,8 +73,10 @@ def bootstrap():
     return {"trust_anchors": trust_anchors}
 
 
-def auth(qname: str) -> dns.message.Message:
-    msg = isctest.query.create(qname, dns.rdatatype.A, rd=False)
+def auth(
+    qname: str, qtype: dns.rdatatype.RdataType = dns.rdatatype.A
+) -> dns.message.Message:
+    msg = isctest.query.create(qname, qtype, rd=False)
     return isctest.query.udp(msg, ANS1.ip, timeout=3, attempts=3)
 
 
@@ -222,3 +224,32 @@ def test_optout_denial_falls_back_and_validates():
     res = resolve(f"x.ent2.{OPTOUT_ZONE}")
     isctest.check.nxdomain(res)
     isctest.check.noadflag(res)
+
+
+def test_optout_nodata_at_empty_non_terminal_without_nsec3():
+    """
+    RFC 5155 7.1 leaves ent2.optout.test. with no NSEC3 to match, so the
+    NODATA proof is the closest provable encloser proof, as for the NXDOMAIN
+    above.
+    """
+    res = auth(f"ent2.{OPTOUT_ZONE}")
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(OPTOUT_ZONE),  # matches the closest provable encloser
+        nsec3_owner(OPTOUT_ZONE, "deep.ent"),  # covers ent2.optout.test.
+    }
+
+
+def test_optout_nodata_for_ds_at_insecure_delegation():
+    """
+    RFC 5155 7.2.4: with no NSEC3 matching the delegation, a DS query gets
+    the closest provable encloser proof instead.
+    """
+    res = auth(f"deep.ent2.{OPTOUT_ZONE}", dns.rdatatype.DS)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert owners(res.authority, dns.rdatatype.NSEC3) == {
+        nsec3_owner(OPTOUT_ZONE),  # matches the closest provable encloser
+        nsec3_owner(OPTOUT_ZONE, "deep.ent"),  # covers ent2.optout.test.
+    }
