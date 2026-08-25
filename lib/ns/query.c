@@ -185,6 +185,9 @@ acquire_recursionquota(ns_client_t *client);
 static void
 release_recursionquota(ns_client_t *client);
 
+static bool
+use_zone_delegation(query_ctx_t *qctx);
+
 static inline ns_hookresult_t
 ns__query_callhook(uint8_t id, query_ctx_t *qctx, isc_result_t *result,
 		   ns_hooktable_t *hooktab) {
@@ -312,19 +315,23 @@ ns__query_callhook_noreturn(uint8_t id, query_ctx_t *qctx,
  *
  * 7. Determine what sort of answer we've found (query_gotanswer())
  *    and call other functions accordingly:
- *      - not found (auth or cache), go to 8
- *      - delegation, go to 9
+ *      - not found (only returned from cache), go to 8
+ *      - delegation (only returned from auth), go to 9
  *      - no such domain (auth), go to 10
  *      - empty answer (auth), go to 11
  *      - negative response (cache), go to 12
  *      - answer found, go to 13
  *
- * 8. The answer was not found in the database. `query_cache_delegation()` set
- *    up a referral and go to 5.
+ * 8. The answer was not found after checking the cache database
+ *    (query_notfound()). This may trigger recursion: call
+ *    query_delegation_recurse() to handle it.  If recursion was
+ *    requested and we are allowed to recurse, go to 5. If not allowed,
+ *    go to 15 to clean up and return REFUSED or SERVFAIL.
  *
- * 9. Handle a delegation response from a local zone (query_zone_delegation()).
- *    If we need to and are allowed to recurse, go to 5, otherwise go to 15 to
- *    clean up and return the delegation to the client.
+ * 9. Handle a delegation response from an authoritative zone
+ *    (query_zone_delegation()). If recursion was requested and we are
+ *    allowed to recurse, go to 5, otherwise go to 15 to clean up and
+ *    return the delegation to the client.
  *
  * 10. No such domain (query_nxdomain()). Attempt redirection; if
  *     unsuccessful, add authority section records (query_addsoa(),
@@ -415,7 +422,7 @@ static isc_result_t
 query_zone_delegation(query_ctx_t *qctx);
 
 static isc_result_t
-query_cache_delegation(query_ctx_t *qctx);
+query_notfound(query_ctx_t *qctx);
 
 static isc_result_t
 query_delegation_recurse(query_ctx_t *qctx);
@@ -5734,7 +5741,7 @@ query_lookup(query_ctx_t *qctx) {
 			 * an authoritative lookup returned a delegation (in
 			 * order to find a better answer). But we still can
 			 * return without getting any usable answer here, as
-			 * query_cache_delegation() should handle it from here.
+			 * query_notfound() should handle it from here.
 			 * Otherwise, if nothing useful was found in cache then
 			 * recursively call query_lookup() again without the
 			 * 'stalefirst' option set.
@@ -6302,6 +6309,9 @@ query_hookresume(void *arg) {
 			break;
 		case NS_QUERY_ADDANSWER_BEGIN:
 			(void)query_addanswer(qctx);
+			break;
+		case NS_QUERY_NOTFOUND_BEGIN:
+			(void)query_notfound(qctx);
 			break;
 		case NS_QUERY_ZONE_DELEGATION_BEGIN:
 			(void)query_zone_delegation(qctx);
@@ -7176,9 +7186,11 @@ root_key_sentinel:
 		return query_prepresponse(qctx);
 
 	case ISC_R_NOTFOUND:
-		return query_cache_delegation(qctx);
+		INSIST(!qctx->is_zone);
+		return query_notfound(qctx);
 
 	case DNS_R_DELEGATION:
+		INSIST(qctx->is_zone);
 		return query_zone_delegation(qctx);
 
 	case DNS_R_EMPTYNAME:
@@ -8022,6 +8034,63 @@ query_filter64(query_ctx_t *qctx) {
 }
 
 /*%
+ * Handle the case of a name not being found in a cache database
+ * lookup. Called from query_gotanswer(). Passes off processing to
+ * query_delegation_recurse() so that a recursive query can be tried.
+ */
+static isc_result_t
+query_notfound(query_ctx_t *qctx) {
+	isc_result_t result = ISC_R_UNSET;
+
+	CCTRACE(ISC_LOG_DEBUG(3), "query_notfound");
+
+	CALL_HOOK(NS_QUERY_NOTFOUND_BEGIN, qctx);
+
+	INSIST(!qctx->is_zone);
+
+	qctx->authoritative = false;
+
+	/*
+	 * If a delegation was previously found in a local authority
+	 * zone before checking the cache, we can use that.
+	 */
+	if (use_zone_delegation(qctx)) {
+		ns_client_releasename(qctx->client, &qctx->fname);
+
+		/*
+		 * We've already done ns_client_keepname() on
+		 * qctx->zfname, so we must set dbuf to NULL to
+		 * prevent query_addrrset() from trying to
+		 * call ns_client_keepname() again.
+		 */
+		qctx->dbuf = NULL;
+		ns_client_putrdataset(qctx->client, &qctx->rdataset);
+		if (qctx->sigrdataset != NULL) {
+			ns_client_putrdataset(qctx->client, &qctx->sigrdataset);
+		}
+		qctx->version = NULL;
+
+		dns_db_detach(&qctx->db);
+		qctx->db = MOVE_OWNERSHIP(qctx->zdb);
+		qctx->fname = MOVE_OWNERSHIP(qctx->zfname);
+		fixedname_move(&qctx->zfoundname, &qctx->foundname);
+		qctx->version = MOVE_OWNERSHIP(qctx->zversion);
+		qctx->rdataset = MOVE_OWNERSHIP(qctx->zrdataset);
+		qctx->sigrdataset = MOVE_OWNERSHIP(qctx->zsigrdataset);
+	}
+
+	result = query_delegation_recurse(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return result;
+	}
+
+	return query_prepare_delegation_response(qctx);
+
+cleanup:
+	return result;
+}
+
+/*%
  * We have a delegation but recursion is not allowed, so return the delegation
  * to the client.
  */
@@ -8195,13 +8264,12 @@ query_zone_delegation(query_ctx_t *qctx) {
 	      dns_zone_gettype(qctx->zone) == dns_zone_mirror)))
 	{
 		/*
-		 * We might have a better answer or delegation in the
-		 * cache.  We'll remember the current values of fname,
-		 * rdataset, and sigrdataset.  We'll then go looking for
-		 * QNAME in the cache.  If we find something better, we'll
-		 * use it instead. If not, then query_lookup() calls
-		 * query_cache_delegation() and we'll restore these values
-		 * there.
+		 * We might have a better answer in the cache.  We'll
+		 * remember the current values of fname, rdataset, and
+		 * sigrdataset. We'll then go looking for QNAME in the
+		 * cache.  If we find something better, we'll use it instead.
+		 * If not, then query_lookup() calls query_notfound() and
+		 * we'll restore these values there.
 		 */
 		ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 		qctx->zdb = MOVE_OWNERSHIP(qctx->db);
@@ -8271,56 +8339,6 @@ use_zone_delegation(query_ctx_t *qctx) {
 	 */
 	return qctx->is_staticstub_zone &&
 	       dns_name_equal(qctx->fname, qctx->zfname);
-}
-
-/*%
- * Handle delegation responses from cache data, including root referrals.
- */
-static isc_result_t
-query_cache_delegation(query_ctx_t *qctx) {
-	isc_result_t result = ISC_R_UNSET;
-
-	CCTRACE(ISC_LOG_DEBUG(3), "query_cache_delegation");
-
-	INSIST(!qctx->is_zone);
-
-	qctx->authoritative = false;
-
-	/*
-	 * A delegation was previously found from a local authority zone. (See
-	 * `query_zone_delegation()` flow above, which ends up here.)
-	 */
-	if (use_zone_delegation(qctx)) {
-		ns_client_releasename(qctx->client, &qctx->fname);
-
-		/*
-		 * We've already done ns_client_keepname() on
-		 * qctx->zfname, so we must set dbuf to NULL to
-		 * prevent query_addrrset() from trying to
-		 * call ns_client_keepname() again.
-		 */
-		qctx->dbuf = NULL;
-		ns_client_putrdataset(qctx->client, &qctx->rdataset);
-		if (qctx->sigrdataset != NULL) {
-			ns_client_putrdataset(qctx->client, &qctx->sigrdataset);
-		}
-		qctx->version = NULL;
-
-		dns_db_detach(&qctx->db);
-		qctx->db = MOVE_OWNERSHIP(qctx->zdb);
-		qctx->fname = MOVE_OWNERSHIP(qctx->zfname);
-		fixedname_move(&qctx->zfoundname, &qctx->foundname);
-		qctx->version = MOVE_OWNERSHIP(qctx->zversion);
-		qctx->rdataset = MOVE_OWNERSHIP(qctx->zrdataset);
-		qctx->sigrdataset = MOVE_OWNERSHIP(qctx->zsigrdataset);
-	}
-
-	result = query_delegation_recurse(qctx);
-	if (result != ISC_R_COMPLETE) {
-		return result;
-	}
-
-	return query_prepare_delegation_response(qctx);
 }
 
 /*%
