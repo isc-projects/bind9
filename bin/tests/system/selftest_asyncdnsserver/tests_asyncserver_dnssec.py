@@ -109,3 +109,24 @@ def test_ds_below_delegation_is_referred():
     isctest.check.noerror(res)
     isctest.check.empty_answer(res)
     assert rrsets(res.authority, dns.rdatatype.NS)
+
+
+def test_ds_at_zone_apex_is_nodata():
+    """
+    A DS RRset lives in the parent zone, but the parent of example. is not
+    served here while example. itself is, so the query must not be refused.
+    """
+    res = query("example.", "DS")
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert rrsets(res.authority, dns.rdatatype.SOA)
+
+
+def test_ds_for_root_is_refused():
+    """
+    The root has no parent zone to answer from and no root zone is served
+    here either, so the query is refused, as for any other unserved name; a
+    served root zone would answer NODATA from its apex, like example. above.
+    """
+    res = query(".", "DS")
+    isctest.check.refused(res)
