@@ -319,13 +319,12 @@ ns__query_callhook_noreturn(uint8_t id, query_ctx_t *qctx,
  *      - negative response (cache), go to 12
  *      - answer found, go to 13
  *
- * 8. The answer was not found in the database (query_notfound().
- *    Set up a referral and go to 9.
+ * 8. The answer was not found in the database. `query_cache_delegation()` set
+ *    up a referral and go to 5.
  *
- * 9. Handle a delegation response (query_zone_delegation() or
- *    query_cache_delegation()). If we need to and are allowed to recurse,
- *    go to 5, otherwise go to 15 to clean up and return the delegation to
- *    the client.
+ * 9. Handle a delegation response from a local zone (query_zone_delegation()).
+ *    If we need to and are allowed to recurse, go to 5, otherwise go to 15 to
+ *    clean up and return the delegation to the client.
  *
  * 10. No such domain (query_nxdomain()). Attempt redirection; if
  *     unsuccessful, add authority section records (query_addsoa(),
@@ -411,9 +410,6 @@ query_dns64(query_ctx_t *qctx);
 
 static void
 query_filter64(query_ctx_t *qctx);
-
-static isc_result_t
-query_notfound(query_ctx_t *qctx);
 
 static isc_result_t
 query_zone_delegation(query_ctx_t *qctx);
@@ -5738,7 +5734,7 @@ query_lookup(query_ctx_t *qctx) {
 			 * an authoritative lookup returned a delegation (in
 			 * order to find a better answer). But we still can
 			 * return without getting any usable answer here, as
-			 * query_notfound() should handle it from here.
+			 * query_cache_delegation() should handle it from here.
 			 * Otherwise, if nothing useful was found in cache then
 			 * recursively call query_lookup() again without the
 			 * 'stalefirst' option set.
@@ -6306,9 +6302,6 @@ query_hookresume(void *arg) {
 			break;
 		case NS_QUERY_ADDANSWER_BEGIN:
 			(void)query_addanswer(qctx);
-			break;
-		case NS_QUERY_NOTFOUND_BEGIN:
-			(void)query_notfound(qctx);
 			break;
 		case NS_QUERY_ZONE_DELEGATION_BEGIN:
 			(void)query_zone_delegation(qctx);
@@ -7183,13 +7176,10 @@ root_key_sentinel:
 		return query_prepresponse(qctx);
 
 	case ISC_R_NOTFOUND:
-		return query_notfound(qctx);
+		return query_cache_delegation(qctx);
 
 	case DNS_R_DELEGATION:
-		if (qctx->is_zone) {
-			return query_zone_delegation(qctx);
-		}
-		return query_cache_delegation(qctx);
+		return query_zone_delegation(qctx);
 
 	case DNS_R_EMPTYNAME:
 	case DNS_R_NXRRSET:
@@ -8032,27 +8022,6 @@ query_filter64(query_ctx_t *qctx) {
 }
 
 /*%
- * Handle the case of a name not being found in a local zone database lookup.
- * Called from query_gotanswer(). Passes off processing to
- * query_cache_delegation().
- */
-static isc_result_t
-query_notfound(query_ctx_t *qctx) {
-	isc_result_t result = ISC_R_FAILURE;
-
-	CCTRACE(ISC_LOG_DEBUG(3), "query_notfound");
-
-	CALL_HOOK(NS_QUERY_NOTFOUND_BEGIN, qctx);
-
-	INSIST(!qctx->is_zone);
-
-	result = query_cache_delegation(qctx);
-
-cleanup:
-	return result;
-}
-
-/*%
  * We have a delegation but recursion is not allowed, so return the delegation
  * to the client.
  */
@@ -8231,8 +8200,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 		 * rdataset, and sigrdataset.  We'll then go looking for
 		 * QNAME in the cache.  If we find something better, we'll
 		 * use it instead. If not, then query_lookup() calls
-		 * query_notfound() which calls query_cache_delegation(),
-		 * and we'll restore these values there.
+		 * query_cache_delegation() and we'll restore these values
+		 * there.
 		 */
 		ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
 		qctx->zdb = MOVE_OWNERSHIP(qctx->db);

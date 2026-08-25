@@ -756,11 +756,6 @@ hook_async_query_addanswer_begin(void *arg, void *data, isc_result_t *resultp) {
 }
 
 static ns_hookresult_t
-hook_async_query_notfound_begin(void *arg, void *data, isc_result_t *resultp) {
-	return hook_async_common(arg, data, resultp, NS_QUERY_NOTFOUND_BEGIN);
-}
-
-static ns_hookresult_t
 hook_async_query_zone_delegation_begin(void *arg, void *data,
 				       isc_result_t *resultp) {
 	return hook_async_common(arg, data, resultp,
@@ -1060,15 +1055,6 @@ ISC_LOOP_TEST_IMPL(ns__query_hookasync) {
 			NS_QUERY_ADDANSWER_BEGIN,
 			NS_QUERY_ADDANSWER_BEGIN,
 			hook_async_query_addanswer_begin,
-			ISC_R_SUCCESS,
-			true,
-			false,
-		},
-		{
-			NS_TEST_ID("async from notfound"),
-			NS_QUERY_NOTFOUND_BEGIN,
-			NS_QUERY_NOTFOUND_BEGIN,
-			hook_async_query_notfound_begin,
 			ISC_R_SUCCESS,
 			true,
 			false,
