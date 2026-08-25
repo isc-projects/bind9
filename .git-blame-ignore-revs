@@ -1558,3 +1558,27 @@ d051e1e8f8eea1400191e0fd20641394b7d438be
 239464f27643bf609e9c0ad79ab2d597ccbb2280
 # Use clang-format-23 to update formatting
 913eb0cbe59464eca562cdd32598fc011e6c7b89
+# Automatically sort imports in Python code
+ffd5b6ac262e8838dfc10790c6a67f545405a594
+# Apply black formatting changes
+bb6d7a0fc3348d391f7215795b5ef0e7a90912b4
+# Auto-format Python files with black
+c9cb8ae9eb27b12da21a77f9be18cdd9a393a0ed
+# Adapt to Python scripts to black 23.1.0
+3cd2cc6254c5211184981d6990022673d7b3d910
+# Clean up imports of dnspython modules
+d3186c70386040b2f51c08e73f1b850c1a2bcbf1
+# Replace deprecated typing imports
+ced002c4ab7b920c9528d315a611a477cb4a9409
+# Built-in types are now subscriptable
+790745da18fb575ab48b2d5d48bf45e2054528f9
+# Replace Optional[T] with T | None
+fe38515ad064637957e1e6e55ed91ed8cb3f8dc4
+# Replace Union[S, T] with S | T
+ce9c9a1a9c27fdf1e795494761cd8f8e2dfe21f8
+# Put docstring quotes on lines of their own
+9cf3b81e56e0ba83b1e186335432f45adb3b5c03
+# Unify the license header of Python files
+590dd362b238ba2e11eeefd632231448d54dd7a5
+# Drop the shebangs from Python files
+cef4afe8185cf3ebe2f882257165a5b161d581f7
