@@ -1,0 +1,36 @@
+// validating resolver, so that the denials ans1 builds can be checked against
+// what a validator makes of them and not just against the wire
+
+{% set ans1 = Nameserver("ans1") %}
+
+options {
+	{% include_indented "_common/options.conf.j2" %}
+{% if trust_anchors is defined %}
+	dnssec-validation yes;
+{% else %}
+	dnssec-validation no;
+{% endif %}
+	// One server answers for the whole zone, so minimizing the QNAME would
+	// only add queries for the intermediate names, none of which this test
+	// is about.
+	qname-minimization off;
+	// A failed non-existence proof stops ans1 from answering at all; fail
+	// the fetch quickly rather than stalling the test for the default 10
+	// seconds.
+	resolver-query-timeout 5000;
+};
+
+{% include "_common/controls.conf.j2" %}
+
+{% include "_common/root.hint.conf" %}
+
+zone "nsec.test" {
+	type static-stub;
+	server-addresses { @ans1.ip@; };
+};
+
+// Only tests_empty_non_terminal.py serves signed zones; its bootstrap()
+// supplies the trust anchors, and without them validation is left off.
+{% if trust_anchors is defined %}
+{% include "_common/trusted.conf.j2" %}
+{% endif %}
