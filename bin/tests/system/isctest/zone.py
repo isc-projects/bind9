@@ -221,7 +221,7 @@ class FileZoneKey(ZoneKey):
         Zone.copy_dssets enforces this.
         """
         assert self.zone is not None, "write_dsset requires a zone-attached key"
-        src = Path(self.zone.ns.name) / f"dsset-{self.zone.name}."
+        src = self.zone.directory / f"dsset-{self.zone.name}."
         dst = Path(target_dir) / src.name
         if src.resolve() == dst.resolve():
             debug(f"{self.zone.name}: dsset already in {target_dir}")
@@ -238,19 +238,19 @@ class FileZoneKey(ZoneKey):
         """
         Generate a DNSSEC key via dnssec-keygen for zone and return it.
 
-        Runs dnssec-keygen in zone.ns.name/keys/, stores the key there, and
+        Runs dnssec-keygen in zone.directory/keys/, stores the key there, and
         returns the resulting FileZoneKey.  Pass params="-f KSK" to generate a
         Key Signing Key; omit it (or pass "") for a Zone Signing Key.
         """
         debug(f"{zone.name}: generating key using dnssec-keygen")
-        keydir = Path(zone.ns.name) / KEYDIR
+        keydir = zone.directory / KEYDIR
         keydir.mkdir(exist_ok=True)
         if alg is None:
             alg = Algorithm.default()
         keygen = EnvCmd(
             "KEYGEN", f"-q -a {alg.number} -b {alg.bits} -K {KEYDIR} -L {DNSKEY_TTL}"
         )
-        key_name = keygen(f"{params} {zone.name}", cwd=zone.ns.name).out.strip()
+        key_name = keygen(f"{params} {zone.name}", cwd=zone.directory).out.strip()
         return FileZoneKey(key_name, keydir=keydir, zone=zone)
 
 
@@ -401,7 +401,7 @@ class Zone:
     def __init__(
         self,
         name: str | dns.name.Name,
-        ns: Nameserver,
+        ns: Nameserver | None = None,
         signed: bool = False,
         subdir: str | None = "zones",
         filepath_unsigned: Path | str | None = None,
@@ -438,6 +438,27 @@ class Zone:
         """
         return self.filepath_signed if self.signed else self.filepath_unsigned
 
+    @property
+    def directory(self) -> Path:
+        """
+        Directory the zone's files are rooted in, relative to the test directory.
+        """
+        return Path(self.ns.name) if self.ns else Path(".")
+
+    @property
+    def path_unsigned(self) -> Path:
+        """
+        Path of the unsigned zone file, relative to the test directory.
+        """
+        return self.directory / self.filepath_unsigned
+
+    @property
+    def path_signed(self) -> Path:
+        """
+        Path of the signed zone file, relative to the test directory.
+        """
+        return self.directory / self.filepath_signed
+
     def add_keys(self, ksk: bool = True, zsk: bool = True) -> None:
         """
         Generate KSK and/or ZSK via dnssec-keygen and append to self.keys.
@@ -449,7 +470,7 @@ class Zone:
 
     def copy_dssets(self) -> None:
         """
-        Write dsset-* files for each signed delegation into self.ns dir.
+        Write dsset-* files for each signed delegation into self.directory.
         """
         for zone in self.delegations:
             ksks = [k for k in zone.keys if k.is_ksk()]
@@ -463,7 +484,7 @@ class Zone:
                 )
             if ksks:
                 for key in ksks:
-                    key.write_dsset(Path(self.ns.name))
+                    key.write_dsset(self.directory)
             else:
                 debug(f"{zone.name}: delegation is insecure (no KSK)")
 
@@ -473,7 +494,7 @@ class Zone:
         """
         debug(f"{self.name}: rendering zone file")
         templates = TemplateEngine(".")
-        output = Path(self.ns.name) / self.filepath_unsigned
+        output = self.path_unsigned
         output.parent.mkdir(exist_ok=True)
 
         if template is None:
@@ -508,7 +529,7 @@ class Zone:
         signer(
             f"-P -x -O full -o {self.name}"
             f" -f {self.filepath_signed} {self.filepath_unsigned}",
-            cwd=self.ns.name,
+            cwd=self.directory,
         )
 
     def configure(
