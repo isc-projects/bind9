@@ -85,20 +85,6 @@ fromwire_in_dhcid(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, sr.length);
 }
 
-static isc_result_t
-towire_in_dhcid(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_dhcid);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_in_dhcid(ARGS_COMPARE) {
 	isc_region_t r1;

@@ -129,36 +129,6 @@ fromwire_ch_a(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_ch_a(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t sregion;
-	isc_region_t tregion;
-
-	REQUIRE(rdata->type == dns_rdatatype_a);
-	REQUIRE(rdata->rdclass == dns_rdataclass_ch);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, true);
-
-	dns_name_init(&name);
-
-	dns_rdata_toregion(rdata, &sregion);
-
-	dns_name_fromregion(&name, &sregion);
-	isc_region_consume(&sregion, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
-
-	isc_buffer_availableregion(target, &tregion);
-	if (tregion.length < 2) {
-		return ISC_R_NOSPACE;
-	}
-
-	memmove(tregion.base, sregion.base, 2);
-	isc_buffer_add(target, 2);
-	return ISC_R_SUCCESS;
-}
-
 static int
 compare_ch_a(ARGS_COMPARE) {
 	dns_name_t name1;

@@ -244,20 +244,6 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_in_wks(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	UNUSED(cctx);
-
-	REQUIRE(rdata->type == dns_rdatatype_wks);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(rdata->length != 0);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_in_wks(ARGS_COMPARE) {
 	isc_region_t r1;

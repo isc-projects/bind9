@@ -42,19 +42,6 @@ fromwire_cdnskey(ARGS_FROMWIRE) {
 	return generic_fromwire_key(CALL_FROMWIRE);
 }
 
-static isc_result_t
-towire_cdnskey(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_cdnskey(ARGS_COMPARE) {
 	isc_region_t r1;

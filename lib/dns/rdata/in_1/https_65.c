@@ -47,14 +47,6 @@ fromwire_in_https(ARGS_FROMWIRE) {
 	return generic_fromwire_in_svcb(CALL_FROMWIRE);
 }
 
-static isc_result_t
-towire_in_https(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_https);
-	REQUIRE(rdata->length != 0);
-
-	return generic_towire_in_svcb(CALL_TOWIRE);
-}
-
 static int
 compare_in_https(ARGS_COMPARE) {
 	isc_region_t region1;

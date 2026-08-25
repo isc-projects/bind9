@@ -177,30 +177,6 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_in_srv(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_srv);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	/*
-	 * Priority, weight, port.
-	 */
-	dns_rdata_toregion(rdata, &sr);
-	RETERR(mem_tobuffer(target, sr.base, 6));
-	isc_region_consume(&sr, 6);
-
-	/*
-	 * Target.
-	 */
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &sr);
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_in_srv(ARGS_COMPARE) {
 	dns_name_t name1;

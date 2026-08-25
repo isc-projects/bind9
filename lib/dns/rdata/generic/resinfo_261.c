@@ -38,15 +38,6 @@ fromwire_resinfo(ARGS_FROMWIRE) {
 	return generic_fromwire_txt(CALL_FROMWIRE);
 }
 
-static isc_result_t
-towire_resinfo(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_resinfo);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_resinfo(ARGS_COMPARE) {
 	isc_region_t r1;

@@ -938,44 +938,6 @@ fromwire_in_svcb(ARGS_FROMWIRE) {
 	return generic_fromwire_in_svcb(CALL_FROMWIRE);
 }
 
-static isc_result_t
-generic_towire_in_svcb(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t region;
-
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-
-	/*
-	 * SvcPriority.
-	 */
-	dns_rdata_toregion(rdata, &region);
-	RETERR(mem_tobuffer(target, region.base, 2));
-	isc_region_consume(&region, 2);
-
-	/*
-	 * TargetName.
-	 */
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target));
-	isc_region_consume(&region, name_length(&name));
-
-	/*
-	 * SvcParams.
-	 */
-	return mem_tobuffer(target, region.base, region.length);
-}
-
-static isc_result_t
-towire_in_svcb(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_svcb);
-	REQUIRE(rdata->length != 0);
-
-	return generic_towire_in_svcb(CALL_TOWIRE);
-}
-
 static int
 compare_in_svcb(ARGS_COMPARE) {
 	isc_region_t region1;

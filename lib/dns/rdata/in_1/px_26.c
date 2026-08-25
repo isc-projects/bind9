@@ -147,39 +147,6 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_in_px(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_px);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	/*
-	 * Preference.
-	 */
-	dns_rdata_toregion(rdata, &region);
-	RETERR(mem_tobuffer(target, region.base, 2));
-	isc_region_consume(&region, 2);
-
-	/*
-	 * MAP822.
-	 */
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target));
-	isc_region_consume(&region, name_length(&name));
-
-	/*
-	 * MAPX400.
-	 */
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &region);
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_in_px(ARGS_COMPARE) {
 	dns_name_t name1;

@@ -134,19 +134,6 @@ fromwire_cert(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, sr.length);
 }
 
-static isc_result_t
-towire_cert(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_cert);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_cert(ARGS_COMPARE) {
 	isc_region_t r1;

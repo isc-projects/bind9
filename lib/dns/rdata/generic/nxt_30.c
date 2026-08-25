@@ -162,24 +162,6 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_nxt(ARGS_TOWIRE) {
-	isc_region_t sr;
-	dns_name_t name;
-
-	REQUIRE(rdata->type == dns_rdatatype_nxt);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&name);
-	dns_rdata_toregion(rdata, &sr);
-	dns_name_fromregion(&name, &sr);
-	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
-
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_nxt(ARGS_COMPARE) {
 	isc_region_t r1;

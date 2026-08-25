@@ -75,23 +75,6 @@ fromwire_cname(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_cname(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_cname);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, true);
-
-	dns_name_init(&name);
-	dns_rdata_toregion(rdata, &region);
-	dns_name_fromregion(&name, &region);
-
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_cname(ARGS_COMPARE) {
 	dns_name_t name1;

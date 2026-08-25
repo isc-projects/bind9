@@ -56,11 +56,6 @@
 #define FROMWIRETYPE  "type"
 #define FROMWIREDEF   "use_default = true"
 
-#define TOWIREARGS  "rdata, cctx, target"
-#define TOWIRECLASS "rdata->rdclass"
-#define TOWIRETYPE  "rdata->type"
-#define TOWIREDEF   "use_default = true"
-
 #define FROMSTRUCTARGS	"rdclass, type, source, target"
 #define FROMSTRUCTCLASS "rdclass"
 #define FROMSTRUCTTYPE	"type"
@@ -767,8 +762,6 @@ main(int argc, char **argv) {
 			 TOTEXTCLASS, TOTEXTDEF);
 		doswitch("FROMWIRESWITCH", "fromwire", FROMWIREARGS,
 			 FROMWIRETYPE, FROMWIRECLASS, FROMWIREDEF);
-		doswitch("TOWIRESWITCH", "towire", TOWIREARGS, TOWIRETYPE,
-			 TOWIRECLASS, TOWIREDEF);
 		doswitch("COMPARESWITCH", "compare", COMPAREARGS, COMPARETYPE,
 			 COMPARECLASS, COMPAREDEF);
 		doswitch("CASECOMPARESWITCH", "casecompare", COMPAREARGS,

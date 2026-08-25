@@ -230,19 +230,6 @@ fromwire_amtrelay(ARGS_FROMWIRE) {
 	}
 }
 
-static isc_result_t
-towire_amtrelay(ARGS_TOWIRE) {
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &region);
-	return mem_tobuffer(target, region.base, region.length);
-}
-
 static int
 compare_amtrelay(ARGS_COMPARE) {
 	isc_region_t region1;

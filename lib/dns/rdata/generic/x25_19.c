@@ -82,16 +82,6 @@ fromwire_x25(ARGS_FROMWIRE) {
 	return txt_fromwire(source, target);
 }
 
-static isc_result_t
-towire_x25(ARGS_TOWIRE) {
-	UNUSED(cctx);
-
-	REQUIRE(rdata->type == dns_rdatatype_x25);
-	REQUIRE(rdata->length != 0);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_x25(ARGS_COMPARE) {
 	isc_region_t r1;
