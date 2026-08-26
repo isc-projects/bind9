@@ -284,6 +284,48 @@ closer_secure_ds_exists(dns_validator_t *val, const dns_name_t *signer,
 	return false;
 }
 
+static bool
+find_nsec_signer(dns_validator_t *val, dns_rdataset_t *sigp,
+		 dns_name_t *signer) {
+	dns_rdata_rrsig_t sig;
+
+	if (val->nvalidations != NULL &&
+	    dns_rdataset_count(sigp) >= isc_counter_getlimit(val->nvalidations))
+	{
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "is_insecure_referral: NSEC "
+			      "RRSIG too many signatures; refusing "
+			      "insecure-delegation proof");
+		return false;
+	}
+
+	DNS_RDATASET_FOREACH(sigp) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdataset_current(sigp, &rdata);
+
+		isc_result_t result = dns_rdata_tostruct(&rdata, &sig, NULL);
+		if (result != ISC_R_SUCCESS) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "is_insecure_referral: NSEC "
+				      "RRSIG invalid; refusing "
+				      "insecure-delegation proof");
+			return false;
+		}
+
+		if (dns_name_empty(signer)) {
+			dns_name_copy(&sig.signer, signer);
+		} else if (!dns_name_equal(signer, &sig.signer)) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "is_insecure_referral: NSEC "
+				      "RRSIG signers differ; refusing "
+				      "insecure-delegation proof");
+			return false;
+		}
+	}
+
+	return !dns_name_empty(signer);
+}
+
 /*%
  * The is_insecure_referral() function is called as part of seeking the DS
  * record. Look in the NSEC or NSEC3 record returned from a DS query to see if
@@ -326,8 +368,6 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 	dns_fixedname_t fsigner;
 	dns_name_t *signer = NULL;
 	dns_rdataset_t sigset = DNS_RDATASET_INIT;
-	dns_rdata_t srdata = DNS_RDATA_INIT;
-	dns_rdata_rrsig_t sig;
 	const char *ntype = "NSEC";
 
 	switch (dbresult) {
@@ -386,13 +426,12 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 			sigp = &val->fsigrdataset;
 		}
 
-		if (sigp != NULL && dns_rdataset_first(sigp) == ISC_R_SUCCESS) {
-			dns_rdataset_current(sigp, &srdata);
-			if (dns_rdata_tostruct(&srdata, &sig, NULL) ==
-			    ISC_R_SUCCESS)
-			{
-				signer = dns_fixedname_initname(&fsigner);
-				dns_name_copy(&sig.signer, signer);
+		if (sigp != NULL) {
+			signer = dns_fixedname_initname(&fsigner);
+			if (!find_nsec_signer(val, sigp, signer)) {
+				found = false;
+				signer = NULL;
+				SET_IF_NOT_NULL(crossed, true);
 			}
 		}
 		if (sigp == &sigset) {
