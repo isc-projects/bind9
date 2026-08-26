@@ -34,12 +34,10 @@ class DelayedAddressAnswerHandler(ResponseHandler):
             rrset = dns.rrset.from_text(qctx.qname, 300, qctx.qclass, qctx.qtype, addr)
             qctx.response.answer.append(rrset)
 
-        delay = 0
-        if (
-            len(qctx.qname.labels) >= 2
-            and qctx.qname.labels[1] == b"latency"
-            and qctx.qname.labels[0].isdigit()
-        ):
+        # <delay-in-ms>.<...>.latency...: any labels between the delay and
+        # "latency" are ignored; tests use them to bypass the resolver cache
+        delay = 0.0
+        if b"latency" in qctx.qname.labels[1:] and qctx.qname.labels[0].isdigit():
             delay = int(qctx.qname.labels[0]) / 1000
         yield DnsResponseSend(qctx.response, delay=delay)
 
