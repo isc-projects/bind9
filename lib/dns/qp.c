@@ -82,17 +82,17 @@ static atomic_uint_fast64_t rollback_time;
  * TRACE is generally used in allocation-related functions so it doesn't
  * trace very high-frequency ops
  */
-#define TRACE(fmt, ...)                                                        \
-	do {                                                                   \
-		if (isc_log_wouldlog(ISC_LOG_DEBUG(7))) {                      \
-			isc_log_write(DNS_LOGCATEGORY_DATABASE,                \
-				      DNS_LOGMODULE_QP, ISC_LOG_DEBUG(7),      \
-				      "%s:%d:%s(qp %p uctx \"%s\"):t%" PRItid  \
-				      ": " fmt,                                \
-				      __FILE__, __LINE__, __func__, qp,        \
-				      qp ? TRIENAME(qp) : "(null)", isc_tid(), \
-				      ##__VA_ARGS__);                          \
-		}                                                              \
+#define TRACE(fmt, ...)                                                       \
+	do {                                                                  \
+		if (isc_log_wouldlog(ISC_LOG_DEBUG(7))) {                     \
+			isc_log_write(DNS_LOGCATEGORY_DATABASE,               \
+				      DNS_LOGMODULE_QP, ISC_LOG_DEBUG(7),     \
+				      "%s:%d:%s(qp %p uctx \"%s\"):t%" PRItid \
+				      ": " fmt,                               \
+				      __FILE__, __LINE__, __func__, qp,       \
+				      qp ? TRIENAME(qp) : "(null)",           \
+				      isc_tid(), ##__VA_ARGS__);              \
+		}                                                             \
 	} while (0)
 #else
 #define TRACE(...)

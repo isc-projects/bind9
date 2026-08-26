@@ -899,6 +899,14 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	REQUIRE(rpz != NULL);
 	REQUIRE(rpz->rpzs != NULL && rpz->num < rpz->rpzs->p.num_zones);
 
+	/*
+	 * The IPv6 parsing loop below only writes as many words as the
+	 * name has labels, so a name with too few of them would otherwise
+	 * leave part of the key holding whatever was on the caller's
+	 * stack.
+	 */
+	*tgt_ip = (dns_rpz_cidr_key_t){ 0 };
+
 	make_addr_set(new_set, DNS_RPZ_ZBIT(rpz->num), rpz_type);
 
 	ip_labels = dns_name_countlabels(src_name);

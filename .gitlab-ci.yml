@@ -25,7 +25,7 @@ variables:
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 4
 
-  CLANG_VERSION: 22
+  CLANG_VERSION: 23
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
   LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
@@ -899,12 +899,14 @@ scan-build:
     - ${SCAN_BUILD} --use-cc=${CLANG}
                     --exclude build
                     meson setup --native-file ci/scan-build.ini build
-    # Gate on the full set of default checkers.
+    # Gate on the full set of default checkers.  The unit tests are
+    # build_by_default: false, so the "all" target alone would leave them
+    # unanalyzed; meson-test-prereq builds them without running them.
     - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
                     --use-cc=${CLANG}
                     --status-bugs
                     --keep-going
-                    -o scan-build.reports ninja -C build
+                    -o scan-build.reports ninja -C build all meson-test-prereq
   artifacts:
     paths:
       - scan-build.reports/

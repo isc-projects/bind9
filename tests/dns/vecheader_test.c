@@ -186,10 +186,6 @@ ISC_RUN_TEST_IMPL(merge_case_preservation) {
 	/* Set case on second header */
 	dns_vecheader_setownercase(header2, name2);
 
-	/* Get sizes */
-	size1 = dns_rdatavec_size(header1);
-	size2 = dns_rdatavec_size(header2);
-
 	/* Merge headers */
 	CHECK(dns_rdatavec_merge(header1, header2, mctx, dns_rdataclass_in,
 				 dns_rdatatype_a, 0, 0, &merged_header));
@@ -310,8 +306,14 @@ ISC_RUN_TEST_IMPL(rdatavec_subtract_assertion_failure) {
 	subtract_rdatalist = isc_mem_get(mctx, sizeof(*subtract_rdatalist));
 	subtract_rdata = isc_mem_get(mctx, sizeof(*subtract_rdata));
 
-	/* Initialize original rdataset and rdatalist with 2 A records */
+	/*
+	 * Both rdatasets are inspected by the cleanup path below, so they
+	 * have to be initialized before the first CHECK() can jump there.
+	 */
 	dns_rdataset_init(&original_rdataset);
+	dns_rdataset_init(&subtract_rdataset);
+
+	/* Initialize original rdatalist with 2 A records */
 	dns_rdatalist_init(original_rdatalist);
 	original_rdatalist->type = dns_rdatatype_a;
 	original_rdatalist->rdclass = dns_rdataclass_in;
@@ -333,8 +335,7 @@ ISC_RUN_TEST_IMPL(rdatavec_subtract_assertion_failure) {
 
 	dns_rdatalist_tordataset(original_rdatalist, &original_rdataset);
 
-	/* Initialize subtract rdataset and rdatalist with 1 A record */
-	dns_rdataset_init(&subtract_rdataset);
+	/* Initialize subtract rdatalist with 1 A record */
 	dns_rdatalist_init(subtract_rdatalist);
 	subtract_rdatalist->type = dns_rdatatype_a;
 	subtract_rdatalist->rdclass = dns_rdataclass_in;
@@ -450,8 +451,14 @@ ISC_RUN_TEST_IMPL(rdatavec_refcount_merge) {
 	rdatalist2 = isc_mem_get(mctx, sizeof(*rdatalist2));
 	rdata2 = isc_mem_get(mctx, sizeof(*rdata2));
 
-	/* Initialize first rdataset and rdatalist */
+	/*
+	 * Both rdatasets are inspected by the cleanup path below, so they
+	 * have to be initialized before the first CHECK() can jump there.
+	 */
 	dns_rdataset_init(&rdataset1);
+	dns_rdataset_init(&rdataset2);
+
+	/* Initialize first rdatalist */
 	dns_rdatalist_init(rdatalist1);
 	rdatalist1->type = dns_rdatatype_a;
 	rdatalist1->rdclass = dns_rdataclass_in;
@@ -466,8 +473,7 @@ ISC_RUN_TEST_IMPL(rdatavec_refcount_merge) {
 	ISC_LIST_APPEND(rdatalist1->rdata, rdata1, link);
 	dns_rdatalist_tordataset(rdatalist1, &rdataset1);
 
-	/* Initialize second rdataset and rdatalist */
-	dns_rdataset_init(&rdataset2);
+	/* Initialize second rdatalist */
 	dns_rdatalist_init(rdatalist2);
 	rdatalist2->type = dns_rdatatype_a;
 	rdatalist2->rdclass = dns_rdataclass_in;

@@ -1253,6 +1253,7 @@ ISC_RUN_TEST_IMPL(proxyheader_tlv_data_test) {
 	region.length = sizeof(zerodata);
 	result = isc_proxy2_append_tlv(&databuf, ISC_PROXY2_TLV_TYPE_NOOP,
 				       &region);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_buffer_subtract(&databuf, region.length / 2);
 	isc_buffer_usedregion(&databuf, &region);
 	result = isc_proxy2_tlv_data_verify(&region);

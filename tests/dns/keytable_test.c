@@ -21,14 +21,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "isc/loop.h"
-
 #define UNIT_TESTING
 #include <cmocka.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/lib.h>
+#include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/util.h>
 
@@ -577,6 +576,8 @@ ISC_LOOP_TEST_IMPL(issecuredomain) {
 /* check dns_keytable_dump() */
 ISC_LOOP_TEST_IMPL(dump) {
 	FILE *f = fopen("/dev/null", "w");
+
+	assert_non_null(f);
 
 	UNUSED(arg);
 
