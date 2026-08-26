@@ -32,12 +32,22 @@ GRANDCHILD3 = f"grand3.{CHILD}"
 # insecure-delegation proof is owned by an unrelated but correctly delegated
 # and signed sibling zone.
 GRANDCHILD3_SIBLING = f"grandsib.{CHILD}"
+# #6321 (mixed-signer RRSIG): grandchildren whose grandparent-signed NSEC
+# forgery also carries a dummy RRSIG naming the NSEC owner itself as signer,
+# in either order relative to the genuine one.
+GRANDCHILD_DUMMY_FIRST = f"grand-dummy-first.{CHILD}"
+GRANDCHILD_DUMMY_LAST = f"grand-dummy-last.{CHILD}"
 # The names under attack.
 ATTACK = f"www-bind.{GRANDCHILD}"
 ATTACK3 = f"www-bind.{GRANDCHILD3}"
 ATTACK3_SIBLING = f"www-bind.{GRANDCHILD3_SIBLING}"
 ATTACK_CACHED = f"www2-bind.{GRANDCHILD}"
+ATTACK_DUMMY_FIRST = f"www-bind.{GRANDCHILD_DUMMY_FIRST}"
+ATTACK_DUMMY_FIRST_CACHED = f"www2-bind.{GRANDCHILD_DUMMY_FIRST}"
+ATTACK_DUMMY_LAST = f"www-bind.{GRANDCHILD_DUMMY_LAST}"
 FORGED_A = "6.6.6.60"
+GENUINE_ALGORITHM = 13  # ECDSAP256SHA256, the parent key
+DUMMY_ALGORITHM = 0  # keep in sync with ans1/ans.py
 
 AUTH = "10.53.0.1"  # ans1, the attacker-controlled authoritative server
 RESOLVER = "10.53.0.2"  # ns2, the validating resolver under test
@@ -127,6 +137,13 @@ def _check_signed_rrset(response, section, owner, rdtype, signer):
     )
     assert rrsig is not None, response.to_text()
     assert rrsig[0].signer == dns.name.from_text(signer), response.to_text()
+
+
+def _rrsig_signers(response, section, owner, covered):
+    """(signer, algorithm) of every RRSIG covering owner/covered, in wire order."""
+    rrsig = _rrset(response, section, owner, dns.rdatatype.RRSIG, covers=covered)
+    assert rrsig is not None, response.to_text()
+    return [(rdata.signer.to_text(), int(rdata.algorithm)) for rdata in rrsig]
 
 
 def _auth_query_count(qname, qtype):
@@ -240,6 +257,82 @@ def test_resolver_rejects_sibling_zone_nsec3(servers):
     """
     _check_no_downgrade(_query(RESOLVER, ATTACK3_SIBLING, "A"), ATTACK3_SIBLING)
     _check_refusal_logged(servers["ns2"], ATTACK3_SIBLING, IGNORED_NSEC3_LOG)
+
+
+def test_auth_serves_mixed_signer_grandparent_nsec():
+    """
+    Premise check for the #6321 reproducers below, again against ans1
+    directly rather than the resolver.
+
+    The DS query for each mixed-signer grandchild must be answered with
+    the same grandparent-signed NSEC forgery as above, plus a second,
+    dummy RRSIG that names the NSEC owner itself as signer and uses an
+    algorithm the validator does not support.  The order of the two
+    RRSIGs on the wire is the whole point, so it is checked here for
+    both names: if dnspython ever started shuffling them, the reproducer
+    would flap instead of failing cleanly.
+    """
+    for grandchild, expected in [
+        (
+            GRANDCHILD_DUMMY_FIRST,
+            [(GRANDCHILD_DUMMY_FIRST, DUMMY_ALGORITHM), (PARENT, GENUINE_ALGORITHM)],
+        ),
+        (
+            GRANDCHILD_DUMMY_LAST,
+            [(PARENT, GENUINE_ALGORITHM), (GRANDCHILD_DUMMY_LAST, DUMMY_ALGORITHM)],
+        ),
+    ]:
+        grandchild_ds = _query(AUTH, grandchild, "DS")
+        isctest.check.noerror(grandchild_ds)
+        nsec = _rrset(
+            grandchild_ds, grandchild_ds.authority, grandchild, dns.rdatatype.NSEC
+        )
+        assert nsec is not None, grandchild_ds.to_text()
+        assert nsec[0].next == dns.name.from_text(
+            f"grandz.{CHILD}"
+        ), grandchild_ds.to_text()
+        signers = _rrsig_signers(
+            grandchild_ds, grandchild_ds.authority, grandchild, dns.rdatatype.NSEC
+        )
+        assert signers == expected, grandchild_ds.to_text()
+
+
+def test_resolver_rejects_mixed_signer_nsec_dummy_first():
+    """
+    Reproducer for #6321: the NSEC is still the grandparent's forgery from
+    test_resolver_rejects_grandparent_nsec_downgrade(), and it still
+    authenticates only through the grandparent's RRSIG.  But the RRSIG
+    rdataset now starts with a dummy signature (unsupported algorithm,
+    skipped by the validator) whose signer is the NSEC owner itself.  If
+    the signer used to bound the NSEC's authority is taken from the first
+    RRSIG rather than from the one that verified, the bound collapses to
+    the queried name, the secure DS at c.p031.test is never consulted,
+    and the forged answer below the secure delegation is accepted.
+    """
+    _check_no_downgrade(_query(RESOLVER, ATTACK_DUMMY_FIRST, "A"), ATTACK_DUMMY_FIRST)
+
+
+def test_resolver_rejects_mixed_signer_nsec_dummy_last():
+    """
+    Control for the test above with the RRSIGs in the other order: the
+    genuine grandparent signature first, the dummy second.  Whatever the
+    resolver does with the mixed-signer rdataset must not depend on the
+    wire order the attacker chooses.
+    """
+    _check_no_downgrade(_query(RESOLVER, ATTACK_DUMMY_LAST, "A"), ATTACK_DUMMY_LAST)
+
+
+def test_resolver_rejects_mixed_signer_nsec_from_cache():
+    """
+    The dummy-first forgery again, with a second name below the same
+    grandchild so that whatever the first walk left in the cache (the
+    negative DS proof, complete with its mixed RRSIG rdataset, if the
+    resolver accepted it) is what the insecurity walk finds this time.
+    """
+    _check_no_downgrade(_query(RESOLVER, ATTACK_DUMMY_FIRST, "A"), ATTACK_DUMMY_FIRST)
+    _check_no_downgrade(
+        _query(RESOLVER, ATTACK_DUMMY_FIRST_CACHED, "A"), ATTACK_DUMMY_FIRST_CACHED
+    )
 
 
 def test_resolver_rejects_downgrade_from_cached_proof(servers):
