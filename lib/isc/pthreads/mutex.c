@@ -263,7 +263,6 @@ pthread_mutexattr_t isc__mutex_attrs = {
 	!ISC_MUTEX_PROFILE
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
-static bool attr_initialized = false;
 static pthread_mutexattr_t attr;
 static isc_once_t once_attr = ISC_ONCE_INIT;
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
@@ -274,7 +273,6 @@ initialize_attr(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&attr) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype(
 			      &attr, PTHREAD_MUTEX_ADAPTIVE_NP) == 0);
-	attr_initialized = true;
 }
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
