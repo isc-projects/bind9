@@ -49,6 +49,10 @@ GRANDCHILD3_SIBLING = f"grandsib.{CHILD}"
 # in either order relative to the genuine one.
 GRANDCHILD_DUMMY_FIRST = f"grand-dummy-first.{CHILD}"
 GRANDCHILD_DUMMY_LAST = f"grand-dummy-last.{CHILD}"
+# RRSIG count cap: grandchildren whose grandparent-signed NSEC forgery carries
+# as many same-signer RRSIGs as ns2 allows validations per fetch, or one fewer.
+GRANDCHILD_TOO_MANY = f"grand-too-many.{CHILD}"
+GRANDCHILD_ALMOST_TOO_MANY = f"grand-almost-too-many.{CHILD}"
 # The names under attack.
 ATTACK = f"www-bind.{GRANDCHILD}"
 ATTACK3 = f"www-bind.{GRANDCHILD3}"
@@ -56,6 +60,8 @@ FORGED_A = "6.6.6.60"
 # Not a DNSSEC algorithm; the validator skips RRSIGs using it as unsupported
 # rather than rejecting them, which is what the mixed-signer forgery needs.
 DUMMY_ALGORITHM = 0
+# ns2's max-validations-per-fetch; keep in sync with the test module.
+MAX_VALIDATIONS_PER_FETCH = 16
 
 
 @dataclass(frozen=True)
@@ -257,6 +263,34 @@ def add_mixed_signer_nodata(
         response.authority.append(dns.rrset.from_rdata(nsec.name, nsec.ttl, rrsig))
 
 
+def add_many_rrsig_nodata(
+    response: dns.message.Message,
+    parent_key: Key,
+    nsec: dns.rrset.RRset,
+    count: int,
+) -> None:
+    """
+    The NODATA lie with 'count' RRSIGs over the NSEC, all naming the
+    grandparent P as signer: count - 1 unsupported-algorithm dummies with
+    distinct key tags and a one-byte signature, then the genuine signature
+    last, so the validator has to skip every dummy before the NSEC
+    authenticates.  With a uniform signer this exercises only the RRSIG
+    count cap in is_insecure_referral(), not the mixed-signer rule.
+    """
+    add_signed(response.authority, soa_rrset(), parent_key)
+    genuine = sign(nsec, parent_key)
+    dummies = [
+        genuine.replace(algorithm=DUMMY_ALGORITHM, key_tag=tag, signature=b"\0")
+        for tag in range(count - 1)
+    ]
+
+    response.authority.append(nsec)
+    # Separate single-rdata RRsets, for the same wire-order reason as in
+    # add_mixed_signer_nodata().
+    for rrsig in [*dummies, genuine]:
+        response.authority.append(dns.rrset.from_rdata(nsec.name, nsec.ttl, rrsig))
+
+
 def prepare_response(qctx: QueryContext) -> dns.message.Message:
     qctx.prepare_new_response(with_zone_data=False)
     qctx.response.flags |= dns.flags.AA
@@ -277,12 +311,16 @@ class GrandparentNsecHandler(ResponseHandler):
         self.grandchild3_sibling = name(GRANDCHILD3_SIBLING)
         self.grandchild_dummy_first = name(GRANDCHILD_DUMMY_FIRST)
         self.grandchild_dummy_last = name(GRANDCHILD_DUMMY_LAST)
+        self.grandchild_too_many = name(GRANDCHILD_TOO_MANY)
+        self.grandchild_almost_too_many = name(GRANDCHILD_ALMOST_TOO_MANY)
         self.forged_grandchildren = (
             self.grandchild,
             self.grandchild3,
             self.grandchild3_sibling,
             self.grandchild_dummy_first,
             self.grandchild_dummy_last,
+            self.grandchild_too_many,
+            self.grandchild_almost_too_many,
         )
 
     def match(self, qctx: QueryContext) -> bool:
@@ -373,6 +411,26 @@ class GrandparentNsecHandler(ResponseHandler):
                 self.parent_key,
                 nsec_lie(GRANDCHILD_DUMMY_LAST),
                 dummy_first=False,
+            )
+        elif qctx.qname == self.grandchild_too_many and qctx.qtype == dns.rdatatype.DS:
+            # Forge no data for grand child DS with as many RRSIGs as ns2
+            # allows validations per fetch (RRSIG count cap variant)
+            add_many_rrsig_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_TOO_MANY),
+                count=MAX_VALIDATIONS_PER_FETCH,
+            )
+        elif (
+            qctx.qname == self.grandchild_almost_too_many
+            and qctx.qtype == dns.rdatatype.DS
+        ):
+            # Same forgery with one RRSIG fewer, so it stays under the cap
+            add_many_rrsig_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_ALMOST_TOO_MANY),
+                count=MAX_VALIDATIONS_PER_FETCH - 1,
             )
         elif (
             any(qctx.qname.is_subdomain(g) for g in self.forged_grandchildren)
