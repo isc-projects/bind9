@@ -37,6 +37,8 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns3/bl-wildcname.db",
         "ns3/bl.db",
         "ns3/bl.tld2.db",
+        # failed out-of-zone load of outofzone.db renames it for analysis
+        "ns3/db-*",
         "ns3/evil-cname.db",
         "ns3/fast-expire.db",
         "ns3/include-rpz.db",

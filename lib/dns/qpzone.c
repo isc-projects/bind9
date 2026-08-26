@@ -2212,6 +2212,10 @@ loading_addrdataset(void *arg, const dns_name_t *name, dns_rdataset_t *rdataset,
 
 	REQUIRE(rdataset->rdclass == qpdb->common.rdclass);
 
+	if (!dns_name_issubdomain(name, &qpdb->common.origin)) {
+		return DNS_R_OUTOFZONE;
+	}
+
 	/*
 	 * SOA records are only allowed at top of zone.
 	 */
@@ -2628,6 +2632,10 @@ findnodeintree(qpzonedb_t *qpdb, dns_qp_t *qp, const dns_name_t *name,
 
 		INSIST(node->nspace == DNS_DBNAMESPACE_NSEC3 || !nsec3);
 	} else if (result != ISC_R_SUCCESS && create) {
+		if (!dns_name_issubdomain(name, &qpdb->common.origin)) {
+			return DNS_R_OUTOFZONE;
+		}
+
 		/*
 		 * ... if the lookup is unsuccessful, but the caller asked us to
 		 * create a new node, create one and insert it into the tree.

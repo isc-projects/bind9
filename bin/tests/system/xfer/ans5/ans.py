@@ -281,6 +281,16 @@ class XferAxfrHandler(AxfrHandler):
         return soa(self._soa_serial)
 
 
+class AboveApexAxfrHandler(XferAxfrHandler):
+    @property
+    def zone_contents(self) -> Collection[dns.rrset.RRset]:
+        return [
+            *super().zone_contents,
+            # The root is the parent of the nil. zone.
+            rrset(".", 300, dns.rdatatype.NS, "ns.attacker."),
+        ]
+
+
 class WrongQnameInFinalSoa(ResponseHandlerWrapper):
     def __init__(self, inner: XferAxfrHandler) -> None:
         super().__init__(inner)
@@ -342,6 +352,10 @@ def main() -> None:
                         XferAxfrHandler(txt_data="bad message id")
                     ),
                 ),
+            ),
+            "aboveapex": (
+                SignResponses(SoaHandler()),
+                SignResponses(AboveApexAxfrHandler(txt_data="above-apex AXFR")),
             ),
             "ednsformerr": (
                 SignResponses(SoaHandler()),

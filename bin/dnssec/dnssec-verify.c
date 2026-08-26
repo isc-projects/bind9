@@ -117,6 +117,7 @@ loadzone(char *file, const char *origin, bool origin_is_file,
 	case ISC_R_SUCCESS:
 		break;
 	case DNS_R_NOTZONETOP:
+	case DNS_R_OUTOFZONE:
 		if (origin_is_file) {
 			fatal("failed loading zone '%s' from file '%s': "
 			      "use -o to specify a different zone origin",
