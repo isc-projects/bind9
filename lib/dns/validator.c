@@ -328,6 +328,7 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 	dns_rdataset_t sigset = DNS_RDATASET_INIT;
 	dns_rdata_t srdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
+	const char *ntype = "NSEC";
 
 	switch (dbresult) {
 	case DNS_R_NXRRSET:
@@ -399,17 +400,10 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 		}
 	}
 
-	if (signer != NULL && closer_secure_ds_exists(val, signer, name)) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "is_insecure_referral: NSEC signer above known "
-			      "secure DS; refusing insecure-delegation proof");
-		found = false;
-		SET_IF_NOT_NULL(crossed, true);
-	}
-
-	return found;
+	goto checksigner;
 
 trynsec3:
+	ntype = "NSEC3";
 	/*
 	 * Iterate over the ncache entry.
 	 */
@@ -424,7 +418,6 @@ trynsec3:
 			continue;
 		}
 		if (set.trust < dns_trust_secure) {
-			dns_rdataset_cleanup(&set);
 			continue;
 		}
 
@@ -473,7 +466,6 @@ trynsec3:
 					      "%s: too many iterations",
 					      caller);
 				found = true;
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 			length = isc_iterated_hash(
@@ -487,7 +479,6 @@ trynsec3:
 			if (order == 0) {
 				found = dns_nsec3_typepresent(&rdata,
 							      dns_rdatatype_ns);
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 			if ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) == 0) {
@@ -505,18 +496,16 @@ trynsec3:
 			      memcmp(hash, nsec3.next.base, length) < 0)))
 			{
 				found = true;
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 		}
 	}
 
-	dns_rdataset_cleanup(&set);
-	return found;
-
 checksigner:
+	dns_rdataset_cleanup(&set);
+
 	/*
-	 * The proof claims an insecure delegation. Reject it if the NSEC3
+	 * The proof claims an insecure delegation. Reject it if the NSEC/NSEC3
 	 * signer sits above a known secure delegation point: such a proof is
 	 * forged by a zone above the real zone cut.
 	 */
@@ -524,10 +513,11 @@ checksigner:
 	    closer_secure_ds_exists(val, signer, name))
 	{
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "is_insecure_referral: NSEC3 signer above known "
-			      "secure DS; refusing insecure-delegation proof");
+			      "is_insecure_referral: %s signer above known "
+			      "secure DS; refusing insecure-delegation proof",
+			      ntype);
 		SET_IF_NOT_NULL(crossed, true);
-		found = false;
+		return false;
 	}
 
 	return found;
