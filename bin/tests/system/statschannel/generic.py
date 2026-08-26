@@ -59,9 +59,10 @@ def check_zone_timers(loaded, expires, refresh, loaded_exp):
     check_loaded(loaded, loaded_exp, now)
 
 
-def check_rtt(rtt, rtt_expected):
-    for val in rtt_expected:
-        assert rtt[val[0]] == val[1]
+def check_rtt(rtt_before, rtt_after, rtt_expected):
+    for bucket, expected in rtt_expected:
+        delta = rtt_after.get(bucket, 0) - rtt_before.get(bucket, 0)
+        assert delta == expected, f"bucket {bucket}: {delta} != {expected}"
 
 
 #
@@ -239,6 +240,11 @@ def test_rtt(fetch_views, **kwargs):
     statsip = kwargs["statsip"]
     statsport = kwargs["statsport"]
 
+    # The histograms accumulate for the lifetime of named, so check the
+    # change of the counters rather than their absolute values to allow
+    # re-running the test against the same instance (e.g. a flaky retry).
+    before = fetch_views(statsip, statsport)
+
     # auth query, 0 delay is expected, only for "in"
     msg = create_msg("a.example2.", "TXT")
     ans = isctest.query.tcp(msg, statsip, attempts=1)
@@ -259,7 +265,15 @@ def test_rtt(fetch_views, **kwargs):
     ans = isctest.query.tcp(msg, statsip, attempts=1)
     isctest.check.noerror(ans)
 
-    data = fetch_views(statsip, statsport)
+    after = fetch_views(statsip, statsport)
 
-    check_rtt(data["in-queries-rtt"], [["~0", 1], ["512-575", 2], ["704-767", 1]])
-    check_rtt(data["out-queries-rtt"], [["512-575", 2], ["704-767", 1]])
+    check_rtt(
+        before["in-queries-rtt"],
+        after["in-queries-rtt"],
+        [["~0", 1], ["512-575", 2], ["704-767", 1]],
+    )
+    check_rtt(
+        before["out-queries-rtt"],
+        after["out-queries-rtt"],
+        [["512-575", 2], ["704-767", 1]],
+    )
