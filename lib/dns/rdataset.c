@@ -75,7 +75,6 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 	rdataset->private6 = NULL;
-	rdataset->private7 = NULL;
 	rdataset->resign = 0;
 }
 
@@ -193,8 +192,6 @@ static dns_rdatasetmethods_t question_methods = {
 	question_current,
 	question_clone,
 	question_count,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -664,28 +661,6 @@ dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	if (rdataset->methods->getnoqname == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 	return((rdataset->methods->getnoqname)(rdataset, name, neg, negsig));
-}
-
-isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
-
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
-	if (rdataset->methods->addclosest == NULL)
-		return (ISC_R_NOTIMPLEMENTED);
-	return((rdataset->methods->addclosest)(rdataset, name));
-}
-
-isc_result_t
-dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			dns_rdataset_t *neg, dns_rdataset_t *negsig)
-{
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
-
-	if (rdataset->methods->getclosest == NULL)
-		return (ISC_R_NOTIMPLEMENTED);
-	return((rdataset->methods->getclosest)(rdataset, name, neg, negsig));
 }
 
 /*

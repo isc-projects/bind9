@@ -6132,31 +6132,6 @@ query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
 	query_addrrset(client, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) == 0)
-		goto cleanup;
-
-	if (fname == NULL) {
-		dbuf = query_getnamebuf(client);
-		if (dbuf == NULL)
-			goto cleanup;
-		fname = query_newname(client, dbuf, &b);
-	}
-	if (neg == NULL)
-		neg = query_newrdataset(client);
-	else if (dns_rdataset_isassociated(neg))
-		dns_rdataset_disassociate(neg);
-	if (negsig == NULL)
-		negsig = query_newrdataset(client);
-	else if (dns_rdataset_isassociated(negsig))
-		dns_rdataset_disassociate(negsig);
-	if (fname == NULL || neg == NULL || negsig == NULL)
-		goto cleanup;
-	result = dns_rdataset_getclosest(rdataset, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	query_addrrset(client, &fname, &neg, &negsig, dbuf,
-		       DNS_SECTION_AUTHORITY);
-
  cleanup:
 	if (neg != NULL)
 		query_putrdataset(client, &neg);

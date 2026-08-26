@@ -78,12 +78,6 @@ typedef struct dns_rdatasetmethods {
 					      dns_name_t *name,
 					      dns_rdataset_t *neg,
 					      dns_rdataset_t *negsig);
-	isc_result_t		(*addclosest)(dns_rdataset_t *rdataset,
-					      dns_name_t *name);
-	isc_result_t		(*getclosest)(dns_rdataset_t *rdataset,
-					      dns_name_t *name,
-					      dns_rdataset_t *neg,
-					      dns_rdataset_t *negsig);
 	isc_result_t		(*getadditional)(dns_rdataset_t *rdataset,
 						 dns_rdatasetadditional_t type,
 						 dns_rdatatype_t qtype,
@@ -167,7 +161,6 @@ struct dns_rdataset {
 	unsigned int			privateuint4;
 	void *				private5;
 	void *				private6;
-	void *				private7;
 	/*@}*/
 
 };
@@ -204,7 +197,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_REQUIREDGLUE	DNS_RDATASETATTR_REQUIRED
 #define DNS_RDATASETATTR_LOADORDER	0x00020000
 #define DNS_RDATASETATTR_RESIGN		0x00040000
-#define DNS_RDATASETATTR_CLOSEST	0x00080000
+/* #define DNS_RDATASETATTR_CLOSEST	0x00080000 - Obsolete */
 #define DNS_RDATASETATTR_OPTOUT		0x00100000	/*%< OPTOUT proof */
 #define DNS_RDATASETATTR_NEGATIVE	0x00200000
 #define DNS_RDATASETATTR_PREFETCH	0x00400000
@@ -529,31 +522,6 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
  *\li	'rdataset' to be valid and #DNS_RDATASETATTR_NOQNAME to be set.
  *\li	'name' to be valid and have NSEC or NSEC3 and associated RRSIG
  *	 rdatasets.
- */
-
-isc_result_t
-dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig);
-/*%<
- * Return the closest encloser for this record.
- *
- * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_CLOSEST to be set.
- *\li	'name' to be valid.
- *\li	'nsec' and 'nsecsig' to be valid and not associated.
- */
-
-isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name);
-/*%<
- * Associate a closest encloset proof with this record.
- * Sets #DNS_RDATASETATTR_CLOSEST if successful.
- * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
- * the 'nsec' and 'rrsig(nsec)' ttl.
- *
- * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_CLOSEST to be set.
- *\li	'name' to be valid and have NSEC3 and RRSIG(NSEC3) rdatasets.
  */
 
 isc_result_t
