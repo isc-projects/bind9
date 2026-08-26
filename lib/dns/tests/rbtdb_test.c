@@ -538,6 +538,162 @@ proof_rdataset_survives_expiration_cleanup_test(void **state) {
 	isc_mem_detach(&dbmctx);
 }
 
+/*
+ * Add a single record to the zone database 'db' in a new version.
+ */
+static void
+zone_addrecord(dns_db_t *db, const char *owner, dns_rdatatype_t rtype,
+	       const char *rdatastr) {
+	isc_result_t result;
+	dns_fixedname_t fowner;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatalist_t rdatalist;
+	dns_rdataset_t rdataset;
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	unsigned char rdatabuf[256];
+
+	dns_test_namefromstring(owner, &fowner);
+	result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in, rtype,
+					  rdatabuf, sizeof(rdatabuf), rdatastr,
+					  false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_rdatalist_init(&rdatalist);
+	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.type = rtype;
+	rdatalist.ttl = 300;
+	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&rdataset);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
+
+	result = dns_db_newversion(db, &version);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_findnode(db, dns_fixedname_name(&fowner), true, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_db_detachnode(db, &node);
+	dns_db_closeversion(db, &version, true);
+}
+
+/*
+ * Look up 'qname'/'rtype' in the current version of the zone database
+ * 'db' and return the result, with the found name in 'found'.
+ */
+static isc_result_t
+zone_findrecord(dns_db_t *db, const char *qname, dns_rdatatype_t rtype,
+		unsigned int options, dns_name_t *found) {
+	isc_result_t result;
+	dns_fixedname_t fqname;
+	dns_rdataset_t rdataset;
+
+	dns_test_namefromstring(qname, &fqname);
+	dns_rdataset_init(&rdataset);
+	result = dns_db_find(db, dns_fixedname_name(&fqname), NULL, rtype,
+			     options, 0, NULL, found, &rdataset, NULL);
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+
+	return result;
+}
+
+/*
+ * Nodes that are not below the zone origin can end up in the database
+ * (e.g. from a secondary zone file carrying out-of-zone data).  They
+ * must not be visible through lookups: not as zone cuts, DNAMEs or
+ * wildcards above the apex, nor as answers for names outside the zone.
+ */
+static void
+zone_nodes_outside_zone_test(void **state) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_fixedname_t forigin, ffound, fexpected;
+	dns_name_t *origin = NULL;
+	dns_name_t *found = dns_fixedname_initname(&ffound);
+	dns_name_t *expected = NULL;
+
+	UNUSED(state);
+
+	dns_test_namefromstring("example.org.", &forigin);
+	origin = dns_fixedname_name(&forigin);
+
+	result = dns_db_create(dt_mctx, "rbt", origin, dns_dbtype_zone,
+			       dns_rdataclass_in, 0, NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(db);
+
+	zone_addrecord(db, "example.org.", dns_rdatatype_soa,
+		       "ns.example.org. root.example.org. 1 300 300 300 300");
+	zone_addrecord(db, "example.org.", dns_rdatatype_ns, "ns.example.org.");
+	zone_addrecord(db, "ns.example.org.", dns_rdatatype_a, "10.0.0.2");
+	zone_addrecord(db, "www.example.org.", dns_rdatatype_a, "10.0.0.1");
+	zone_addrecord(db, "sub.example.org.", dns_rdatatype_ns,
+		       "ns.sub.example.org.");
+	zone_addrecord(db, "ns.sub.example.org.", dns_rdatatype_a, "10.0.0.3");
+
+	/* Above the origin. */
+	zone_addrecord(db, "org.", dns_rdatatype_ns, "ns.attacker.");
+	zone_addrecord(db, "org.", dns_rdatatype_dname, "attacker.");
+	zone_addrecord(db, "*.org.", dns_rdatatype_a, "192.0.2.1");
+
+	/* Outside the zone altogether. */
+	zone_addrecord(db, "mail.attacker.", dns_rdatatype_a, "192.0.2.2");
+	zone_addrecord(db, "*.attacker.", dns_rdatatype_a, "192.0.2.3");
+
+	/* Names in the zone are answered from the zone. */
+	result = zone_findrecord(db, "www.example.org.", dns_rdatatype_a, 0,
+				 found);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_test_namefromstring("www.example.org.", &fexpected);
+	expected = dns_fixedname_name(&fexpected);
+	assert_true(dns_name_equal(found, expected));
+
+	result = zone_findrecord(db, "example.org.", dns_rdatatype_soa, 0,
+				 found);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_name_equal(found, origin));
+
+	/* Zone cuts inside the zone still work. */
+	result = zone_findrecord(db, "www.sub.example.org.", dns_rdatatype_a, 0,
+				 found);
+	assert_int_equal(result, DNS_R_DELEGATION);
+	dns_test_namefromstring("sub.example.org.", &fexpected);
+	expected = dns_fixedname_name(&fexpected);
+	assert_true(dns_name_equal(found, expected));
+
+	result = zone_findrecord(db, "ns.sub.example.org.", dns_rdatatype_a,
+				 DNS_DBFIND_GLUEOK, found);
+	assert_int_equal(result, DNS_R_GLUE);
+
+	/* The closest encloser of a nonexistent name is in the zone. */
+	result = zone_findrecord(db, "nx.example.org.", dns_rdatatype_a, 0,
+				 found);
+	assert_int_equal(result, DNS_R_NXDOMAIN);
+	assert_true(dns_name_equal(found, origin));
+	assert_true((found->attributes & DNS_NAMEATTR_WILDCARD) == 0);
+
+	/* Names outside the zone are not found, with or without glue. */
+	result = zone_findrecord(db, "mail.attacker.", dns_rdatatype_a, 0,
+				 found);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	result = zone_findrecord(db, "attacker.", dns_rdatatype_a,
+				 DNS_DBFIND_GLUEOK, found);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	result = zone_findrecord(db, "org.", dns_rdatatype_ns, 0, found);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	dns_db_detach(&db);
+	assert_null(db);
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
@@ -547,6 +703,7 @@ main(void) {
 		cmocka_unit_test(overmempurge_longname_test),
 		cmocka_unit_test(
 			proof_rdataset_survives_expiration_cleanup_test),
+		cmocka_unit_test(zone_nodes_outside_zone_test),
 	};
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
