@@ -735,10 +735,9 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 * We'll make a note to not render it
 			 * if the recursion for the AAAA succeeds.
 			 */
-			result = ns_query_recurse(qctx->client,
-						  dns_rdatatype_aaaa,
-						  qctx->client->query.qname,
-						  NULL, NULL, qctx->resuming);
+			result = ns_query_recurse(
+				qctx->client, dns_rdatatype_aaaa,
+				qctx->client->query.qname, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_A_RECURSING;
 				qctx->client->query.recursing = true;

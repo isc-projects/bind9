@@ -13,7 +13,7 @@
 
 from re import compile as Re
 
-from dns.rcode import NOERROR, REFUSED
+from dns.rcode import NOERROR, REFUSED, SERVFAIL
 
 import isctest
 
@@ -25,17 +25,16 @@ EXAMPLE4_NS = "example4. 300 IN NS ns.example4."
 AEXAMPLE4_A = "a.example4. 300 IN A 10.53.0.40"
 NSEXAMPLE4_A = "ns.example4. 300 IN A 10.53.0.4"
 
-AROOTSERVER_NS = ". 300 IN NS a.root-servers.nil."
-
 INPUTPARAMS = "ns, qname, qtype, rd, cached, rcode, answer, authority, additional"
 
 # `minimal-responses yes` and `minimal-responses no-auth` behaves the same,
 # hence they share the same input.
 # The only case AUTHORITY and ADDITIONAL are provided are when strictly needed:
-#   - either from an authoritative server for delegation
-#     (cases with ns1, both AUTHORITY and glues in ADDITIONAL);
-#   - either from a resolver with RD=0 and no cache,
-#      so the resolver can only return the root hints (AUTHORITY only).
+# that is, from an authoritative server for delegation (cases with ns1, both
+# AUTHORITY and glues in ADDITIONAL).
+#
+# If the query hits a resolver with RD=0 and no cache, the resolver can't
+# answer the question and returns SERVFAIL.
 INPUTS_YES_NOAUTH = [
     ("ns1", "a.example2", "A", True, False, NOERROR, None, EXAMPLE2_NS, NSEXAMPLE2_A),
     ("ns1", "a.example4", "A", True, False, NOERROR, None, EXAMPLE4_NS, NSEXAMPLE4_A),
@@ -53,17 +52,17 @@ INPUTS_YES_NOAUTH = [
     ("ns1", "a.example4", "A", False, False, NOERROR, None, EXAMPLE4_NS, NSEXAMPLE4_A),
     ("ns2", "a.example2", "A", False, False, NOERROR, AEXAMPLE2_A, None, None),
     ("ns2", "a.example4", "A", False, False, REFUSED, None, None, None),
-    ("ns3", "a.example2", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
-    ("ns3", "a.example4", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns3", "a.example2", "A", False, False, SERVFAIL, None, None, None),
+    ("ns3", "a.example4", "A", False, False, SERVFAIL, None, None, None),
     ("ns3", "a.example2", "A", False, True, NOERROR, AEXAMPLE2_A, None, None),
     ("ns3", "a.example4", "A", False, True, NOERROR, AEXAMPLE4_A, None, None),
-    ("ns4", "a.example2", "A", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns4", "a.example2", "A", False, False, SERVFAIL, None, None, None),
     ("ns4", "a.example4", "A", False, False, NOERROR, AEXAMPLE4_A, None, None),
     ("ns4", "a.example2", "A", False, True, NOERROR, AEXAMPLE2_A, None, None),
     ("ns4", "a.example4", "A", False, True, NOERROR, AEXAMPLE4_A, None, None),
     # Resolver always provides glues with associated NS for qtype=NS
     ("ns3", "example2", "NS", True, False, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
-    ("ns3", "example2", "NS", False, False, NOERROR, None, AROOTSERVER_NS, None),
+    ("ns3", "example2", "NS", False, False, SERVFAIL, None, None, None),
     ("ns3", "example2", "NS", False, True, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
     ("ns3", "example2", "NS", True, True, NOERROR, EXAMPLE2_NS, None, NSEXAMPLE2_A),
 ]

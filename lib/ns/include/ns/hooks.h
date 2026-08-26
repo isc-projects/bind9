@@ -330,10 +330,9 @@
  * - Hook-triggered asynchronous processing is not allowed to be running
  *   while the standard DNS recursive fetch is taking place (starting
  *   from a call to dns_resolver_createfetch()), as the two would be
- *   using some of the same context resources.  For this reason the
- *   NS_QUERY_NOTFOUND_RECURSE and NS_QUERY_ZEROTTL_RECURSE hook points
- *   are explicitly prohibited from being used for asynchronous hook
- *   actions.
+ *   using some of the same context resources.  For this reason
+ *   NS_QUERY_ZEROTTL_RECURSE hook points is explicitly prohibited from being
+ *   used for asynchronous hook actions.
  * - Specifying multiple hook actions for the same hook point at the
  *   same time may cause problems, as resumption from one hook action
  *   could cause another hook to be called twice unintentionally.
@@ -402,7 +401,6 @@ typedef enum {
 	NS_QUERY_ADDANSWER_BEGIN,
 	NS_QUERY_RESPOND_BEGIN,
 	NS_QUERY_NOTFOUND_BEGIN,
-	NS_QUERY_NOTFOUND_RECURSE,
 	NS_QUERY_ZONE_DELEGATION_BEGIN,
 	NS_QUERY_DELEGATION_RECURSE_BEGIN,
 	NS_QUERY_NODATA_BEGIN,

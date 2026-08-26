@@ -501,19 +501,19 @@ rndc_reconfig ns2 10.53.0.2
 
 echo_i "adding new zone to external view ($n)"
 # NOTE: The internal view has "recursion yes" set, and so queries for
-# nonexistent zones should return NOERROR.  The external view is
+# nonexistent zones should return SERVFAIL.  The external view is
 # "recursion no", so queries for nonexistent zones should return
 # REFUSED.  This behavior should be the same regardless of whether
 # the zone does not exist because a) it has not yet been loaded, b)
 # it failed to load, or c) it has been deleted.
 ret=0
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.intpre.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.intpre.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.intpre.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.extpre.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.extpre.$n >/dev/null || ret=1
 $RNDCCMD 10.53.0.2 addzone 'added.example in external { type primary; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.int.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.ext.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.ext.$n >/dev/null || ret=1
 grep '^a.added.example' dig.out.ns2.ext.$n >/dev/null || ret=1
@@ -533,7 +533,7 @@ ret=0
 $RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 _check_rndc_reload_external_view_config() (
   $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.int.$n \
-    && grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null \
+    && grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null \
     && $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.ext.$n \
     && grep 'status: NOERROR' dig.out.ns2.ext.$n >/dev/null \
     && grep '^a.added.example' dig.out.ns2.ext.$n >/dev/null
@@ -569,12 +569,12 @@ status=$((status + ret))
 
 echo_i "attempting to add zone to internal view ($n)"
 ret=0
-$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.pre.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.pre.$n >/dev/null || ret=1
+$DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.pre.$n || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.pre.$n >/dev/null || ret=1
 $RNDCCMD 10.53.0.2 addzone 'added.example in internal { type primary; file "added.db"; };' 2>rndc.out.ns2.$n && ret=1
 grep "permission denied" rndc.out.ns2.$n >/dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.int.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.ext.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.ext.$n >/dev/null || ret=1
 n=$((n + 1))
@@ -594,7 +594,7 @@ ret=0
 $RNDCCMD 10.53.0.2 addzone 'added.example in external { type primary; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
 _check_adding_new_zone_again_external() (
   $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.int.$n \
-    && grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null \
+    && grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null \
     && $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.ext.$n \
     && grep 'status: NOERROR' dig.out.ns2.ext.$n >/dev/null \
     && grep '^a.added.example' dig.out.ns2.ext.$n >/dev/null
@@ -630,14 +630,14 @@ status=$((status + ret))
 echo_i "adding new zone to directory view ($n)"
 ret=0
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.intpre.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.intpre.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.intpre.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.extpre.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.extpre.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.5 -b 10.53.0.5 a.added.example a >dig.out.ns2.dirpre.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.dirpre.$n >/dev/null || ret=1
 $RNDCCMD 10.53.0.2 addzone 'added.example in directory { type primary; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a >dig.out.ns2.int.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a >dig.out.ns2.ext.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.ext.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.5 -b 10.53.0.5 a.added.example a >dig.out.ns2.dir.$n || ret=1
@@ -727,7 +727,7 @@ echo_i "checking addzone with zone template (primary) ($n)"
 ret=0
 $RNDCCMD 10.53.0.2 addzone 'template.example in external { template primary; };' 2>&1 | sed 's/^/I:ns2 /'
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.template.example a >dig.out.ns2.int.$n || ret=1
-grep 'status: NOERROR' dig.out.ns2.int.$n >/dev/null || ret=1
+grep 'status: SERVFAIL' dig.out.ns2.int.$n >/dev/null || ret=1
 grep 'ANSWER: 0' dig.out.ns2.int.$n >/dev/null || ret=1
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.4 a.template.example a >dig.out.ns2.ext.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.ext.$n >/dev/null || ret=1
