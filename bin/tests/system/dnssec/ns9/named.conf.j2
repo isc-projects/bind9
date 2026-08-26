@@ -24,3 +24,36 @@ options {
 {% include "_common/controls.conf.j2" %}
 
 include "trusted.conf";
+
+/*
+ * Dummy trust anchors of algorithms that should be ignored by named.
+ */
+trust-anchors {
+	/* Algorithms that are using non DNSSEC key code points. */
+	dh-trust-anchor. static-key 257 3 2 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	indirect-trust-anchor. static-key 257 3 252 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	/* Algorithms that are using hijacked code points. */
+	hmac-157-trust-anchor. static-key 257 3 157 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-158-trust-anchor. static-key 257 3 158 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-159-trust-anchor. static-key 257 3 159 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-160-trust-anchor. static-key 257 3 160 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-161-trust-anchor. static-key 257 3 161 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-162-trust-anchor. static-key 257 3 162 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-163-trust-anchor. static-key 257 3 163 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-164-trust-anchor. static-key 257 3 164 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+	hmac-165-trust-anchor. static-key 257 3 165 "AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3";
+
+	/* Algorithms that are using non DNSSEC key code points. */
+	dh-trust-anchor. static-ds 20326 2 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	indirect-trust-anchor. static-ds 20326 252 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	/* Algorithms that are using hijacked code points. */
+	hmac-157-trust-anchor. static-ds 20326 157 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-158-trust-anchor. static-ds 20326 158 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-159-trust-anchor. static-ds 20326 159 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-160-trust-anchor. static-ds 20326 160 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-161-trust-anchor. static-ds 20326 161 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-162-trust-anchor. static-ds 20326 162 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-163-trust-anchor. static-ds 20326 163 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-164-trust-anchor. static-ds 20326 164 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+	hmac-165-trust-anchor. static-ds 20326 165 2 "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D";
+};
