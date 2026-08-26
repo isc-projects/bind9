@@ -1878,23 +1878,9 @@ dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 	return result;
 }
 
-static isc_result_t
-digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
-	   size_t hashlen) {
-	unsigned int i;
-	for (i = 0; i < digestlen; i++) {
-		size_t left = hashlen - i * 2;
-		int ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
-		if (ret < 0 || (size_t)ret >= left) {
-			return ISC_R_NOSPACE;
-		}
-	}
-	return ISC_R_SUCCESS;
-}
-
 isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
-				 isc_buffer_t **buffer) {
+				 isc_buffer_t *buffer) {
 	isc_buffer_t *tbuf = NULL;
 	isc_region_t r;
 	isc_result_t result;
@@ -1903,7 +1889,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 	REQUIRE(DNS_CATZ_ENTRY_VALID(entry));
-	REQUIRE(buffer != NULL && *buffer != NULL);
+	REQUIRE(buffer != NULL);
 
 	isc_buffer_allocate(catz->catzs->mctx, &tbuf,
 			    strlen(catz->catzs->view->name) +
@@ -1935,30 +1921,27 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		rlen += strlen(entry->opts.zonedir) + 1;
 	}
 
-	CHECK(isc_buffer_reserve(*buffer, (unsigned int)rlen));
+	CHECK(isc_buffer_reserve(buffer, (unsigned int)rlen));
 
 	if (entry->opts.zonedir != NULL) {
-		isc_buffer_putstr(*buffer, entry->opts.zonedir);
-		isc_buffer_putstr(*buffer, "/");
+		isc_buffer_putstr(buffer, entry->opts.zonedir);
+		isc_buffer_putstr(buffer, "/");
 	}
 
 	isc_buffer_usedregion(tbuf, &r);
-	isc_buffer_putstr(*buffer, "__catz__");
+	isc_buffer_putstr(buffer, "__catz__");
 	if (special || tbuf->used > ISC_SHA256_DIGESTLENGTH * 2 + 1) {
 		unsigned char digest[ISC_MAX_MD_SIZE];
-		unsigned int digestlen;
+		isc_region_t dr = { .base = digest };
 
-		/* we can do that because digest string < 2 * DNS_NAME */
-		CHECK(isc_md(ISC_MD_SHA256, r.base, r.length, digest,
-			     &digestlen));
-		CHECK(digest2hex(digest, digestlen, (char *)r.base,
-				 ISC_SHA256_DIGESTLENGTH * 2 + 1));
-		isc_buffer_putstr(*buffer, (char *)r.base);
+		CHECK(isc_md(ISC_MD_SHA256, r.base, r.length, dr.base,
+			     &dr.length));
+		CHECK(isc_hex_totextlower(&dr, 0, "", buffer));
 	} else {
-		isc_buffer_copyregion(*buffer, &r);
+		isc_buffer_copyregion(buffer, &r);
 	}
 
-	isc_buffer_putstr(*buffer, ".db");
+	isc_buffer_putstr(buffer, ".db");
 	result = ISC_R_SUCCESS;
 
 cleanup:
@@ -2046,7 +2029,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 	isc_buffer_putstr(buffer, "}; ");
 	if (!entry->opts.in_memory) {
 		isc_buffer_putstr(buffer, "file \"");
-		CHECK(dns_catz_generate_masterfilename(catz, entry, &buffer));
+		CHECK(dns_catz_generate_masterfilename(catz, entry, buffer));
 		isc_buffer_putstr(buffer, "\"; ");
 	}
 	if (entry->opts.allow_query != NULL) {

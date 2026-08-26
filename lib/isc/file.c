@@ -57,8 +57,10 @@
 #include <sys/mman.h>
 #endif /* ifdef HAVE_SYS_MMAN_H */
 
+#include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -687,75 +689,72 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 #define DISALLOW "\\/ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 static isc_result_t
-digest2hex(unsigned char *digest, unsigned int digestlen, char *hash,
-	   size_t hashlen) {
-	unsigned int i;
-	int ret;
-	for (i = 0; i < digestlen; i++) {
-		size_t left = hashlen - i * 2;
-		ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
-		if (ret < 0 || (size_t)ret >= left) {
-			return ISC_R_NOSPACE;
-		}
+path_join(isc_buffer_t *b, const char *dir, const char *base, const char *ext,
+	  size_t length) {
+	isc_buffer_clear(b);
+
+	if (dir != NULL) {
+		isc_buffer_putstr(b, dir);
+		isc_buffer_putuint8(b, '/');
 	}
+
+	isc_buffer_putstr(b, base);
+
+	if (ext != NULL) {
+		isc_buffer_putuint8(b, '.');
+		isc_buffer_putstr(b, ext);
+	}
+
+	isc_buffer_putuint8(b, '\0');
+
+	if (isc_buffer_usedlength(b) > length) {
+		return ISC_R_NOSPACE;
+	}
+
 	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		  char *path, size_t length) {
-	char buf[PATH_MAX];
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
-	char hash[ISC_MAX_MD_SIZE * 2 + 1];
-	size_t l = 0;
-
 	REQUIRE(base != NULL);
 	REQUIRE(path != NULL);
 
-	l = strlen(base) + 1;
+	isc_result_t result = ISC_R_SUCCESS;
+	char *buf = NULL;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	char hash[ISC_MAX_MD_SIZE * 2 + 1];
+	isc_buffer_t b, h;
+	isc_region_t r = { .base = digest };
 
-	/*
-	 * allow room for a full sha256 hash (64 chars
-	 * plus null terminator)
-	 */
-	if (l < 65U) {
-		l = 65;
-	}
-
-	if (dir != NULL) {
-		l += strlen(dir) + 1;
-	}
-	if (ext != NULL) {
-		l += strlen(ext) + 1;
-	}
-
-	if (l > length || l > (unsigned int)PATH_MAX) {
-		return ISC_R_NOSPACE;
-	}
+	/* Calculate the full-length SHA256 hash first */
+	isc_buffer_init(&h, hash, sizeof(hash));
+	RETERR(isc_md(ISC_MD_SHA256, (const unsigned char *)base, strlen(base),
+		      r.base, &r.length));
+	RETERR(isc_hex_totextlower(&r, 0, "", &h));
+	INSIST(isc_buffer_availablelength(&h) > 0);
+	isc_buffer_putuint8(&h, '\0');
 
 	/* Check whether the full-length SHA256 hash filename exists */
-	RETERR(isc_md(ISC_MD_SHA256, (const unsigned char *)base, strlen(base),
-		      digest, &digestlen));
+	isc_buffer_initnull(&b);
+	isc_buffer_setmctx(&b, isc_g_mctx);
 
-	RETERR(digest2hex(digest, digestlen, hash, sizeof(hash)));
+	CHECK(path_join(&b, dir, hash, ext, length));
 
-	snprintf(buf, sizeof(buf), "%s%s%s%s%s", dir != NULL ? dir : "",
-		 dir != NULL ? "/" : "", hash, ext != NULL ? "." : "",
-		 ext != NULL ? ext : "");
+	buf = isc_buffer_base(&b);
 	if (isc_file_exists(buf)) {
 		strlcpy(path, buf, length);
-		return ISC_R_SUCCESS;
+		goto cleanup;
 	}
 
 	/* Check for a truncated SHA256 hash filename */
 	hash[16] = '\0';
-	snprintf(buf, sizeof(buf), "%s%s%s%s%s", dir != NULL ? dir : "",
-		 dir != NULL ? "/" : "", hash, ext != NULL ? "." : "",
-		 ext != NULL ? ext : "");
+	CHECK(path_join(&b, dir, hash, ext, length));
+
+	buf = isc_buffer_base(&b);
 	if (isc_file_exists(buf)) {
 		strlcpy(path, buf, length);
-		return ISC_R_SUCCESS;
+		goto cleanup;
 	}
 
 	/*
@@ -765,14 +764,17 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	 */
 	if (strpbrk(base, DISALLOW) != NULL) {
 		strlcpy(path, buf, length);
-		return ISC_R_SUCCESS;
+		goto cleanup;
 	}
 
-	snprintf(buf, sizeof(buf), "%s%s%s%s%s", dir != NULL ? dir : "",
-		 dir != NULL ? "/" : "", base, ext != NULL ? "." : "",
-		 ext != NULL ? ext : "");
+	CHECK(path_join(&b, dir, base, ext, length));
+
+	buf = isc_buffer_base(&b);
 	strlcpy(path, buf, length);
-	return ISC_R_SUCCESS;
+
+cleanup:
+	isc_buffer_clearmctx(&b);
+	return result;
 }
 
 bool
