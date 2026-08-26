@@ -33,21 +33,7 @@ clang-format over it — it is not your code to reformat.
 
 ## Trailers
 
-- `Assisted-by: <tool>:<model-id>` (model id from the runtime
-  environment, e.g. `claude-fable-5`) ONLY when LLM wrote the
-  load-bearing code/test/config content of the commit. NOT for:
-  rewording a message, squashing fixups, review-only advice, or a
-  comment/doc block added around a user-authored fix — a comment is
-  prose, not the fix; do not rationalize "the comment was AI" to keep
-  the trailer.
-- After the model id, list specialized analysis tools actually used
-  (coccinelle, clang-tidy, AFL, Coverity, fuzzers) — never trivial
-  tooling (git, compilers, meson, clang-format, black, ruff).
-- NEVER, in any repo:
-  - `Co-Authored-By: ...` or any AI co-author line;
-  - `Signed-off-by:` from the agent (it cannot certify the DCO);
-  - `Closes #N` / `Fixes #N` / `Refs #N` — issue refs go in the MR
-    description; the branch name already encodes the issue number;
+- **Always** follow rules for AI agents in CONTRIBUTING.md.
 
 ## Amending
 
