@@ -728,6 +728,14 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		algorithm = dst_algorithm_fromdata(
 			keystruct.algorithm, keystruct.data, keystruct.datalen);
 
+		/*
+		 * Reject non DNSSEC code points (includes appropriated code
+		 * points).
+		 */
+		if (!dst_dnssec_algorithm(algorithm)) {
+			CLEANUP(DST_R_UNSUPPORTEDALG);
+		}
+
 		if (!dst_algorithm_supported(algorithm)) {
 			CLEANUP(DST_R_UNSUPPORTEDALG);
 		}
@@ -837,6 +845,14 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 			break;
 		}
 #endif
+		/*
+		 * Reject non DNSSEC code points (includes appropriated code
+		 * points).
+		 */
+		if (!dst_dnssec_algorithm(algorithm)) {
+			CLEANUP(DST_R_UNSUPPORTEDALG);
+		}
+
 		if (!dst_algorithm_supported(algorithm)) {
 			CLEANUP(DST_R_UNSUPPORTEDALG);
 		}
