@@ -1319,6 +1319,7 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	isc_buffer_usedregion(&b1, &r1);
 	/* Remove extended flags. */
 	if ((key1->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
+		INSIST(r1.length >= 6);
 		memmove(&buf1[4], &buf1[6], r1.length - 6);
 		r1.length -= 2;
 	}
@@ -1326,6 +1327,7 @@ pub_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	isc_buffer_usedregion(&b2, &r2);
 	/* Remove extended flags. */
 	if ((key2->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
+		INSIST(r2.length >= 6);
 		memmove(&buf2[4], &buf2[6], r2.length - 6);
 		r2.length -= 2;
 	}

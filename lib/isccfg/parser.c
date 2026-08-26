@@ -3091,7 +3091,7 @@ cfg_parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type,
 		    cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 	isc_result_t result;
-	isc_netaddr_t netaddr;
+	isc_netaddr_t netaddr = { .family = AF_UNSPEC };
 	unsigned int addrlen = 0, prefixlen;
 	bool expectprefix;
 

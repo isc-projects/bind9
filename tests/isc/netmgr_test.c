@@ -278,7 +278,6 @@ setup_test(void **state __attribute__((unused))) {
 		return -1;
 	}
 	isc__nm_closesocket(udp_listen_sock);
-	udp_listen_sock = -1;
 
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
@@ -289,7 +288,6 @@ setup_test(void **state __attribute__((unused))) {
 		return -1;
 	}
 	isc__nm_closesocket(tcp_listen_sock);
-	tcp_listen_sock = -1;
 
 	atomic_store(&do_send, true);
 	atomic_store(&nsends, esends);

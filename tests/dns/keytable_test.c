@@ -553,6 +553,8 @@ ISC_RUN_TEST_IMPL(dns_keytable_issecuredomain) {
 ISC_RUN_TEST_IMPL(dns_keytable_dump) {
 	FILE *f = fopen("/dev/null", "w");
 
+	assert_non_null(f);
+
 	UNUSED(state);
 
 	create_tables();

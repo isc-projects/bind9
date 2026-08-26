@@ -23,7 +23,7 @@ variables:
   TEST_PARALLEL_JOBS: 4
 
   CONFIGURE: ./configure
-  CLANG_VERSION: 22
+  CLANG_VERSION: 23
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
   LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
@@ -883,11 +883,16 @@ coccinelle:
 # Jobs for scan-build builds on Debian 13 "trixie" (amd64)
 
 .scan_build: &scan_build
+  # The unit tests are check_PROGRAMS, so the "all" target alone would leave
+  # them unanalyzed; "check TESTS=" builds them without running them.  It has
+  # to be the only goal: automake's check-am already depends on all-am, and
+  # passing both to one parallel make has the two goals descend into the same
+  # directories concurrently, racing over each object's .deps/*.Tpo file.
   - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
                   --keep-cc
                   --status-bugs
                   --keep-going
-                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} all V=1
+                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} check TESTS= V=1
 
 scan-build:
   <<: *other_checks_job
