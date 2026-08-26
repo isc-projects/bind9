@@ -115,6 +115,10 @@ struct dns_validator {
 	 */
 	dns_name_t *proofs[4];
 	/*
+	 * The denial type (NSEC or NSEC3) of the NOQNAME proof.
+	 */
+	dns_rdatatype_t noqnametype;
+	/*
 	 * Optout proof seen.
 	 */
 	bool optout;

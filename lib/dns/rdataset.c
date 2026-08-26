@@ -548,13 +548,14 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 }
 
 isc_result_t
-dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			dns_rdatatype_t type) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	if (rdataset->methods->addnoqname == NULL) {
 		return ISC_R_NOTIMPLEMENTED;
 	}
-	return (rdataset->methods->addnoqname)(rdataset, name);
+	return (rdataset->methods->addnoqname)(rdataset, name, type);
 }
 
 isc_result_t
