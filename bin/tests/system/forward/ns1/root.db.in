@@ -23,3 +23,6 @@ ns.example7		A	10.53.0.2
 
 tld			NS	ns.tld
 ns.tld			A	10.53.0.2
+
+foo.fwdonly		NS	ns.foo.fwdonly
+ns.foo.fwdonly		A	10.53.0.98

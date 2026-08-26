@@ -45,3 +45,9 @@ zone "sibling.tld" {
 	type primary;
 	file "sibling.tld.db";
 };
+
+zone "fwdonly." {
+	type forward;
+	forward only;
+	forwarders { 10.53.0.1; };
+};
