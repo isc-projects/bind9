@@ -138,14 +138,6 @@ dns_rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 			 dns_rdataset_t	       *neg,
 			 dns_rdataset_t *negsig DNS__DB_FLARG);
 
-isc_result_t
-dns_rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name);
-
-isc_result_t
-dns_rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			 dns_rdataset_t	       *neg,
-			 dns_rdataset_t *negsig DNS__DB_FLARG);
-
 void
 dns_rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
 

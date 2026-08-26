@@ -5693,12 +5693,6 @@ validated(void *arg) {
 		}
 		INSIST(val->sigrdataset != NULL);
 		val->sigrdataset->ttl = val->rdataset->ttl;
-		if (val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
-			result = dns_rdataset_addclosest(
-				val->rdataset,
-				val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		}
 	} else if (val->rdataset->trust == dns_trust_answer &&
 		   val->rdataset->type != dns_rdatatype_rrsig)
 	{

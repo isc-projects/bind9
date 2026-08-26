@@ -99,7 +99,6 @@ struct dns_slabheader {
 	isc_refcount_t references;
 
 	dns_slabheader_proof_t *noqname;
-	dns_slabheader_proof_t *closest;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.

@@ -112,9 +112,6 @@ rdataset_count(dns_rdataset_t *rdataset);
 static isc_result_t
 rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *neg, dns_rdataset_t *negsig DNS__DB_FLARG);
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *neg, dns_rdataset_t *negsig DNS__DB_FLARG);
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 static void
@@ -1166,7 +1163,6 @@ dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.clone = rdataset_clone,
 	.count = rdataset_count,
 	.getnoqname = rdataset_getnoqname,
-	.getclosest = rdataset_getclosest,
 	.settrust = rdataset_settrust,
 	.expire = rdataset_expire,
 	.clearprefetch = rdataset_clearprefetch,
@@ -1182,7 +1178,6 @@ dns_rdatasetmethods_t dns_rdataproof_rdatasetmethods = {
 	.clone = rdataset_clone,
 	.count = rdataset_count,
 	.getnoqname = rdataset_getnoqname,
-	.getclosest = rdataset_getclosest,
 	.settrust = rdataset_settrust,
 	.expire = rdataset_expire,
 	.clearprefetch = rdataset_clearprefetch,
@@ -1394,59 +1389,6 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	};
 
 	dns_name_clone(&noqname->name, name);
-
-	return ISC_R_SUCCESS;
-}
-
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *nsec,
-		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->slab.db;
-	dns_dbnode_t *node = rdataset->slab.node;
-	const dns_slabheader_proof_t *closest = rdataset->slab.closest;
-
-	/*
-	 * As mentioned above, rdataset->slab.raw usually refers the data
-	 * following an dns_slabheader, but in this case it points to a bare
-	 * rdataslab belonging to the dns_slabheader's `closest` field.
-	 */
-	dns__db_attachnode(db, node,
-			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
-	*nsec = (dns_rdataset_t){
-		.methods = &dns_rdataproof_rdatasetmethods,
-		.rdclass = db->rdclass,
-		.type = closest->type,
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = closest->neg,
-		.link = nsec->link,
-		.count = nsec->count,
-		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
-		.magic = nsec->magic,
-	};
-
-	dns__db_attachnode(db, node,
-			   &(dns_dbnode_t *){ NULL } DNS__DB_FLARG_PASS);
-	*nsecsig = (dns_rdataset_t){
-		.methods = &dns_rdataproof_rdatasetmethods,
-		.rdclass = db->rdclass,
-		.type = dns_rdatatype_rrsig,
-		.covers = closest->type,
-		.ttl = rdataset->ttl,
-		.trust = rdataset->trust,
-		.slab.db = db,
-		.slab.node = node,
-		.slab.raw = closest->negsig,
-		.link = nsecsig->link,
-		.count = nsecsig->count,
-		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
-		.magic = nsecsig->magic,
-	};
-
-	dns_name_clone(&closest->name, name);
 
 	return ISC_R_SUCCESS;
 }

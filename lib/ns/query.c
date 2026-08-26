@@ -7681,33 +7681,6 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
-	if ((qctx->noqname->attributes & DNS_RDATASETATTR_CLOSEST) == 0) {
-		goto cleanup;
-	}
-
-	if (fname == NULL) {
-		dbuf = ns_client_getnamebuf(client);
-		fname = ns_client_newname(client, dbuf, &b);
-	}
-
-	if (neg == NULL) {
-		neg = ns_client_newrdataset(client);
-	} else if (dns_rdataset_isassociated(neg)) {
-		dns_rdataset_disassociate(neg);
-	}
-
-	if (negsig == NULL) {
-		negsig = ns_client_newrdataset(client);
-	} else if (dns_rdataset_isassociated(negsig)) {
-		dns_rdataset_disassociate(negsig);
-	}
-
-	result = dns_rdataset_getclosest(qctx->noqname, fname, neg, negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
-		       DNS_SECTION_AUTHORITY);
-
 cleanup:
 	if (neg != NULL) {
 		ns_client_putrdataset(client, &neg);
