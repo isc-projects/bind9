@@ -169,7 +169,6 @@ typedef struct rdatasetheader {
 	dns_trust_t trust;
 	atomic_uint_fast32_t last_refresh_fail_ts;
 	struct noqname *noqname;
-	struct noqname *closest;
 	unsigned int resign_lsb : 1;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
@@ -572,9 +571,6 @@ rdataset_count(dns_rdataset_t *rdataset);
 static isc_result_t
 rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *neg, dns_rdataset_t *negsig);
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *neg, dns_rdataset_t *negsig);
 static bool
 need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now);
 static void
@@ -617,8 +613,6 @@ static dns_rdatasetmethods_t rdataset_methods = { rdataset_disassociate,
 						  rdataset_count,
 						  NULL, /* addnoqname */
 						  rdataset_getnoqname,
-						  NULL, /* addclosest */
-						  rdataset_getclosest,
 						  rdataset_settrust,
 						  rdataset_expire,
 						  rdataset_clearprefetch,
@@ -635,8 +629,6 @@ static dns_rdatasetmethods_t slab_methods = {
 	rdataset_count,
 	NULL, /* addnoqname */
 	NULL, /* getnoqname */
-	NULL, /* addclosest */
-	NULL, /* getclosest */
 	NULL, /* settrust */
 	NULL, /* expire */
 	NULL, /* clearprefetch */
@@ -1512,9 +1504,6 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 
 	if (rdataset->noqname != NULL) {
 		free_noqname(mctx, &rdataset->noqname);
-	}
-	if (rdataset->closest != NULL) {
-		free_noqname(mctx, &rdataset->closest);
 	}
 
 	if (NONEXISTENT(rdataset)) {
@@ -3221,10 +3210,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->private6 = header->noqname;
 	if (rdataset->private6 != NULL) {
 		rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
-	}
-	rdataset->private7 = header->closest;
-	if (rdataset->private7 != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
 	}
 
 	/*
@@ -6638,12 +6623,6 @@ find_header:
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			if (header->closest == NULL &&
-			    newheader->closest != NULL)
-			{
-				header->closest = newheader->closest;
-				newheader->closest = NULL;
-			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL) {
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -6691,12 +6670,6 @@ find_header:
 			{
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
-			}
-			if (header->closest == NULL &&
-			    newheader->closest != NULL)
-			{
-				header->closest = newheader->closest;
-				newheader->closest = NULL;
 			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL) {
@@ -6992,51 +6965,6 @@ cleanup:
 	return result;
 }
 
-static isc_result_t
-addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
-	   uint32_t maxrrperset, dns_rdataset_t *rdataset) {
-	struct noqname *closest;
-	isc_mem_t *mctx = rbtdb->common.mctx;
-	dns_name_t name;
-	dns_rdataset_t neg, negsig;
-	isc_result_t result;
-	isc_region_t r;
-
-	dns_name_init(&name, NULL);
-	dns_rdataset_init(&neg);
-	dns_rdataset_init(&negsig);
-
-	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	closest = isc_mem_get(mctx, sizeof(*closest));
-	dns_name_init(&closest->name, NULL);
-	closest->neg = NULL;
-	closest->negsig = NULL;
-	closest->type = neg.type;
-	dns_name_dup(&name, mctx, &closest->name);
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0, maxrrperset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	closest->neg = r.base;
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0, maxrrperset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-	closest->negsig = r.base;
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
-	newheader->closest = closest;
-	return ISC_R_SUCCESS;
-
-cleanup:
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
-	free_noqname(mctx, &closest);
-	return result;
-}
-
 static dns_dbmethods_t zone_methods;
 
 static size_t
@@ -7129,7 +7057,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		RDATASET_ATTR_SET(newheader, RDATASET_ATTR_ZEROTTL);
 	}
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->trust = rdataset->trust;
@@ -7168,15 +7095,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
 			result = addnoqname(rbtdb, newheader,
-					    rbtdb->maxrrperset, rdataset);
-			if (result != ISC_R_SUCCESS) {
-				free_rdataset(rbtdb, rbtdb->common.mctx,
-					      newheader);
-				return result;
-			}
-		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
-			result = addclosest(rbtdb, newheader,
 					    rbtdb->maxrrperset, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
@@ -7336,7 +7254,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
@@ -7445,7 +7362,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->trust = 0;
 			newheader->serial = rbtversion->serial;
 			newheader->noqname = NULL;
-			newheader->closest = NULL;
 			atomic_init(&newheader->count, 0);
 			newheader->node = rbtnode;
 			newheader->resign = 0;
@@ -7537,7 +7453,6 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	atomic_init(&newheader->attributes, RDATASET_ATTR_NONEXISTENT);
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
 	} else {
@@ -7725,7 +7640,6 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
@@ -8885,7 +8799,6 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsec->privateuint4 = 0;
 	nsec->private5 = NULL;
 	nsec->private6 = NULL;
-	nsec->private7 = NULL;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
@@ -8901,54 +8814,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsecsig->privateuint4 = 0;
 	nsecsig->private5 = NULL;
 	nsec->private6 = NULL;
-	nsec->private7 = NULL;
 
 	dns_name_clone(&noqname->name, name);
-
-	return ISC_R_SUCCESS;
-}
-
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *nsec, dns_rdataset_t *nsecsig) {
-	dns_db_t *db = rdataset->private1;
-	dns_dbnode_t *node = rdataset->private2;
-	dns_dbnode_t *cloned_node;
-	const struct noqname *closest = rdataset->private7;
-
-	cloned_node = NULL;
-	attachnode(db, node, &cloned_node);
-	nsec->methods = &slab_methods;
-	nsec->rdclass = db->rdclass;
-	nsec->type = closest->type;
-	nsec->covers = 0;
-	nsec->ttl = rdataset->ttl;
-	nsec->trust = rdataset->trust;
-	nsec->private1 = rdataset->private1;
-	nsec->private2 = rdataset->private2;
-	nsec->private3 = closest->neg;
-	nsec->privateuint4 = 0;
-	nsec->private5 = NULL;
-	nsec->private6 = NULL;
-	nsec->private7 = NULL;
-
-	cloned_node = NULL;
-	attachnode(db, node, &cloned_node);
-	nsecsig->methods = &slab_methods;
-	nsecsig->rdclass = db->rdclass;
-	nsecsig->type = dns_rdatatype_rrsig;
-	nsecsig->covers = closest->type;
-	nsecsig->ttl = rdataset->ttl;
-	nsecsig->trust = rdataset->trust;
-	nsecsig->private1 = rdataset->private1;
-	nsecsig->private2 = rdataset->private2;
-	nsecsig->private3 = closest->negsig;
-	nsecsig->privateuint4 = 0;
-	nsecsig->private5 = NULL;
-	nsec->private6 = NULL;
-	nsec->private7 = NULL;
-
-	dns_name_clone(&closest->name, name);
 
 	return ISC_R_SUCCESS;
 }
