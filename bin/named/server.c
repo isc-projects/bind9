@@ -610,7 +610,8 @@ cleanup:
 
 static isc_result_t
 ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
-	      unsigned char *digest, size_t digest_len, dns_rdata_ds_t *ds) {
+	      const char **typestrp, unsigned char *digest, size_t digest_len,
+	      dns_rdata_ds_t *ds) {
 	isc_result_t result;
 	dns_rdata_dnskey_t keystruct;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -635,6 +636,7 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 	dst_algorithm_t algorithm;
 
 	REQUIRE(namestrp != NULL && *namestrp == NULL);
+	REQUIRE(typestrp != NULL);
 	REQUIRE(ds != NULL);
 
 	/* if DNSKEY, flags; if DS, key tag */
@@ -668,12 +670,15 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		} else if (strcasecmp(atstr, "initial-ds") == 0) {
 			anchortype = INIT_DS;
 		} else {
-			cfg_obj_log(key, ISC_LOG_ERROR,
-				    "key '%s': "
-				    "invalid initialization method '%s'",
-				    namestr, atstr);
+			cfg_obj_log(
+				key, ISC_LOG_ERROR,
+				"key '%s': invalid initialization method '%s'",
+				namestr, atstr);
 			CLEANUP(ISC_R_FAILURE);
 		}
+		*typestrp = atstr;
+	} else {
+		*typestrp = "trusted-key";
 	}
 
 	isc_buffer_init(&databuf, data, sizeof(data));
@@ -872,13 +877,14 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname = NULL;
 	const char *namestr = NULL;
+	const char *typestr = "unknown";
 	dns_rdata_ds_t ds;
 	isc_result_t result;
 	bool initializing = managed;
 	unsigned char digest[DNS_DS_BUFFERSIZE];
 	isc_buffer_t b;
 
-	result = ta_fromconfig(key, &initializing, &namestr, digest,
+	result = ta_fromconfig(key, &initializing, &namestr, &typestr, digest,
 			       sizeof(digest), &ds);
 
 	switch (result) {
@@ -899,8 +905,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		 * but do not prevent any further ones from being processed.
 		 */
 		cfg_obj_log(key, ISC_LOG_WARNING, "ignoring %s for '%s': %s",
-			    initializing ? "initial-key" : "static-key",
-			    namestr, isc_result_totext(result));
+			    typestr, namestr, isc_result_totext(result));
 		return ISC_R_SUCCESS;
 	default:
 		/*
@@ -909,8 +914,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		 * is interrupted.
 		 */
 		cfg_obj_log(key, ISC_LOG_ERROR, "configuring %s for '%s': %s",
-			    initializing ? "initial-key" : "static-key",
-			    namestr, isc_result_totext(result));
+			    typestr, namestr, isc_result_totext(result));
 		return ISC_R_FAILURE;
 	}
 
@@ -933,8 +937,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	{
 		cfg_obj_log(key, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': algorithm is disabled",
-			    initializing ? "initial-key" : "static-key",
-			    namestr);
+			    typestr, namestr);
 		goto done;
 	}
 
