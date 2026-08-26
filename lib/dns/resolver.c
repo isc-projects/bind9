@@ -6238,6 +6238,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		/*
+		 * Do not cache or otherwise process out-of-bailiwick data.
+		 */
+		if (EXTERNAL(rdataset)) {
+			continue;
+		}
+
+		/*
 		 * If CNAME, delete other RRsets at the same name
 		 * from the cache.
 		 */
@@ -6290,9 +6297,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		 * only cached if validated within the context of a
 		 * query to the domain that owns them.)
 		 */
-		if (secure_domain && rdataset->trust != dns_trust_glue &&
-		    !EXTERNAL(rdataset))
-		{
+		if (secure_domain && rdataset->trust != dns_trust_glue) {
 			dns_trust_t trust;
 
 			/*
@@ -6483,7 +6488,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					eresult = DNS_R_DNAME;
 				}
 			}
-		} else if (!EXTERNAL(rdataset)) {
+		} else {
 			/*
 			 * It's OK to cache this rdataset now.
 			 */
