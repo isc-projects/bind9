@@ -72,7 +72,8 @@ struct dns_rdatasetmethods {
 	void (*clone)(const dns_rdataset_t  *source,
 		      dns_rdataset_t *target DNS__DB_FLARG);
 	unsigned int (*count)(dns_rdataset_t *rdataset);
-	isc_result_t (*addnoqname)(dns_rdataset_t *rdataset, dns_name_t *name);
+	isc_result_t (*addnoqname)(dns_rdataset_t *rdataset, dns_name_t *name,
+				   dns_rdatatype_t type);
 	isc_result_t (*getnoqname)(dns_rdataset_t *rdataset, dns_name_t *name,
 				   dns_rdataset_t	 *neg,
 				   dns_rdataset_t *negsig DNS__DB_FLARG);
@@ -232,9 +233,11 @@ struct dns_rdataset {
 
 			/*
 			 * Refers to the name passed in by the caller of
-			 * dns_rdataset_addnoqname().
+			 * dns_rdataset_addnoqname(), and the denial type
+			 * (NSEC or NSEC3) of the proof selected there.
 			 */
 			struct dns_name *noqname;
+			dns_rdatatype_t	 noqnametype;
 			dns_dbnode_t	*node;
 		} rdlist;
 	};
@@ -539,17 +542,26 @@ dns__rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			dns_rdatatype_t type);
 /*%<
- * Associate a noqname proof with this record.
+ * Associate a noqname proof with this record: the rdataset of 'type'
+ * (NSEC or NSEC3) at 'name' together with the RRSIG rdataset covering it.
  * Sets 'noqname' attribute if successful.
  * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
  * the 'nsec'/'nsec3' and 'rrsig(nsec)'/'rrsig(nsec3)' ttl.
  *
  * Requires:
- *\li	'rdataset' to be valid and 'noqname' attribute to be set.
- *\li	'name' to be valid and have NSEC or NSEC3 and associated RRSIG
- *	 rdatasets.
+ *\li	'rdataset' to be valid.
+ *\li	'name' to be valid.
+ *\li	'type' to be dns_rdatatype_nsec or dns_rdatatype_nsec3.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTFOUND if 'name' has no rdataset of 'type' or no RRSIG
+ *	 rdataset covering it.
+ *\li	#ISC_R_NOTIMPLEMENTED if the rdataset implementation does not
+ *	 support noqname proofs.
  */
 
 void

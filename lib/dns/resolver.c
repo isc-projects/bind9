@@ -6007,8 +6007,8 @@ validated(void *arg) {
 
 	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		CHECK(dns_rdataset_addnoqname(
-			val->rdataset,
-			val->proofs[DNS_VALIDATOR_NOQNAMEPROOF]));
+			val->rdataset, val->proofs[DNS_VALIDATOR_NOQNAMEPROOF],
+			val->noqnametype));
 		INSIST(val->sigrdataset != NULL);
 		val->sigrdataset->ttl = val->rdataset->ttl;
 	} else if (gettrust(val->rdataset) == dns_trust_answer) {
@@ -6204,7 +6204,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	}
 
 	if (result == ISC_R_SUCCESS && noqname != NULL) {
-		(void)dns_rdataset_addnoqname(rdataset, noqname);
+		(void)dns_rdataset_addnoqname(rdataset, noqname, found);
 	}
 
 	return;
