@@ -603,7 +603,8 @@ static inline isc_result_t findnoqname(fetchctx_t *fctx,
 				       dns_message_t *rmessage,
 				       dns_name_t *name,
 				       dns_rdatatype_t type,
-				       dns_name_t **noqname);
+				       dns_name_t **noqnamep,
+				       dns_rdatatype_t *noqnametypep);
 static void fctx_increference(fetchctx_t *fctx);
 static bool fctx_decreference(fetchctx_t *fctx);
 
@@ -5125,7 +5126,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		result = dns_rdataset_addnoqname(vevent->rdataset,
-				   vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
+				   vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF],
+				   vevent->noqnametype);
 		if (result != ISC_R_SUCCESS) {
 			goto noanswer_response;
 		}
@@ -5136,11 +5138,13 @@ validated(isc_task_t *task, isc_event_t *event) {
 	{
 		isc_result_t tresult;
 		dns_name_t *noqname = NULL;
+		dns_rdatatype_t noqnametype = dns_rdatatype_none;
 		tresult = findnoqname(fctx, rmessage, vevent->name,
-				      vevent->rdataset->type, &noqname);
+				      vevent->rdataset->type, &noqname,
+				      &noqnametype);
 		if (tresult == ISC_R_SUCCESS && noqname != NULL) {
 			tresult = dns_rdataset_addnoqname(vevent->rdataset,
-							  noqname);
+							  noqname, noqnametype);
 			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 		}
 	}
@@ -5317,7 +5321,7 @@ fctx_log(void *arg, int level, const char *fmt, ...) {
 static inline isc_result_t
 findnoqname(fetchctx_t *fctx, dns_message_t *rmessage,
 	    dns_name_t *name, dns_rdatatype_t type,
-	    dns_name_t **noqnamep)
+	    dns_name_t **noqnamep, dns_rdatatype_t *noqnametypep)
 {
 	dns_rdataset_t *nrdataset, *next, *sigrdataset;
 	dns_rdata_rrsig_t rrsig;
@@ -5336,6 +5340,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *rmessage,
 	FCTXTRACE("findnoqname");
 
 	REQUIRE(noqnamep != NULL && *noqnamep == NULL);
+	REQUIRE(noqnametypep != NULL);
 
 	/*
 	 * Find the SIG for this rdataset, if we have it.
@@ -5434,8 +5439,10 @@ findnoqname(fetchctx_t *fctx, dns_message_t *rmessage,
 			    sigrdataset->covers == found)
 				break;
 		}
-		if (sigrdataset != NULL)
+		if (sigrdataset != NULL) {
 			*noqnamep = noqname;
+			*noqnametypep = found;
+		}
 	}
 	return (result);
 }
@@ -5677,15 +5684,19 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 				{
 					isc_result_t tresult;
 					dns_name_t *noqname = NULL;
+					dns_rdatatype_t noqnametype =
+						dns_rdatatype_none;
 					tresult = findnoqname(fctx, rmessage,
 							      name,
 							      rdataset->type,
-							      &noqname);
+							      &noqname,
+							      &noqnametype);
 					if (tresult == ISC_R_SUCCESS &&
 					    noqname != NULL)
 					{
 						(void) dns_rdataset_addnoqname(
-							    rdataset, noqname);
+							    rdataset, noqname,
+							    noqnametype);
 					}
 				}
 				if ((fctx->options &
@@ -5840,13 +5851,17 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 			{
 				isc_result_t tresult;
 				dns_name_t *noqname = NULL;
+				dns_rdatatype_t noqnametype =
+					dns_rdatatype_none;
 				tresult = findnoqname(fctx, rmessage, name,
-						      rdataset->type, &noqname);
+						      rdataset->type, &noqname,
+						      &noqnametype);
 				if (tresult == ISC_R_SUCCESS &&
 				    noqname != NULL)
 				{
 					(void) dns_rdataset_addnoqname(
-						       rdataset, noqname);
+						       rdataset, noqname,
+						       noqnametype);
 				}
 			}
 

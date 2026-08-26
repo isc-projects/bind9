@@ -39,7 +39,8 @@ unsigned int
 isc__rdatalist_count(dns_rdataset_t *rdataset);
 
 isc_result_t
-isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			  dns_rdatatype_t type);
 
 isc_result_t
 isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
