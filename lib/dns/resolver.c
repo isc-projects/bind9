@@ -5990,12 +5990,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 		}
 		INSIST(vevent->sigrdataset != NULL);
 		vevent->sigrdataset->ttl = vevent->rdataset->ttl;
-		if (vevent->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
-			result = dns_rdataset_addclosest(
-				vevent->rdataset,
-				vevent->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		}
 	} else if (vevent->rdataset->trust == dns_trust_answer &&
 		   vevent->rdataset->type != dns_rdatatype_rrsig)
 	{

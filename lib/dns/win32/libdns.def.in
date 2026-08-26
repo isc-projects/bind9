@@ -839,7 +839,6 @@ dns_rdataclass_tounknowntext
 dns_rdatalist_fromrdataset
 dns_rdatalist_init
 dns_rdatalist_tordataset
-dns_rdataset_addclosest
 dns_rdataset_addglue
 dns_rdataset_additionaldata
 dns_rdataset_addnoqname
@@ -850,7 +849,6 @@ dns_rdataset_current
 dns_rdataset_disassociate
 dns_rdataset_expire
 dns_rdataset_first
-dns_rdataset_getclosest
 dns_rdataset_getnoqname
 dns_rdataset_getownercase
 dns_rdataset_init
