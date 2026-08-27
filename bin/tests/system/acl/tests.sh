@@ -306,5 +306,21 @@ grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
+t=$((t + 1))
+ret=0
+echo_i "checking ACL with a duplicate entry in a negated nested ACL (${t})"
+$DIG -p ${PORT} -b 10.53.0.1 @10.53.0.4 axfr duplicate >dig.out.${t} 2>&1
+grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
+t=$((t + 1))
+ret=0
+echo_i "checking ACL with a non-duplicate entry in a negated nested ACL (${t})"
+$DIG -p ${PORT} -b 10.53.0.1 @10.53.0.4 axfr inexact >dig.out.${t} 2>&1
+grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 && ret=1
+[ $ret -eq 0 ] || echo_i "failed"
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
