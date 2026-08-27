@@ -104,8 +104,6 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_count,
 	NULL,			/* addnoqname */
 	NULL,			/* getnoqname */
-	NULL,			/* addclosest */
-	NULL,			/* getclosest */
 	NULL,			/* getadditional */
 	NULL,			/* setadditional */
 	NULL,			/* putadditional */

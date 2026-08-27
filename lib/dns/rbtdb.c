@@ -150,7 +150,6 @@ typedef uint64_t                    rbtdb_serial_t;
 #define add_changed add_changed64
 #define add_empty_wildcards add_empty_wildcards64
 #define add_wildcard_magic add_wildcard_magic64
-#define addclosest addclosest64
 #define addnoqname addnoqname64
 #define addrdataset addrdataset64
 #define adjust_quantum adjust_quantum64
@@ -253,7 +252,6 @@ typedef uint64_t                    rbtdb_serial_t;
 #define rdataset_expire rdataset_expire64
 #define rdataset_first rdataset_first64
 #define rdataset_getadditional rdataset_getadditional64
-#define rdataset_getclosest rdataset_getclosest64
 #define rdataset_getnoqname rdataset_getnoqname64
 #define rdataset_getownercase rdataset_getownercase64
 #define rdataset_next rdataset_next64
@@ -451,7 +449,6 @@ typedef struct rdatasetheader {
 	uint16_t                    attributes;
 	dns_trust_t                     trust;
 	struct noqname                  *noqname;
-	struct noqname                  *closest;
 	unsigned int 			is_mmapped : 1;
 	unsigned int 			next_is_relative : 1;
 	unsigned int 			node_is_relative : 1;
@@ -781,10 +778,6 @@ static isc_result_t rdataset_getnoqname(dns_rdataset_t *rdataset,
 					dns_name_t *name,
 					dns_rdataset_t *neg,
 					dns_rdataset_t *negsig);
-static isc_result_t rdataset_getclosest(dns_rdataset_t *rdataset,
-					dns_name_t *name,
-					dns_rdataset_t *neg,
-					dns_rdataset_t *negsig);
 static isc_result_t rdataset_getadditional(dns_rdataset_t *rdataset,
 					   dns_rdatasetadditional_t type,
 					   dns_rdatatype_t qtype,
@@ -839,8 +832,6 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_count,
 	NULL,
 	rdataset_getnoqname,
-	NULL,
-	rdataset_getclosest,
 	rdataset_getadditional,
 	rdataset_setadditional,
 	rdataset_putadditional,
@@ -858,8 +849,6 @@ static dns_rdatasetmethods_t slab_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
-	NULL,
-	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -1818,8 +1807,6 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 
 	if (rdataset->noqname != NULL)
 		free_noqname(mctx, &rdataset->noqname);
-	if (rdataset->closest != NULL)
-		free_noqname(mctx, &rdataset->closest);
 
 	free_acachearray(mctx, rdataset, rdataset->additional_auth);
 	free_acachearray(mctx, rdataset, rdataset->additional_glue);
@@ -3433,9 +3420,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	rdataset->private6 = header->noqname;
 	if (rdataset->private6 != NULL)
 		rdataset->attributes |=  DNS_RDATASETATTR_NOQNAME;
-	rdataset->private7 = header->closest;
-	if (rdataset->private7 != NULL)
-		rdataset->attributes |=  DNS_RDATASETATTR_CLOSEST;
 
 	/*
 	 * Copy out re-signing information.
@@ -6548,11 +6532,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			if (header->closest == NULL &&
-			    newheader->closest != NULL) {
-				header->closest = newheader->closest;
-				newheader->closest = NULL;
-			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -6594,11 +6573,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			    newheader->noqname != NULL) {
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
-			}
-			if (header->closest == NULL &&
-			    newheader->closest != NULL) {
-				header->closest = newheader->closest;
-				newheader->closest = NULL;
 			}
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
@@ -6914,57 +6888,6 @@ cleanup:
 	return (result);
 }
 
-static inline isc_result_t
-addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
-	   dns_rdataset_t *rdataset)
-{
-	struct noqname *closest;
-	isc_mem_t *mctx = rbtdb->common.mctx;
-	dns_name_t name;
-	dns_rdataset_t neg, negsig;
-	isc_result_t result;
-	isc_region_t r;
-
-	dns_name_init(&name, NULL);
-	dns_rdataset_init(&neg);
-	dns_rdataset_init(&negsig);
-
-	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	closest = isc_mem_get(mctx, sizeof(*closest));
-	if (closest == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-	dns_name_init(&closest->name, NULL);
-	closest->neg = NULL;
-	closest->negsig = NULL;
-	closest->type = neg.type;
-	result = dns_name_dup(&name, mctx, &closest->name);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r, 0);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	closest->neg = r.base;
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r, 0);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	closest->negsig = r.base;
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
-	newheader->closest = closest;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	dns_rdataset_disassociate(&neg);
-	dns_rdataset_disassociate(&negsig);
-	if (closest != NULL)
-		free_noqname(mctx, &closest);
-	return(result);
-}
-
 static dns_dbmethods_t zone_methods;
 
 static size_t
@@ -7044,7 +6967,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (rdataset->ttl == 0U)
 		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	newheader->count = get_init_count();
 	newheader->trust = rdataset->trust;
 	newheader->additional_auth = NULL;
@@ -7078,14 +7000,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->attributes |= RDATASET_ATTR_OPTOUT;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
 			result = addnoqname(rbtdb, newheader, rdataset);
-			if (result != ISC_R_SUCCESS) {
-				free_rdataset(rbtdb, rbtdb->common.mctx,
-					      newheader);
-				return (result);
-			}
-		}
-		if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
-			result = addclosest(rbtdb, newheader, rdataset);
 			if (result != ISC_R_SUCCESS) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
 					      newheader);
@@ -7247,7 +7161,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	newheader->count = get_init_count();
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
@@ -7358,7 +7271,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->trust = 0;
 			newheader->serial = rbtversion->serial;
 			newheader->noqname = NULL;
-			newheader->closest = NULL;
 			newheader->count = 0;
 			newheader->additional_auth = NULL;
 			newheader->additional_glue = NULL;
@@ -7456,7 +7368,6 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 	if (rbtversion != NULL)
@@ -7693,7 +7604,6 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	newheader->count = get_init_count();
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
@@ -9249,7 +9159,6 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsec->privateuint4 = 0;
 	nsec->private5 = NULL;
 	nsec->private6 = NULL;
-	nsec->private7 = NULL;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
@@ -9265,55 +9174,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsecsig->privateuint4 = 0;
 	nsecsig->private5 = NULL;
 	nsec->private6 = NULL;
-	nsec->private7 = NULL;
 
 	dns_name_clone(&noqname->name, name);
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-		    dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
-{
-	dns_db_t *db = rdataset->private1;
-	dns_dbnode_t *node = rdataset->private2;
-	dns_dbnode_t *cloned_node;
-	struct noqname *closest = rdataset->private7;
-
-	cloned_node = NULL;
-	attachnode(db, node, &cloned_node);
-	nsec->methods = &slab_methods;
-	nsec->rdclass = db->rdclass;
-	nsec->type = closest->type;
-	nsec->covers = 0;
-	nsec->ttl = rdataset->ttl;
-	nsec->trust = rdataset->trust;
-	nsec->private1 = rdataset->private1;
-	nsec->private2 = rdataset->private2;
-	nsec->private3 = closest->neg;
-	nsec->privateuint4 = 0;
-	nsec->private5 = NULL;
-	nsec->private6 = NULL;
-	nsec->private7 = NULL;
-
-	cloned_node = NULL;
-	attachnode(db, node, &cloned_node);
-	nsecsig->methods = &slab_methods;
-	nsecsig->rdclass = db->rdclass;
-	nsecsig->type = dns_rdatatype_rrsig;
-	nsecsig->covers = closest->type;
-	nsecsig->ttl = rdataset->ttl;
-	nsecsig->trust = rdataset->trust;
-	nsecsig->private1 = rdataset->private1;
-	nsecsig->private2 = rdataset->private2;
-	nsecsig->private3 = closest->negsig;
-	nsecsig->privateuint4 = 0;
-	nsecsig->private5 = NULL;
-	nsec->private6 = NULL;
-	nsec->private7 = NULL;
-
-	dns_name_clone(&closest->name, name);
 
 	return (ISC_R_SUCCESS);
 }
