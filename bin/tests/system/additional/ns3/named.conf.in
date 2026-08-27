@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
@@ -24,6 +22,12 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	minimal-responses no;
+};
+
+include "../../_common/rndc.key";
+
+controls {
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." {
