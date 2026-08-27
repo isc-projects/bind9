@@ -102,4 +102,7 @@ dns_geoip_match(const isc_netaddr_t	    *reqaddr,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t	    *elt);
 
+void
+dns_geoip_invalidate(void);
+
 #endif /* HAVE_GEOIP2 */
