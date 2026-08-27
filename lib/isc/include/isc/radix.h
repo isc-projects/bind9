@@ -133,8 +133,10 @@ isc_result_t
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix);
 /*%<
- * Insert 'source' or 'prefix' into the radix tree 'radix'.
- * Return the node added in 'target'.
+ * Insert 'source->prefix' or 'prefix' into the radix tree 'radix'. If
+ * a matching prefix already exists, set '*target' to the existing node
+ * and return ISC_R_EXISTS. If no matching prefix exists, create a node
+ * for it and set '*target'.
  *
  * Requires:
  * \li	'radix' to be valid.
@@ -143,7 +145,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
  *	a valid prefix.
  *
  * Returns:
- * \li	ISC_R_NOMEMORY
+ * \li	ISC_R_EXISTS
  * \li	ISC_R_SUCCESS
  */
 
