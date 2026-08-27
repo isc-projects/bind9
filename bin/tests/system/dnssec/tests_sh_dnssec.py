@@ -43,6 +43,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "*/*.mkeys*",
         "ans*/ans.run",
         "ans*/query.log",
+        "conf/*.conf",
         "ns1/managed.key.id",
         "ns1/root.db",
         "ns1/trusted.keys",

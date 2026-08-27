@@ -649,12 +649,19 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 	ISC_LIST_INIT(kasplist);
 	ISC_LIST_INIT(kslist);
 
+	/* Default key-directory key store. */
+	result = cfg_keystore_fromconfig(NULL, mctx, lctx, engine, &kslist,
+					 &ks);
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed to configure default key-directory key-store: %s",
+		      isc_result_totext(result));
+	}
+
 	(void)cfg_map_get(config, "key-store", &keystores);
 	for (element = cfg_list_first(keystores); element != NULL;
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
-		ks = NULL;
 		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, engine,
 						 &kslist, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -663,9 +670,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, isc_log_t *lctx,
 			      isc_result_totext(result));
 		}
 	}
-	/* Default key-directory key store. */
-	ks = NULL;
-	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, engine, &kslist, &ks);
+
 	INSIST(ks != NULL);
 	if (keydir != NULL) {
 		/* '-K keydir' takes priority */
