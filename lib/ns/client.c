@@ -261,6 +261,7 @@ ns_client_endrequest(ns_client_t *client) {
 	client->extflags = 0;
 	client->ednsversion = -1;
 	client->additionaldepth = 0;
+	client->additionaltotal = 0;
 	dns_ecs_init(&client->ecs);
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
