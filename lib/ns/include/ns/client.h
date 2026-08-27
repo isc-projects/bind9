@@ -185,6 +185,7 @@ struct ns_client {
 	uint16_t	extflags;
 	int16_t		ednsversion; /* -1 noedns */
 	uint16_t	additionaldepth;
+	uint16_t	additionaltotal;
 	void (*cleanup)(ns_client_t *);
 	ns_query_t     query;
 	isc_time_t     requesttime;
