@@ -294,6 +294,20 @@ isc_quic_router_del_cid(isc_quic_router_t *router, isc_constregion_t cid);
  * \retval ISC_R_NOTFOUND if no connection exists for the given CID.
  */
 
+void
+isc_quic_router_stateless_reset_from_cid(
+	const isc_quic_router_t *router, isc_constregion_t cid,
+	uint8_t token[restrict ISC_QUIC_STATELESS_TOKEN_LENGTH]);
+/**<
+ * \brief
+ * Derive the router-specific stateless reset token of the given CID.
+ *
+ * \par Requires:
+ * \li `router` is a valid router
+ * \li `cid.base != NULL` and `cid.length` ∈ [1, 20]
+ * \li `token != NULL`
+ */
+
 isc_result_t
 isc_quic_router_add_stateless_reset(
 	isc_quic_router_t *router,
