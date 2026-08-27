@@ -22,12 +22,23 @@ import isctest.mark
 
 PARENT = "p031.test."
 CHILD = f"c.{PARENT}"
+# The attacker-controlled sibling zone.
+SIBLING = f"attacker.{PARENT}"
+# #5967 (grandparent-zone NSEC/NSEC3): a grandchild whose forged NSEC/NSEC3
+# insecure-delegation proof is owned by its grandparent zone.
 GRANDCHILD = f"grand.{CHILD}"
 GRANDCHILD3 = f"grand3.{CHILD}"
+# #6234 (sibling-zone NSEC3): a grandchild whose forged NSEC3
+# insecure-delegation proof is owned by an unrelated but correctly delegated
+# and signed sibling zone.
+GRANDCHILD3_SIBLING = f"grandsib.{CHILD}"
+# The names under attack.
 ATTACK = f"www-bind.{GRANDCHILD}"
 ATTACK3 = f"www-bind.{GRANDCHILD3}"
+ATTACK3_SIBLING = f"www-bind.{GRANDCHILD3_SIBLING}"
 ATTACK_CACHED = f"www2-bind.{GRANDCHILD}"
 FORGED_A = "6.6.6.60"
+
 AUTH = "10.53.0.1"  # ans1, the attacker-controlled authoritative server
 RESOLVER = "10.53.0.2"  # ns2, the validating resolver under test
 
@@ -38,6 +49,9 @@ REFUSED_NSEC_LOG = (
 REFUSED_NSEC3_LOG = (
     "is_insecure_referral: NSEC3 signer above known secure DS; "
     "refusing insecure-delegation proof"
+)
+IGNORED_NSEC3_LOG = (
+    "is_insecure_referral: NSEC3 owner zone does not enclose the DS name; ignoring"
 )
 
 pytestmark = [
@@ -70,7 +84,7 @@ def _make_key():
 
 
 def bootstrap():
-    keys = {PARENT: _make_key()}
+    keys = {PARENT: _make_key(), CHILD: _make_key(), SIBLING: _make_key()}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
     parent_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
     return {"PARENT_DNSKEY": parent_dnskey}
@@ -205,6 +219,27 @@ def test_resolver_rejects_grandparent_nsec3_downgrade(servers):
     _check_refusal_logged(servers["ns2"], ATTACK3, REFUSED_NSEC3_LOG)
 
     assert _auth_query_count(ATTACK3, "DS") == 0
+
+
+def test_resolver_rejects_sibling_zone_nsec3(servers):
+    """
+    Reproducer for #6234 (sibling-zone NSEC3).
+
+    The forged DS NODATA answer carries, ahead of the real child-signed proof,
+    an NSEC3 owned by an unrelated but genuinely delegated and signed sibling
+    zone, whose owner hash matches the grandchild under the sibling's own
+    parameters and whose NS bit is set.  Every signature in the answer is
+    valid.  is_insecure_referral()'s trynsec3 arm sorts this record first (the
+    salts are chosen so its hash does) and, before the fix, derived its signer
+    as owner-minus-hash-label -> SIBLING, which is not on the path between the
+    grandparent and the grandchild, so the label-count check in
+    closer_secure_ds_exists() was vacuous and the secure DS at CHILD was never
+    consulted.
+
+    Before the fix this fails: the resolver returns the forged answer.
+    """
+    _check_no_downgrade(_query(RESOLVER, ATTACK3_SIBLING, "A"), ATTACK3_SIBLING)
+    _check_refusal_logged(servers["ns2"], ATTACK3_SIBLING, IGNORED_NSEC3_LOG)
 
 
 def test_resolver_rejects_downgrade_from_cached_proof(servers):
