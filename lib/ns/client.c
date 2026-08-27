@@ -262,6 +262,7 @@ ns_client_endrequest(ns_client_t *client) {
 	client->inner.extflags = 0;
 	client->inner.ednsversion = -1;
 	client->inner.additionaldepth = 0;
+	client->inner.additionaltotal = 0;
 	if (dns_name_dynamic(&client->inner.rad)) {
 		dns_name_free(&client->inner.rad, client->manager->mctx);
 	}
