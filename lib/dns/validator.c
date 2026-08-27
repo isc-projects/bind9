@@ -337,6 +337,7 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 	dns_rdataset_t sigset = DNS_RDATASET_INIT;
 	dns_rdata_t srdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
+	const char *ntype = "NSEC";
 
 	switch (dbresult) {
 	case DNS_R_NXRRSET:
@@ -410,23 +411,18 @@ is_insecure_referral(dns_validator_t *val, dns_name_t *name,
 		}
 	}
 
-	if (signer != NULL && closer_secure_ds_exists(val, signer, name)) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "is_insecure_referral: NSEC signer above known "
-			      "secure DS; refusing insecure-delegation proof");
-		found = false;
-		SET_IF_NOT_NULL(crossed, true);
-	}
-
-	return found;
+	goto checksigner;
 
 trynsec3:
+	ntype = "NSEC3";
 	/*
 	 * Iterate over the ncache entry.
 	 */
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
 	name = dns_fixedname_name(&fixed);
+	unsigned int nlabels = dns_name_countlabels(name);
+
 	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset))
 	{
@@ -438,29 +434,41 @@ trynsec3:
 			continue;
 		}
 		if (set.trust < dns_trust_secure) {
-			if (dns_rdataset_isassociated(&set)) {
-				dns_rdataset_disassociate(&set);
-			}
+			continue;
+		}
+
+		unsigned int labels = dns_name_countlabels(&nsec3name);
+		if (labels < 2 || (labels - 1) > nlabels) {
+			/* An NSEC3 owner is a hash label below its zone. */
 			continue;
 		}
 
 		/*
-		 * Remember this NSEC3's zone (the owner name's parent) as the
-		 * signer to bound. It is refreshed for every record so that,
-		 * when one below triggers the terminal condition, 'signer'
-		 * reflects that record -- not some earlier non-matching NSEC3.
-		 * The bound check walks the cache and would disassociate
-		 * 'rdataset' (== val->frdataset), so it runs only after the
-		 * loop, at checksigner.
+		 * Only an NSEC3 whose zone encloses the DS name can say
+		 * anything about it; dns_nsec3_noexistnodata() applies the
+		 * same relevance gate.
 		 */
-		unsigned int labels = dns_name_countlabels(&nsec3name);
-		if (labels > 1) {
-			dns_name_t parent = DNS_NAME_INITEMPTY;
-			dns_name_getlabelsequence(&nsec3name, 1, labels - 1,
-						  &parent);
-			signer = dns_fixedname_initname(&fsigner);
-			dns_name_copy(&parent, signer);
+		dns_name_t zone = DNS_NAME_INITEMPTY;
+		dns_name_getlabelsequence(&nsec3name, 1, labels - 1, &zone);
+		if (!dns_name_issubdomain(name, &zone)) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "is_insecure_referral: NSEC3 owner zone "
+				      "does not enclose the DS name; ignoring");
+			signer = NULL;
+			continue;
 		}
+
+		/*
+		 * Remember this NSEC3's zone as the signer to bound. It is
+		 * refreshed for every record so that, when one below triggers
+		 * the terminal condition, 'signer' reflects that record -- not
+		 * some earlier NSEC3. The bound check walks the cache and
+		 * would disassociate 'rdataset' (== val->frdataset), which
+		 * 'nsec3name' points into, so the zone is copied and the check
+		 * runs only after the loop, at checksigner.
+		 */
+		signer = dns_fixedname_initname(&fsigner);
+		dns_name_copy(&zone, signer);
 
 		dns_name_getlabel(&nsec3name, 0, &hashlabel);
 		isc_region_consume(&hashlabel, 1);
@@ -491,7 +499,6 @@ trynsec3:
 					      "%s: too many iterations",
 					      caller);
 				found = true;
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 			length = isc_iterated_hash(
@@ -504,7 +511,6 @@ trynsec3:
 			if (order == 0) {
 				found = dns_nsec3_typepresent(&rdata,
 							      dns_rdatatype_ns);
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 			if ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) == 0) {
@@ -521,20 +527,18 @@ trynsec3:
 			      memcmp(hash, nsec3.next, length) < 0)))
 			{
 				found = true;
-				dns_rdataset_disassociate(&set);
 				goto checksigner;
 			}
 		}
 	}
 
+checksigner:
 	if (dns_rdataset_isassociated(&set)) {
 		dns_rdataset_disassociate(&set);
 	}
-	return found;
 
-checksigner:
 	/*
-	 * The proof claims an insecure delegation. Reject it if the NSEC3
+	 * The proof claims an insecure delegation. Reject it if the NSEC/NSEC3
 	 * signer sits above a known secure delegation point: such a proof is
 	 * forged by a zone above the real zone cut.
 	 */
@@ -542,10 +546,11 @@ checksigner:
 	    closer_secure_ds_exists(val, signer, name))
 	{
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "is_insecure_referral: NSEC3 signer above known "
-			      "secure DS; refusing insecure-delegation proof");
+			      "is_insecure_referral: %s signer above known "
+			      "secure DS; refusing insecure-delegation proof",
+			      ntype);
 		SET_IF_NOT_NULL(crossed, true);
-		found = false;
+		return false;
 	}
 
 	return found;
