@@ -127,7 +127,8 @@ dns__rdatalist_clone(const dns_rdataset_t  *source,
 unsigned int
 dns__rdatalist_count(dns_rdataset_t *rdataset);
 isc_result_t
-dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			  dns_rdatatype_t type);
 isc_result_t
 dns__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 			  dns_rdataset_t	*neg,
