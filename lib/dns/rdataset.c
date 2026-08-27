@@ -571,30 +571,6 @@ dns__rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 					       negsig DNS__DB_FLARG_PASS);
 }
 
-isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
-	if (rdataset->methods->addclosest == NULL) {
-		return ISC_R_NOTIMPLEMENTED;
-	}
-	return (rdataset->methods->addclosest)(rdataset, name);
-}
-
-isc_result_t
-dns__rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			 dns_rdataset_t *neg,
-			 dns_rdataset_t *negsig DNS__DB_FLARG) {
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
-
-	if (rdataset->methods->getclosest == NULL) {
-		return ISC_R_NOTIMPLEMENTED;
-	}
-	return (rdataset->methods->getclosest)(rdataset, name, neg,
-					       negsig DNS__DB_FLARG_PASS);
-}
-
 void
 dns_rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));

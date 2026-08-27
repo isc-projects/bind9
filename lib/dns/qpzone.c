@@ -950,10 +950,6 @@ bindrdataset(qpzonedb_t *qpdb, qpznode_t *node, dns_slabheader_t *header,
 	if (header->noqname != NULL) {
 		rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
 	}
-	rdataset->slab.closest = header->closest;
-	if (header->closest != NULL) {
-		rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
-	}
 
 	/*
 	 * Copy out re-signing information.
@@ -4951,7 +4947,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	newheader->serial = version->serial;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->closest = NULL;
 	atomic_init(&newheader->count,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	newheader->last_used = 0;
