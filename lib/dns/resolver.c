@@ -1923,6 +1923,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 static void
 process_sendevent(resquery_t *query, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	bool connect_event = (event->ev_type == ISC_SOCKEVENT_CONNECT);
 	bool destroy_query = false;
 	bool retry = false;
 	isc_result_t result;
@@ -1974,7 +1975,12 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 		}
 	}
 
-	if (event->ev_type == ISC_SOCKEVENT_CONNECT) {
+	/*
+	 * A send-done 'event' lives inside 'query', which
+	 * fctx_cancelquery() above may have destroyed, so it must
+	 * not be dereferenced here.
+	 */
+	if (connect_event) {
 		isc_event_free(&event);
 	}
 
