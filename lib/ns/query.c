@@ -7725,9 +7725,10 @@ query_respond(query_ctx_t *qctx) {
 	 */
 	INSIST(qctx->client->query.dns64_aaaaok == NULL);
 
-	if (qctx->qtype == dns_rdatatype_aaaa && !qctx->dns64_exclude &&
-	    !ISC_LIST_EMPTY(qctx->view->dns64) &&
+	if (qctx->qtype == dns_rdatatype_aaaa &&
 	    qctx->client->message->rdclass == dns_rdataclass_in &&
+	    !ISC_LIST_EMPTY(qctx->view->dns64) && !qctx->dns64_exclude &&
+	    qctx->client->query.dns64_aaaa == NULL &&
 	    !dns64_aaaaok(qctx->client, qctx->rdataset, qctx->sigrdataset))
 	{
 		/*
