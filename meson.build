@@ -670,9 +670,27 @@ config.set('OPENSSL_NO_DEPRECATED', true)
 if openssl_version_number.version_compare('>=3.0.0')
     config.set('HAVE_OPENSSL_3', true)
     config.set('OPENSSL_API_COMPAT', 30000)
+
+    config.set(
+        'HAVE_OPENSSL_QUIC_INTEGRATION',
+        cc.has_function(
+            'SSL_set_quic_tls_cbs',
+            prefix: '#include <openssl/ssl.h>',
+            dependencies: openssl_dep,
+        ),
+    )
 else
     config.set('HAVE_OPENSSL_3', false)
     config.set('OPENSSL_API_COMPAT', 10100)
+
+    config.set(
+        'HAVE_OPENSSL_QUIC_INTEGRATION',
+        cc.has_function(
+            'SSL_set_quic_method',
+            prefix: '#include <openssl/ssl.h>',
+            dependencies: openssl_dep,
+        ),
+    )
 
     have_openssl_aead_h = cc.has_header('openssl/aead.h', dependencies: openssl_dep)
     config.set('HAVE_OPENSSL_AEAD_H', have_openssl_aead_h)
@@ -862,7 +880,7 @@ endif
 
 ## DNS-over-QUIC (DoQ) [IN PROGRESS, DEVELOPER MODE ONLY]
 ngtcp2_dep = null_dep
-if developer_mode
+if developer_mode and config.get('HAVE_OPENSSL_QUIC_INTEGRATION')
     ngtcp2_dep = dependency('libngtcp2', version: '>=1.11.0', required: false)
     config.set('HAVE_LIBNGTCP2', ngtcp2_dep.found())
 endif

@@ -16,3 +16,9 @@ isc_srcset.add(
         'router.c',
     ),
 )
+
+isc_srcset.add(
+    when: 'HAVE_OPENSSL_3',
+    if_true: files('ossl.c'),
+    if_false: files('boringlike.c'),
+)

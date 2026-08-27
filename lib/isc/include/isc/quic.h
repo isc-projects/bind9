@@ -70,13 +70,106 @@ typedef enum isc_quic_version {
 	ISC_QUIC_VERSION__MAX = 4,
 } isc_quic_version_t;
 
+typedef enum isc_quic_application_error_kind {
+	/**
+	 * \brief
+	 * Indeterminate application error status.
+	 *
+	 * It is safe to trigger an contract failure upon receiving this value.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_INVALID = 0,
+
+	/**
+	 * \brief
+	 * No application error code is set.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_NONE = 1,
+
+	/**
+	 * \brief
+	 * The linked ngtcp2 is too old to determine which side has set the
+	 * application error code.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_UNKNOWN = 2,
+
+	ISC_QUIC_APPLICATION_ERROR_RX_ONLY = 3,
+	ISC_QUIC_APPLICATION_ERROR_TX_ONLY = 4,
+	ISC_QUIC_APPLICATION_ERROR_RX_AND_TX = 5,
+	ISC_QUIC_APPLICATION_ERROR__MAX = 6,
+} isc_quic_application_error_kind_t;
+
 /**
  * \brief
  * User-specified callbacks
  *
  * All callbacks are optional.
  */
-struct isc_quic_conn_callbacks {};
+struct isc_quic_conn_callbacks {
+	/**
+	 * \brief
+	 * Callback function for when handshake has been completed
+	 */
+	void (*handshake_completed)(void *cbarg);
+
+	/**
+	 * \brief
+	 * Callback function for when the remote endpoint has opened a new
+	 * stream.
+	 */
+	isc_result_t (*stream_opened)(isc_quic_conn_t *conn, void *cbarg,
+				      int64_t stream_id);
+
+	/**
+	 * \brief
+	 * Callback function for when a stream has been closed.
+	 *
+	 * If the application error kind is unknown, both RX and TX application
+	 * errors codes will be set as the unknown side's error code.
+	 *
+	 * Returning anything other than `ISC_R_SUCCESS` will cause the
+	 * connection to fail and require closing.
+	 */
+	isc_result_t (*stream_closed)(isc_quic_conn_t *conn, void *cbarg,
+				      int64_t stream_id,
+				      isc_quic_application_error_kind_t kind,
+				      uint64_t rx_application_error_code,
+				      uint64_t tx_application_error_code);
+
+	/**
+	 * \brief
+	 * Callback function for when there is data to be read in a stream.
+	 *
+	 * Called by isc_quic_conn_push_packet when there is data to be read
+	 * in a stream.
+	 *
+	 * Returning anything other than `ISC_R_SUCCESS` will cause the
+	 * connection to fail and require closing.
+	 */
+	isc_result_t (*data_read)(isc_quic_conn_t *conn, void *cbarg,
+				  isc_quic_stream_data_info_t info,
+				  isc_constregion_t	      data);
+};
+
+struct isc_quic_stream_data_info {
+	/**
+	 * \brief
+	 * True if this is the final packet that will be received from this
+	 * stream.
+	 */
+	bool final;
+
+	/**
+	 * \brief
+	 * True if the data is trasmitted during 0-RTT.
+	 */
+	bool zerortt;
+
+	/**
+	 * \brief
+	 * Stream ID of received data.
+	 */
+	int64_t stream_id;
+};
 
 /**
  * \brief
@@ -385,3 +478,34 @@ isc_quic_conn_server_create(
  */
 
 ISC_REFCOUNT_DECL(isc_quic_conn);
+
+isc_result_t
+isc_quic_tlsctx_client_configure(isc_tlsctx_t *tlsctx);
+/**<
+ * \brief
+ * Configure the client TLS context to be used for QUIC connections.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_TLSERROR on failure
+ */
+
+isc_result_t
+isc_quic_tlsctx_server_configure(isc_tlsctx_t *tlsctx);
+/**<
+ * \brief
+ * Configure the server TLS context to be used for QUIC connections.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_TLSERROR on failure
+ */
+
+#ifdef HAVE_LIBNGTCP2
+void
+isc__quic_initialize(void);
+
+void
+isc__quic_shutdown(void);
+#else /* HAVE_LIBNGTCP2 */
+#define isc__quic_initialize()
+#define isc__quic_shutdown()
+#endif /* HAVE_LIBNGTCP2 */
