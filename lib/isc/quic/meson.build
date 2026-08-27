@@ -12,6 +12,7 @@
 isc_srcset.add(
     ngtcp2_dep,
     files(
+        'connection.c',
         'router.c',
     ),
 )

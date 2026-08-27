@@ -79,6 +79,12 @@ typedef struct isc_timer      isc_timer_t;	/*%< Timer */
 typedef struct isc_work	      isc_work_t;	/*%< Work offloaded to an
 						 *   external thread */
 
+#ifdef HAVE_LIBNGTCP2
+typedef struct isc_quic_conn	       isc_quic_conn_t;
+typedef struct isc_quic_conn_callbacks isc_quic_conn_callbacks_t;
+typedef struct isc_quic_conn_options   isc_quic_conn_options_t;
+#endif /* HAVE_LIBNGTCP2 */
+
 #if HAVE_LIBNGHTTP2
 typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
 /*%< HTTP endpoints set */

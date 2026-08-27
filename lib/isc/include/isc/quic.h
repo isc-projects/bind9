@@ -17,6 +17,8 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/tid.h>
+#include <isc/time.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 
 /*! \file isc/quic.h */
@@ -52,23 +54,6 @@
  */
 typedef struct isc_quic_router isc_quic_router_t;
 
-/**
- * \brief
- * Callbacks the router uses to keep a connection alive while it is reachable
- * through the router or has been handed out by a lookup.
- *
- * `conn_ref` must acquire a reference on `conn`; `conn_unref` must release one.
- * They allow the router to hand out a retained connection pointer without
- * racing a concurrent teardown.
- *
- * \warning
- * `conn_unref` may be invoked from an RCU worker thread, because the router
- * releases its own reference from a deferred-reclamation (call_rcu) callback.
- * It must therefore be safe to call from any thread.
- */
-typedef void (*isc_quic_conn_ref_t)(void *conn);
-typedef void (*isc_quic_conn_unref_t)(void *conn);
-
 typedef enum isc_quic_version {
 	/** Invalid QUIC version */
 	ISC_QUIC_VERSION_INVALID = 0,
@@ -85,11 +70,56 @@ typedef enum isc_quic_version {
 	ISC_QUIC_VERSION__MAX = 4,
 } isc_quic_version_t;
 
+/**
+ * \brief
+ * User-specified callbacks
+ *
+ * All callbacks are optional.
+ */
+struct isc_quic_conn_callbacks {};
+
+/**
+ * \brief
+ * Connection independent QUIC connection options of an endpoint.
+ */
+struct isc_quic_conn_options {
+	/**
+	 * \brief
+	 * TLS context used by the QUIC connection.
+	 */
+	isc_tlsctx_t *tlsctx;
+
+	/**
+	 * \brief
+	 * ALPN value of the TLS handshake.
+	 *
+	 * \warning
+	 * Must be less than 7-bytes, might be increased in the future.
+	 */
+	isc_constregion_t alpn;
+
+	/**
+	 * \brief
+	 * Handshake timeout of the state machine
+	 *
+	 * Must not be `isc_quic_timestamp_invalid`. Zero value disables
+	 * timeout.
+	 */
+	isc_nanosecs_t handshake_timeout;
+
+	/**
+	 * \brief
+	 * Idle timeout of the state machine
+	 *
+	 * Must not be `isc_quic_timestamp_invalid`. Zero value disables
+	 * timeout.
+	 */
+	isc_nanosecs_t idle_timeout;
+};
+
 void
 isc_quic_router_create(isc_mem_t *mctx, size_t cidlen,
-		       isc_quic_conn_ref_t   conn_ref,
-		       isc_quic_conn_unref_t conn_unref,
-		       isc_quic_router_t   **routerp);
+		       isc_quic_router_t **routerp);
 /**<
  * \brief
  * Create a new QUIC CID router.
@@ -137,7 +167,7 @@ isc_quic_router_add_cid(isc_quic_router_t *router, isc_constregion_t cid,
 
 isc_result_t
 isc_quic_router_get_cid(isc_quic_router_t *router, isc_constregion_t cid,
-			isc_tid_t *tidp, void **connp);
+			isc_tid_t *tidp, isc_quic_conn_t **connp);
 /**<
  * \brief
  * Get the connection associated with a given CID and its thread if `tidp` is
@@ -202,7 +232,7 @@ isc_result_t
 isc_quic_router_get_stateless_reset(
 	isc_quic_router_t *router,
 	const uint8_t token[const restrict ISC_QUIC_STATELESS_TOKEN_LENGTH],
-	isc_tid_t *tidp, void **connp);
+	isc_tid_t *tidp, isc_quic_conn_t **connp);
 /**<
  * \brief
  * Get the connection associated with the given stateless reset token and its
@@ -243,7 +273,7 @@ isc_quic_router_handle_packet(isc_quic_router_t	 *router,
 			      isc_quic_version_t *versionp,
 			      isc_constregion_t	 *dcidp,
 			      isc_constregion_t *scidp, isc_tid_t *tidp,
-			      void **connp);
+			      isc_quic_conn_t **connp);
 /**<
  * \brief
  * Extracts the associated value and relevant information of a given QUIC
@@ -294,3 +324,64 @@ isc_quic_router_handle_packet(isc_quic_router_t	 *router,
  * Unlike ISC_R_UNEXPECTED, the caller MUST NOT send a stateless reset in
  * response (RFC9000, Section 10.3).
  */
+
+isc_result_t
+isc_quic_conn_client_create(isc_mem_t *mctx, isc_quic_router_t *router,
+			    const isc_quic_conn_callbacks_t *callbacks,
+			    void			    *callback_arg,
+			    const isc_quic_conn_options_t   *options,
+			    const char *sni, const isc_sockaddr_t *local,
+			    const isc_sockaddr_t *peer,
+			    isc_quic_conn_t	**connp);
+
+/**<
+ * \brief
+ * Create a new client state machine.
+ *
+ * \par Requires
+ * \li `mctx` is a valid memory context
+ * \li `router` is a valid QUIC router
+ * \li `options != NULL` and is valid
+ * \li `version` is a valid and defined QUIC version
+ * \li `sni` points to a valid SNI string
+ * \li `local != NULL`
+ * \li `peer != NULL`
+ * \li `connp != NULL` and `*connp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTIMPLEMENTED if the given QUIC version is not supported
+ * \retval ISC_R_TLSERROR on internal TLS failure
+ * \retval ISC_R_NOMEMORY on allocation failure
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+isc_result_t
+isc_quic_conn_server_create(
+	isc_mem_t *mctx, isc_quic_router_t *router,
+	const isc_quic_conn_callbacks_t *callbacks, void *callback_arg,
+	const isc_quic_conn_options_t *options, isc_constregion_t initial_dcid,
+	isc_constregion_t initial_scid, const isc_sockaddr_t *local,
+	const isc_sockaddr_t *peer, isc_quic_conn_t **connp);
+/**<
+ * \brief
+ * Create a new server state machine
+ *
+ * \par Requires
+ * \li `mctx` is a valid memory context
+ * \li `router` is a valid QUIC router
+ * \li `options != NULL` and is valid
+ * \li `initial_version` is a valid and defined QUIC version
+ * \li `initial_dcid.base != NULL` and `initial_dcid.length` ∈ [1, 20]
+ * \li `initial_scid.base != NULL` and `initial_scid.length` ∈ [1, 20]
+ * \li `local != NULL`
+ * \li `peer != NULL`
+ * \li `connp != NULL` and `*connp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTIMPLEMENTED if the given QUIC version is not supported
+ * \retval ISC_R_TLSERROR on internal TLS failure
+ * \retval ISC_R_NOMEMORY on allocation failure
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+ISC_REFCOUNT_DECL(isc_quic_conn);

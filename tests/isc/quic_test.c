@@ -32,25 +32,6 @@
 
 constexpr isc_tid_t connection_tid = 3;
 
-/*
- * The tests use a sentinel pointer as the "connection"; these callbacks let
- * them assert that the router balances every reference it takes and hands out.
- */
-static atomic_int conn_refs = 0;
-
-static void
-test_conn_ref(void *conn) {
-	(void)conn;
-	(void)atomic_fetch_add(&conn_refs, 1);
-}
-
-static void
-test_conn_unref(void *conn) {
-	/* May run on an RCU worker thread, hence the atomic counter. */
-	(void)conn;
-	(void)atomic_fetch_sub(&conn_refs, 1);
-}
-
 constexpr uint8_t client_dcid[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 };
@@ -160,204 +141,233 @@ constexpr uint8_t short_header_packet[] = {
 
 ISC_RUN_TEST_IMPL(isc_quic_router_cid) {
 	isc_quic_router_t *router = NULL;
+	isc_quic_conn_t *conn, *found;
 	isc_constregion_t cid;
 	isc_result_t result;
 	isc_tid_t tid = ISC_TID_UNKNOWN;
-	void *value = NULL;
 
-	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), test_conn_ref,
-			       test_conn_unref, &router);
+	isc_quic_conn_options_t opts = {};
 
-	cid = (isc_constregion_t){ sizeof(client_dcid), client_dcid };
-	result = isc_quic_router_add_cid(router, cid, connection_tid, router);
+	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), &router);
+
+	conn = NULL;
+	result = isc_quic_conn_client_create(isc_g_mctx, router, NULL, NULL,
+					     &opts, NULL, NULL, NULL, &conn);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	cid = (isc_constregion_t){ sizeof(client_dcid), client_dcid };
-	result = isc_quic_router_add_cid(router, cid, connection_tid, router);
+	result = isc_quic_router_add_cid(router, cid, connection_tid, conn);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	cid = (isc_constregion_t){ sizeof(client_dcid), client_dcid };
+	result = isc_quic_router_add_cid(router, cid, connection_tid, conn);
 	assert_int_equal(result, ISC_R_EXISTS);
 
+	found = NULL;
 	cid = (isc_constregion_t){ sizeof(client_dcid), client_dcid };
-	result = isc_quic_router_get_cid(router, cid, &tid, &value);
+	result = isc_quic_router_get_cid(router, cid, &tid, &found);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_ptr_equal(value, router);
+	assert_ptr_equal(found, conn);
 	assert_int_equal(tid, connection_tid);
-	test_conn_unref(value);
+	isc_quic_conn_unref(found);
 
-	value = NULL;
+	found = NULL;
 	cid = (isc_constregion_t){ sizeof(unknown_cid), unknown_cid };
-	result = isc_quic_router_get_cid(router, cid, NULL, &value);
+	result = isc_quic_router_get_cid(router, cid, NULL, &found);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	cid = (isc_constregion_t){ sizeof(unknown_cid), unknown_cid };
-	result = isc_quic_router_add_cid(router, cid, connection_tid, router);
+	result = isc_quic_router_add_cid(router, cid, connection_tid, conn);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = isc_quic_router_del_cid(router, cid);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_quic_router_detach(&router);
+	cid = (isc_constregion_t){ sizeof(client_dcid), client_dcid };
+	result = isc_quic_router_del_cid(router, cid);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = isc_quic_router_del_cid(router, cid);
+	assert_int_equal(result, ISC_R_NOTFOUND);
 
-	/* Flush deferred frees, then check the router balanced every ref. */
-	rcu_barrier();
-	assert_int_equal(atomic_load(&conn_refs), 0);
+	isc_quic_router_detach(&router);
+	isc_quic_conn_detach(&conn);
 }
 
 ISC_RUN_TEST_IMPL(isc_quic_router_stateless_reset) {
 	uint8_t token[ISC_QUIC_STATELESS_TOKEN_LENGTH];
 	isc_quic_router_t *router = NULL;
+	isc_quic_conn_t *conn, *found;
 	isc_result_t result;
 	isc_tid_t tid = ISC_TID_UNKNOWN;
-	void *value = NULL;
 
-	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), test_conn_ref,
-			       test_conn_unref, &router);
+	isc_quic_conn_options_t opts = {};
+
+	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), &router);
+
+	conn = NULL;
+	result = isc_quic_conn_client_create(isc_g_mctx, router, NULL, NULL,
+					     &opts, NULL, NULL, NULL, &conn);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_random_buf(token, sizeof(token));
 
+	found = NULL;
 	result = isc_quic_router_get_stateless_reset(router, token, NULL,
-						     &value);
+						     &found);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	result = isc_quic_router_add_stateless_reset(router, token,
-						     connection_tid, router);
+						     connection_tid, conn);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_quic_router_add_stateless_reset(router, token,
-						     connection_tid, router);
+						     connection_tid, conn);
 	assert_int_equal(result, ISC_R_EXISTS);
 
+	found = NULL;
 	result = isc_quic_router_get_stateless_reset(router, token, &tid,
-						     &value);
+						     &found);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_ptr_equal(value, router);
+	assert_ptr_equal(found, conn);
 	assert_int_equal(tid, connection_tid);
-	test_conn_unref(value);
+	isc_quic_conn_unref(found);
 
 	result = isc_quic_router_del_stateless_reset(router, token);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	found = NULL;
 	result = isc_quic_router_get_stateless_reset(router, token, NULL,
-						     &value);
+						     &found);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	result = isc_quic_router_del_stateless_reset(router, token);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	isc_quic_router_detach(&router);
-
-	/* Flush deferred frees, then check the router balanced every ref. */
-	rcu_barrier();
-	assert_int_equal(atomic_load(&conn_refs), 0);
+	isc_quic_conn_detach(&conn);
 }
 
 ISC_RUN_TEST_IMPL(isc_quic_router_packet) {
 	isc_quic_router_t *router = NULL;
+	isc_quic_conn_t *conn, *found;
 	isc_quic_version_t version;
 	isc_constregion_t dcid, scid;
 	isc_result_t result;
 	isc_tid_t tid = ISC_TID_UNKNOWN;
-	void *value = NULL;
 
-	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), test_conn_ref,
-			       test_conn_unref, &router);
+	isc_quic_conn_options_t opts = {};
+
+	isc_quic_router_create(isc_g_mctx, sizeof(client_dcid), &router);
+
+	conn = NULL;
+	result = isc_quic_conn_client_create(isc_g_mctx, router, NULL, NULL,
+					     &opts, NULL, NULL, NULL, &conn);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Initial CRYPTO frames MUST be 1200 bytes */
+	found = NULL;
 	result = isc_quic_router_handle_packet(
 		router, (isc_constregion_t){ 1199, initial_frame_v1 }, &version,
-		&dcid, &scid, NULL, &value);
+		&dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_IGNORE);
 	assert_int_equal(version, ISC_QUIC_VERSION_V1);
+	assert_ptr_equal(found, NULL);
 
 	/* Use reserved version 0x0A0A0A0A */
 	result = isc_quic_router_handle_packet(
 		router,
 		(isc_constregion_t){ 1200, initial_frame_reserved_version },
-		&version, &dcid, &scid, NULL, &value);
+		&version, &dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_NOTIMPLEMENTED);
 	assert_int_equal(version, ISC_QUIC_VERSION_UNKNOWN);
+	assert_ptr_equal(found, NULL);
 
 	result = isc_quic_router_handle_packet(
 		router, (isc_constregion_t){ 1200, initial_frame_v1 }, &version,
-		&dcid, &scid, NULL, &value);
+		&dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 	assert_int_equal(version, ISC_QUIC_VERSION_V1);
 	assert_int_equal(dcid.length, sizeof(client_dcid));
 	assert_memory_equal(dcid.base, client_dcid, dcid.length);
+	assert_ptr_equal(found, NULL);
 
 	/* A 1-RTT packet for an unknown connection: caller MAY send a reset */
 	result = isc_quic_router_handle_packet(
 		router,
 		(isc_constregion_t){ sizeof(short_header_packet),
 				     short_header_packet },
-		NULL, &dcid, &scid, NULL, &value);
+		NULL, &dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_UNEXPECTED);
-	assert_null(value);
+	assert_null(found);
 	assert_int_equal(dcid.length, sizeof(client_dcid));
 	assert_memory_equal(dcid.base, client_dcid, dcid.length);
 
-	result = isc_quic_router_add_cid(router, dcid, connection_tid, router);
+	result = isc_quic_router_add_cid(router, dcid, connection_tid, conn);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_quic_router_handle_packet(
 		router, (isc_constregion_t){ 1200, initial_frame_v1 }, &version,
-		&dcid, &scid, NULL, &value);
+		&dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(version, ISC_QUIC_VERSION_V1);
-	assert_ptr_equal(value, router);
-	test_conn_unref(value);
+	assert_ptr_equal(found, conn);
+	isc_quic_conn_unref(found);
 
-	value = NULL;
+	found = NULL;
 	result = isc_quic_router_handle_packet(
-		router, (isc_constregion_t){ 1200, initial_frame_v1 }, &version,
-		&dcid, &scid, NULL, &value);
+		router, (isc_constregion_t){ 500, initial_frame_v1 }, &version,
+		&dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_ptr_equal(value, router);
-	test_conn_unref(value);
+	assert_ptr_equal(found, conn);
+	isc_quic_conn_unref(found);
 
-	value = NULL;
+	found = NULL;
 	result = isc_quic_router_handle_packet(
 		router,
 		(isc_constregion_t){ sizeof(short_header_packet),
 				     short_header_packet },
-		NULL, &dcid, &scid, &tid, &value);
+		NULL, &dcid, &scid, &tid, &found);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_ptr_equal(value, router);
+	assert_ptr_equal(found, conn);
 	assert_int_equal(tid, connection_tid);
 	assert_int_equal(dcid.length, sizeof(client_dcid));
 	assert_memory_equal(dcid.base, client_dcid, dcid.length);
-	test_conn_unref(value);
+	isc_quic_conn_unref(found);
 
 	result = isc_quic_router_del_cid(router, dcid);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	value = NULL;
+	found = NULL;
 	result = isc_quic_router_handle_packet(
 		router, (isc_constregion_t){ 1200, initial_frame_v1 }, &version,
-		&dcid, &scid, NULL, &value);
+		&dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	result = isc_quic_router_handle_packet(
 		router,
 		(isc_constregion_t){ sizeof(short_header_packet),
 				     short_header_packet },
-		NULL, &dcid, &scid, NULL, &value);
+		NULL, &dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_UNEXPECTED);
-	assert_null(value);
+	assert_null(found);
 
 	result = isc_quic_router_add_stateless_reset(
-		router, stateless_reset_token, connection_tid, router);
+		router, stateless_reset_token, connection_tid, conn);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_quic_router_handle_packet(
 		router,
 		(isc_constregion_t){ sizeof(stateless_reset_packet),
 				     stateless_reset_packet },
-		NULL, &dcid, &scid, NULL, &value);
+		NULL, &dcid, &scid, NULL, &found);
 	assert_int_equal(result, ISC_R_CONNECTIONRESET);
-	test_conn_unref(value);
+	isc_quic_conn_unref(found);
 
+	result = isc_quic_router_del_stateless_reset(router,
+						     stateless_reset_token);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_quic_conn_detach(&conn);
 	isc_quic_router_detach(&router);
-
-	/* Flush deferred frees, then check the router balanced every ref. */
-	rcu_barrier();
-	assert_int_equal(atomic_load(&conn_refs), 0);
 }
 
 ISC_TEST_LIST_START
