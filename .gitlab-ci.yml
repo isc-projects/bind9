@@ -444,7 +444,7 @@ stages:
     - meson compile -C build
     - meson compile -C build system-test-dependencies
     - test -z "${RUN_MESON_INSTALL}" || meson install -C build --destdir=$INSTALL_PATH
-    - test -z "${RUN_MESON_INSTALL}" || DESTDIR="${INSTALL_PATH}" sh build/util/check-make-install.sh
+    - test -z "${RUN_MESON_INSTALL}" || DESTDIR="${INSTALL_PATH}" bash build/util/check-make-install.sh
     #- test -z "${CROSS_COMPILATION}" || grep -F -A 1 "checking whether we are cross compiling" config.log | grep -q "result.*yes"
     - test -z "${CROSS_COMPILATION}" || file build/lib/dns/gen | grep -F -q "ELF 64-bit LSB"
     #- test -z "${CROSS_COMPILATION}" || ( ! git ls-files -z --others --exclude lib/dns/gen | xargs -0 file | grep "ELF 64-bit LSB" )

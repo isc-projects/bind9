@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,24 +11,41 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-abs_top_srcdir=@abs_top_srcdir@
-abs_builddir=@abs_builddir@
-prefix=@prefix@
-install_dir="${DESTDIR}@prefix@"
+set -euo pipefail
 
-named_binary_path="${install_dir}/sbin/named"
+abs_builddir=@abs_builddir@
+install_dir="${DESTDIR:-}@prefix@"
+bindir="${DESTDIR:-}@bindir@"
+libdir="${DESTDIR:-}@libdir@"
+mandir="${DESTDIR:-}@mandir@"
+sbindir="${DESTDIR:-}@sbindir@"
+status=0
+
+named_binary_path="${sbindir}/named"
 if [ ! -x "${named_binary_path}" ]; then
   echo "ERROR: ${named_binary_path} does not exist or is not executable"
   status=1
 fi
 
-named_man_page_path="${install_dir}/share/man/man8/named.8"
+named_man_page_path="${mandir}/man8/named.8"
 if [ ! -f "${named_man_page_path}" ]; then
   echo "ERROR: ${named_man_page_path} does not exist"
   status=1
 fi
 
-if [ -n "${DESTDIR}" ]; then
+# Every installed program must have a manual page installed with it.
+shopt -s nullglob
+
+for program in "${bindir}"/* "${sbindir}"/* "${libdir}"/bind/*.so; do
+  name=$(basename "${program}" .so)
+  man_pages=("${mandir}"/man*/"${name}".?)
+  if [ ${#man_pages[@]} -eq 0 ]; then
+    echo "ERROR: no manual page was installed for ${name}"
+    status=1
+  fi
+done
+
+if [ -n "${DESTDIR:-}" ]; then
   for expected_subdir in bin lib sbin share; do
     echo "${install_dir}/${expected_subdir}" >>"${abs_builddir}/expected_dirs"
   done
@@ -40,4 +57,4 @@ if [ -n "${DESTDIR}" ]; then
   rm -f "${abs_builddir}/expected_dirs" "${abs_builddir}/existing_dirs"
 fi
 
-exit $status
+exit "$status"

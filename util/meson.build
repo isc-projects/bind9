@@ -14,7 +14,10 @@ configure_file(
     output: 'check-make-install.sh',
     configuration: {
         'abs_builddir': meson.project_build_root(),
-        'abs_top_srcdir': meson.project_source_root(),
+        'bindir': bindir,
+        'libdir': libdir,
+        'mandir': mandir,
         'prefix': prefix,
+        'sbindir': sbindir,
     },
 )
