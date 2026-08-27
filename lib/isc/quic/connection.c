@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <inttypes.h>
 #include <stdint.h>
 
 #include <ngtcp2/ngtcp2.h>
@@ -23,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/safe.h>
+#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include "quic_p.h" /* IWYU pragma: keep */
@@ -54,8 +56,17 @@
 #define CHECK_STATE(conn, ...)
 #endif /* ISC_QUIC_STATE_CHECK */
 
+typedef isc_result_t (*pull_packet_fn)(isc_quic_conn_t *conn, isc_region_t out,
+				       size_t *written, isc_sockaddr_t *from,
+				       isc_sockaddr_t *to);
+
+typedef struct quic_conn_state_node {
+	pull_packet_fn pull_packet;
+} quic_conn_state_node_t;
+
 struct isc__quic_stream {
 	int64_t id;
+	void *data;
 	size_t last_acked_offset;
 	ISC_LIST(isc__quic_stream_data_t) ack_data;
 	ISC_LINK(isc__quic_stream_t) link;
@@ -71,6 +82,30 @@ struct isc__quic_stream_data {
 };
 
 constexpr uint32_t conn_magic = ISC_MAGIC('Q', 'U', 'I', 'c');
+
+/**
+ * \brief
+ * Initial maximum stream data of 128 KiB.
+ */
+constexpr uint64_t initial_max_stream_data = 131072;
+
+/**
+ * \brief
+ * Initial maximum data of 512 KiB.
+ */
+constexpr uint64_t initial_max_data = 524288;
+
+/**
+ * \brief
+ * Initial number of allowed bidirectional streams.
+ */
+constexpr uint64_t initial_max_streams_bidi = 16;
+
+/**
+ * \brief
+ * Initial number of allowed unidirectional streams.
+ */
+constexpr uint64_t initial_max_streams_uni = 0;
 
 /**
  * \brief
@@ -103,6 +138,31 @@ constexpr uint64_t chacha20poly1305_max_encryption = 4611686018427387904;
  * The value is specified in RFC9001, Section 6.6.
  */
 constexpr uint64_t chacha20poly1305_max_decryption_failure = 68719476736;
+
+static const uint32_t preferred_versions[] = {
+	NGTCP2_PROTO_VER_V2,
+	NGTCP2_PROTO_VER_V1,
+};
+
+static isc_result_t
+pull_packet_invalid(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		    isc_sockaddr_t *from, isc_sockaddr_t *to);
+
+static isc_result_t
+pull_packet_nodata(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		   isc_sockaddr_t *from, isc_sockaddr_t *to);
+
+static isc_result_t
+pull_packet_connected(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		      isc_sockaddr_t *from, isc_sockaddr_t *to);
+
+static isc_result_t
+pull_packet_closed(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		   isc_sockaddr_t *from, isc_sockaddr_t *to);
+
+static isc_result_t
+pull_packet_terminated(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		       isc_sockaddr_t *from, isc_sockaddr_t *to);
 
 static int
 client_initial_cb(ngtcp2_conn *ngconn, void *user_data);
@@ -301,6 +361,14 @@ static const ngtcp2_callbacks server_cb = {
 #ifdef NGTCP2_CALLBACKS_V5
 	.stream_close2 = stream_close2_cb,
 #endif /* NGTCP2_CALLBACKS_V5 */
+};
+
+static quic_conn_state_node_t state_table[] = {
+	[QUIC_CONN_STATE_INVALID] = { pull_packet_invalid },
+	[QUIC_CONN_STATE_HANDSHAKE] = { pull_packet_nodata },
+	[QUIC_CONN_STATE_CONNECTED] = { pull_packet_connected },
+	[QUIC_CONN_STATE_CLOSED] = { pull_packet_closed },
+	[QUIC_CONN_STATE_TERMINATED] = { pull_packet_terminated },
 };
 
 static const ngtcp2_crypto_ctx initial_aes128gcm_sha256_ctx = {
@@ -761,6 +829,258 @@ cleanup:
 	return result;
 }
 
+static isc_result_t
+pull_packet_invalid(isc_quic_conn_t *conn ISC_ATTR_UNUSED,
+		    isc_region_t out ISC_ATTR_UNUSED,
+		    size_t *written ISC_ATTR_UNUSED,
+		    isc_sockaddr_t *from ISC_ATTR_UNUSED,
+		    isc_sockaddr_t *to ISC_ATTR_UNUSED) {
+	UNREACHABLE();
+}
+
+static isc_result_t
+pull_packet_nodata(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		   isc_sockaddr_t *from, isc_sockaddr_t *to) {
+	ngtcp2_path_storage ps;
+	isc_result_t result;
+	ngtcp2_ssize r;
+
+	CHECK_STATE(conn, QUIC_CONN_STATE_HANDSHAKE, QUIC_CONN_STATE_CONNECTED);
+
+	ngtcp2_path_storage_zero(&ps);
+
+	r = ngtcp2_conn_writev_stream(conn->inner, &ps.path, NULL, out.base,
+				      out.length, NULL,
+				      NGTCP2_WRITE_STREAM_FLAG_NONE, -1, NULL,
+				      0, isc_time_monotonic());
+
+	ngtcp2_conn_update_pkt_tx_time(conn->inner, isc_time_monotonic());
+
+	if (r <= 0) {
+		*written = 0;
+		switch (r) {
+		case 0:
+			return ISC_R_UNEXPECTEDEND;
+		case NGTCP2_ERR_NOMEM:
+			return ISC_R_NOMEMORY;
+		case NGTCP2_ERR_STREAM_NOT_FOUND:
+			return ISC_R_NOTFOUND;
+		case NGTCP2_ERR_STREAM_SHUT_WR:
+			return ISC_R_SHUTTINGDOWN;
+		case NGTCP2_ERR_PKT_NUM_EXHAUSTED:
+			return ISC_R_NOMORE;
+		case NGTCP2_ERR_CALLBACK_FAILURE:
+			return ISC_R_FAILURE;
+		case NGTCP2_ERR_INVALID_ARGUMENT:
+			return ISC_R_NOSPACE;
+		case NGTCP2_ERR_STREAM_DATA_BLOCKED:
+			return ISC_R_IOERROR;
+		case NGTCP2_ERR_WRITE_MORE:
+			UNREACHABLE();
+		default:
+			return ISC_R_FAILURE;
+		}
+	}
+
+	if (from != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			from, (const struct sockaddr *)&ps.local_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	if (to != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			to, (const struct sockaddr *)&ps.remote_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	*written = r;
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+pull_packet_connected(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		      isc_sockaddr_t *from, isc_sockaddr_t *to) {
+	isc__quic_stream_data_t *data;
+	isc_nanosecs_t timestamp;
+	ngtcp2_path_storage ps;
+	isc__quic_stream_t *stream;
+	isc_result_t result;
+	ngtcp2_ssize r;
+	int64_t stream_id;
+	size_t total;
+	ssize_t single;
+	uint32_t flags;
+
+	CHECK_STATE(conn, QUIC_CONN_STATE_CONNECTED);
+
+	if (ISC_LIST_EMPTY(conn->outgoing_stream_data)) {
+		return pull_packet_nodata(conn, out, written, from, to);
+	}
+
+	ngtcp2_path_storage_zero(&ps);
+
+	timestamp = isc_time_monotonic();
+	total = 0;
+	flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
+	while (flags != NGTCP2_WRITE_STREAM_FLAG_NONE) {
+		data = ISC_LIST_HEAD(conn->outgoing_stream_data);
+
+		if (ISC_LIST_NEXT(data, link) == NULL) {
+			flags = NGTCP2_WRITE_STREAM_FLAG_NONE;
+		}
+
+		stream_id = data->stream_id;
+		r = ngtcp2_conn_write_stream(conn->inner, &ps.path, NULL,
+					     out.base, out.length, &single,
+					     flags, stream_id, data->bytes,
+					     data->length, timestamp);
+		if (r < 0 && r != NGTCP2_ERR_WRITE_MORE) {
+			ngtcp2_conn_update_pkt_tx_time(conn->inner,
+						       isc_time_monotonic());
+
+			switch (r) {
+			case NGTCP2_ERR_NOMEM:
+				return ISC_R_NOMEMORY;
+			case NGTCP2_ERR_STREAM_SHUT_WR:
+			case NGTCP2_ERR_STREAM_NOT_FOUND:
+				ISC_LIST_UNLINK(conn->outgoing_stream_data,
+						data, link);
+				isc_mem_put(conn->mem.user_data, data,
+					    STRUCT_FLEX_SIZE(data, bytes,
+							     data->length));
+				continue;
+			case NGTCP2_ERR_PKT_NUM_EXHAUSTED:
+				return ISC_R_NOMORE;
+			case NGTCP2_ERR_CALLBACK_FAILURE:
+				return ISC_R_FAILURE;
+			case NGTCP2_ERR_INVALID_ARGUMENT:
+				return ISC_R_NOSPACE;
+			case NGTCP2_ERR_STREAM_DATA_BLOCKED:
+				return ISC_R_IOERROR;
+			case NGTCP2_ERR_WRITE_MORE:
+				UNREACHABLE();
+			default:
+				return ISC_R_FAILURE;
+			}
+		}
+
+		ISC_LIST_UNLINK(conn->outgoing_stream_data, data, link);
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+		stream = ngtcp2_conn_get_stream_user_data2(conn->inner,
+							   stream_id);
+#else  /* NGTCP2_VERSION_NUM >= 0x011700 */
+		stream = ngtcp2_conn_get_stream_user_data(conn->inner,
+							  stream_id);
+#endif /* NGTCP2_VERSION_NUM >= 0x011700 */
+		INSIST(stream != NULL);
+		ISC_LIST_APPEND(stream->ack_data, data, link);
+
+		if (r > 0) {
+			total += r;
+		}
+
+		if (r == 0) {
+			break;
+		}
+	}
+
+	ngtcp2_conn_update_pkt_tx_time(conn->inner, isc_time_monotonic());
+
+	if (total == 0) {
+		*written = 0;
+		return ISC_R_IGNORE;
+	}
+
+	if (from != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			from, (const struct sockaddr *)&ps.local_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	if (to != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			to, (const struct sockaddr *)&ps.remote_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	*written = total;
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+pull_packet_closed(isc_quic_conn_t *conn, isc_region_t out, size_t *written,
+		   isc_sockaddr_t *from, isc_sockaddr_t *to) {
+	ngtcp2_path_storage ps;
+	isc_result_t result;
+	ngtcp2_ccerr ccerr = { 0 };
+	ngtcp2_ssize r;
+
+	CHECK_STATE(conn, QUIC_CONN_STATE_CLOSED);
+
+	ngtcp2_path_storage_zero(&ps);
+
+	r = ngtcp2_conn_write_connection_close(conn->inner, &ps.path, NULL,
+					       out.base, out.length, &ccerr,
+					       isc_time_monotonic());
+	if (r <= 0) {
+		*written = 0;
+		switch (r) {
+		case 0:
+			return ISC_R_UNEXPECTEDEND;
+		case NGTCP2_ERR_NOMEM:
+			return ISC_R_NOMEMORY;
+		case NGTCP2_ERR_NOBUF:
+			return ISC_R_NOSPACE;
+		case NGTCP2_ERR_INVALID_STATE:
+			return ISC_R_UNEXPECTED;
+		case NGTCP2_ERR_PKT_NUM_EXHAUSTED:
+			return ISC_R_NOMORE;
+		case NGTCP2_ERR_CALLBACK_FAILURE:
+			return ISC_R_FAILURE;
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	if (from != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			from, (const struct sockaddr *)&ps.local_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	if (to != NULL) {
+		result = isc_sockaddr_fromsockaddr(
+			to, (const struct sockaddr *)&ps.remote_addrbuf);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	*written = r;
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+pull_packet_terminated(isc_quic_conn_t *conn ISC_ATTR_UNUSED,
+		       isc_region_t out ISC_ATTR_UNUSED, size_t *written,
+		       isc_sockaddr_t *from ISC_ATTR_UNUSED,
+		       isc_sockaddr_t *to ISC_ATTR_UNUSED) {
+	*written = 0;
+	return ISC_R_COMPLETE;
+}
+
+static void
+log_printf(void *user_data ISC_ATTR_UNUSED, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	isc_log_vwrite(ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_OTHER,
+		       ISC_LOG_DEBUG(99), fmt, ap);
+	va_end(ap);
+}
+
 static int
 client_initial_cb(ngtcp2_conn *ngconn, void *user_data) {
 	const ngtcp2_cid *dcid;
@@ -911,12 +1231,14 @@ static int
 recv_stream_data_cb(ngtcp2_conn *ngconn ISC_ATTR_UNUSED, uint32_t flags,
 		    int64_t stream_id, uint64_t offset ISC_ATTR_UNUSED,
 		    const uint8_t *data, size_t datalen, void *user_data,
-		    void *stream_user_data ISC_ATTR_UNUSED) {
+		    void *stream_user_data) {
 	isc_quic_conn_t *conn = user_data;
+	isc__quic_stream_t *stream = stream_user_data;
 	const isc_quic_stream_data_info_t info = {
 		.final = (flags & NGTCP2_STREAM_DATA_FLAG_FIN) != 0x00,
 		.zerortt = (flags & NGTCP2_STREAM_DATA_FLAG_0RTT) != 0x00,
 		.stream_id = stream_id,
+		.stream_data = stream->data,
 	};
 
 	if (conn->cb != NULL && conn->cb->data_read != NULL) {
@@ -963,19 +1285,22 @@ stream_open_cb(ngtcp2_conn *ngconn, int64_t stream_id, void *user_data) {
 	isc__quic_stream_t *stream;
 	isc_result_t result;
 
-	if (conn->cb != NULL && conn->cb->stream_opened != NULL) {
-		result = conn->cb->stream_opened(conn, conn->cbarg, stream_id);
-		if (result != ISC_R_SUCCESS) {
-			return NGTCP2_ERR_CALLBACK_FAILURE;
-		}
-	}
-
 	stream = isc_mem_get(conn->mem.user_data, sizeof(*stream));
 	*stream = (isc__quic_stream_t){
 		.id = stream_id,
 		.ack_data = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
 	};
+
+	if (conn->cb != NULL && conn->cb->stream_opened != NULL) {
+		result = conn->cb->stream_opened(conn, conn->cbarg,
+						 &stream->data, stream_id);
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(conn->mem.user_data, stream,
+				    sizeof(*stream));
+			return NGTCP2_ERR_CALLBACK_FAILURE;
+		}
+	}
 
 	if (ngtcp2_conn_set_stream_user_data(ngconn, stream_id, stream) != 0) {
 		isc_mem_put(conn->mem.user_data, stream, sizeof(*stream));
@@ -1052,8 +1377,14 @@ get_new_connection_id_cb(ngtcp2_conn *ngconn ISC_ATTR_UNUSED, ngtcp2_cid *ngcid,
 		result = isc_quic_router_add_cid(conn->router, cid, isc_tid(),
 						 conn);
 		if (result == ISC_R_SUCCESS) {
-			isc_quic_router_add_stateless_reset(conn->router, token,
-							    isc_tid(), conn);
+			isc_quic_router_stateless_reset_from_cid(conn->router,
+								 cid, token);
+			result = isc_quic_router_add_stateless_reset(
+				conn->router, token, isc_tid(), conn);
+			/*
+			 * Failure probability is $2^{-128}$
+			 */
+			INSIST(result == ISC_R_SUCCESS);
 			ngcid->datalen = cidlen;
 			memmove(ngcid->data, buffer, cidlen);
 			return 0;
@@ -1314,8 +1645,14 @@ get_new_connection_id2_cb(ngtcp2_conn *ngconn ISC_ATTR_UNUSED,
 		result = isc_quic_router_add_cid(conn->router, cid, isc_tid(),
 						 conn);
 		if (result == ISC_R_SUCCESS) {
-			isc_quic_router_add_stateless_reset(
+			isc_quic_router_stateless_reset_from_cid(
+				conn->router, cid, token->data);
+			result = isc_quic_router_add_stateless_reset(
 				conn->router, token->data, isc_tid(), conn);
+			/*
+			 * Failure probability is $2^{-128}$
+			 */
+			INSIST(result == ISC_R_SUCCESS);
 			ngcid->datalen = cidlen;
 			memmove(ngcid->data, buffer, cidlen);
 			return 0;
@@ -1437,9 +1774,9 @@ stream_close2_cb(ngtcp2_conn *ngconn ISC_ATTR_UNUSED, uint32_t flags,
 			kind = ISC_QUIC_APPLICATION_ERROR_NONE;
 		}
 
-		result = conn->cb->stream_closed(conn, conn->cbarg, stream_id,
-						 kind, rx_app_error_code,
-						 tx_app_error_code);
+		result = conn->cb->stream_closed(
+			conn, conn->cbarg, stream_id, stream->data, kind,
+			rx_app_error_code, tx_app_error_code);
 		if (result != ISC_R_SUCCESS) {
 			return NGTCP2_ERR_CALLBACK_FAILURE;
 		}
@@ -1448,6 +1785,60 @@ stream_close2_cb(ngtcp2_conn *ngconn ISC_ATTR_UNUSED, uint32_t flags,
 	return 0;
 }
 #endif /* NGTCP2_CALLBACKS_V5 */
+
+static void *
+quic_malloc(size_t size, void *user_data) {
+	return isc_mem_allocate(user_data, size);
+}
+
+static void
+quic_free(void *ptr, void *user_data) {
+	if (ptr != NULL) {
+		isc_mem_free(user_data, ptr);
+	}
+}
+
+static void *
+quic_calloc(size_t nmemb, size_t size, void *user_data) {
+	return isc_mem_callocate(user_data, nmemb, size);
+}
+
+static void *
+quic_realloc(void *ptr, size_t size, void *user_data) {
+	return isc_mem_reallocate(user_data, ptr, size);
+}
+
+static void
+common_transport_params(ngtcp2_transport_params *params) {
+	ngtcp2_transport_params_default(params);
+	params->initial_max_stream_data_bidi_local = initial_max_stream_data;
+	params->initial_max_stream_data_bidi_remote = initial_max_stream_data;
+	params->initial_max_streams_bidi = initial_max_streams_bidi;
+	params->initial_max_streams_uni = initial_max_streams_uni;
+	params->initial_max_data = initial_max_data;
+	params->disable_active_migration = 1;
+	params->grease_quic_bit = 1;
+}
+
+static void
+common_settings(ngtcp2_settings *settings) {
+	ngtcp2_settings_default(settings);
+
+	settings->cc_algo = NGTCP2_CC_ALGO_BBR;
+	settings->max_tx_udp_payload_size = NGTCP2_MAX_UDP_PAYLOAD_SIZE;
+	settings->preferred_versions = preferred_versions;
+	settings->preferred_versionslen = ARRAY_SIZE(preferred_versions);
+	/*
+	 * libuv needs to expose relevant socket options for pmtud to
+	 * work correctly [1].
+	 * https://github.com/nodejs/node/blob/e6ef4774c202245e8daaa3cc48a44f3f38b99429/src/quic/session.cc#L348-L351
+	 */
+	settings->no_pmtud = 1;
+
+	if (isc_log_wouldlog(ISC_LOG_DEBUG(99))) {
+		settings->log_printf = log_printf;
+	}
+}
 
 isc_result_t
 isc__quic_setup_read_key(isc_quic_conn_t *conn, bool is_server,
@@ -1893,56 +2284,572 @@ cleanup:
 ISC_REFCOUNT_IMPL(isc_quic_conn, destroy);
 
 isc_result_t
-isc_quic_conn_client_create(
-	isc_mem_t *mctx, isc_quic_router_t *router,
-	const isc_quic_conn_callbacks_t *callbacks, void *callback_arg,
-	const isc_quic_conn_options_t *options ISC_ATTR_UNUSED,
-	const char *sni ISC_ATTR_UNUSED,
-	const isc_sockaddr_t *local ISC_ATTR_UNUSED,
-	const isc_sockaddr_t *peer ISC_ATTR_UNUSED, isc_quic_conn_t **connp) {
-	isc_quic_conn_t *conn;
+isc_quic_conn_client_create(isc_mem_t *mctx, isc_quic_router_t *router,
+			    const isc_quic_conn_callbacks_t *callbacks,
+			    void *callback_arg,
+			    const isc_quic_conn_options_t *options,
+			    isc_quic_version_t version, const char *sni,
+			    const isc_sockaddr_t *local,
+			    const isc_sockaddr_t *peer,
+			    isc_quic_conn_t **connp) {
+	ngtcp2_transport_params transport_params;
+	isc_quic_conn_t *conn = NULL;
+	ngtcp2_settings settings;
+	isc_result_t result;
+	ngtcp2_path path;
+	ngtcp2_cid dcid, scid;
+	isc_tls_t *tls = NULL;
+	uint32_t ngversion;
+	int r;
 
 	REQUIRE(connp != NULL && *connp == NULL);
+	REQUIRE(options != NULL &&
+		options->handshake_timeout != isc_quic_timestamp_invalid &&
+		options->idle_timeout != isc_quic_timestamp_invalid &&
+		options->alpn.length <= sizeof(conn->alpn.data));
+	REQUIRE(version != ISC_QUIC_VERSION_INVALID &&
+		version != ISC_QUIC_VERSION_UNKNOWN &&
+		version < ISC_QUIC_VERSION__MAX);
+
+	switch (version) {
+	case ISC_QUIC_VERSION_V1:
+		ngversion = NGTCP2_PROTO_VER_V1;
+		break;
+	case ISC_QUIC_VERSION_V2:
+		ngversion = NGTCP2_PROTO_VER_V2;
+		break;
+	default:
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	ERR_set_mark();
+
+	path = (ngtcp2_path){
+		.local = { (ngtcp2_sockaddr *)&local->type.sa, local->length },
+		.remote = { (ngtcp2_sockaddr *)&peer->type.sa, peer->length },
+	};
+
+	dcid.datalen = NGTCP2_MIN_INITIAL_DCIDLEN;
+	isc_random_buf(dcid.data, NGTCP2_MIN_INITIAL_DCIDLEN);
+	scid.datalen = ISC_QUIC_CID_MAX_LENGTH;
+	isc_random_buf(scid.data, ISC_QUIC_CID_MAX_LENGTH);
+
+	common_settings(&settings);
+	settings.initial_ts = isc_time_monotonic();
+	settings.handshake_timeout = options->handshake_timeout != 0
+					     ? options->handshake_timeout
+					     : UINT64_MAX;
+
+	common_transport_params(&transport_params);
+	transport_params.max_idle_timeout = options->idle_timeout;
+
+	tls = isc_tls_create(options->tlsctx);
+	if (tls == NULL) {
+		CLEANUP(ISC_R_TLSERROR);
+	}
 
 	conn = isc_mem_get(mctx, sizeof(*conn));
 	*conn = (isc_quic_conn_t){
 		.magic = conn_magic,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.state = QUIC_CONN_STATE_HANDSHAKE,
 		.router = isc_quic_router_ref(router),
+		.alpn = { .len = options->alpn.length },
+		.streams = ISC_LIST_INITIALIZER,
+		.outgoing_stream_data = ISC_LIST_INITIALIZER,
 		.cb = callbacks,
 		.cbarg = callback_arg,
-		.mem = { .user_data = isc_mem_ref(mctx) },
+#ifdef HAVE_OPENSSL_3
+		.level = NGTCP2_ENCRYPTION_LEVEL_INITIAL,
+		.crypto_awaiting_frames = ISC_LIST_INITIALIZER,
+		.crypto_buffered_frames = ISC_LIST_INITIALIZER,
+#endif /* HAVE_OPENSSL_3 */
+		.mem = { .user_data = isc_mem_ref(mctx),
+			 .malloc = quic_malloc,
+			 .free = quic_free,
+			 .calloc = quic_calloc,
+			 .realloc = quic_realloc },
 	};
 
-	*connp = conn;
+	memmove(conn->alpn.data, options->alpn.base, conn->alpn.len);
+
+	r = ngtcp2_conn_client_new(&conn->inner, &dcid, &scid, &path, ngversion,
+				   &client_cb, &settings, &transport_params,
+				   &conn->mem, conn);
+	switch (r) {
+	case 0:
+		break;
+	case NGTCP2_ERR_NOMEM:
+		CLEANUP(ISC_R_NOMEMORY);
+	default:
+		CLEANUP(ISC_R_FAILURE);
+	}
+
+	SSL_set_connect_state(tls);
+	SSL_set_tlsext_host_name(tls, sni);
+	if (SSL_set_alpn_protos(tls, conn->alpn.data, conn->alpn.len) != 0) {
+		CLEANUP(ISC_R_TLSERROR);
+	}
+	CHECK(isc__quic_setup_tls(tls, conn));
+	ngtcp2_conn_set_tls_native_handle(conn->inner, tls);
+	tls = NULL;
+
+	*connp = MOVE_OWNERSHIP(conn);
+
+	result = ISC_R_SUCCESS;
+
+cleanup:
+	if (tls != NULL) {
+		isc_tls_free(&tls);
+	}
+
+	if (conn != NULL) {
+		isc_quic_router_unref(router);
+		isc_mem_put(mctx, conn, sizeof(*conn));
+		isc_mem_unref(mctx);
+	}
+
+	ERR_pop_to_mark();
+	return result;
+}
+
+/*
+ * original scid: SCID of the client
+ *
+ * initial dcid : DCID of the initial server
+ *
+ * scid : Generated SCID of the _server_
+ *
+ * dcid : The destination CID from the _server's_ perspective which is the
+ * initial_scid.
+ */
+isc_result_t
+isc_quic_conn_server_create(
+	isc_mem_t *mctx, isc_quic_router_t *router,
+	const isc_quic_conn_callbacks_t *callbacks, void *callback_arg,
+	const isc_quic_conn_options_t *options,
+	isc_quic_version_t initial_version, isc_constregion_t initial_dcid,
+	isc_constregion_t initial_scid, const isc_sockaddr_t *local,
+	const isc_sockaddr_t *peer, isc_quic_conn_t **connp) {
+	ngtcp2_transport_params transport_params;
+	isc_quic_conn_t *conn = NULL;
+	ngtcp2_settings settings;
+	isc_result_t result;
+	ngtcp2_path path;
+	ngtcp2_cid dcid, scid;
+	isc_tls_t *tls = NULL;
+	uint32_t version;
+	int r;
+
+	REQUIRE(connp != NULL && *connp == NULL);
+	REQUIRE(options != NULL &&
+		options->handshake_timeout != isc_quic_timestamp_invalid &&
+		options->idle_timeout != isc_quic_timestamp_invalid &&
+		options->alpn.base != NULL &&
+		options->alpn.length <= sizeof(conn->alpn.data));
+	REQUIRE(initial_version == ISC_QUIC_VERSION_V1 ||
+		initial_version == ISC_QUIC_VERSION_V2);
+
+	ERR_set_mark();
+
+	path = (ngtcp2_path){
+		.local = { (ngtcp2_sockaddr *)&local->type.sa, local->length },
+		.remote = { (ngtcp2_sockaddr *)&peer->type.sa, peer->length },
+	};
+
+	/*
+	 * When confused, remember that from a connection side, itself is always
+	 * the SCID and the peer is always using the DCID.
+	 *
+	 * So, a clients SCID is the server's DCID and vice versa.
+	 */
+
+	/*
+	 * Generate a new source CID from **our** perspective.
+	 */
+	scid.datalen = ISC_QUIC_CID_MAX_LENGTH;
+	isc_random_buf(scid.data, scid.datalen);
+
+	/*
+	 * Destination CID to be used for now is the source CID of the
+	 * **client** in the initial packet.
+	 */
+	ngtcp2_cid_init(&dcid, initial_scid.base, initial_scid.length);
+
+	common_transport_params(&transport_params);
+
+	/*
+	 * original_dcid is what the client used as the destination CID from its
+	 * own perspective.
+	 */
+	ngtcp2_cid_init(&transport_params.original_dcid, initial_dcid.base,
+			initial_dcid.length);
+	transport_params.max_idle_timeout = options->idle_timeout;
+	transport_params.original_dcid_present = 1;
+
+	common_settings(&settings);
+	settings.initial_ts = isc_time_monotonic();
+	settings.handshake_timeout = options->handshake_timeout != 0
+					     ? options->handshake_timeout
+					     : UINT64_MAX;
+
+	tls = isc_tls_create(options->tlsctx);
+	if (tls == NULL) {
+		CLEANUP(ISC_R_TLSERROR);
+	}
+
+	conn = isc_mem_get(mctx, sizeof(*conn));
+	*conn = (isc_quic_conn_t){
+		.magic = conn_magic,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.state = QUIC_CONN_STATE_HANDSHAKE,
+		.router = isc_quic_router_ref(router),
+		.alpn = { .len = options->alpn.length },
+		.streams = ISC_LIST_INITIALIZER,
+		.outgoing_stream_data = ISC_LIST_INITIALIZER,
+		.cb = callbacks,
+		.cbarg = callback_arg,
+#ifdef HAVE_OPENSSL_3
+		.level = NGTCP2_ENCRYPTION_LEVEL_INITIAL,
+		.crypto_awaiting_frames = ISC_LIST_INITIALIZER,
+		.crypto_buffered_frames = ISC_LIST_INITIALIZER,
+#endif /* HAVE_OPENSSL_3 */
+		.mem = { .user_data = isc_mem_ref(mctx),
+			 .malloc = quic_malloc,
+			 .free = quic_free,
+			 .calloc = quic_calloc,
+			 .realloc = quic_realloc },
+	};
+
+	memmove(conn->alpn.data, options->alpn.base, conn->alpn.len);
+
+	switch (initial_version) {
+	case ISC_QUIC_VERSION_V1:
+		version = NGTCP2_PROTO_VER_V1;
+		break;
+	case ISC_QUIC_VERSION_V2:
+		version = NGTCP2_PROTO_VER_V2;
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	r = ngtcp2_conn_server_new(&conn->inner, &dcid, &scid, &path, version,
+				   &server_cb, &settings, &transport_params,
+				   &conn->mem, conn);
+	switch (r) {
+	case 0:
+		break;
+	case NGTCP2_ERR_NOMEM:
+		CLEANUP(ISC_R_NOMEMORY);
+	default:
+		CLEANUP(ISC_R_FAILURE);
+	}
+
+	SSL_set_accept_state(tls);
+	CHECK(isc__quic_setup_tls(tls, conn));
+	ngtcp2_conn_set_tls_native_handle(conn->inner, tls);
+	tls = NULL;
+
+	/*
+	 * Probability is 2^{-160}, even these checks are actually not worth it
+	 * the slightest.
+	 */
+	result = isc_quic_router_add_cid(router, initial_dcid, isc_tid(), conn);
+	INSIST(result == ISC_R_SUCCESS);
+
+	result = isc_quic_router_add_cid(
+		router, (isc_constregion_t){ scid.datalen, scid.data },
+		isc_tid(), conn);
+	INSIST(result == ISC_R_SUCCESS);
+
+	*connp = MOVE_OWNERSHIP(conn);
+
+cleanup:
+	if (tls != NULL) {
+		isc_tls_free(&tls);
+	}
+
+	if (conn != NULL) {
+		isc_quic_router_unref(router);
+		isc_mem_put(mctx, conn, sizeof(*conn));
+		isc_mem_unref(mctx);
+	}
+
+	ERR_pop_to_mark();
+	return result;
+}
+
+void *
+isc_quic_conn_get_callback_arg(const isc_quic_conn_t *conn) {
+	REQUIRE(VALID_CONNECTION(conn));
+
+	return conn->cbarg;
+}
+
+isc_result_t
+isc_quic_conn_shutdown(isc_quic_conn_t *conn) {
+#if NGTCP2_VERSION_NUM >= 0x011600 /* 1.22.0 */
+	ngtcp2_cid_token2 *token;
+#else
+	ngtcp2_cid_token *token;
+#endif
+	isc_constregion_t cid;
+	isc_result_t result;
+	ngtcp2_cid *ngcid;
+	isc_mem_t *mctx;
+	uint8_t reset[ISC_QUIC_STATELESS_TOKEN_LENGTH];
+	size_t i, len;
+
+	REQUIRE(VALID_CONNECTION(conn));
+
+	if (conn->state == QUIC_CONN_STATE_CLOSED ||
+	    conn->state == QUIC_CONN_STATE_TERMINATED)
+	{
+		return ISC_R_SHUTTINGDOWN;
+	}
+
+	conn->state = QUIC_CONN_STATE_CLOSED;
+
+	mctx = conn->mem.user_data;
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	len = ngtcp2_conn_get_scid2(conn->inner, NULL);
+	ngcid = isc_mem_cget(mctx, len, sizeof(*ngcid));
+	ngtcp2_conn_get_scid2(conn->inner, ngcid);
+#else  /* NGTCP2_VERSION_NUM >= 0x011700 */
+	len = ngtcp2_conn_get_scid(conn->inner, NULL);
+	ngcid = isc_mem_cget(mctx, len, sizeof(*ngcid));
+	ngtcp2_conn_get_scid(conn->inner, ngcid);
+#endif /* NGTCP2_VERSION_NUM >= 0x011700 */
+	for (i = 0; i < len; i++) {
+		cid = (isc_constregion_t){ ngcid[i].datalen, ngcid[i].data };
+		result = isc_quic_router_del_cid(conn->router, cid);
+		if (result == ISC_R_SUCCESS) {
+			(void)isc_quic_router_stateless_reset_from_cid(
+				conn->router, cid, reset);
+			(void)isc_quic_router_del_stateless_reset(conn->router,
+								  reset);
+		}
+	}
+	isc_mem_cput(mctx, ngcid, len, sizeof(*ngcid));
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	len = ngtcp2_conn_get_active_dcid3(conn->inner, NULL);
+	token = isc_mem_cget(mctx, len, sizeof(*token));
+	ngtcp2_conn_get_active_dcid3(conn->inner, token);
+#elif NGTCP2_VERSION_NUM >= 0x011600 /* 1.22.0 */
+	len = ngtcp2_conn_get_active_dcid2(conn->inner, NULL);
+	token = isc_mem_cget(mctx, len, sizeof(*token));
+	ngtcp2_conn_get_active_dcid2(conn->inner, token);
+#else
+	len = ngtcp2_conn_get_active_dcid(conn->inner, NULL);
+	token = isc_mem_cget(mctx, len, sizeof(*token));
+	ngtcp2_conn_get_active_dcid(conn->inner, token);
+#endif
+	for (i = 0; i < len; i++) {
+		if (token[i].token_present != 0) {
+#if NGTCP2_VERSION_NUM >= 0x011600 /* 1.22.0 */
+			(void)isc_quic_router_del_stateless_reset(
+				conn->router, token[i].token.data);
+#else  /* NGTCP2_VERSION_NUM >= 0x011600 */
+			(void)isc_quic_router_del_stateless_reset(
+				conn->router, token[i].token);
+#endif /* NGTCP2_VERSION_NUM >= 0x011600 */
+		}
+	}
+	isc_mem_cput(mctx, token, len, sizeof(*token));
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	ngcid = UNCONST(ngtcp2_conn_get_dcid2(conn->inner));
+#else  /* NGTCP2_VERSION_NUM >= 0x011700 */
+	ngcid = UNCONST(ngtcp2_conn_get_dcid(conn->inner));
+#endif /* NGTCP2_VERSION_NUM >= 0x011700 */
+	if (ngcid->datalen != 0) {
+		cid = (isc_constregion_t){ ngcid->datalen, ngcid->data };
+		(void)isc_quic_router_del_cid(conn->router, cid);
+	}
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	ngcid = UNCONST(ngtcp2_conn_get_client_initial_dcid2(conn->inner));
+#else  /* NGTCP2_VERSION_NUM >= 0x011700 */
+	ngcid = UNCONST(ngtcp2_conn_get_client_initial_dcid(conn->inner));
+#endif /* NGTCP2_VERSION_NUM >= 0x011700 */
+	if (ngcid->datalen != 0) {
+		cid = (isc_constregion_t){ ngcid->datalen, ngcid->data };
+		(void)isc_quic_router_del_cid(conn->router, cid);
+	}
 
 	return ISC_R_SUCCESS;
 }
 
 isc_result_t
-isc_quic_conn_server_create(
-	isc_mem_t *mctx, isc_quic_router_t *router,
-	const isc_quic_conn_callbacks_t *callbacks, void *callback_arg,
-	const isc_quic_conn_options_t *options ISC_ATTR_UNUSED,
-	isc_constregion_t initial_dcid ISC_ATTR_UNUSED,
-	isc_constregion_t initial_scid ISC_ATTR_UNUSED,
-	const isc_sockaddr_t *local ISC_ATTR_UNUSED,
-	const isc_sockaddr_t *peer ISC_ATTR_UNUSED, isc_quic_conn_t **connp) {
-	isc_quic_conn_t *conn;
+isc_quic_conn_handle_expiry(isc_quic_conn_t *conn) {
+	int r;
 
-	REQUIRE(connp != NULL && *connp == NULL);
+	REQUIRE(VALID_CONNECTION(conn));
 
-	conn = isc_mem_get(mctx, sizeof(*conn));
-	*conn = (isc_quic_conn_t){
-		.magic = conn_magic,
-		.references = ISC_REFCOUNT_INITIALIZER(1),
-		.router = isc_quic_router_ref(router),
-		.cb = callbacks,
-		.cbarg = callback_arg,
-		.mem = { .user_data = isc_mem_ref(mctx) },
+	r = ngtcp2_conn_handle_expiry(conn->inner, isc_time_monotonic());
+	if (r >= 0) {
+		return ISC_R_SUCCESS;
+	} else if (r == NGTCP2_ERR_IDLE_CLOSE) {
+		conn->state = QUIC_CONN_STATE_TERMINATED;
+		return ISC_R_TIMEDOUT;
+	}
+
+	isc_quic_conn_shutdown(conn);
+
+	return ISC_R_CANCELED;
+}
+
+isc_result_t
+isc_quic_conn_pull_packet(isc_quic_conn_t *conn, isc_region_t out,
+			  size_t *written, isc_sockaddr_t *from,
+			  isc_sockaddr_t *to) {
+	REQUIRE(VALID_CONNECTION(conn));
+	REQUIRE(out.base != NULL && out.length > 0 && written != NULL);
+
+	REQUIRE(conn->state < ARRAY_SIZE(state_table));
+
+	return state_table[conn->state].pull_packet(conn, out, written, from,
+						    to);
+}
+
+isc_result_t
+isc_quic_conn_push_packet(isc_quic_conn_t *conn, isc_constregion_t packet,
+			  isc_sockaddr_t *local, isc_sockaddr_t *peer) {
+	ngtcp2_path path;
+
+	REQUIRE(VALID_CONNECTION(conn));
+	REQUIRE(packet.base != NULL);
+
+	path = (ngtcp2_path){
+		.local = { (ngtcp2_sockaddr *)&local->type.sa, local->length },
+		.remote = { (ngtcp2_sockaddr *)&peer->type.sa, peer->length },
 	};
 
-	*connp = conn;
+	switch (ngtcp2_conn_read_pkt(conn->inner, &path, NULL, packet.base,
+				     packet.length, isc_time_monotonic()))
+	{
+	case 0:
+		return ISC_R_SUCCESS;
+	case NGTCP2_ERR_DROP_CONN:
+		return ISC_R_NOMORE;
+	case NGTCP2_ERR_DRAINING:
+		return ISC_R_CANCELED;
+	case NGTCP2_ERR_CLOSING:
+		return ISC_R_CANCELED;
+	case NGTCP2_ERR_CRYPTO:
+		return ISC_R_CRYPTOFAILURE;
+	case NGTCP2_ERR_RETRY:
+		/* TODO(aydin) address validation */
+		FALLTHROUGH;
+	default:
+		return ISC_R_FAILURE;
+	}
+}
+
+isc_result_t
+isc_quic_conn_shutdown_stream(isc_quic_conn_t *conn, int64_t stream_id,
+			      uint64_t application_code) {
+	REQUIRE(VALID_CONNECTION(conn));
+	REQUIRE(stream_id >= 0);
+
+	switch (ngtcp2_conn_shutdown_stream(conn->inner, 0x00, stream_id,
+					    application_code))
+	{
+	case 0:
+		return ISC_R_SUCCESS;
+	case NGTCP2_ERR_NOMEM:
+		return ISC_R_NOMEMORY;
+	default:
+		return ISC_R_FAILURE;
+	}
+}
+
+isc_nanosecs_t
+isc_quic_conn_next_expiry_time(isc_quic_conn_t *conn) {
+	REQUIRE(VALID_CONNECTION(conn));
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	return ngtcp2_conn_get_expiry2(conn->inner);
+#else
+	return ngtcp2_conn_get_expiry(conn->inner);
+#endif
+}
+
+isc_result_t
+isc_quic_conn_open_bidi_stream(isc_quic_conn_t *conn, int64_t *stream_idp,
+			       void *user_data) {
+	isc__quic_stream_t *stream;
+	int r;
+
+	REQUIRE(VALID_CONNECTION(conn));
+	REQUIRE(stream_idp != NULL && user_data != NULL);
+
+	CHECK_STATE(conn, QUIC_CONN_STATE_CONNECTED);
+
+	stream = isc_mem_get(conn->mem.user_data, sizeof(*stream));
+
+	/*
+	 * To get the stream ID for `isc__quic_stream_t`, we need to pass the
+	 * `isc__quic_stream_t` pointer to `ngtcp2_conn_open_bidi_stream`.
+	 *
+	 * Thus, we initialize the values of `stream` after this call.
+	 */
+	r = ngtcp2_conn_open_bidi_stream(conn->inner, stream_idp, stream);
+	if (r != 0) {
+		isc_mem_put(conn->mem.user_data, stream, sizeof(*stream));
+		switch (r) {
+		case NGTCP2_ERR_NOMEM:
+			return ISC_R_NOMEMORY;
+		case NGTCP2_ERR_STREAM_ID_BLOCKED:
+			return ISC_R_IOERROR;
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	*stream = (isc__quic_stream_t){
+		.id = *stream_idp,
+		.data = user_data,
+		.ack_data = ISC_LIST_INITIALIZER,
+		.link = ISC_LINK_INITIALIZER,
+	};
+
+	ISC_LIST_APPEND(conn->streams, stream, link);
+
+	return ISC_R_SUCCESS;
+}
+
+isc_result_t
+isc_quic_conn_push_stream_data(isc_quic_conn_t *conn, int64_t stream_id,
+			       const uint8_t *data, size_t len) {
+	isc__quic_stream_data_t *outgoing;
+
+	REQUIRE(VALID_CONNECTION(conn));
+	REQUIRE(data != NULL && len != 0);
+
+#if NGTCP2_VERSION_NUM >= 0x011700 /* 1.23.0 */
+	if (ngtcp2_conn_get_stream_user_data2(conn->inner, stream_id) == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+#else  /* NGTCP2_VERSION_NUM >= 0x011700 */
+	if (ngtcp2_conn_get_stream_user_data(conn->inner, stream_id) == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+#endif /* NGTCP2_VERSION_NUM >= 0x011700 */
+
+	outgoing = isc_mem_get(conn->mem.user_data,
+			       STRUCT_FLEX_SIZE(outgoing, bytes, len));
+	*outgoing = (isc__quic_stream_data_t){
+		.stream_id = stream_id,
+		.length = len,
+		.link = ISC_LINK_INITIALIZER,
+	};
+	memmove(outgoing->bytes, data, len);
+
+	ISC_LIST_APPEND(conn->outgoing_stream_data, outgoing, link);
 
 	return ISC_R_SUCCESS;
 }
