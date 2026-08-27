@@ -42,9 +42,11 @@ isc_stdtime_now(void) {
 #include <isc/stdtime.h>
 #include <isc/urcu.h>
 
+#include <dns/callbacks.h>
 #include <dns/deleg.h>
 #include <dns/fixedname.h>
 #include <dns/lib.h>
+#include <dns/master.h>
 #include <dns/name.h>
 
 /*
@@ -812,12 +814,223 @@ longnametests(ISC_ATTR_UNUSED void *arg) {
 	shutdowntest(&db);
 }
 
+static isc_result_t
+lookupdb_roothints(dns_delegdb_t *db, const char *namestr, isc_stdtime_t now,
+		   const char *expectedzcstr) {
+	isc_result_t result;
+	dns_fixedname_t fname, fexpectedzc, fzonecut;
+	dns_delegset_t *delegset = NULL;
+	dns_name_t *name = dns_fixedname_initname(&fname),
+		   *expectedzc = dns_fixedname_initname(&fexpectedzc),
+		   *zonecut = dns_fixedname_initname(&fzonecut);
+
+	if (expectedzcstr != NULL) {
+		dns_name_fromstring(expectedzc, expectedzcstr, NULL, 0, NULL);
+	}
+	dns_name_fromstring(name, namestr, NULL, 0, NULL);
+	result = dns_delegdb_lookup(db, name, now, DNS_DBFIND_HINTOK, zonecut,
+				    NULL, &delegset);
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_EXPIRED) {
+		assert_non_null(delegset);
+		assert_non_null(expectedzcstr);
+		assert_true(dns_name_equal(zonecut, expectedzc));
+		dns_delegset_detach(&delegset);
+	} else {
+		assert_null(delegset);
+	}
+
+	return result;
+}
+
+static void
+roothintstests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_deleg_t *deleg = NULL;
+	dns_delegset_t *delegset = NULL;
+	isc_result_t result;
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", 0, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, "foo.", 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	result = lookupdb_roothints(db, ".", 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	/*
+	 * With non expired TTL
+	 */
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", isc_stdtime_now() + 3000, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, ".", 0, ".");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/*
+	 * Override of non expired TTL
+	 */
+	dns_delegset_allocset(db, &delegset);
+	dns_delegset_allocdeleg(delegset, DNS_DELEGTYPE_NS_GLUES, &deleg);
+	addipdeleg(AF_INET, "1.2.3.4", delegset, deleg);
+	writedb(db, ".", 0, &delegset, true);
+	deleg = NULL;
+
+	result = lookupdb_roothints(db, "foo.", 0, ".");
+	assert_int_equal(result, DNS_R_EXPIRED);
+
+	shutdowntest(&db);
+}
+
+static size_t
+countaddrs(dns_delegset_t *delegset) {
+	size_t count = 0;
+
+	ISC_LIST_FOREACH(delegset->delegs, deleg, link) {
+		ISC_LIST_FOREACH(deleg->addresses, address, link) {
+			count++;
+		}
+	}
+
+	return count;
+}
+
+static void
+assert_hasaddr(dns_delegset_t *delegset, unsigned int af, const char *addrstr) {
+	isc_netaddr_t expected = { .family = af };
+
+	assert_int_equal(inet_pton(af, addrstr, &expected.type), 1);
+
+	ISC_LIST_FOREACH(delegset->delegs, deleg, link) {
+		ISC_LIST_FOREACH(deleg->addresses, address, link) {
+			if (isc_netaddr_equal(&address->addr, &expected)) {
+				return;
+			}
+		}
+	}
+
+	fail_msg("address %s not found in delegset", addrstr);
+}
+
+static void
+roothintsloadtests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_delegset_t *delegset = NULL;
+	dns_rdatacallbacks_t callbacks;
+	isc_buffer_t source;
+	isc_result_t result;
+	static char hints[] =
+		". 518400 IN NS a.root-servers.test.\n"
+		". 518400 IN NS b.root-servers.test.\n"
+		"a.root-servers.test. 518400 IN A 192.0.2.1\n"
+		"a.root-servers.test. 518400 IN A 192.0.2.2\n"
+		"a.root-servers.test. 518400 IN AAAA 2001:db8::1\n"
+		"b.root-servers.test. 518400 IN A 192.0.2.3\n";
+	size_t len = strlen(hints);
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_rdatacallbacks_init(&callbacks);
+	dns_delegdb_rootns_prepare(db, &callbacks);
+
+	isc_buffer_init(&source, hints, len);
+	isc_buffer_add(&source, len);
+	result = dns_master_loadbuffer(
+		&source, (dns_name_t *)dns_rootname, (dns_name_t *)dns_rootname,
+		dns_rdataclass_in, DNS_MASTER_HINT, &callbacks, isc_g_mctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_delegdb_rootns_commit(&callbacks);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_delegdb_rootns_cleanup(&callbacks);
+
+	/*
+	 * Hints are inserted with a TTL of 0, so the lookup reports them
+	 * as expired (which triggers priming), but still returns them.
+	 */
+	result = dns_delegdb_lookup(db, dns_rootname, 0, DNS_DBFIND_HINTOK,
+				    NULL, NULL, &delegset);
+	assert_int_equal(result, DNS_R_EXPIRED);
+	assert_non_null(delegset);
+
+	/*
+	 * Every glue address from the hints must be present, including
+	 * both A records of a.root-servers.test.
+	 */
+	assert_int_equal(countaddrs(delegset), 4);
+	assert_hasaddr(delegset, AF_INET, "192.0.2.1");
+	assert_hasaddr(delegset, AF_INET, "192.0.2.2");
+	assert_hasaddr(delegset, AF_INET6, "2001:db8::1");
+	assert_hasaddr(delegset, AF_INET, "192.0.2.3");
+
+	dns_delegset_detach(&delegset);
+	shutdowntest(&db);
+}
+
+static void
+roothintsloadfailtests(ISC_ATTR_UNUSED void *arg) {
+	dns_delegdb_t *db = NULL;
+	dns_delegset_t *delegset = NULL;
+	dns_rdatacallbacks_t callbacks;
+	isc_buffer_t source;
+	isc_result_t result;
+	static char hints[] =
+		". 518400 IN NS a.root-servers.test.\n"
+		". 518400 IN NS b.root-servers.test.\n"
+		"a.root-servers.test. 518400 IN A 192.0.2.1\n"
+		"b.root-servers.test. 518400 IN A not-an-address\n";
+	size_t len = strlen(hints);
+
+	dns_delegdb_create(&db);
+	assert_non_null(db);
+
+	dns_rdatacallbacks_init(&callbacks);
+	dns_delegdb_rootns_prepare(db, &callbacks);
+
+	isc_buffer_init(&source, hints, len);
+	isc_buffer_add(&source, len);
+	result = dns_master_loadbuffer(
+		&source, (dns_name_t *)dns_rootname, (dns_name_t *)dns_rootname,
+		dns_rdataclass_in, DNS_MASTER_HINT, &callbacks, isc_g_mctx);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+
+	dns_delegdb_rootns_cleanup(&callbacks);
+
+	/*
+	 * The partially loaded delegation set (it got the glue of
+	 * a.root-servers.test before the load failed) must not have been
+	 * inserted into the DB.
+	 */
+	result = dns_delegdb_lookup(db, dns_rootname, 0, DNS_DBFIND_HINTOK,
+				    NULL, NULL, &delegset);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_null(delegset);
+
+	shutdowntest(&db);
+}
+
 ISC_RUN_TEST_IMPL(dns_deleg_basictests) { rundelegtest(basictests); }
 ISC_RUN_TEST_IMPL(dns_deleg_ttltests) { rundelegtest(ttltests); }
 ISC_RUN_TEST_IMPL(dns_deleg_noexacttests) { rundelegtest(noexacttests); }
 ISC_RUN_TEST_IMPL(dns_deleg_deletetests) { rundelegtest(deletetests); }
 ISC_RUN_TEST_IMPL(dns_deleg_cleanuptests) { rundelegtest(cleanuptests); }
 ISC_RUN_TEST_IMPL(dns_deleg_longnametests) { rundelegtest(longnametests); }
+ISC_RUN_TEST_IMPL(dns_deleg_roothints) { rundelegtest(roothintstests); }
+ISC_RUN_TEST_IMPL(dns_deleg_roothintsload) { rundelegtest(roothintsloadtests); }
+ISC_RUN_TEST_IMPL(dns_deleg_roothintsloadfail) {
+	rundelegtest(roothintsloadfailtests);
+}
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(dns_deleg_basictests)
@@ -826,6 +1039,9 @@ ISC_TEST_ENTRY(dns_deleg_noexacttests)
 ISC_TEST_ENTRY(dns_deleg_deletetests)
 ISC_TEST_ENTRY(dns_deleg_cleanuptests)
 ISC_TEST_ENTRY(dns_deleg_longnametests)
+ISC_TEST_ENTRY(dns_deleg_roothints)
+ISC_TEST_ENTRY(dns_deleg_roothintsload)
+ISC_TEST_ENTRY(dns_deleg_roothintsloadfail)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

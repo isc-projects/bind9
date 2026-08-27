@@ -102,7 +102,6 @@ static ns_server_t *sctx = NULL;
 static ns_interface_t *ifp = NULL;
 static dns_dispatch_t *dispatch4 = NULL;
 static dns_dispatch_t *dispatch6 = NULL;
-static dns_db_t *roothints = NULL;
 static isc_stats_t *resstats = NULL;
 static isc_statsmulti_t *resquerystats = NULL;
 static FILE *logfp = NULL;
@@ -2017,8 +2016,7 @@ recvresponse(void *arg) {
 				options |= DNS_DBFIND_PENDINGOK;
 			}
 			result = dns_view_simplefind(view, name, rdataset->type,
-						     0, options, false, &rds,
-						     &sigs);
+						     0, options, &rds, &sigs);
 			if (result == ISC_R_SUCCESS) {
 				printdata(&rds, name);
 				dns_rdataset_disassociate(&rds);
@@ -2163,12 +2161,9 @@ run_server(void *arg) {
 	dns_view_setmaxrestarts(view, restarts);
 	dns_view_setmaxqueries(view, maxtotal);
 	dns_view_setmaxdelegationservers(view, DEFAULT_MAX_DELEGATION_SERVERS);
-	dns_delegdb_create(&view->deleg);
 
-	CHECK(dns_rootns_create(isc_g_mctx, dns_rdataclass_in, hintfile,
-				&roothints));
-	dns_view_setrootdb(view, roothints);
-	dns_db_detach(&roothints);
+	dns_delegdb_create(&view->deleg);
+	CHECK(dns_rootns_filldelegdb(isc_g_mctx, hintfile, view->deleg));
 
 	view->qminimization = qmin;
 	view->qmin_strict = qmin_strict;

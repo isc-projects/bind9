@@ -456,14 +456,11 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		     const cfg_obj_t *alternates);
 
 static isc_result_t
-configure_rootdb(dns_view_t *view, const char *filename);
-
-static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
 	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
-	       bool is_catz_member, bool modify);
+	       bool is_catz_member, bool modify, const char **hintsfilename);
 
 static void
 configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
@@ -2332,7 +2329,7 @@ catz_addmodzone_cb(void *arg) {
 		cz->cbd->server->effectiveconfig, zoneobj,
 		view->newzone.vconfig, view, &cz->cbd->server->viewlist,
 		&cz->cbd->server->kasplist, cz->cbd->server->aclctx, true,
-		false, true, cz->mod);
+		false, true, cz->mod, NULL);
 	dns_view_freeze(view);
 	isc_loopmgr_resume();
 
@@ -2598,7 +2595,7 @@ catz_reconfigure(dns_catz_entry_t *entry, void *arg1, void *arg2) {
 	result = configure_zone(
 		data->config, zoneobj, view->newzone.vconfig, view,
 		&data->cbd->server->viewlist, &data->cbd->server->kasplist,
-		data->cbd->server->aclctx, true, false, true, true);
+		data->cbd->server->aclctx, true, false, true, true, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_ERROR,
@@ -3683,7 +3680,8 @@ configure_max_cache_size(dns_view_t *view, const cfg_obj_t *maps[4]) {
 
 static isc_result_t
 configure_view_delegdb(const cfg_obj_t **maps, dns_view_t *pview,
-		       dns_view_t *view, size_t cachesz) {
+		       dns_view_t *view, size_t cachesz,
+		       const char *hintsfilename) {
 	isc_result_t result;
 	const cfg_obj_t *obj;
 	uint32_t minttl, maxttl;
@@ -3715,12 +3713,21 @@ configure_view_delegdb(const cfg_obj_t **maps, dns_view_t *pview,
 			"When 'min-delegation-ttl' and 'max-delegation-ttl' "
 			"are both positive, 'min-delegation-ttl' must be "
 			"strictly less than 'max-delegation-ttl'");
-		result = ISC_R_RANGE;
-	} else {
-		dns_delegdb_config_t config = { .dbsize = cachesz,
-						.minttl = minttl,
-						.maxttl = maxttl };
-		dns_delegdb_setconfig(view->deleg, &config);
+		return ISC_R_RANGE;
+	}
+
+	dns_delegdb_config_t config = { .dbsize = cachesz,
+					.minttl = minttl,
+					.maxttl = maxttl };
+	dns_delegdb_setconfig(view->deleg, &config);
+
+	/*
+	 * Fill the DB with root hints. That will override an existing root
+	 * hint (on reload/reconfig). No point setting root hints for CHAOS.
+	 */
+	if (view->rdclass == dns_rdataclass_in) {
+		result = dns_rootns_filldelegdb(view->mctx, hintsfilename,
+						view->deleg);
 	}
 
 	return result;
@@ -3801,6 +3808,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_adb_t *adb = NULL;
 	bool oldcache = false;
 	uint32_t padding;
+	const char *hintsfilename = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -3867,7 +3875,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view, viewlist,
 				     kasplist, aclctx, false, old_rpz_ok, false,
-				     false));
+				     false, &hintsfilename));
 		zone_element_latest = element;
 	}
 
@@ -4370,7 +4378,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * Configure delegdb and detatch the previous viw which isn't needed
 	 * afterwards.
 	 */
-	result = configure_view_delegdb(maps, pview, view, cache_size_slice);
+	result = configure_view_delegdb(maps, pview, view, cache_size_slice,
+					hintsfilename);
 	if (pview != NULL) {
 		dns_view_detach(&pview);
 	}
@@ -4573,16 +4582,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	(void)named_config_get(maps, "dual-stack-servers", &alternates);
 	if (alternates != NULL) {
 		CHECK(configure_alternates(config, view, alternates));
-	}
-
-	/*
-	 * We have default root hints for class IN if we need them.
-	 * Each view gets its own rootdb so a priming response only
-	 * writes into that view's copy.  Other classes don't support
-	 * recursion and don't need hints.
-	 */
-	if (view->rdclass == dns_rdataclass_in && view->rootdb == NULL) {
-		CHECK(configure_rootdb(view, NULL));
 	}
 
 	/*
@@ -5562,21 +5561,6 @@ cleanup:
 }
 
 static isc_result_t
-configure_rootdb(dns_view_t *view, const char *filename) {
-	isc_result_t result;
-	dns_db_t *db;
-
-	db = NULL;
-	result = dns_rootns_create(view->mctx, view->rdclass, filename, &db);
-	if (result == ISC_R_SUCCESS) {
-		dns_view_setrootdb(view, db);
-		dns_db_detach(&db);
-	}
-
-	return result;
-}
-
-static isc_result_t
 configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 		     const cfg_obj_t *alternates) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -5969,7 +5953,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
 	       cfg_aclconfctx_t *aclctx, bool added, bool old_rpz_ok,
-	       bool is_catz_member, bool modify) {
+	       bool is_catz_member, bool modify, const char **hintsfilename) {
 	dns_view_t *pview = NULL; /* Production view */
 	dns_zone_t *zone = NULL;  /* New or reused zone */
 	dns_zone_t *raw = NULL;	  /* New or reused raw zone */
@@ -6104,9 +6088,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			CLEANUP(ISC_R_FAILURE);
 		}
 		if (dns_name_isroot(origin)) {
-			const char *hintsfile = cfg_obj_asstring(fileobj);
-
-			CHECK(configure_rootdb(view, hintsfile));
+			*hintsfilename = cfg_obj_asstring(fileobj);
 		} else {
 			isc_log_write(NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -7431,7 +7413,7 @@ configure_newzone(const cfg_obj_t *zconfig, cfg_obj_t *config,
 		  cfg_aclconfctx_t *aclctx, dns_kasplist_t *kasplist) {
 	return configure_zone(config, zconfig, vconfig, view,
 			      &named_g_server->viewlist, kasplist, aclctx, true,
-			      false, false, false);
+			      false, false, false, NULL);
 }
 
 /*%
@@ -11326,11 +11308,39 @@ static void
 flush_delegdb(dns_view_t *view) {
 	REQUIRE(view->deleg != NULL);
 
+	dns_delegdb_t *newdelegdb = NULL;
+	dns_delegset_t *roothints = NULL;
 	dns_delegdb_config_t config = dns_delegdb_getconfig(view->deleg);
+	isc_result_t result = dns_delegdb_lookup(view->deleg, dns_rootname, 0,
+						 DNS_DBFIND_HINTOK, NULL, NULL,
+						 &roothints);
+
+	dns_delegdb_create(&newdelegdb);
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_EXPIRED) {
+		dns_delegset_t *troothints = NULL;
+
+		dns_delegset_copy(roothints, newdelegdb, &troothints);
+		dns_delegset_detach(&roothints);
+		roothints = MOVE_OWNERSHIP(troothints);
+	} else {
+		INSIST(roothints == NULL);
+	}
 
 	dns_delegdb_detach(&view->deleg);
-	dns_delegdb_create(&view->deleg);
+	view->deleg = MOVE_OWNERSHIP(newdelegdb);
+
 	dns_delegdb_setconfig(view->deleg, &config);
+	if (roothints != NULL) {
+		/*
+		 * TTL of 0, so it will prime again next time root hints are
+		 * used.
+		 */
+		result = dns_delegset_insert(view->deleg, dns_rootname, 0,
+					     roothints);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_delegset_detach(&roothints);
+	}
 }
 
 isc_result_t
@@ -12275,7 +12285,7 @@ do_addzone(named_server_t *server, dns_view_t *view, dns_name_t *name,
 	result = configure_zone(server->effectiveconfig, zoneobj,
 				view->newzone.vconfig, view, &server->viewlist,
 				&server->kasplist, server->aclctx, true, false,
-				false, false);
+				false, false, NULL);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume();
@@ -12423,7 +12433,7 @@ do_modzone(named_server_t *server, dns_view_t *view, dns_name_t *name,
 	result = configure_zone(server->effectiveconfig, zoneobj,
 				view->newzone.vconfig, view, &server->viewlist,
 				&server->kasplist, server->aclctx, false, false,
-				false, true);
+				false, true, NULL);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume();

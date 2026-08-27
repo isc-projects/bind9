@@ -92,7 +92,7 @@ struct dns_delegset {
 	isc_refcount_t references;
 
 	dns_deleglist_t delegs;
-	isc_stdtime_t	expires;
+	isc_stdtime_t	expires; /* Overriden by the database when inserted. */
 
 	/*
 	 * Used only when a delegation is built from a local zone.
@@ -135,14 +135,26 @@ dns_delegdb_getconfig(dns_delegdb_t *delegdb);
  * detached once the caller is done with it. Even though `delegset` is not
  * const (for convenience with ISC_LIST_FOREACH macros, _attach, _detach
  * functions, etc.) the `delegset` _is_ a read-only object, and must not be
- * modified.
+ * modified. Few notes:
  *
- * If only the zonecut is needed from the caller, `delegset` can be NULL, it
- * won't be attached.
+ * - Parameter `delegset` is optional. If it is NULL, it won't be attached.
+ * - The zonecut is optional, but if non NULL, it must be a initialized and
+ *   attached to a buffer.
+ * - If `now` is 0, the actual expiration time is `isc_stdtime_now()`.
  *
- * The zonecut must be a initialized and attached to a buffer.
+ * Returns:
  *
- * If `now` is 0, the actual expiration time is `isc_stdtime_now()`.
+ * - `ISC_R_SUCCESS` in case of success (partial/exact match)
+ * - `DNS_R_EXPIRED` if not zonecut is the root and those are expired.
+ * - `ISC_R_NOTFOUND` if no match is found at all (although this should never
+ *   occurs since the root hints are loaded before the resolver kicks in).
+ *
+ * If a match or partial match for a (non root) expired delegation is
+ * found, the first non-expired parent delegation is returned, up to the root,
+ * which is still returned even if expired.
+ *
+ * Finally, if `includes_hint` is false, the DB acts as if there was no root
+ * hints.
  */
 isc_result_t
 dns_delegdb_lookup(dns_delegdb_t *db, const dns_name_t *name, isc_stdtime_t now,
@@ -161,6 +173,10 @@ dns_delegdb_lookup(dns_delegdb_t *db, const dns_name_t *name, isc_stdtime_t now,
  * (dns_deleg_writeanddetach()).
  *
  * This could be changed to run through those API calls also if needed.
+ *
+ * Supported options include DNS_DBFIND_ABOVE (only return matches higher
+ * in the tree than 'name') and DNS_DBFIND_HINTOK (include root hints if
+ * no better match is found).
  */
 void
 dns_delegset_allocset(dns_delegdb_t *db, dns_delegset_t **delegsetp);
@@ -237,10 +253,42 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 			    dns_delegset_t **delegsetp);
 
 /*
+ * Copy `src` (which might come from any DB or memory context) into
+ * `*delesetp`.  The memory context used to allocate `*delegsetp` (and
+ * internal sub-objects) comes from `db`.
+ *
+ * Note that the `expires` field is not copied, as this is only used
+ * internally in the DB after the delegset is added.
+ */
+void
+dns_delegset_copy(dns_delegset_t *src, dns_delegdb_t *db,
+		  dns_delegset_t **delegsetp);
+
+/*
  * Delete a delegation matching a name. If `tree` is true, this will also
  * delete all names below `name`.
  */
 isc_result_t
 dns_delegdb_delete(dns_delegdb_t *db, const dns_name_t *name, bool tree);
+
+/*
+ * These are used to load root hints from a master buffer/file into the
+ * delegdb. The `_rootns_prepare()` function initialize the `callbacks`
+ * object used by the master parser. After the load, `_rootns_commit()`
+ * inserts the collected root delegation into the DB; the caller must only
+ * invoke it when the load succeeded, so a hints file failing halfway
+ * through does not replace an existing root delegation with partial glues.
+ * It returns ISC_R_SUCCESS only if the delegdb now has a root NS entry
+ * with glues (or the hints file was completely empty). Finally,
+ * `_rootns_cleanup()` releases the state; it must always be called.
+ */
+void
+dns_delegdb_rootns_prepare(dns_delegdb_t *db, dns_rdatacallbacks_t *callbacks);
+
+isc_result_t
+dns_delegdb_rootns_commit(dns_rdatacallbacks_t *callbacks);
+
+void
+dns_delegdb_rootns_cleanup(dns_rdatacallbacks_t *callbacks);
 
 ISC_REFCOUNT_DECL(dns_delegdb);

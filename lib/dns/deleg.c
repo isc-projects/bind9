@@ -18,6 +18,7 @@
 #include <isc/urcu.h>
 #include <isc/uv.h>
 
+#include <dns/callbacks.h>
 #include <dns/deleg.h>
 #include <dns/name.h>
 #include <dns/qp.h>
@@ -202,7 +203,6 @@ dns_delegdb_create(dns_delegdb_t **delegdbp) {
 	isc_mem_t *mctx = NULL;
 	dns_delegdb_t *delegdb = NULL;
 
-	REQUIRE(isc_loop_get(isc_tid()) == isc_loop_main());
 	REQUIRE(delegdbp != NULL && *delegdbp == NULL);
 
 	isc_mem_create("dns_delegdb", &mctx);
@@ -236,6 +236,11 @@ qplru_destroy(qplru_t *qplru) {
 }
 
 inline static bool
+isrootnode(delegdb_node_t *node) {
+	return dns_name_isroot(&node->zonecut);
+}
+
+inline static bool
 isactive(delegdb_node_t *node, dns_ttl_t now) {
 	return node->delegset->expires > now;
 }
@@ -248,7 +253,7 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
 		delegdb_node_t *parent = NULL;
 		dns_qpchain_node(chain, len - 2, (void **)&parent, NULL);
 
-		if (isactive(parent, now)) {
+		if (isactive(parent, now) || isrootnode(parent)) {
 			*node = parent;
 			return;
 		}
@@ -258,9 +263,11 @@ getparentnode(dns_qpchain_t *chain, delegdb_node_t **node, dns_ttl_t now) {
 	/*
 	 * No active proper ancestor was found in the chain.  Signal
 	 * "no parent" so the caller does not mistake the original
-	 * matched node for an ancestor.
+	 * matched node for an ancestor. Except for root node.
 	 */
-	*node = NULL;
+	if (*node != NULL && !isrootnode(*node)) {
+		*node = NULL;
+	}
 }
 
 /*
@@ -276,10 +283,11 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 
 	dns_qpchain_t chain = {};
 	bool above = (options & DNS_DBFIND_ABOVE) != 0;
+	bool include_hint = (options & DNS_DBFIND_HINTOK) != 0;
 
 	REQUIRE(VALID_DELEGDB(delegdb));
 	REQUIRE(DNS_NAME_VALID(name));
-	REQUIRE(dns_name_hasbuffer(zonecut));
+	REQUIRE(zonecut == NULL || dns_name_hasbuffer(zonecut));
 	REQUIRE(deepestzonecut == NULL || dns_name_hasbuffer(deepestzonecut));
 
 	result = dns_qp_lookup(qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, &chain,
@@ -290,7 +298,7 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 	}
 	INSIST(VALID_DELEGDB_NODE(node));
 
-	if (deepestzonecut != NULL) {
+	if (zonecut != NULL && deepestzonecut != NULL) {
 		dns_name_copy(&node->zonecut, deepestzonecut);
 	}
 
@@ -310,21 +318,46 @@ deleg_lookup(dns_delegdb_t *delegdb, dns_qpread_t *qpr, const dns_name_t *name,
 		getparentnode(&chain, &node, now);
 	}
 
-	if (node != NULL && isactive(node, now)) {
-		dns_name_copy(&node->zonecut, zonecut);
+	/*
+	 * The (non root) expired node will be replaced when the resolver
+	 * fetches a fresh delegation, so there is no need to schedule explicit
+	 * cleanup here.  Stale nodes that are never replaced will
+	 * eventually be evicted by the SIEVE policy under memory
+	 * pressure.
+	 */
+	if (node == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+
+	if (isrootnode(node)) {
+		if (!include_hint) {
+			return ISC_R_NOTFOUND;
+		}
+
+		if (zonecut != NULL) {
+			dns_name_copy(&node->zonecut, zonecut);
+		}
+		INSIST(node->delegset);
+		dns_delegset_attach(node->delegset, delegsetp);
+
+		/*
+		 * The root delegation might be expired, but we still use it,
+		 * and return `DNS_R_EXPIRED` so the caller knows it needs to
+		 * run priming again.
+		 */
+		return isactive(node, now) ? ISC_R_SUCCESS : DNS_R_EXPIRED;
+	}
+
+	if (isactive(node, now)) {
+		if (zonecut != NULL) {
+			dns_name_copy(&node->zonecut, zonecut);
+		}
 		INSIST(node->delegset);
 		dns_delegset_attach(node->delegset, delegsetp);
 		ISC_SIEVE_MARK(node, visited);
 		return ISC_R_SUCCESS;
 	}
 
-	/*
-	 * The expired node will be replaced when the resolver fetches
-	 * a fresh delegation, so there is no need to schedule explicit
-	 * cleanup here.  Stale nodes that are never replaced will
-	 * eventually be evicted by the SIEVE policy under memory
-	 * pressure.
-	 */
 	return ISC_R_NOTFOUND;
 }
 
@@ -539,7 +572,6 @@ static size_t
 delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 		     const dns_name_t *zonecut, dns_delegset_t *delegset,
 		     delegdb_node_t **nodep) {
-	ttl = normalize_ttl(delegdb, ttl);
 	delegset->expires = ttl + now;
 
 	isc_region_t zonecut_r = { 0 };
@@ -565,6 +597,26 @@ delegdb_node_prepare(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
 	*nodep = node;
 
 	return delegdb_node_size(node);
+}
+
+static void
+insertroot(dns_delegdb_t *delegdb, isc_stdtime_t now, dns_ttl_t ttl,
+	   dns_delegset_t *delegset) {
+	delegdb_node_t *node = NULL;
+	dns_qp_t *qp = NULL;
+
+	(void)delegdb_node_prepare(delegdb, now, ttl, dns_rootname, delegset,
+				   &node);
+
+	dns_qpmulti_write(delegdb->qplru->nodes, &qp);
+
+	(void)dns_qp_deletename(qp, dns_rootname, DNS_DBNAMESPACE_NORMAL, NULL,
+				NULL);
+	(void)dns_qp_insert(qp, node, 0);
+	delegdb_node_unref(node);
+
+	dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	dns_qpmulti_commit(delegdb->qplru->nodes, &qp);
 }
 
 isc_result_t
@@ -596,6 +648,19 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	LIBDNS_DELEGDB_INSERT_START(delegdb, zonecutbuf);
 
 	/*
+	 * The root zone cut has special handling: it can be proactively
+	 * replaced (even if not expired), and must not be part of the LRU
+	 * list. It is fine to skip the reclamation phase for this, as it is
+	 * really an edge case to have to replace it anyway, and it avoids
+	 * riddling the insertion code with specific root checks.
+	 */
+	if (dns_name_isroot(zonecut)) {
+		insertroot(delegdb, now, ttl, delegset);
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	/*
 	 * First, check (without write txn) if the node already exists and is
 	 * still valid.
 	 */
@@ -616,6 +681,7 @@ dns_delegset_insert(dns_delegdb_t *delegdb, const dns_name_t *zonecut,
 	 * clean up expired/least recently used delegation, then allocate and
 	 * initialize a new node.
 	 */
+	ttl = normalize_ttl(delegdb, ttl);
 	size_t requested = delegdb_node_prepare(delegdb, now, ttl, zonecut,
 						delegset, &node) +
 			   delegset_size(delegset);
@@ -778,7 +844,7 @@ deleg_tostring_addresses(dns_deleg_t *deleg, FILE *fp) {
 
 static void
 delegset_tostring(const dns_name_t *zonecut, dns_delegset_t *delegset,
-		  isc_stdtime_t now, bool expired, FILE *fp) {
+		  isc_stdtime_t now, FILE *fp) {
 	ISC_LIST_FOREACH(delegset->delegs, deleg, link) {
 		isc_buffer_t zonecutb;
 		char bdata[DNS_NAME_FORMATSIZE];
@@ -786,8 +852,6 @@ delegset_tostring(const dns_name_t *zonecut, dns_delegset_t *delegset,
 
 		if (delegset->expires > now) {
 			ttl = delegset->expires - now;
-		} else {
-			INSIST(expired);
 		}
 
 		isc_buffer_init(&zonecutb, bdata, sizeof(bdata));
@@ -827,12 +891,11 @@ dns_delegdb_dump(dns_delegdb_t *delegdb, bool expired, FILE *fp) {
 
 	dns_qpiter_init(&qpr, &it);
 	while (dns_qpiter_next(&it, (void **)&node, NULL) == ISC_R_SUCCESS) {
-		if (!expired && !isactive(node, now)) {
+		if (!expired && !isactive(node, now) && !isrootnode(node)) {
 			continue;
 		}
 
-		delegset_tostring(&node->zonecut, node->delegset, now, expired,
-				  fp);
+		delegset_tostring(&node->zonecut, node->delegset, now, fp);
 	}
 
 	dns_qpread_destroy(delegdb->qplru->nodes, &qpr);
@@ -876,6 +939,41 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_tostruct(&rdata, &ns, NULL);
 		dns_delegset_addns(delegset, deleg, &ns.name);
+	}
+
+	*delegsetp = delegset;
+}
+
+void
+dns_delegset_copy(dns_delegset_t *src, dns_delegdb_t *db,
+		  dns_delegset_t **delegsetp) {
+	dns_delegset_t *delegset = NULL;
+
+	REQUIRE(DNS_DELEGSET_VALID(src));
+	REQUIRE(VALID_DELEGDB(db));
+	REQUIRE(delegsetp != NULL && *delegsetp == NULL);
+
+	dns_delegset_allocset(db, &delegset);
+	delegset->staticstub = src->staticstub;
+	delegset->expires = src->expires;
+
+	ISC_LIST_FOREACH(src->delegs, srcdeleg, link) {
+		dns_deleg_t *deleg = NULL;
+
+		dns_delegset_allocdeleg(delegset, srcdeleg->type, &deleg);
+
+		/*
+		 * Only one of these two loops will actually run; this
+		 * avoids having to do conditional checks depending on the
+		 * type.
+		 */
+		ISC_LIST_FOREACH(srcdeleg->addresses, addr, link) {
+			dns_delegset_addaddr(delegset, deleg, &addr->addr);
+		}
+
+		ISC_LIST_FOREACH(srcdeleg->names, name, link) {
+			addname(delegset, &deleg->names, name);
+		}
 	}
 
 	*delegsetp = delegset;
@@ -961,6 +1059,13 @@ dns_delegdb_delete(dns_delegdb_t *delegdb, const dns_name_t *name, bool tree) {
 	isc_result_t result = ISC_R_SHUTTINGDOWN;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
+	/*
+	 * Once added, the root node must always remain in the DB.
+	 */
+	if (dns_name_isroot(name)) {
+		return DNS_R_REFUSED;
+	}
+
 	if (LIBDNS_DELEGDB_DELETE_ENABLED()) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 	}
@@ -1036,4 +1141,155 @@ dns_delegdb_setconfig(dns_delegdb_t *delegdb,
 	delegdb->config = *config;
 
 	delegdb_setsize(delegdb, delegdb->config.dbsize);
+}
+
+typedef struct {
+	dns_delegdb_t *db;
+	dns_delegset_t *delegset;
+	dns_deleg_t *deleg;
+	bool empty_file;
+} delegdb_rootns_ctx_t;
+
+static isc_result_t
+delegdb_rootns_update(void *arg, const dns_name_t *name,
+		      dns_rdataset_t *rdataset, dns_diffop_t op DNS__DB_FLARG) {
+	delegdb_rootns_ctx_t *ctx = arg;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	ctx->empty_file = false;
+
+	if (op != DNS_DIFFOP_ADD) {
+		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	if (dns_name_isroot(name) && rdataset->type == dns_rdatatype_ns) {
+		/*
+		 * We don't need root NS names, we're only interested in the
+		 * glues. (Otherwise, no point of root hints...)
+		 *
+		 * Altough, let's fail (see below) if a non-root NS name is
+		 * defined here, as it doesn't make any sense.
+		 */
+		return ISC_R_SUCCESS;
+	}
+
+	if (rdataset->type != dns_rdatatype_a &&
+	    rdataset->type != dns_rdatatype_aaaa)
+	{
+		char namestr[DNS_NAME_FORMATSIZE];
+		char typestr[DNS_RDATATYPE_FORMATSIZE];
+
+		dns_name_format(name, namestr, sizeof(namestr));
+		dns_rdatatype_format(rdataset->type, typestr, sizeof(typestr));
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_HINTS,
+			      ISC_LOG_NOTICE,
+			      "hints loading has skipped the rdataset %s/%s",
+			      namestr, typestr);
+
+		/*
+		 * Do not fail the whole root hint loading, though this is
+		 * suspicious, hence the log.
+		 */
+		return ISC_R_SUCCESS;
+	}
+
+	DNS_RDATASET_FOREACH(rdataset) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_netaddr_t addr = {};
+
+		switch (rdataset->type) {
+		case dns_rdatatype_a: {
+			dns_rdata_in_a_t a;
+
+			dns_rdataset_current(rdataset, &rdata);
+			dns_rdata_tostruct(&rdata, &a, NULL);
+			addr.type.in = a.in_addr;
+			addr.family = AF_INET;
+			break;
+		}
+		case dns_rdatatype_aaaa: {
+			dns_rdata_in_aaaa_t aaaa;
+
+			dns_rdataset_current(rdataset, &rdata);
+			dns_rdata_tostruct(&rdata, &aaaa, NULL);
+			addr.type.in6 = aaaa.in6_addr;
+			addr.family = AF_INET6;
+			break;
+		}
+		default:
+			UNREACHABLE();
+		}
+
+		dns_delegset_addaddr(ctx->delegset, ctx->deleg, &addr);
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+void
+dns_delegdb_rootns_prepare(dns_delegdb_t *db, dns_rdatacallbacks_t *callbacks) {
+	REQUIRE(VALID_DELEGDB(db));
+	REQUIRE(DNS_CALLBACK_VALID(callbacks));
+
+	callbacks->update = delegdb_rootns_update;
+
+	delegdb_rootns_ctx_t *ctx = isc_mem_cget(db->mctx, 1, sizeof(*ctx));
+	dns_delegdb_attach(db, &ctx->db);
+	dns_delegset_allocset(db, &ctx->delegset);
+	dns_delegset_allocdeleg(ctx->delegset, DNS_DELEGTYPE_NS_GLUES,
+				&ctx->deleg);
+	ctx->empty_file = true;
+	callbacks->add_private = ctx;
+}
+
+isc_result_t
+dns_delegdb_rootns_commit(dns_rdatacallbacks_t *callbacks) {
+	delegdb_rootns_ctx_t *ctx = callbacks->add_private;
+	isc_result_t result;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	/*
+	 * The root hints file was empty, this is not really an error.
+	 */
+	if (ctx->empty_file) {
+		INSIST(ISC_LIST_EMPTY(ctx->deleg->addresses));
+		return ISC_R_SUCCESS;
+	}
+
+	/*
+	 * No matter what there was in the root hints file, there were no
+	 * glues at all.
+	 */
+	if (ISC_LIST_EMPTY(ctx->deleg->addresses)) {
+		return ISC_R_FAILURE;
+	}
+
+	/*
+	 * Root NS delegset insertion can't fail. TTL of 0, so it will prime
+	 * first time root hints are used.
+	 */
+	result = dns_delegset_insert(ctx->db, dns_rootname, 0, ctx->delegset);
+	INSIST(result == ISC_R_SUCCESS);
+
+	return result;
+}
+
+void
+dns_delegdb_rootns_cleanup(dns_rdatacallbacks_t *callbacks) {
+	delegdb_rootns_ctx_t *ctx = callbacks->add_private;
+	dns_delegdb_t *db = NULL;
+
+	REQUIRE(VALID_DELEGDB(ctx->db));
+	REQUIRE(DNS_DELEGSET_VALID(ctx->delegset));
+
+	dns_delegdb_attach(ctx->db, &db);
+	dns_delegset_detach(&ctx->delegset);
+	dns_delegdb_detach(&ctx->db);
+	isc_mem_cput(db->mctx, ctx, 1, sizeof(*ctx));
+	callbacks->add_private = NULL;
+	dns_delegdb_detach(&db);
 }

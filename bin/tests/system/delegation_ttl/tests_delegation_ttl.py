@@ -83,3 +83,16 @@ def test_delegdb_ttl_default_5(ns2, templates):
 def test_delegdb_ttl_10_5(ns2, templates):
     templates.render("ns2/named.conf", {"minttl": 10, "maxttl": 5})
     check_ttl_error(ns2)
+
+
+# When the invalid TTL combination only exists at view level (here the
+# explicit max is lower than the default min), the config checker can't
+# see it, so it must be caught when the view is configured.
+def test_delegdb_ttl_default_5_view(ns2, templates):
+    templates.render("ns2/named.conf", {"maxttl": 5, "inview": True})
+    check_ttl_error(ns2)
+
+
+def test_delegdb_ttl_10_5_view(ns2, templates):
+    templates.render("ns2/named.conf", {"minttl": 10, "maxttl": 5, "inview": True})
+    check_ttl_error(ns2)

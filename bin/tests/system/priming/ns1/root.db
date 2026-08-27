@@ -1,0 +1,4 @@
+$TTL 300
+.			IN SOA	a.root-servers.nil. hostmaster.nil. 1 3600 1200 604800 300
+.			IN NS	a.root-servers.nil.
+a.root-servers.nil.	IN A	10.53.0.1

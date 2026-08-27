@@ -3099,7 +3099,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		}
 		result = dns_view_simplefind(view, &sig.signer,
 					     dns_rdatatype_key /* SIG(0) */, 0,
-					     0, false, &keyset, NULL);
+					     0, &keyset, NULL);
 
 		if (result != ISC_R_SUCCESS) {
 			result = DNS_R_KEYUNAUTHORIZED;
