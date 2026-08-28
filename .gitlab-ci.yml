@@ -328,7 +328,7 @@ stages:
   - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/ && $REBASE_ONLY != "1"'
 
 .rule_branch_after_autorebase: &rule_branch_after_autorebase
-  - if: '$CI_PIPELINE_SOURCE == "push" && $AUTOREBASED == "1"'
+  - if: '$CI_PIPELINE_SOURCE == "push" && $AUTOREBASE_JOB != null'
 
 .api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
   rules:
@@ -2531,7 +2531,7 @@ merged-metadata:
     - *configure
     - meson compile -C build
     - git range-diff --color=always "${BASE_COMMIT}" "${CI_COMMIT_SHA}" HEAD
-    - if ! git push --force-with-lease -o ci.variable="AUTOREBASED=1" origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
+    - if ! git push --force-with-lease -o ci.variable="AUTOREBASE_JOB=${CI_JOB_URL}" origin "HEAD:${CI_COMMIT_REF_NAME}"; then touch .git-push-failed; exit 1; fi
   after_script:
     - if [ "${CI_JOB_STATUS}" = "success" ]; then exit 0; fi
     - |
