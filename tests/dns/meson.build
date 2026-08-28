@@ -21,6 +21,7 @@ dns_tests = [
     'diff',
     'dispatch',
     'dns64',
+    'dnssecsignstats',
     'dst',
     'ede',
     'keytable',
