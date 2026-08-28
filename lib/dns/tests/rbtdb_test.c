@@ -473,7 +473,8 @@ proof_rdataset_survives_expiration_cleanup_test(void **state) {
 
 	ISC_LIST_APPEND(proofname->list, &nsecset, link);
 	ISC_LIST_APPEND(proofname->list, &sigset, link);
-	result = dns_rdataset_addnoqname(&oldset, proofname);
+	result = dns_rdataset_addnoqname(&oldset, proofname,
+					 dns_rdatatype_nsec);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_findnode(db, name, true, &node);
