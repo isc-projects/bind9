@@ -73,7 +73,8 @@ typedef struct dns_rdatasetmethods {
 					 dns_rdataset_t *target);
 	unsigned int		(*count)(dns_rdataset_t *rdataset);
 	isc_result_t		(*addnoqname)(dns_rdataset_t *rdataset,
-					      dns_name_t *name);
+					      dns_name_t *name,
+					      dns_rdatatype_t type);
 	isc_result_t		(*getnoqname)(dns_rdataset_t *rdataset,
 					      dns_name_t *name,
 					      dns_rdataset_t *neg,
@@ -511,17 +512,26 @@ dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+			dns_rdatatype_t type);
 /*%<
- * Associate a noqname proof with this record.
+ * Associate a noqname proof with this record: the rdataset of 'type'
+ * (NSEC or NSEC3) at 'name' together with the RRSIG rdataset covering it.
  * Sets #DNS_RDATASETATTR_NOQNAME if successful.
  * Adjusts the 'rdataset->ttl' to minimum of the 'rdataset->ttl' and
  * the 'nsec'/'nsec3' and 'rrsig(nsec)'/'rrsig(nsec3)' ttl.
  *
  * Requires:
- *\li	'rdataset' to be valid and #DNS_RDATASETATTR_NOQNAME to be set.
- *\li	'name' to be valid and have NSEC or NSEC3 and associated RRSIG
- *	 rdatasets.
+ *\li	'rdataset' to be valid.
+ *\li	'name' to be valid.
+ *\li	'type' to be dns_rdatatype_nsec or dns_rdatatype_nsec3.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTFOUND if 'name' has no rdataset of 'type' or no RRSIG
+ *	 rdataset covering it.
+ *\li	#ISC_R_NOTIMPLEMENTED if the rdataset implementation does not
+ *	 support noqname proofs.
  */
 
 isc_result_t
