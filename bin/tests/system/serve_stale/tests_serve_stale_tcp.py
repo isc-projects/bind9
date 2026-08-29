@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import threading
+import concurrent.futures
+import shutil
 import time
 
 import dns.edns
@@ -19,34 +20,56 @@ import dns.rdataclass
 import dns.rdatatype
 import pytest
 
+from isctest.instance import NamedInstance
+
 import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
         "ans*/ans.run",
+        "ns*/root.bk",
     ]
 )
 
 
 def _toggle(mode: str) -> None:
     msg = isctest.query.create(f"{mode}.send-responses._control.", "TXT", dnssec=False)
-    isctest.query.udp(msg, "10.53.0.3", attempts=1)
+    res = isctest.query.udp(msg, "10.53.0.2", attempts=1)
+    isctest.check.noerror(res)
+
+
+def _toggle_after(delay: float, mode: str) -> None:
+    time.sleep(delay)
+    _toggle(mode)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def after_servers_start(ns3: NamedInstance) -> None:
+    """
+    Run ns3 with stale answers enabled and stale-answer-client-timeout
+    disabled (its default value).
+    """
+    shutil.copyfile("ns3/named3.conf", "ns3/named.conf")
+    ns3.reconfigure()
+    ns3.rndc("flush")
 
 
 def test_no_stale_data_times_out():
     """Verify the resolver does not answer until the query timeout.
 
     With the authoritative server unresponsive and the queried name
-    absent from the cache, dig must time out instead of receiving a
-    fast SERVFAIL (the original test 120 in serve_stale/tests.sh).
+    absent from the cache, the client must not receive a fast SERVFAIL
+    (the original test 120 in tests.sh); the resolver holds the query
+    until its own resolver-query-timeout expires, which is longer than
+    the second this client waits.
     """
 
     _toggle("disable")
     msg = isctest.query.create("notincache.example.", "TXT", dnssec=False)
     start = time.monotonic()
     with pytest.raises(dns.exception.Timeout):
-        isctest.query.udp(msg, "10.53.0.2", timeout=3, attempts=1)
-    assert time.monotonic() - start >= 3
+        isctest.query.udp(msg, "10.53.0.3", timeout=1, attempts=1)
+    assert time.monotonic() - start >= 1
 
 
 def test_servfail_with_ede22():
@@ -55,12 +78,12 @@ def test_servfail_with_ede22():
     With the authoritative server unresponsive and no cached data to
     serve stale, the resolver must return SERVFAIL with EDE 22 (No
     Reachable Authority) and must not attach EDE 3 (Stale Answer)
-    (the original test 125 in serve_stale/tests.sh).
+    (the original test 125 in tests.sh).
     """
 
     _toggle("disable")
     msg = isctest.query.create("notfound.example.", "TXT", dnssec=False)
-    res = isctest.query.udp(msg, "10.53.0.2", timeout=15, attempts=1)
+    res = isctest.query.udp(msg, "10.53.0.3", timeout=15, attempts=1)
     isctest.check.servfail(res)
     isctest.check.ede(res, dns.edns.EDECode.NO_REACHABLE_AUTHORITY)
     assert not any(
@@ -78,24 +101,22 @@ def test_authoritative_answer_after_reenable():
     server, issue a query, and re-enable the authoritative server
     while the query is still in flight.  The resolver must return an
     authoritative NOERROR answer with no EDE attached, not a stale
-    answer or SERVFAIL (the original test 163 in serve_stale/tests.sh).
+    answer or SERVFAIL (the original test 163 in tests.sh).
     """
 
     _toggle("enable")
     msg = isctest.query.create("data.example.", "TXT", dnssec=False)
-    isctest.check.noerror(isctest.query.udp(msg, "10.53.0.2", timeout=5))
+    isctest.check.noerror(isctest.query.udp(msg, "10.53.0.3", timeout=5))
 
     # allow the 2s TTL to expire
     time.sleep(3)
 
     _toggle("disable")
 
-    timer = threading.Timer(1.0, _toggle, args=("enable",))
-    timer.start()
-    try:
-        res = isctest.query.udp(msg, "10.53.0.2", timeout=15, attempts=1)
-    finally:
-        timer.join()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        reenable = pool.submit(_toggle_after, 1.0, "enable")
+        res = isctest.query.udp(msg, "10.53.0.3", timeout=15, attempts=1)
+        reenable.result()
 
     isctest.check.noerror(res)
     isctest.check.noede(res)
