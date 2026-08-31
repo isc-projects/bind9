@@ -20,7 +20,7 @@ from collections.abc import (
     Sequence,
 )
 from dataclasses import dataclass, field
-from typing import Any, Literal, cast, final
+from typing import Any, ClassVar, Literal, cast, final
 
 import abc
 import asyncio
@@ -356,54 +356,56 @@ class QueryContext:
 
         return dns.rrset.from_rdata(signed.name, signed.ttl, rdata)
 
-    @functools.cached_property
+    @property
     def nsecx(self) -> "NonExistenceProver":
-        return NonExistenceProver.for_query_context(self)
+        if not self.zone:
+            raise RuntimeError(
+                "Non-existence proof requested for a query context that did not match any zone"
+            )
+
+        return NonExistenceProver.for_query(
+            self.zone, self.current_qname, self.qclass, self.response
+        )
 
 
 class NonExistenceException(Exception):
     pass
 
 
+@dataclass(frozen=True)
 class NonExistenceProver(abc.ABC):
     """
     Base class for NSEC/NSEC3 implementations that add RRsets required by the
     relevant RFCs to negative DNS responses created from zone data.
     """
 
-    proof_rdatatype: dns.rdatatype.RdataType
-    _provers: dict[dns.rdatatype.RdataType, type["NonExistenceProver"]] = {}
+    zone: dns.zone.Zone
+    qname: dns.name.Name
+    qclass: dns.rdataclass.RdataClass
+    response: dns.message.Message
+
+    proof_rdatatype: ClassVar[dns.rdatatype.RdataType]
+    _provers: ClassVar[dict[dns.rdatatype.RdataType, type["NonExistenceProver"]]] = {}
 
     def __init_subclass__(cls) -> None:
         assert cls.proof_rdatatype not in cls._provers
         cls._provers[cls.proof_rdatatype] = cls
 
     @classmethod
-    def for_query_context(cls, qctx: QueryContext) -> "NonExistenceProver":
-        if not qctx.zone:
-            raise RuntimeError(
-                "Non-existence proof requested for a query context that did not match any zone"
-            )
-
+    def for_query(
+        cls,
+        zone: dns.zone.Zone,
+        qname: dns.name.Name,
+        qclass: dns.rdataclass.RdataClass,
+        response: dns.message.Message,
+    ) -> "NonExistenceProver":
         for proof_rdatatype, prover_class in cls._provers.items():
-            if next(qctx.zone.iterate_rdatasets(proof_rdatatype), None):
-                return prover_class(qctx)
+            if next(zone.iterate_rdatasets(proof_rdatatype), None):
+                return prover_class(zone, qname, qclass, response)
 
         raise RuntimeError(
             "Non-existence proof requested for a zone with no NSEC(3) records"
         )
-
-    def __init__(self, qctx: QueryContext) -> None:
-        self._qctx = qctx
-
-    @property
-    def _zone(self) -> dns.zone.Zone:
-        assert self._qctx.zone
-        return self._qctx.zone
-
-    @property
-    def _qname(self) -> dns.name.Name:
-        return self._qctx.current_qname
 
     @abc.abstractmethod
     def prove_no_ds(self, name: dns.name.Name) -> None:
@@ -418,7 +420,7 @@ class NonExistenceProver(abc.ABC):
         raise NotImplementedError
 
     def prove_nodata(self) -> None:
-        if self._zone.get_node(self._qname):
+        if self.zone.get_node(self.qname):
             self._prove_nodata_no_wildcard()
             return
 
@@ -433,7 +435,7 @@ class NonExistenceProver(abc.ABC):
         raise NotImplementedError
 
     def prove_noerror(self) -> None:
-        if self._zone.get_node(self._qname):
+        if self.zone.get_node(self.qname):
             return
 
         self._prove_noerror_wildcard()
@@ -457,12 +459,12 @@ class NonExistenceProver(abc.ABC):
 
     @property
     def _wildcard_for_closest_encloser(self) -> dns.name.Name:
-        closest_encloser_name, _ = self._get_closest_encloser(self._qname)
+        closest_encloser_name, _ = self._get_closest_encloser(self.qname)
         return dns.name.from_text("*", origin=closest_encloser_name)
 
     @functools.cached_property
     def _chain(self) -> tuple[dns.name.Name, ...]:
-        proof_rdatasets = self._zone.iterate_rdatasets(self.proof_rdatatype)
+        proof_rdatasets = self.zone.iterate_rdatasets(self.proof_rdatatype)
         return tuple(sorted(n for n, _ in proof_rdatasets))
 
     def _add_chain_element_matching(self, name: dns.name.Name) -> None:
@@ -473,25 +475,25 @@ class NonExistenceProver(abc.ABC):
         self._add_rrset_with_rrsig(self._chain[index - 1])
 
     def _add_rrset_with_rrsig(self, owner: dns.name.Name) -> None:
-        node = self._zone.get_node(owner)
+        node = self.zone.get_node(owner)
         assert node
 
-        rdataset = node.get_rdataset(self._qctx.qclass, self.proof_rdatatype)
-        rrset = dns.rrset.RRset(owner, self._qctx.qclass, self.proof_rdatatype)
+        rdataset = node.get_rdataset(self.qclass, self.proof_rdatatype)
+        rrset = dns.rrset.RRset(owner, self.qclass, self.proof_rdatatype)
         rrset.update(rdataset)
 
         sigrdataset = node.get_rdataset(
-            self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
+            self.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
         )
         assert sigrdataset
         rrsig = dns.rrset.RRset(
-            owner, self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
+            owner, self.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
         )
         rrsig.update(sigrdataset)
 
-        if rrset not in self._qctx.response.authority:
-            self._qctx.response.authority.append(rrset)
-            self._qctx.response.authority.append(rrsig)
+        if rrset not in self.response.authority:
+            self.response.authority.append(rrset)
+            self.response.authority.append(rrsig)
 
 
 @final
@@ -503,21 +505,21 @@ class NsecNonExistenceProver(NonExistenceProver):
         self._add_nsec_matching(name)
 
     def prove_ent(self) -> None:
-        self._add_nsec_covering(self._qname)
+        self._add_nsec_covering(self.qname)
 
     def prove_nxdomain(self) -> None:
-        self._add_nsec_covering(self._qname)
+        self._add_nsec_covering(self.qname)
         self._add_nsec_covering(self._wildcard_for_closest_encloser)
 
     def _prove_nodata_no_wildcard(self) -> None:
-        self._add_nsec_matching(self._qname)
+        self._add_nsec_matching(self.qname)
 
     def _prove_nodata_wildcard(self) -> None:
-        self._add_nsec_covering(self._qname)
+        self._add_nsec_covering(self.qname)
         self._add_nsec_matching(self._wildcard_for_closest_encloser)
 
     def _prove_noerror_wildcard(self) -> None:
-        self._add_nsec_covering(self._qname)
+        self._add_nsec_covering(self.qname)
 
     def _add_nsec_matching(self, name: dns.name.Name) -> None:
         if name not in self._chain:
@@ -530,7 +532,7 @@ class NsecNonExistenceProver(NonExistenceProver):
         self._add_chain_element_covering(name)
 
     def _is_usable_encloser(self, name: dns.name.Name) -> bool:
-        return any(n.is_subdomain(name) for n in self._zone.nodes)
+        return any(n.is_subdomain(name) for n in self.zone.nodes)
 
 
 @final
@@ -542,28 +544,26 @@ class Nsec3NonExistenceProver(NonExistenceProver):
         self._add_nsec3_matching_or_closest_encloser_proof(name)
 
     def prove_ent(self) -> None:
-        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+        self._add_nsec3_matching_or_closest_encloser_proof(self.qname)
 
     def prove_nxdomain(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
+        self._add_closest_encloser_proof(self.qname)
         self._add_nsec3_covering(self._wildcard_for_closest_encloser)
 
     def _prove_nodata_no_wildcard(self) -> None:
-        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+        self._add_nsec3_matching_or_closest_encloser_proof(self.qname)
 
     def _prove_nodata_wildcard(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
+        self._add_closest_encloser_proof(self.qname)
         self._add_nsec3_matching(self._wildcard_for_closest_encloser)
 
     def _prove_noerror_wildcard(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
+        self._add_closest_encloser_proof(self.qname)
 
     def _get_nsec3_owner(self, name: dns.name.Name) -> dns.name.Name:
-        assert self._zone.origin
+        assert self.zone.origin
 
-        nsec3param = self._zone.get_rdataset(
-            self._zone.origin, dns.rdatatype.NSEC3PARAM
-        )
+        nsec3param = self.zone.get_rdataset(self.zone.origin, dns.rdatatype.NSEC3PARAM)
         assert nsec3param
 
         nsec3_hash = dns.dnssec.nsec3_hash(
@@ -572,7 +572,7 @@ class Nsec3NonExistenceProver(NonExistenceProver):
             nsec3param[0].iterations,
             nsec3param[0].algorithm,
         )
-        return dns.name.from_text(nsec3_hash, origin=self._zone.origin)
+        return dns.name.from_text(nsec3_hash, origin=self.zone.origin)
 
     def _add_nsec3_matching(self, name: dns.name.Name) -> None:
         nsec3_owner = self._get_nsec3_owner(name)
