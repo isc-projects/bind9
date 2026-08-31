@@ -375,7 +375,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -389,7 +389,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATHTTPTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -413,7 +413,7 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -422,12 +422,12 @@ void
 isc_time_formatISO8601TZms(const isc_time_t *t, char *buf, unsigned int len);
 /*%<
  * Format the time 't' into the buffer 'buf' of length 'len',
- * using the ISO8601 format: "yyyy-mm-ddThh:mm:ss.sss+hhmm"
+ * using the ISO8601 format: "yyyy-mm-ddThh:mm:ss.sss+hh:mm"
  * If the text does not fit in the buffer, the result is indeterminate,
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601TZMS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -441,7 +441,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -455,7 +455,7 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -469,7 +469,7 @@ isc_time_formatISO8601us(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601US_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -483,7 +483,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATSHORTTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
