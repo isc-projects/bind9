@@ -255,7 +255,8 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 
 	SET_IF_NOT_NULL(hash_length, len);
 
-	return dns_fixedname_fromnsec3hash(result, rethash, len, origin);
+	return dns_fixedname_fromnsec3hash(
+		result, (const dns_nsec3hash_t *)rethash, origin);
 }
 
 unsigned int

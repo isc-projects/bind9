@@ -13,10 +13,53 @@
 
 /*! \file */
 
-#include <isc/base32.h>
+#include <string.h>
+
+#include <isc/endian.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+
+static const unsigned char base32hex[] = "0123456789ABCDEFGHIJKLMNOPQRSTUV";
+
+static inline void
+base32hexnp_encode_block(uint64_t block, unsigned char *dst) {
+	dst[0] = base32hex[(block >> 59) & 0x1fU];
+	dst[1] = base32hex[(block >> 54) & 0x1fU];
+	dst[2] = base32hex[(block >> 49) & 0x1fU];
+	dst[3] = base32hex[(block >> 44) & 0x1fU];
+	dst[4] = base32hex[(block >> 39) & 0x1fU];
+	dst[5] = base32hex[(block >> 34) & 0x1fU];
+	dst[6] = base32hex[(block >> 29) & 0x1fU];
+	dst[7] = base32hex[(block >> 24) & 0x1fU];
+}
+
+static isc_result_t
+base32hexnp_encode(const dns_nsec3hash_t *hash, isc_buffer_t *target) {
+	const unsigned char *src = *hash;
+	unsigned char *dst;
+	uint64_t block;
+
+	if (isc_buffer_availablelength(target) < 32U) {
+		return ISC_R_NOSPACE;
+	}
+	dst = isc_buffer_used(target);
+
+	for (size_t offset = 0; offset < 15U; offset += 5U) {
+		memmove(&block, src, sizeof(block));
+		base32hexnp_encode_block(be64toh(block), dst);
+
+		src += 5;
+		dst += 8;
+	}
+
+	/* Load bytes 12..19, then discard the first three bytes. */
+	memmove(&block, (*hash) + 12, sizeof(block));
+	base32hexnp_encode_block(be64toh(block) << 24, dst);
+
+	isc_buffer_add(target, 32U);
+	return ISC_R_SUCCESS;
+}
 
 void
 dns_fixedname_init(dns_fixedname_t *fixed) {
@@ -42,22 +85,17 @@ dns_fixedname_initname(dns_fixedname_t *fixed) {
 }
 
 isc_result_t
-dns_fixedname_fromnsec3hash(dns_fixedname_t *fixed, const unsigned char *hash,
-			    size_t hash_length, const dns_name_t *origin) {
+dns_fixedname_fromnsec3hash(dns_fixedname_t *fixed, const dns_nsec3hash_t *hash,
+			    const dns_name_t *origin) {
 	isc_region_t origin_region;
-	isc_region_t source = {
-		.base = UNCONST(hash),
-		.length = (unsigned int)hash_length,
-	};
 
 	REQUIRE(fixed != NULL);
 	REQUIRE(hash != NULL);
 	REQUIRE(DNS_NAME_VALID(origin));
 
 	isc_buffer_clear(&fixed->buffer);
-	isc_buffer_putuint8(&fixed->buffer,
-			    (uint8_t)((hash_length * 8U + 4U) / 5U));
-	RETERR(isc_base32hexnp_totext(&source, -1, "", &fixed->buffer));
+	isc_buffer_putuint8(&fixed->buffer, 32U);
+	RETERR(base32hexnp_encode(hash, &fixed->buffer));
 
 	dns_name_toregion(origin, &origin_region);
 	RETERR(isc_buffer_copyregion(&fixed->buffer, &origin_region));
