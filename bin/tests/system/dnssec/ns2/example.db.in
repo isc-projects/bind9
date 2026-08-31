@@ -92,6 +92,9 @@ ns3.optout-unknown	A	10.53.0.3
 dnskey-unknown		NS	ns3.dnskey-unknown
 ns3.dnskey-unknown	A	10.53.0.3
 
+dnskey-163-unknown		NS	ns3.dnskey-163-unknown
+ns3.dnskey-163-unknown	A	10.53.0.3
+
 dnskey-unsupported	NS	ns3.dnskey-unsupported
 ns3.dnskey-unsupported	A	10.53.0.3
 
