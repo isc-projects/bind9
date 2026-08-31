@@ -34,6 +34,13 @@ Stick to existing conventions unless the maintainer asks otherwise.
 
 Work top to bottom. Details for every step: **[REFERENCE.md](REFERENCE.md)**.
 Helper scripts (pure-local git/text + JSON parsing) are in `scripts/`.
+The whole workflow operates on a single release branch/checkout — one
+`<ver>` at a time.
+
+**Where the work pauses:** the flags produced by steps 3 and 4 need
+maintainer decisions, but do not block on them — carry on with steps 5–7
+for everything unflagged and present the flags together with the result.
+Edits that follow from flag decisions land afterwards as fixups.
 
 1. **Scope the cycle.** Range = the most recent `Set up version for BIND
    9.X.Y` commit `..HEAD`. List merges + their `action:audience` tags:
@@ -49,17 +56,19 @@ Helper scripts (pure-local git/text + JSON parsing) are in `scripts/`.
    doubt. **Flag mismatches for the maintainer; do not silently re-tag.** Use
    the triage heuristics in REFERENCE.md. When the maintainer agrees a note
    should move section (e.g. a crash mis-tagged `chg` → belongs in Bug Fixes,
-   or a `sec` with no CVE → Bug Fixes minus attribution), reflect it **in the
-   notes only**. The changelog is never edited — it is generated from the git
-   log of the already-merged (frozen) MRs — so notes and changelog simply
-   differ for this release, which is expected.
+   or a `sec` with no CVE → Bug Fixes minus attribution — examples of past
+   maintainer decisions, not standing rules; always flag first), reflect it
+   **in the notes only**. The changelog is never edited — it is generated
+   from the git log of the already-merged (frozen) MRs — so notes and
+   changelog simply differ for this release, which is expected.
 
 4. **Issue close-status check.** Derive the full covered-issue set
    (`scripts/issue-refs.py <ver>`), fetch each via gitlab CLI,
    then `scripts/summarize-issues.py <dir>`. Every covered issue should be
    **closed**. For any that isn't, reason: *omission* (closed via a non-main /
-   private-fork branch so auto-close never fired → close it) vs *ongoing* (MR
-   only referenced it, no `Closes` → leave open). Flag, don't fix silently.
+   private-fork branch so auto-close never fired → suggest the maintainer
+   close it) vs *ongoing* (MR only referenced it, no `Closes` → leave open).
+   Flag, don't fix silently.
 
 5. **Refine the notes (style + markup).** Rewrite into prior-art style: add
    Sphinx roles to everything linkable, render the rest per prior art, fix

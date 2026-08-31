@@ -2,7 +2,14 @@
 
 Detailed conventions for the [tweak-release-notes](SKILL.md) workflow. When
 any rule here is unclear or seems stale, **the most recent released
-`doc/notes/notes-9.*.rst` files win** — grep them and mirror what they do.
+`doc/notes/notes-9.*.rst` files win** (find them with `ls -v` — plain `ls`
+sorts 9.21.9 after 9.21.24) — grep them and mirror what they do.
+
+**No silent truncation.** When paging long output (`head`, `tail`), make
+sure the ranges join up to cover all of it, and reconcile against the
+scripts' printed counts: every merge `cycle-merges.py` lists gets a
+substance judgment, and the issue count `summarize-issues.py` parses must
+equal the set `issue-refs.py` derived.
 
 ---
 
@@ -123,7 +130,9 @@ For any issue not closed, reason and flag (don't fix silently):
 
 - **Omission** — the closing MR merged via a non-`main` or cross-project
   branch (e.g. the **private fork** for a security fix), so GitLab's auto-close
-  on public `main` never fired. → close it manually.
+  on public `main` never fired. → suggest the maintainer close it manually
+  (this workflow's GitLab access is anonymous and read-only; you flag, you
+  never close).
 - **Ongoing** — the MR only *referenced* the issue (no `Closes`/`Fixes`)
   because work remains. → leave it open.
 
@@ -138,7 +147,7 @@ notes for how the exact term/construct is already rendered, and match it.
 
 | Thing | Render as | Examples |
 | ----- | --------- | -------- |
-| named.conf statement/option | `:any:`name`` (or `:namedconf:ref:`name``) | `:any:`dns64``, `:any:`nxdomain-redirect``, `:any:`tkey-gssapi-keytab``, `:any:`dnssec-policy`` |
+| named.conf statement/option | `:any:`name``; use `:namedconf:ref:`name`` only when the bare `:any:` target is ambiguous (matches multiple objects) | `:any:`dns64``, `:any:`nxdomain-redirect``, `:any:`tkey-gssapi-keytab``, `:any:`dnssec-policy`` |
 | rndc subcommand / CLI option | `:option:`…`` | `:option:`rndc flush``, `:option:`dig -x``, `:option:`named-checkconf -b`` |
 | program / man page | `:iscman:`name`` | `:iscman:`named``, `:iscman:`delv``, `:iscman:`dnssec-signzone`` |
 | RFC | `:rfc:`NNNN`` | `:rfc:`2535``, `:rfc:`3645` Section 4.1.1` |
@@ -223,9 +232,9 @@ Filter the output for warnings mentioning your notes file.
 
 ## 6. Commit conventions
 
-(See also the repo's git-log style: imperative, sentence-case, ≤72-char
-subject, no `chg:`/`fix:` prefix in commit subjects — that prefix belongs in
-the MR title, not the commit.)
+For general commit mechanics — message shape, wrapping, trailers,
+fixup/amend rules, the never-push boundary — follow the **bind-commit**
+skill. Only the release-notes-specific conventions are listed here.
 
 - **The tweak commit:** subject exactly `Tweak and reword release notes`, **no
   body** (this recurring step uses that fixed subject every release — e.g.
@@ -233,9 +242,8 @@ the MR title, not the commit.)
   Notes-only — the changelog is never in this commit.
 - **Never amend the session base** (HEAD at session start, e.g. the "Prepare
   release notes" commit). Add commits on top.
-- **Follow-up edits** after you've presented the commit → `git commit
-  --fixup=<tweak-sha>` (or separate fixups per logical change). Don't rewrite
-  commits the maintainer has already seen.
+- **Follow-up edits** after you've presented the tweak commit become fixups
+  of it (per bind-commit).
 - **DROP-revert (standard final step, every release):** revert the generated
   changelog so the GitLab review diff is notes-only, while keeping the
   changelog correct in history.
@@ -257,7 +265,11 @@ the MR title, not the commit.)
   The DROP commit sits at the tip and is dropped before merge (which restores
   the changelog). The dangerfile FAILs on `DROP`/`fixup!` subjects — that is
   the intended pre-merge tripwire, not a development-time blocker.
-- **Always** follow rules for AI agents in CONTRIBUTING.md.
+- **Follow-up session with the DROP already at the tip:** add new fixup
+  commits on top of the DROP anyway — do not reorder or rewrite history
+  yourself. The maintainer's final `git rebase -i --autosquash` squashes the
+  fixups into the tweak commit and drops the DROP, so the ordering resolves
+  there.
 
 At end of turn, surface any `fixup!`/`DROP` commits present and whether
 `git rebase -i --autosquash <base>` applies cleanly; wait for the maintainer
