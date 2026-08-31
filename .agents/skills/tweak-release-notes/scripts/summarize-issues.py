@@ -18,7 +18,8 @@ Flags any issue that is NOT closed (the close-status check) and prints the
 "Affects vX" labels (input to the substance review: does a released version
 carry the bug?). A non-closed issue is usually one of:
   * omission  -> closed via a non-main / cross-project (e.g. private fork)
-                 branch, so auto-close on public main never fired; close it.
+                 branch, so auto-close on public main never fired; suggest
+                 the maintainer close it.
   * ongoing   -> the MR only referenced the issue (no "Closes"); leave open.
 """
 
@@ -43,9 +44,11 @@ def main():
         try:
             with open(f, encoding="utf-8") as fh:
                 data = json.load(fh)
-        except (ValueError, OSError):
+        except (ValueError, OSError) as exc:
+            print(f"# warning: skipping {f}: {exc}", file=sys.stderr)
             continue
         if "iid" not in data:
+            print(f"# warning: skipping {f}: no 'iid' key", file=sys.stderr)
             continue
         labels = data.get("labels", [])
         rows.append(
@@ -67,7 +70,8 @@ def main():
         print(f"#{iid}  {state:8} affects={','.join(affects):40} {title}{flag}")
     if not_closed:
         print(
-            "\n# NOT CLOSED — reason out each: omission (close it) vs ongoing (leave open)."
+            "\n# NOT CLOSED — reason out each: omission (suggest the"
+            " maintainer close it) vs ongoing (leave open)."
         )
 
 
