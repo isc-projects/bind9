@@ -551,8 +551,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				no_comments = true;
 				state = lexstate_qstring;
 			} else if (c == '\0') {
+				lex->last_was_eol = false;
 				tokenp->type = isc_tokentype_unknown;
-				tokenp->value.as_char = c;
+				tokenp->value.as_textregion.base = NULL;
+				tokenp->value.as_textregion.length = 0;
 				done = true;
 			} else if (lex->specials[c]) {
 				lex->last_was_eol = false;
@@ -871,6 +873,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if (c == EOF) {
 				result = ISC_R_UNEXPECTEDEND;
 				goto done;
+			}
+			if (c == '\0') {
+				tokenp->type = isc_tokentype_unknown;
+				tokenp->value.as_textregion.base = NULL;
+				tokenp->value.as_textregion.length = 0;
+				done = true;
+				break;
 			}
 			if (c == '{') {
 				if (escaped) {
