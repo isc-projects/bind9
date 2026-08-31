@@ -33,7 +33,18 @@ clang-format over it — it is not your code to reformat.
 
 ## Trailers
 
-- **Always** follow rules for AI agents in CONTRIBUTING.md.
+- **Always** follow the rules for AI agents in CONTRIBUTING.md: the
+  `Assisted-by: <tool>:<model-id>` format, which specialized analysis
+  tools to list after the model id (never trivial tooling), no
+  `Signed-off-by:` from the agent, no `Co-Authored-By:` or any AI
+  co-author line.
+- Add `Assisted-by` ONLY when the LLM wrote the load-bearing
+  code/test/config content of the commit. NOT for: rewording a
+  message, squashing fixups, review-only advice, or a comment/doc
+  block added around a user-authored fix — a comment is prose, not the
+  fix; do not rationalize "the comment was AI" to keep the trailer.
+- NEVER `Closes #N` / `Fixes #N` / `Refs #N` — issue refs go in the MR
+  description; the branch name already encodes the issue number.
 
 ## Amending
 
