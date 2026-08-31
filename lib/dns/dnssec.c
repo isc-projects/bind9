@@ -1677,8 +1677,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char filename[DNS_NAME_FORMATSIZE +
-				      DNS_SECALG_FORMATSIZE +
+			char filename[DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE +
 				      sizeof("key file for //65535")];
 			isc_result_t result2;
 			isc_buffer_t buf;
@@ -1692,12 +1691,12 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 				NULL, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
-				char algbuf[DNS_SECALG_FORMATSIZE];
+				char algbuf[DST_ALG_FORMATSIZE];
 
 				dns_name_format(dst_key_name(dnskey), namebuf,
 						sizeof(namebuf));
-				dns_secalg_format(dst_key_alg(dnskey), algbuf,
-						  sizeof(algbuf));
+				dst_algorithm_format(dst_key_alg(dnskey),
+						     algbuf, sizeof(algbuf));
 				snprintf(filename, sizeof(filename) - 1,
 					 "key file for %s/%s/%d", namebuf,
 					 algbuf, dst_key_id(dnskey));
@@ -1840,10 +1839,10 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char buf[DNS_RDATA_MAXLENGTH];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
-	char alg[80];
+	char alg[DST_ALG_FORMATSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
 
-	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
+	dst_algorithm_format(dst_key_alg(key->key), alg, sizeof(alg));
 	dns_name_format(dst_key_name(key->key), namebuf, sizeof(namebuf));
 	report("Removing %s key %s/%d/%s from DNSKEY RRset.", reason, namebuf,
 	       dst_key_id(key->key), alg);

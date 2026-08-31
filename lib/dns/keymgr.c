@@ -2873,7 +2873,7 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	REQUIRE(buf != NULL);
 
 	ISC_LIST_FOREACH(*keyring, dkey, link) {
-		char algstr[DNS_NAME_FORMATSIZE];
+		char algstr[DST_ALG_FORMATSIZE];
 
 		if (dst_key_is_unused(dkey->key)) {
 			continue;
@@ -2884,8 +2884,8 @@ dns_keymgr_status(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		}
 
 		// key data
-		dns_secalg_format((dns_secalg_t)dst_key_alg(dkey->key), algstr,
-				  sizeof(algstr));
+		dst_algorithm_format(dst_key_alg(dkey->key), algstr,
+				     sizeof(algstr));
 		CHECK(isc_buffer_printf(buf, "\n%s %d (%s):\n",
 					keymgr_keyrole(dkey->key),
 					dst_key_id(dkey->key), algstr));

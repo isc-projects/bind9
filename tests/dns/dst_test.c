@@ -100,6 +100,28 @@ ISC_RUN_TEST_IMPL(algorithm_fromdata) {
 	}
 }
 
+ISC_RUN_TEST_IMPL(algorithm_format) {
+	struct {
+		dst_algorithm_t alg;
+		const char *text;
+	} totext[] = {
+		{ DST_ALG_RSASHA256, "RSASHA256" },
+		{ DST_ALG_RSASHA512, "RSASHA512" },
+		/* Private algorithms are 16-bit values with own mnemonics. */
+		{ DST_ALG_RSASHA256PRIVATEOID, "RSASHA256OID" },
+		{ DST_ALG_RSASHA512PRIVATEOID, "RSASHA512OID" },
+		/* Unknown algorithms fall back to the numeric form. */
+		{ 511, "511" },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(totext); i++) {
+		char algstr[DST_ALG_FORMATSIZE];
+
+		dst_algorithm_format(totext[i].alg, algstr, sizeof(algstr));
+		assert_string_equal(algstr, totext[i].text);
+	}
+}
+
 /* Read sig in file at path to buf. Check signature ineffability */
 static isc_result_t
 sig_fromfile(const char *path, isc_buffer_t *buf) {
@@ -541,6 +563,7 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(algorithm_fromdata)
+ISC_TEST_ENTRY(algorithm_format)
 ISC_TEST_ENTRY(sig_test)
 ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_ENTRY(ecdsa_determinism_test)

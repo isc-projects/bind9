@@ -995,6 +995,13 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor);
  *	"key" is a valid key.
  */
 
+/*%
+ * Buffer size for dst_algorithm_format(): the longest mnemonic in the
+ * DST algorithm table is 15 characters and unassigned values are
+ * printed as up to five decimal digits.
+ */
+#define DST_ALG_FORMATSIZE 20
+
 #define DST_KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + 7)
 
 void

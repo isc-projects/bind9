@@ -5118,8 +5118,7 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char filename[DNS_NAME_FORMATSIZE +
-				      DNS_SECALG_FORMATSIZE +
+			char filename[DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE +
 				      sizeof("key file for //65535")];
 			isc_result_t result2;
 			isc_buffer_t buf;
@@ -5133,12 +5132,12 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				NULL, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
-				char algbuf[DNS_SECALG_FORMATSIZE];
+				char algbuf[DST_ALG_FORMATSIZE];
 
 				dns_name_format(dst_key_name(pubkey), namebuf,
 						sizeof(namebuf));
-				dns_secalg_format(dst_key_alg(pubkey), algbuf,
-						  sizeof(algbuf));
+				dst_algorithm_format(dst_key_alg(pubkey),
+						     algbuf, sizeof(algbuf));
 				snprintf(filename, sizeof(filename) - 1,
 					 "key file for %s/%s/%d", namebuf,
 					 algbuf, dst_key_id(pubkey));
@@ -19294,9 +19293,9 @@ zone_rekey(dns_zone_t *zone) {
 	ISC_LIST_FOREACH(dnskeys, key, link) {
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			/* This debug log is used in the kasp system test */
-			char algbuf[DNS_SECALG_FORMATSIZE];
-			dns_secalg_format(dst_key_alg(key->key), algbuf,
-					  sizeof(algbuf));
+			char algbuf[DST_ALG_FORMATSIZE];
+			dst_algorithm_format(dst_key_alg(key->key), algbuf,
+					     sizeof(algbuf));
 			dnssec_log(zone, ISC_LOG_DEBUG(3),
 				   "zone_rekey done: key %d/%s",
 				   dst_key_id(key->key), algbuf);
