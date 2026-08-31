@@ -344,40 +344,23 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 		if (del && !nonsec) {
 			isc_buffer_putstr(buf, " / creating NSEC chain");
 		}
-	} else if (private->length == 5) {
-		/* Old Form */
-		unsigned char alg = private->data[0];
-		dns_keytag_t keyid = (private->data[2] | private->data[1] << 8);
-		char keybuf[DNS_SECALG_FORMATSIZE + BUFSIZ],
-			algbuf[DNS_SECALG_FORMATSIZE];
-		bool del = private->data[3];
-		bool complete = private->data[4];
-
-		if (del && complete) {
-			isc_buffer_putstr(buf, "Done removing signatures for ");
-		} else if (del) {
-			isc_buffer_putstr(buf, "Removing signatures for ");
-		} else if (complete) {
-			isc_buffer_putstr(buf, "Done signing with ");
-		} else {
-			isc_buffer_putstr(buf, "Signing with ");
-		}
-
-		dns_secalg_format(alg, algbuf, sizeof(algbuf));
-		snprintf(keybuf, sizeof(keybuf), "key %d/%s", keyid, algbuf);
-		isc_buffer_putstr(buf, keybuf);
-	} else if (private->length == 7) {
-		/* New Form - supports private types */
+	} else if (private->length == 5 || private->length == 7) {
 		dns_keytag_t keyid = private->data[2] | (private->data[1] << 8);
-		char keybuf[DNS_SECALG_FORMATSIZE + BUFSIZ],
-			algbuf[DNS_SECALG_FORMATSIZE];
+		char keybuf[sizeof("key 65535/") + DST_ALG_FORMATSIZE],
+			algbuf[DST_ALG_FORMATSIZE];
 		bool del = private->data[3];
 		bool complete = private->data[4];
-		dst_algorithm_t alg = private->data[6] |
-				      (private->data[5] << 8);
+		dst_algorithm_t alg;
 
-		if (dst_algorithm_tosecalg(alg) != private->data[0]) {
-			return ISC_R_NOTFOUND;
+		if (private->length == 5) {
+			/* Old Form */
+			alg = private->data[0];
+		} else {
+			/* New Form - supports private types */
+			alg = private->data[6] | (private->data[5] << 8);
+			if (dst_algorithm_tosecalg(alg) != private->data[0]) {
+				return ISC_R_NOTFOUND;
+			}
 		}
 
 		if (del && complete) {
