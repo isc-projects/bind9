@@ -37,7 +37,6 @@ ISC_CONSTEXPR unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
 #define ISC_FORMATISO8601_SIZE	      sizeof("9999-99-99T99:99:99Z")
 #define ISC_FORMATISO8601MS_SIZE      sizeof("9999-99-99T99:99:99.999Z")
 #define ISC_FORMATISO8601US_SIZE      sizeof("9999-99-99T99:99:99.999999Z")
-#define ISC_FORMATISO8601TZMS_SIZE    sizeof("9999-99-99T99:99:99.999+99:99")
 #define ISC_FORMATSHORTTIMESTAMP_SIZE sizeof("99999999999999999")
 
 /*
@@ -374,7 +373,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -388,7 +387,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATHTTPTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -426,7 +425,7 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -440,7 +439,7 @@ isc_time_formatISO8601Lus(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601US_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -454,7 +453,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -468,7 +467,7 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -482,7 +481,7 @@ isc_time_formatISO8601us(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601US_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -496,7 +495,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATSHORTTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
