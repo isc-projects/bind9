@@ -533,7 +533,8 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 				goto cleanup;
 			}
 
-			CHECK(dns_time32_fromtext(DST_AS_STR(token), &when));
+			CHECK(dns_time32_fromregion(token.value.as_textregion,
+						    &when));
 
 			dst_key_settime(key, tag, when);
 

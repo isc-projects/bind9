@@ -159,6 +159,65 @@ ISC_RUN_TEST_IMPL(some_ago) {
 	assert_int_equal(when, test_time);
 }
 
+ISC_RUN_TEST_IMPL(fromregion) {
+	char text[] = "x19700101000000y";
+	isc_textregion_t source = {
+		.base = &text[1],
+		.length = 14,
+	};
+	int64_t when;
+
+	UNUSED(state);
+
+	assert_int_equal(dns_time64_fromregion(source, &when), ISC_R_SUCCESS);
+	assert_int_equal(when, 0);
+}
+
+ISC_RUN_TEST_IMPL(fromtext_boundaries) {
+	static const struct {
+		const char *text;
+		int64_t when;
+	} tests[] = {
+		{ "00000101000000", -62167219200LL },
+		{ "19691231235959", -1 },
+		{ "19700101000000", 0 },
+		{ "99991231235959", 253402300799LL },
+	};
+	int64_t when;
+
+	UNUSED(state);
+
+	for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
+		assert_int_equal(dns_time64_fromtext(tests[i].text, &when),
+				 ISC_R_SUCCESS);
+		assert_int_equal(when, tests[i].when);
+	}
+}
+
+ISC_RUN_TEST_IMPL(fromtext_invalid) {
+	static const char *syntax[] = {
+		"1970010100000",
+		"197001010000000",
+		"1970010100000x",
+	};
+	static const char *range[] = {
+		"19700001000000", "19701301000000", "19700229000000",
+		"19700101240000", "19700101006000", "19700101000061",
+	};
+	int64_t when;
+
+	UNUSED(state);
+
+	for (size_t i = 0; i < ARRAY_SIZE(syntax); i++) {
+		assert_int_equal(dns_time64_fromtext(syntax[i], &when),
+				 DNS_R_SYNTAX);
+	}
+	for (size_t i = 0; i < ARRAY_SIZE(range); i++) {
+		assert_int_equal(dns_time64_fromtext(range[i], &when),
+				 ISC_R_RANGE);
+	}
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(epoch_minus_one)
 ISC_TEST_ENTRY(epoch)
@@ -166,6 +225,9 @@ ISC_TEST_ENTRY(half_maxint)
 ISC_TEST_ENTRY(half_plus_one)
 ISC_TEST_ENTRY(fifty_before)
 ISC_TEST_ENTRY(some_ago)
+ISC_TEST_ENTRY(fromregion)
+ISC_TEST_ENTRY(fromtext_boundaries)
+ISC_TEST_ENTRY(fromtext_invalid)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
