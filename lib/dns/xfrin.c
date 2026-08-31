@@ -143,8 +143,6 @@ struct dns_xfrin_ctx {
 
 	dns_tsigkey_t *tsigkey; /*%< Key used to create TSIG */
 	isc_buffer_t *lasttsig; /*%< The last TSIG */
-	dst_context_t *tsigctx; /*%< TSIG verification context */
-	unsigned int sincetsig; /*%< recvd since the last TSIG */
 
 	dns_transport_t *transport;
 
@@ -1434,10 +1432,6 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->nbytes = 0;
 	isc_time_now(&xfr->start);
 	msg->id = xfr->id;
-	if (xfr->tsigctx != NULL) {
-		dst_context_destroy(&xfr->tsigctx);
-	}
-
 	CHECK(render(msg, xfr->mctx, &xfr->qbuffer));
 
 	/*
@@ -1516,7 +1510,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *)cbarg;
 	dns_message_t *msg = NULL;
 	dns_name_t *name = NULL;
-	const dns_name_t *tsigowner = NULL;
 	isc_buffer_t buffer;
 	isc_sockaddr_t peer;
 
@@ -1541,9 +1534,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
 
-	msg->tsigctx = xfr->tsigctx;
-	xfr->tsigctx = NULL;
-
 	dns_message_setclass(msg, xfr->rdclass);
 
 	if (xfr->nmsg > 0) {
@@ -1564,6 +1554,22 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	} else {
 		xfrin_log(xfr, ISC_LOG_DEBUG(10), "dns_message_parse: %s",
 			  isc_result_totext(result));
+	}
+
+	/* Authenticate before stateful response handling. */
+	if (result == ISC_R_SUCCESS) {
+		result = dns_message_checksig(msg, dns_zone_getview(xfr->zone));
+		if (result != ISC_R_SUCCESS) {
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "TSIG check failed: %s",
+				  isc_result_totext(result));
+			goto cleanup;
+		}
+		if (dns_message_gettsigkey(msg) != NULL &&
+		    dns_message_gettsig(msg, NULL) == NULL)
+		{
+			CHECK(DNS_R_EXPECTEDTSIG);
+		}
 	}
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
@@ -1677,14 +1683,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	{
 		CHECK(DNS_R_NOTAUTHORITATIVE);
 	}
-
-	result = dns_message_checksig(msg, dns_zone_getview(xfr->zone));
-	if (result != ISC_R_SUCCESS) {
-		xfrin_log(xfr, ISC_LOG_DEBUG(3), "TSIG check failed: %s",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
-
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
@@ -1710,12 +1708,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		goto cleanup;
 	}
 
-	if (dns_message_gettsig(msg, &tsigowner) != NULL) {
-		/*
-		 * Reset the counter.
-		 */
-		xfr->sincetsig = 0;
-
+	if (dns_message_gettsig(msg, NULL) != NULL) {
 		/*
 		 * Free the last tsig, if there is one.
 		 */
@@ -1727,14 +1720,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		 * Update the last tsig pointer.
 		 */
 		CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
-	} else if (dns_message_gettsigkey(msg) != NULL) {
-		xfr->sincetsig++;
-		if (xfr->sincetsig > 100 || xfr->nmsg == 0 ||
-		    xfr->state == XFRST_AXFR_END ||
-		    xfr->state == XFRST_IXFR_END)
-		{
-			CHECK(DNS_R_EXPECTEDTSIG);
-		}
 	}
 
 	/*
@@ -1746,14 +1731,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	 * Update the number of bytes received.
 	 */
 	xfr->nbytes += buffer.used;
-
-	/*
-	 * Take the context back.
-	 */
-	INSIST(xfr->tsigctx == NULL);
-	xfr->tsigctx = msg->tsigctx;
-	msg->tsigctx = NULL;
-
 	switch (xfr->state) {
 	case XFRST_GOTSOA:
 		xfr->reqtype = dns_rdatatype_axfr;
@@ -1886,11 +1863,6 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
 	if (xfr->axfr.add_private != NULL) {
 		(void)dns_db_endload(xfr->db, &xfr->axfr);
 	}
-
-	if (xfr->tsigctx != NULL) {
-		dst_context_destroy(&xfr->tsigctx);
-	}
-
 	if ((xfr->name.attributes & DNS_NAMEATTR_DYNAMIC) != 0) {
 		dns_name_free(&xfr->name, xfr->mctx);
 	}
