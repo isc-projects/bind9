@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/lib.h>
+#include <isc/md.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -254,10 +255,40 @@ ISC_RUN_TEST_IMPL(nsec3param_salttotext) {
 	}
 }
 
+/* Check NSEC3 hash and owner-name generation against RFC 5155 Appendix A. */
+ISC_RUN_TEST_IMPL(hashname) {
+	static const unsigned char salt[] = { 0xaa, 0xbb, 0xcc, 0xdd };
+	unsigned char hash[NSEC3_MAX_HASH_LENGTH];
+	dns_fixedname_t expected;
+	dns_fixedname_t name;
+	dns_fixedname_t origin;
+	dns_fixedname_t result;
+	size_t hash_length = 0;
+
+	UNUSED(state);
+
+	dns_test_namefromstring("example.", &name);
+	dns_test_namefromstring("example.", &origin);
+	dns_test_namefromstring("0P9MHAVEQVM6T7VBL5LOP2U3T2RP3TOM.example.",
+				&expected);
+	dns_test_namefromstring("stale.example.", &result);
+
+	assert_int_equal(dns_nsec3_hashname(&result, hash, &hash_length,
+					    dns_fixedname_name(&name),
+					    dns_fixedname_name(&origin),
+					    dns_hash_sha1, 12, salt,
+					    sizeof(salt)),
+			 ISC_R_SUCCESS);
+	assert_int_equal(hash_length, ISC_SHA1_DIGESTLENGTH);
+	assert_true(dns_name_equal(dns_fixedname_name(&result),
+				   dns_fixedname_name(&expected)));
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(activex)
 ISC_TEST_ENTRY(max_iterations)
 ISC_TEST_ENTRY(nsec3param_salttotext)
+ISC_TEST_ENTRY(hashname)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

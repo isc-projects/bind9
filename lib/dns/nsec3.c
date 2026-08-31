@@ -232,11 +232,8 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 		   unsigned int iterations, const unsigned char *salt,
 		   size_t saltlength) {
 	unsigned char hash[NSEC3_MAX_HASH_LENGTH];
-	unsigned char nametext[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fixed;
 	dns_name_t *downcased;
-	isc_buffer_t namebuffer;
-	isc_region_t region;
 	size_t len;
 
 	if (rethash == NULL) {
@@ -258,16 +255,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 
 	SET_IF_NOT_NULL(hash_length, len);
 
-	/* convert the hash to base32hex non-padded */
-	region.base = rethash;
-	region.length = (unsigned int)len;
-	isc_buffer_init(&namebuffer, nametext, sizeof nametext);
-	isc_base32hexnp_totext(&region, 1, "", &namebuffer);
-
-	/* convert the hex to a domain name */
-	dns_fixedname_init(result);
-	return dns_name_fromtext(dns_fixedname_name(result), &namebuffer,
-				 origin, 0);
+	return dns_fixedname_fromnsec3hash(result, rethash, len, origin);
 }
 
 unsigned int
