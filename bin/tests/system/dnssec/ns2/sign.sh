@@ -61,7 +61,7 @@ for subdomain in digest-alg-unsupported ds-unsupported secure badds \
   nsec3-unknown optout-unknown multiple rsasha256 rsasha512 \
   kskonly update-nsec3 auto-nsec auto-nsec3 secure.below-cname \
   ttlpatch split-dnssec split-smart expired expiring upper lower \
-  dnskey-unknown dnskey-unsupported dnskey-unsupported-2 \
+  dnskey-unknown dnskey-163-unknown dnskey-unsupported dnskey-unsupported-2 \
   dnskey-nsec3-unknown managed-future future revkey \
   dname-at-apex-nsec3 occluded rsasha1 rsasha1-1024 \
   extrabadkey; do

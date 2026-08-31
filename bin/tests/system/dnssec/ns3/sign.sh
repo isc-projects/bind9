@@ -305,6 +305,25 @@ DSFILE="dsset-${zone}."
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" >"$DSFILE"
 
 #
+# A zone that is signed with an unknown DNSKEY algorithm.
+# Algorithm 7 is replaced by 163 (HMAC-SHA256 code point) in the zone and dsset.
+#
+zone=dnskey-163-unknown.example
+infile=template.db.in
+zonefile=dnskey-163-unknown.example.db
+
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+
+cat "$infile" "$keyname.key" >"$zonefile"
+
+"$SIGNER" -z -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" >/dev/null
+
+awk '$4 == "DNSKEY" { $7 = 163 } $4 == "RRSIG" { $6 = 163 } { print }' ${zonefile}.tmp >${zonefile}.signed
+
+DSFILE="dsset-${zone}."
+$DSFROMKEY -A -f ${zonefile}.signed "$zone" >"$DSFILE"
+
+#
 # A zone that is signed with an unsupported DNSKEY algorithm (3).
 # Algorithm 7 is replaced by 255 in the zone and dsset.
 #

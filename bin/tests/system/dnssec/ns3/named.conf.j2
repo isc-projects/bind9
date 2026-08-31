@@ -196,6 +196,12 @@ zone "dnskey-unknown.example" {
 	file "dnskey-unknown.example.db.signed";
 };
 
+# Uses HMAC-SHA256 code point
+zone "dnskey-163-unknown.example" {
+	type primary;
+	file "dnskey-163-unknown.example.db.signed";
+};
+
 zone "digest-alg-unsupported.example" {
 	type primary;
 	file "digest-alg-unsupported.example.db.signed";
