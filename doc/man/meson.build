@@ -40,6 +40,7 @@ manrst_srcset.add(
         'named-makejournal.rst',
         'named-nzd2nzf.rst',
         'named-rrchecker.rst',
+        'named-wireformat.rst',
         'named.conf.rst',
         'named.rst',
         'nsec3hash.rst',
