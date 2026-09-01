@@ -29,6 +29,7 @@ dns_tests = [
     'message',
     'name',
     'nametree',
+    'ncache',
     'nsec3',
     'nsec3param',
     'private',
