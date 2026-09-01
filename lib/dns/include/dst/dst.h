@@ -224,6 +224,16 @@ dst_algorithm_supported(unsigned int alg);
  * \li	false
  */
 
+bool
+dst_dnssec_algorithm(unsigned int alg);
+/*%<
+ * Can this DST algorithm be use for DNSSEC validation.
+ *
+ * Returns:
+ * \li	true
+ * \li	false
+ */
+
 dst_algorithm_t
 dst_algorithm_fromprivateoid(isc_buffer_t *buffer);
 /*
