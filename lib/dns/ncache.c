@@ -26,6 +26,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/result.h>
 
 #define DNS_NCACHE_RDATA 100U
 
@@ -63,14 +64,30 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		return (ISC_R_NOSPACE);
 	}
 	count = dns_rdataset_count(rdataset);
+
+	/*
+	 * Reject duplicate singleton records.
+	 */
+	if (dns_rdatatype_issingleton(rdataset->type) && count != 1) {
+		return DNS_R_TOOMANYRECORDS;
+	}
+
 	INSIST(count <= 65535);
 	isc_buffer_putuint16(buffer, (uint16_t)count);
+
+	if (ar.length < 2 + count * 2) {
+		/*
+		 * The count took 2 bytes and each rdata needs at least 2
+		 * more for its length.  Bail early if that cannot fit.
+		 */
+		return ISC_R_NOSPACE;
+	}
 
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_toregion(&rdata, &r);
-		INSIST(r.length <= 65535);
+		INSIST(r.length <= DNS_RDATA_MAXLENGTH);
 		isc_buffer_availableregion(buffer, &ar);
 		if (ar.length < 2) {
 			return (ISC_R_NOSPACE);
@@ -79,6 +96,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		 * Copy the rdata length to the buffer.
 		 */
 		isc_buffer_putuint16(buffer, (uint16_t)r.length);
+
 		/*
 		 * Copy the rdata to the buffer.
 		 */
@@ -129,8 +147,9 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_rdata_t rdata[DNS_NCACHE_RDATA];
 	dns_rdataset_t ncrdataset;
 	dns_rdatalist_t ncrdatalist;
-	unsigned char data[65536];
+	unsigned char data[UINT16_MAX];
 	unsigned int next = 0;
+	bool seen_soa = false;
 
 	/*
 	 * Convert the authority data from 'message' into a negative cache
@@ -177,6 +196,20 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					continue;
 				}
 				type = rdataset->type;
+
+				/*
+				 * A negative response carries one SOA
+				 * RRset.  The resolver rejects a second
+				 * one before it gets here; don't rely on
+				 * that.
+				 */
+				if (type == dns_rdatatype_soa) {
+					if (seen_soa) {
+						return DNS_R_TOOMANYRECORDS;
+					}
+					seen_soa = true;
+				}
+
 				if (type == dns_rdatatype_rrsig) {
 					type = rdataset->covers;
 				}
@@ -224,10 +257,20 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					}
 
 					if (next >= DNS_NCACHE_RDATA) {
-						return (ISC_R_NOSPACE);
+						return (DNS_R_TOOMANYRECORDS);
 					}
 					dns_rdata_init(&rdata[next]);
 					isc_buffer_remainingregion(&buffer, &r);
+					/*
+					 * dns_rdata_t.length is 16 bits wide,
+					 * so a longer record would be silently
+					 * truncated here and would then pass
+					 * the size checks in
+					 * dns_rdataslab_fromrdataset().
+					 */
+					if (r.length > DNS_RDATA_MAXLENGTH) {
+						return ISC_R_NOSPACE;
+					}
 					rdata[next].data = r.base;
 					rdata[next].length = r.length;
 					rdata[next].rdclass =
