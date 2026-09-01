@@ -56,15 +56,14 @@ infile=example.db.in
 zonefile=example.db
 
 # Get the DS records for the "example." zone.
-for subdomain in digest-alg-unsupported ds-unsupported secure badds \
-  bogus dynamic keyless nsec3 optout \
-  nsec3-unknown optout-unknown multiple rsasha256 rsasha512 \
-  kskonly update-nsec3 auto-nsec auto-nsec3 secure.below-cname \
-  ttlpatch split-dnssec split-smart expired expiring upper lower \
-  dnskey-unknown dnskey-163-unknown dnskey-unsupported dnskey-unsupported-2 \
-  dnskey-nsec3-unknown managed-future future revkey \
-  dname-at-apex-nsec3 occluded rsasha1 rsasha1-1024 \
-  extrabadkey; do
+for subdomain in auto-nsec auto-nsec3 badds bogus \
+  digest-alg-unsupported dname-at-apex-nsec3 dnskey-163-unknown \
+  dnskey-nsec3-unknown dnskey-unknown dnskey-unsupported \
+  dnskey-unsupported-2 ds-unsupported dynamic expired expiring \
+  extrabadkey future keyless kskonly lower managed-future multiple \
+  nsec3 nsec3-unknown occluded optout optout-unknown revkey rsasha1 \
+  rsasha1-1024 rsasha256 rsasha512 secure secure.below-cname \
+  split-dnssec split-smart ttlpatch update-nsec3 upper; do
   cp "../ns3/dsset-$subdomain.example." .
 done
 
