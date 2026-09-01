@@ -422,16 +422,15 @@ dns_rdatavec_merge(dns_vecheader_t *oheader, dns_vecheader_t *nheader,
 	ocount = oheader->count;
 	ncount = nheader->count;
 
-	if (maxrrperset > 0 && ocount + ncount > maxrrperset) {
-		return DNS_R_TOOMANYRECORDS;
-	}
-
 	vecmerge_first(&iter, oheader, nheader, rdclass);
 
 	while (vecmerge_next(&iter, &rdata)) {
 		rlength += sizeof(uint16_t) + rdata.length +
 			   (type == dns_rdatatype_rrsig);
 		tcount++;
+		if (maxrrperset > 0 && tcount > maxrrperset) {
+			return DNS_R_TOOMANYRECORDS;
+		}
 	}
 	ndup = ocount + ncount - tcount;
 
