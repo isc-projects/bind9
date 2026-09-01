@@ -38,8 +38,12 @@ AUDIENCE = {
     "ci": (False, False),
     "nil": (False, False),
 }
-TAG_RE = re.compile(
-    r"^\s*(sec|new|rem|chg|fix)\s*:\s*(usr|pkg|dev|test|doc|ci|nil)\s*:\s*(.*)$"
+# Subject shape follows the dangerfile's MR_TITLE_RE: optional [9.XX(-S)]
+# branch prefix and optional [CVE-...] prefix (backports), then
+# action:audience.
+SUBJ_RE = re.compile(
+    r"^\s*(?:\[[^]]*\]\s*)*"
+    r"(sec|new|rem|chg|fix)\s*:\s*(usr|pkg|dev|test|doc|ci|nil)\s*:\s*(.*)$"
 )
 
 
@@ -76,7 +80,7 @@ def main():
         if not line:
             continue
         sha, subj = line.split("\0", 1)
-        m = TAG_RE.match(subj)
+        m = SUBJ_RE.match(subj)
         if not m:
             print(
                 f"  SKIP   {sha[:12]}  {subj}   (not an action:audience merge — e.g. tag back-merge)"

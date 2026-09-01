@@ -8,7 +8,8 @@ Sources:
      merges that close an issue but produce no changelog entry).
 
 Noise such as "PKCS#11" or a diff line "port=53" is excluded by requiring a
-close keyword for body refs and the :gl: role for doc refs.
+close keyword directly before a "#N" ref for body refs (GitLab's default
+closing pattern, as in the dangerfile) and the :gl: role for doc refs.
 
 Usage:
     scripts/issue-refs.py <version>            # e.g. 9.21.23
@@ -26,10 +27,20 @@ import subprocess
 import sys
 
 GL_RE = re.compile(r":gl:`#(\d+)`")
-# require a close/fix keyword so "PKCS#11" / "port=53" are not mistaken for refs
-CLOSE_RE = re.compile(
-    r"(?:closes?|fix(?:es)?|resolves?)\b[:\s]+[a-z0-9/_-]*#(\d+)", re.I
+# Mirror the dangerfile's ISSUE_CLOSING_REGEX (GitLab's default closing
+# pattern): a close keyword followed by one or more "#N" refs, where the
+# "#" starts the ref — so "fixes PKCS#11 support" does not match.
+ISSUE_REF = (
+    r"(?:(?:isc-projects/bind9)?#"
+    r"|https://gitlab\.isc\.org/isc-projects/bind9/-/issues/)\d+"
 )
+CLOSE_RE = re.compile(
+    r"\b(?:clos(?:e[sd]?|ing)|fix(?:e[sd]|ing)?|resolv(?:e[sd]?|ing)"
+    r"|implement(?:s|ed|ing)?):? +"
+    r"(?:(?:issues? +)?" + ISSUE_REF + r"(?: *,? +and +| *,? *)?)+",
+    re.I,
+)
+REF_NUM_RE = re.compile(r"(?:#|issues/)(\d+)")
 
 
 def git(*args):
@@ -64,10 +75,10 @@ def main():
     if len(sys.argv) < 2:
         sys.exit("usage: issue-refs.py <version> [<boundary-ref>]")
     version = sys.argv[1]
-    boundary = (
-        sys.argv[2]
-        if len(sys.argv) > 2
-        else git(
+    if len(sys.argv) > 2:
+        boundary = sys.argv[2]
+    else:
+        boundary = git(
             "log",
             "--first-parent",
             "--grep",
@@ -75,7 +86,10 @@ def main():
             "-1",
             "--format=%H",
         ).strip()
-    )
+        if not boundary:
+            sys.exit(
+                "could not find a 'Set up version for BIND' commit; pass a boundary ref"
+            )
 
     doc_refs = set()
     for path in (
@@ -90,7 +104,8 @@ def main():
     ).split()
     for sha in shas:
         body = git("show", "-s", "--format=%b", sha)
-        body_refs |= {int(n) for n in CLOSE_RE.findall(body)}
+        for m in CLOSE_RE.finditer(body):
+            body_refs |= {int(n) for n in REF_NUM_RE.findall(m.group(0))}
 
     union = sorted(doc_refs | body_refs)
     only_body = sorted(body_refs - doc_refs)
