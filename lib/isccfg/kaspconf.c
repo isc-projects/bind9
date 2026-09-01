@@ -28,7 +28,6 @@
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 #include <dns/nsec3.h>
-#include <dns/secalg.h>
 #include <dns/ttl.h>
 
 #include <dst/dst.h>
@@ -441,8 +440,8 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	dns_kasp_thaw(kasp);
 
 	if (badalg > 0) {
-		char algstr[DNS_SECALG_FORMATSIZE];
-		dns_secalg_format((dns_secalg_t)badalg, algstr, sizeof(algstr));
+		char algstr[DST_ALG_FORMATSIZE];
+		dst_algorithm_format(badalg, algstr, sizeof(algstr));
 		if (log_errors) {
 			kaspcfg_log(obj, ISC_LOG_ERROR,
 				    "dnssec-policy: cannot use nsec3 with "

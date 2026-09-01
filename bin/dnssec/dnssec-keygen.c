@@ -54,7 +54,6 @@
 #include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/secalg.h>
 
 #include <dst/dst.h>
 
@@ -230,7 +229,7 @@ progress(int p) {
 static void
 keygen(keygen_ctx_t *ctx, const char *keyname) {
 	char filename[255];
-	char algstr[DNS_SECALG_FORMATSIZE];
+	char algstr[DST_ALG_FORMATSIZE];
 	uint16_t flags = 0;
 	bool conflict = false;
 	bool show_progress = false;
@@ -451,7 +450,7 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 	switch (ctx->alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
-		dns_secalg_format(ctx->alg, algstr, sizeof(algstr));
+		dst_algorithm_format(ctx->alg, algstr, sizeof(algstr));
 		fprintf(stderr,
 			"WARNING: DNSKEY algorithm '%s' is deprecated. Please "
 			"migrate to another algorithm\n",
