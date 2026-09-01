@@ -181,6 +181,11 @@ LLM_SIGNED_OFF_BY_RE = re.compile(
     r"^Signed-off-by:.*" + LLM_AGENT_NAMES_RE,
     re.IGNORECASE | re.MULTILINE,
 )
+# The `Claude-Session` trailer added by Claude Code is not allowed in
+# BIND 9 commit messages.
+CLAUDE_SESSION_TRAILER_RE = re.compile(
+    r"^Claude-Session:", re.IGNORECASE | re.MULTILINE
+)
 COAUTHORED_BY_RE = re.compile(r"^Co-Authored-By:.*$", re.IGNORECASE | re.MULTILINE)
 # A trailer pointing at an @isc.org address is a human co-author; there
 # is no point in asking for confirmation.
@@ -263,6 +268,11 @@ for commit in danger.git.commits:
             "only humans can legally certify the Developer Certificate of "
             "Origin; AI agents must not add `Signed-off-by` tags. Use the "
             "`Assisted-by:` trailer instead."
+        )
+    if CLAUDE_SESSION_TRAILER_RE.search(commit.message):
+        fail(
+            f"Commit {commit.sha} contains a `Claude-Session` trailer, "
+            "which is not allowed. Remove it."
         )
     for assisted_line in ASSISTED_BY_RE.findall(commit.message):
         if not ASSISTED_BY_VALID_RE.match(assisted_line):
