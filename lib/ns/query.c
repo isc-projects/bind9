@@ -1737,6 +1737,10 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb");
 
+	if (client->inner.additionaltotal++ >= DNS_RDATASET_MAXADDITIONAL * 2) {
+		return DNS_R_TOOMANYRECORDS;
+	}
+
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 
@@ -2069,7 +2073,9 @@ addname:
 
 cleanup:
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb: cleanup");
-	ns_client_putrdataset(client, &rdataset);
+	if (rdataset != NULL) {
+		ns_client_putrdataset(client, &rdataset);
+	}
 	if (sigrdataset != NULL) {
 		ns_client_putrdataset(client, &sigrdataset);
 	}
