@@ -273,6 +273,18 @@ dst_algorithm_supported(unsigned int alg) {
 }
 
 bool
+dst_dnssec_algorithm(unsigned int alg) {
+	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT) ||
+	    (alg == DST_ALG_GSSAPI) ||
+	    (alg >= DST_ALG_HMAC_FIRST && alg <= DST_ALG_HMAC_LAST))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool
 dst_ds_digest_supported(unsigned int digest_type) {
 	return digest_type == DNS_DSDIGEST_SHA1 ||
 	       digest_type == DNS_DSDIGEST_SHA256 ||
