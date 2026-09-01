@@ -1,6 +1,6 @@
 ### Test requirements
 
-dnspython>=2.7.0
+dnspython>=2.8.0
 
 cryptography
 h2
