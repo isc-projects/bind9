@@ -90,13 +90,7 @@ class _AsyncUdpHandler(asyncio.DatagramProtocol):
         """
         assert self._transport
         handler_coroutine = self._handler(data, addr, self._transport)
-        try:
-            # Python >= 3.7
-            asyncio.create_task(handler_coroutine)
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-            loop.create_task(handler_coroutine)
+        asyncio.create_task(handler_coroutine)
 
 
 class AsyncServer:
@@ -152,14 +146,7 @@ class AsyncServer:
         """
         Start the server in an asynchronous coroutine.
         """
-        coroutine = self._run
-        try:
-            # Python >= 3.7
-            asyncio.run(coroutine())
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(coroutine())
+        asyncio.run(self._run())
 
     async def _run(self) -> None:
         self._setup_exception_handler()
@@ -171,17 +158,8 @@ class AsyncServer:
         await self._work_done
         self._cleanup_pidfile()
 
-    def _get_asyncio_loop(self) -> asyncio.AbstractEventLoop:
-        try:
-            # Python >= 3.7
-            loop = asyncio.get_running_loop()
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-        return loop
-
     def _setup_exception_handler(self) -> None:
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         self._work_done = loop.create_future()
         loop.set_exception_handler(self._handle_exception)
 
@@ -196,7 +174,7 @@ class AsyncServer:
             pass
 
     def _setup_signals(self) -> None:
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGINT, functools.partial(self._signal_done))
         loop.add_signal_handler(signal.SIGTERM, functools.partial(self._signal_done))
 
@@ -210,7 +188,7 @@ class AsyncServer:
     async def _listen_udp(self) -> None:
         if not self._udp_handler:
             return
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         for ip_address in self._ip_addresses:
             await loop.create_datagram_endpoint(
                 lambda: _AsyncUdpHandler(cast(_UdpHandler, self._udp_handler)),
@@ -792,12 +770,7 @@ def block_reading(peer: Peer, writer_not_the_reader: asyncio.StreamWriter) -> No
     Yes, pass the writer, not the reader. See the comments below for details.
     """
 
-    try:
-        # Python >= 3.7
-        loop = asyncio.get_running_loop()
-    except AttributeError:
-        # Python < 3.7
-        loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     logging.info("Blocking reads from %s", peer)
 
@@ -1627,12 +1600,7 @@ class AsyncDnsServer(AsyncServer):
 
         logging.debug("Closing TCP connection from %s", peer)
         writer.close()
-        try:
-            # Python >= 3.7
-            await writer.wait_closed()
-        except AttributeError:
-            # Python < 3.7
-            pass
+        await writer.wait_closed()
 
     async def _read_tcp_query(
         self, reader: asyncio.StreamReader, peer: Peer
