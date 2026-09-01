@@ -34,6 +34,7 @@ check_PROGRAMS =		\
 	message_test		\
 	name_test		\
 	nametree_test		\
+	ncache_test		\
 	nsec3_test		\
 	nsec3param_test		\
 	private_test		\
