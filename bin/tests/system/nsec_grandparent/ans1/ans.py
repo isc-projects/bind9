@@ -44,10 +44,24 @@ GRANDCHILD3 = f"grand3.{CHILD}"
 # insecure-delegation proof is owned by an unrelated but correctly delegated
 # and signed sibling zone.
 GRANDCHILD3_SIBLING = f"grandsib.{CHILD}"
+# #6321 (mixed-signer RRSIG): grandchildren whose grandparent-signed NSEC
+# forgery also carries a dummy RRSIG naming the NSEC owner itself as signer,
+# in either order relative to the genuine one.
+GRANDCHILD_DUMMY_FIRST = f"grand-dummy-first.{CHILD}"
+GRANDCHILD_DUMMY_LAST = f"grand-dummy-last.{CHILD}"
+# RRSIG count cap: grandchildren whose grandparent-signed NSEC forgery carries
+# as many same-signer RRSIGs as ns2 allows validations per fetch, or one fewer.
+GRANDCHILD_TOO_MANY = f"grand-too-many.{CHILD}"
+GRANDCHILD_ALMOST_TOO_MANY = f"grand-almost-too-many.{CHILD}"
 # The names under attack.
 ATTACK = f"www-bind.{GRANDCHILD}"
 ATTACK3 = f"www-bind.{GRANDCHILD3}"
 FORGED_A = "6.6.6.60"
+# Not a DNSSEC algorithm; the validator skips RRSIGs using it as unsupported
+# rather than rejecting them, which is what the mixed-signer forgery needs.
+DUMMY_ALGORITHM = 0
+# ns2's max-validations-per-fetch; keep in sync with the test module.
+MAX_VALIDATIONS_PER_FETCH = 16
 
 
 @dataclass(frozen=True)
@@ -106,10 +120,8 @@ def rrset_from_rdata(owner: str, rdata: dns.rdata.Rdata) -> dns.rrset.RRset:
     return dns.rrset.from_rdata(name(owner), TTL, rdata)
 
 
-def add_signed(
-    section: list[dns.rrset.RRset], covered: dns.rrset.RRset, signer: Key
-) -> None:
-    rrsig = dns.dnssec.sign(
+def sign(covered: dns.rrset.RRset, signer: Key) -> dns.rdata.Rdata:
+    return dns.dnssec.sign(
         covered,
         signer.private_key,
         signer.zone,
@@ -117,6 +129,12 @@ def add_signed(
         lifetime=86400,
         verify=True,
     )
+
+
+def add_signed(
+    section: list[dns.rrset.RRset], covered: dns.rrset.RRset, signer: Key
+) -> None:
+    rrsig = sign(covered, signer)
     section.append(covered)
     section.append(dns.rrset.from_rdata(covered.name, covered.ttl, rrsig))
 
@@ -141,8 +159,15 @@ def child_soa_rrset() -> dns.rrset.RRset:
     )
 
 
+def nsec_lie(owner: str) -> dns.rrset.RRset:
+    # An NSEC owned by the grandparent zone P at a name that really belongs
+    # to the secure child C, showing an (insecure) delegation: NS bit set,
+    # DS bit clear.
+    return nsec_rrset(owner, f"grandz.{CHILD}", "NS", "RRSIG", "NSEC")
+
+
 def grandchild_nsec_lie() -> dns.rrset.RRset:
-    return nsec_rrset(GRANDCHILD, f"grandz.{CHILD}", "NS", "RRSIG", "NSEC")
+    return nsec_lie(GRANDCHILD)
 
 
 def nsec3_ns_lie(
@@ -209,6 +234,63 @@ def add_nsec3_nodata_from_sibling(
     add_signed(response.authority, child_soa_rrset(), child_key)
 
 
+def add_mixed_signer_nodata(
+    response: dns.message.Message,
+    parent_key: Key,
+    nsec: dns.rrset.RRset,
+    dummy_first: bool,
+) -> None:
+    """
+    The same NODATA lie as add_parent_nodata(), but the NSEC carries two
+    RRSIGs: the genuine one from the grandparent P and a dummy one naming
+    the NSEC owner itself as signer.  The dummy uses an unsupported
+    algorithm, so the validator skips it and the NSEC still authenticates
+    through the genuine RRSIG.  All the dummy changes is which signer name
+    comes first in the RRSIG rdataset (#6321).
+    """
+    add_signed(response.authority, soa_rrset(), parent_key)
+    genuine = sign(nsec, parent_key)
+    dummy = genuine.replace(algorithm=DUMMY_ALGORITHM, signer=nsec.name)
+    rrsigs = [dummy, genuine] if dummy_first else [genuine, dummy]
+
+    response.authority.append(nsec)
+    # One single-rdata RRset per RRSIG: dnspython shuffles the rdatas of an
+    # rdataset when rendering it, and this forgery is all about the order
+    # in which the two signatures arrive.  Separate RRsets keep their list
+    # order on the wire, and the resolver merges them back into one RRSIG
+    # rdataset in that order.
+    for rrsig in rrsigs:
+        response.authority.append(dns.rrset.from_rdata(nsec.name, nsec.ttl, rrsig))
+
+
+def add_many_rrsig_nodata(
+    response: dns.message.Message,
+    parent_key: Key,
+    nsec: dns.rrset.RRset,
+    count: int,
+) -> None:
+    """
+    The NODATA lie with 'count' RRSIGs over the NSEC, all naming the
+    grandparent P as signer: count - 1 unsupported-algorithm dummies with
+    distinct key tags and a one-byte signature, then the genuine signature
+    last, so the validator has to skip every dummy before the NSEC
+    authenticates.  With a uniform signer this exercises only the RRSIG
+    count cap in is_insecure_referral(), not the mixed-signer rule.
+    """
+    add_signed(response.authority, soa_rrset(), parent_key)
+    genuine = sign(nsec, parent_key)
+    dummies = [
+        genuine.replace(algorithm=DUMMY_ALGORITHM, key_tag=tag, signature=b"\0")
+        for tag in range(count - 1)
+    ]
+
+    response.authority.append(nsec)
+    # Separate single-rdata RRsets, for the same wire-order reason as in
+    # add_mixed_signer_nodata().
+    for rrsig in [*dummies, genuine]:
+        response.authority.append(dns.rrset.from_rdata(nsec.name, nsec.ttl, rrsig))
+
+
 def prepare_response(qctx: QueryContext) -> dns.message.Message:
     qctx.prepare_new_response(with_zone_data=False)
     qctx.response.flags |= dns.flags.AA
@@ -227,6 +309,19 @@ class GrandparentNsecHandler(ResponseHandler):
         self.grandchild = name(GRANDCHILD)
         self.grandchild3 = name(GRANDCHILD3)
         self.grandchild3_sibling = name(GRANDCHILD3_SIBLING)
+        self.grandchild_dummy_first = name(GRANDCHILD_DUMMY_FIRST)
+        self.grandchild_dummy_last = name(GRANDCHILD_DUMMY_LAST)
+        self.grandchild_too_many = name(GRANDCHILD_TOO_MANY)
+        self.grandchild_almost_too_many = name(GRANDCHILD_ALMOST_TOO_MANY)
+        self.forged_grandchildren = (
+            self.grandchild,
+            self.grandchild3,
+            self.grandchild3_sibling,
+            self.grandchild_dummy_first,
+            self.grandchild_dummy_last,
+            self.grandchild_too_many,
+            self.grandchild_almost_too_many,
+        )
 
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname.is_subdomain(self.parent)
@@ -297,10 +392,50 @@ class GrandparentNsecHandler(ResponseHandler):
             # #6234: Sibling-zone-signed NSEC3 ahead of the real child proof.
             add_nsec3_nodata_from_sibling(response, self.child_key, self.sibling_key)
         elif (
-            qctx.qname.is_subdomain(self.grandchild)
-            or qctx.qname.is_subdomain(self.grandchild3)
-            or qctx.qname.is_subdomain(self.grandchild3_sibling)
-        ) and qctx.qtype == dns.rdatatype.A:
+            qctx.qname == self.grandchild_dummy_first and qctx.qtype == dns.rdatatype.DS
+        ):
+            # Forge no data for grand child DS, dummy RRSIG before the
+            # genuine one (mixed-signer variant, #6321)
+            add_mixed_signer_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_DUMMY_FIRST),
+                dummy_first=True,
+            )
+        elif (
+            qctx.qname == self.grandchild_dummy_last and qctx.qtype == dns.rdatatype.DS
+        ):
+            # Same forgery, genuine RRSIG before the dummy one
+            add_mixed_signer_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_DUMMY_LAST),
+                dummy_first=False,
+            )
+        elif qctx.qname == self.grandchild_too_many and qctx.qtype == dns.rdatatype.DS:
+            # Forge no data for grand child DS with as many RRSIGs as ns2
+            # allows validations per fetch (RRSIG count cap variant)
+            add_many_rrsig_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_TOO_MANY),
+                count=MAX_VALIDATIONS_PER_FETCH,
+            )
+        elif (
+            qctx.qname == self.grandchild_almost_too_many
+            and qctx.qtype == dns.rdatatype.DS
+        ):
+            # Same forgery with one RRSIG fewer, so it stays under the cap
+            add_many_rrsig_nodata(
+                response,
+                self.parent_key,
+                nsec_lie(GRANDCHILD_ALMOST_TOO_MANY),
+                count=MAX_VALIDATIONS_PER_FETCH - 1,
+            )
+        elif (
+            any(qctx.qname.is_subdomain(g) for g in self.forged_grandchildren)
+            and qctx.qtype == dns.rdatatype.A
+        ):
             # Attack query
             response.answer.append(
                 rrset(qctx.qname.to_text(), dns.rdatatype.A, FORGED_A)
