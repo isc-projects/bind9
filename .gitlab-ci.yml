@@ -318,6 +318,9 @@ stages:
 .rule_tag_security: &rule_tag_security
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $RELEASE_TYPE == "security"'
 
+.rule_tag_subscription: &rule_tag_subscription
+  - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ /-S/'
+
 .rule_tag_security_or_subscription: &rule_tag_security_or_subscription
   - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null && ($RELEASE_TYPE == "security" || $CI_COMMIT_TAG =~ /-S/)'
 
@@ -2229,6 +2232,19 @@ merge-tag:
     paths:
       - bind9/
     when: on_failure
+
+cherry-pick-tag:
+  <<: *manual_release_job_qa
+  variables:
+    GIT_DEPTH: 100
+  needs:
+    - job: publish-private
+      artifacts: false
+  script:
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/cherry_pick_tag.py --tag "$CI_COMMIT_TAG"
+  rules:
+    - *rule_tag_subscription
 
 update-stable-tag:
   <<: *manual_release_job_qa
