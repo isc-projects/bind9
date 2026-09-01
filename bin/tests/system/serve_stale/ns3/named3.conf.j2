@@ -25,7 +25,9 @@ options {
 	stale-answer-ttl 3;
 	stale-refresh-time 0;
 	max-stale-ttl 3600;
-	resolver-query-timeout 10000; # 10 seconds
+	# Client-timeout defaults to 'off', so the stale shortttl.cname.example
+	# checks block on this timeout when the auth is down; keep it short.
+	resolver-query-timeout 2000; # 2 seconds
 	prefetch 0;
 };
 
