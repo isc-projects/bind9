@@ -28,6 +28,7 @@ check_PROGRAMS =		\
 	keytable_test		\
 	message_test		\
 	name_test		\
+	ncache_test		\
 	nsec3_test		\
 	nsec3param_test		\
 	private_test		\
