@@ -572,7 +572,10 @@ dns_rdatavec_subtract(dns_vecheader_t *oheader, dns_vecheader_t *sheader,
 	 * Allocate the target buffer and copy the old vec's header.
 	 */
 	dns_vecheader_t *theader = isc_mem_get(mctx, tlength);
-	uint16_t attrs = RESIGN(oheader) ? DNS_VECHEADERATTR_RESIGN : 0;
+	uint16_t attrs = DNS_VECHEADER_GETATTR(
+		oheader, DNS_VECHEADERATTR_CASESET |
+				 DNS_VECHEADERATTR_CASEFULLYLOWER |
+				 DNS_VECHEADERATTR_RESIGN);
 	*theader = (dns_vecheader_t){
 		.count = tcount,
 		.raw_length = rlength,
