@@ -118,7 +118,7 @@ def _run_script(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         bufsize=1,
-        universal_newlines=True,
+        text=True,
         errors="backslashreplace",
     ) as proc:
         if proc.stdout:
