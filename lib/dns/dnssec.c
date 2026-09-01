@@ -129,39 +129,47 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 	isc_buffer_t b;
 	isc_region_t r;
 
-	INSIST(DNS_NAME_VALID(name));
-	INSIST(rdata != NULL);
-	INSIST(mctx != NULL);
-	INSIST(key != NULL);
-	INSIST(*key == NULL);
+	REQUIRE(DNS_NAME_VALID(name));
+	REQUIRE(rdata != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(key != NULL);
+	REQUIRE(*key == NULL);
 	REQUIRE(rdata->type == dns_rdatatype_key ||
 		rdata->type == dns_rdatatype_dnskey);
 
-	if (rdata->length >= 4) {
-		switch (rdata->type) {
-		case dns_rdatatype_dnskey:
-			/*
-			 * Reject non DNSSEC code points (includes appropriated
-			 * code points).
-			 */
-			if (!dst_dnssec_algorithm(rdata->data[3])) {
-				return DST_R_UNSUPPORTEDALG;
-			}
-			break;
-		case dns_rdatatype_key:
-			/*
-			 * Reject non SIG(0) code points (includes appropriated
-			 * code points).
-			 */
-			if (rdata->data[3] == DST_ALG_DH ||
-			    rdata->data[3] == DST_ALG_GSSAPI ||
-			    (rdata->data[3] >= DST_ALG_HMAC_FIRST &&
-			     rdata->data[3] <= DST_ALG_HMAC_LAST))
-			{
-				return DST_R_UNSUPPORTEDALG;
-			}
-			break;
+	/*
+	 * Extract the algorithm from the raw data to perform validation before
+	 * actually converting it to a key. Expecting at least 4 bytes: flags
+	 * (2b), protocol (1b), algorithm (1b).
+	 */
+	if (rdata->length < 4) {
+		return DST_R_INVALIDPUBLICKEY;
+	}
+	const unsigned int alg = rdata->data[3];
+
+	switch (rdata->type) {
+	case dns_rdatatype_dnskey:
+		/*
+		 * Reject non DNSSEC code points (includes appropriated
+		 * code points).
+		 */
+		if (!dst_dnssec_algorithm(alg)) {
+			return DST_R_UNSUPPORTEDALG;
 		}
+		break;
+	case dns_rdatatype_key:
+		/*
+		 * Reject non SIG(0) code points (includes appropriated
+		 * code points).
+		 */
+		if (alg == DST_ALG_DH ||
+		    (alg >= DST_ALG_HMAC_FIRST && alg <= DST_ALG_HMAC_LAST))
+		{
+			return DST_R_UNSUPPORTEDALG;
+		}
+		break;
+	default:
+		UNREACHABLE();
 	}
 
 	dns_rdata_toregion(rdata, &r);
