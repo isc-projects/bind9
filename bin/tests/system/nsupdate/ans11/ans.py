@@ -34,7 +34,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     DomainHandler,
     QueryContext,
-    ResponseAction,
 )
 
 ZONE = dns.name.from_text("sigaxfr.nil.")
@@ -62,7 +61,7 @@ class SigAxfrServer(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         soa_rrset = dns.rrset.from_text(
             ZONE, 3600, dns.rdataclass.IN, dns.rdatatype.SOA, SOA_TEXT
         )

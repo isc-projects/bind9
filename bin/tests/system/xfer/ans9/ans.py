@@ -21,7 +21,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     DomainHandler,
     QueryContext,
-    ResponseAction,
     ToggleResponsesCommand,
 )
 
@@ -40,7 +39,7 @@ class AXFRServer(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         # This is oversimplified because I am lazy - we are appending the SOA
         # RRset to the ANSWER section for _every_ QTYPE.  named is only
         # expected to send a SOA query over UDP and then an AXFR query over
