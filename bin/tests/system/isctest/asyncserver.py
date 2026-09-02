@@ -895,7 +895,8 @@ class ResponseHandler(abc.ABC):
         The response prepared from zone data is passed to this method in
         qctx.response.
         """
-        yield DnsResponseSend(qctx.response)
+        raise NotImplementedError
+        yield  # pylint: disable=unreachable
 
     def __str__(self) -> str:
         return self.__class__.__name__
@@ -2078,7 +2079,7 @@ class ControllableAsyncDnsServer(AsyncDnsServer):
         """
         control_response = self._handle_control_command(qctx)
         if control_response:
-            yield await DnsResponseSend(response=control_response).perform()
+            yield control_response
             return
 
         async for response in super()._prepare_responses(qctx):
