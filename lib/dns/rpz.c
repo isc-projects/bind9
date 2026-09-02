@@ -168,10 +168,10 @@ struct dns_rpz_nm_zbits {
 };
 
 /*
- * The data for a name in the summary database. This has two pairs of bits
- * for policy zones: one pair is for the exact name of the node, such as
- * example.com, and the other pair is for a wildcard child such as
- * *.example.com.
+ * The data for a name in the summary database, modified using COW mechanism as
+ * the search database is lockless. This has two pairs of bits for policy zones:
+ * one pair is for the exact name of the node, such as example.com, and the
+ * other pair is for a wildcard child such as *.example.com.
  */
 typedef struct nmdata nmdata_t;
 struct nmdata {
@@ -901,14 +901,6 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	REQUIRE(rpz != NULL);
 	REQUIRE(rpz->rpzs != NULL && rpz->num < rpz->rpzs->p.num_zones);
 
-	/*
-	 * The IPv6 parsing loop below only writes as many words as the
-	 * name has labels, so a name with too few of them would otherwise
-	 * leave part of the key holding whatever was on the caller's
-	 * stack.
-	 */
-	*tgt_ip = (dns_rpz_cidr_key_t){ 0 };
-
 	make_addr_set(new_set, DNS_RPZ_ZBIT(rpz->num), rpz_type);
 
 	ip_labels = dns_name_countlabels(src_name);
@@ -1404,7 +1396,7 @@ search(dns_rpz_zones_t *rpzs, const dns_rpz_cidr_key_t *tgt_ip,
 static isc_result_t
 add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	 const dns_name_t *src_name) {
-	dns_rpz_cidr_key_t tgt_ip;
+	dns_rpz_cidr_key_t tgt_ip = { 0 };
 	dns_rpz_prefix_t tgt_prefix;
 	dns_rpz_addr_zbits_t set;
 	dns_rpz_cidr_node_t *found = NULL;
@@ -1452,6 +1444,9 @@ done:
 
 static nmdata_t *
 new_nmdata(isc_mem_t *mctx, const dns_name_t *name, const nmdata_t *data) {
+	REQUIRE(data->set.qname != 0 || data->set.ns != 0 ||
+		data->wild.qname != 0 || data->wild.ns != 0);
+
 	nmdata_t *newdata = isc_mem_get(mctx, sizeof(*newdata));
 	*newdata = (nmdata_t){
 		.set = data->set,
@@ -1475,34 +1470,46 @@ add_nm(dns_rpz_zones_t *rpzs, dns_qp_t *qp, dns_name_t *trig_name,
        const nmdata_t *new_data) {
 	isc_result_t result;
 	nmdata_t *data = NULL;
+	nmdata_t merged;
 
 	result = dns_qp_getname(qp, trig_name, (void **)&data, NULL);
-	if (result != ISC_R_SUCCESS) {
-		INSIST(data == NULL);
-		data = new_nmdata(rpzs->mctx, trig_name, new_data);
-		result = dns_qp_insert(qp, data, 0);
-		nmdata_detach(&data);
-		return result;
+	if (result == ISC_R_SUCCESS) {
+		/* copy in the bits from the new data */
+		merged = (nmdata_t){
+			.set.qname = data->set.qname | new_data->set.qname,
+			.set.ns = data->set.ns | new_data->set.ns,
+			.wild.qname = data->wild.qname | new_data->wild.qname,
+			.wild.ns = data->wild.ns | new_data->wild.ns,
+		};
+
+		/*
+		 * Nothing to add if every bit in new_data is already present.
+		 */
+		if (merged.set.qname == data->set.qname &&
+		    merged.set.ns == data->set.ns &&
+		    merged.wild.qname == data->wild.qname &&
+		    merged.wild.ns == data->wild.ns)
+		{
+			return ISC_R_EXISTS;
+		}
+
+		/*
+		 * The leaf may be in use by a lock-free query, so replace
+		 * it with a fresh copy instead of modifying it in place.
+		 */
+		RUNTIME_CHECK(dns_qp_deletename(qp, trig_name, NULL, NULL) ==
+			      ISC_R_SUCCESS);
+
+		new_data = &merged;
 	}
 
-	/*
-	 * Do not count bits that are already present
-	 */
-	if ((data->set.qname & new_data->set.qname) != 0 ||
-	    (data->set.ns & new_data->set.ns) != 0 ||
-	    (data->wild.qname & new_data->wild.qname) != 0 ||
-	    (data->wild.ns & new_data->wild.ns) != 0)
-	{
-		result = ISC_R_EXISTS;
-	}
+	data = new_nmdata(rpzs->mctx, trig_name, new_data);
 
-	/* copy in the bits from the new data */
-	data->set.qname |= new_data->set.qname;
-	data->set.ns |= new_data->set.ns;
-	data->wild.qname |= new_data->wild.qname;
-	data->wild.ns |= new_data->wild.ns;
+	RUNTIME_CHECK(dns_qp_insert(qp, data, 0) == ISC_R_SUCCESS);
 
-	return result;
+	nmdata_detach(&data);
+
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
@@ -2320,7 +2327,7 @@ static void
 del_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	 const dns_name_t *src_name) {
 	isc_result_t result;
-	dns_rpz_cidr_key_t tgt_ip;
+	dns_rpz_cidr_key_t tgt_ip = { 0 };
 	dns_rpz_prefix_t tgt_prefix;
 	dns_rpz_addr_zbits_t tgt_set;
 	dns_rpz_cidr_node_t *tgt = NULL, *parent = NULL, *child = NULL;
@@ -2406,20 +2413,17 @@ done:
 static void
 del_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	 const dns_name_t *src_name) {
-	isc_result_t result;
-	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_fixedname_t trig_namef;
-	dns_name_t *trig_name = NULL;
-	nmdata_t *data = NULL;
-	nmdata_t del_data;
-	bool exists;
-
 	/*
 	 * We need a summary database of names even with 1 policy zone,
 	 * because wildcard triggers are handled differently.
 	 */
+	isc_result_t result;
+	dns_fixedname_t trig_namef;
+	dns_name_t *trig_name = dns_fixedname_initname(&trig_namef);
+	nmdata_t *data = NULL;
+	nmdata_t del_data;
+	nmdata_t remaining;
 
-	trig_name = dns_fixedname_initname(&trig_namef);
 	/*
 	 * Do not worry about invalid rpz owner names.  If we are here, then
 	 * something relevant was added and so was valid.
@@ -2443,37 +2447,28 @@ del_name(dns_rpz_zone_t *rpz, dns_qp_t *qp, dns_rpz_type_t rpz_type,
 	del_data.wild.qname &= data->wild.qname;
 	del_data.wild.ns &= data->wild.ns;
 
-	exists = (del_data.set.qname != 0 || del_data.set.ns != 0 ||
-		  del_data.wild.qname != 0 || del_data.wild.ns != 0);
+	remaining = (nmdata_t){
+		.set.qname = data->set.qname & ~del_data.set.qname,
+		.set.ns = data->set.ns & ~del_data.set.ns,
+		.wild.qname = data->wild.qname & ~del_data.wild.qname,
+		.wild.ns = data->wild.ns & ~del_data.wild.ns,
+	};
 
-	data->set.qname &= ~del_data.set.qname;
-	data->set.ns &= ~del_data.set.ns;
-	data->wild.qname &= ~del_data.wild.qname;
-	data->wild.ns &= ~del_data.wild.ns;
+	RUNTIME_CHECK(dns_qp_deletename(qp, trig_name, NULL, NULL) ==
+		      ISC_R_SUCCESS);
 
-	if (data->set.qname == 0 && data->set.ns == 0 &&
-	    data->wild.qname == 0 && data->wild.ns == 0)
+	if (remaining.set.qname != 0 || remaining.set.ns != 0 ||
+	    remaining.wild.qname != 0 || remaining.wild.ns != 0)
 	{
-		result = dns_qp_deletename(qp, trig_name, NULL, NULL);
-		if (result != ISC_R_SUCCESS) {
-			/*
-			 * bin/tests/system/rpz/tests.sh looks for
-			 * "rpz.*failed".
-			 */
-			dns_name_format(src_name, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-				      "rpz del_name(%s) node delete "
-				      "failed: %s",
-				      namebuf, isc_result_totext(result));
-		}
+		nmdata_t *new_data = new_nmdata(rpz->rpzs->mctx, trig_name,
+						&remaining);
+		RUNTIME_CHECK(dns_qp_insert(qp, new_data, 0) == ISC_R_SUCCESS);
+		nmdata_detach(&new_data);
 	}
 
-	if (exists) {
-		RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
-		adj_trigger_cnt(rpz, rpz_type, NULL, 0, false);
-		RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
-	}
+	RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
+	adj_trigger_cnt(rpz, rpz_type, NULL, 0, false);
+	RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 }
 
 /*
