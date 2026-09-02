@@ -54,13 +54,6 @@ isc_counter_used(isc_counter_t *counter);
  * Return the current counter value.
  */
 
-void
-isc_counter_setlimit(isc_counter_t *counter, size_t limit);
-/**<
- * \brief
- * Set the counter limit.
- */
-
 size_t
 isc_counter_getlimit(isc_counter_t *counter);
 /**<
