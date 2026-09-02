@@ -13,7 +13,7 @@ information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator, Callable, Collection, Coroutine, Sequence
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any, cast, final
 
 import abc
 import asyncio
@@ -326,6 +326,12 @@ class DnsResponseSend(ResponseAction):
     Depending on the value of the `authoritative` property, this class may set
     the AA bit in the response (True), clear it (False), or not touch it at all
     (None).
+
+    The message object is the source of truth: it is rendered to wire at send
+    time, so any mutation made before it is yielded is reflected.  The one
+    exception is a TSIG-signed response, which is sent from its already-rendered
+    wire verbatim to preserve the signature; setting `authoritative` on such a
+    response raises, since the AA change could not reach the signed wire.
     """
 
     response: dns.message.Message
@@ -354,6 +360,13 @@ class DnsResponseSend(ResponseAction):
             raise RuntimeError(error)
 
         if self.authoritative is not None:
+            if self.response.tsig is not None and self.response.wire is not None:
+                raise RuntimeError(
+                    "DnsResponseSend(authoritative=...) has no effect on a "
+                    "TSIG-signed, already-rendered response: it is sent from its "
+                    "cached wire verbatim, so the AA-bit change would be silently "
+                    "lost. Set the AA bit before signing the response."
+                )
             if self.authoritative:
                 self.response.flags |= dns.flags.AA
             else:
@@ -583,6 +596,43 @@ class ResponseHandler(abc.ABC):
 
     def __str__(self) -> str:
         return self.__class__.__name__
+
+
+class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
+    """
+    Base class for handlers that wrap another handler and modify each response
+    it yields.  `match()` and the response stream are delegated to the wrapped
+    `inner` handler; subclasses implement `_modify_response()` to mutate each
+    yielded action in place, and may override `_on_query_received()` to reset
+    per-query state.
+    """
+
+    def __init__(self, inner: ResponseHandler) -> None:
+        self._inner = inner
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._inner.match(qctx)
+
+    def _on_query_received(self, qctx: QueryContext) -> None:
+        pass
+
+    @abc.abstractmethod
+    def _modify_response(
+        self, qctx: QueryContext, response_action: ResponseAction
+    ) -> None:
+        raise NotImplementedError
+
+    @final
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        self._on_query_received(qctx)
+        async for response_action in self._inner.get_responses(qctx):
+            self._modify_response(qctx, response_action)
+            yield response_action
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}({self._inner})"
 
 
 class IgnoreAllQueries(ResponseHandler):
@@ -1417,15 +1467,26 @@ class AsyncDnsServer(AsyncServer):
                 return payload
             return len(payload).to_bytes(2, byteorder="big") + payload
 
+        payload: bytes
         match response:
-            case dns.message.Message(wire=bytes() as payload) | (bytes() as payload):
-                # Calling to_wire() on a Message again may result in a different TSIG
-                # signature being generated, which would be incorrect.
-                return prepend_length_unless_udp(payload)
-            case dns.message.Message(wire=None):
-                return prepend_length_unless_udp(response.to_wire(max_size=65535))
+            case dns.message.Message(wire=bytes() as cached) if (
+                response.tsig is not None
+            ):
+                # A TSIG-signed response is sent from its already-rendered wire
+                # verbatim: re-rendering would generate a different signature and
+                # break multi-message TSIG chaining (see xfer/ans5).
+                payload = cached
+            case dns.message.Message():
+                # Otherwise the message object is the source of truth: render it
+                # now so any change made after an earlier to_wire() render (a size
+                # measurement, a relayed-then-edited response, a late AA or RCODE
+                # change) reaches the wire.
+                payload = response.to_wire(max_size=65535)
+            case bytes():
+                payload = response
             case _:
                 return None
+        return prepend_length_unless_udp(payload)
 
     async def _handle_query(
         self, wire: bytes, socket: Peer, peer: Peer, protocol: DnsProtocol

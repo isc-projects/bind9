@@ -10,9 +10,6 @@
 # information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator, Collection
-from typing import final
-
-import abc
 
 import dns.message
 import dns.name
@@ -30,6 +27,7 @@ from isctest.asyncserver import (
     QueryContext,
     ResponseAction,
     ResponseHandler,
+    ResponseHandlerWrapper,
     SwitchControlCommand,
 )
 from isctest.vars.algorithms import ALG_VARS
@@ -41,35 +39,6 @@ UNUSED_KEY = dns.tsig.Key("unused_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
 KEYRING = {key.name: key for key in (DEFAULT_KEY, BAD_KEY, UNUSED_KEY)}
 
 KEY_WITH_BAD_DATA = dns.tsig.Key("tsig_key", "abcd1234ffff", ALG_VARS["DEFAULT_HMAC"])
-
-
-class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
-    def __init__(self, inner: ResponseHandler) -> None:
-        self._inner = inner
-
-    def match(self, qctx: QueryContext) -> bool:
-        return self._inner.match(qctx)
-
-    def _on_query_received(self, qctx: QueryContext) -> None:
-        pass
-
-    @abc.abstractmethod
-    def _modify_response(
-        self, qctx: QueryContext, response_action: ResponseAction
-    ) -> None:
-        raise NotImplementedError
-
-    @final
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        self._on_query_received(qctx)
-        async for response_action in self._inner.get_responses(qctx):
-            self._modify_response(qctx, response_action)
-            yield response_action
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}({self._inner})"
 
 
 class SignResponses(ResponseHandlerWrapper):
