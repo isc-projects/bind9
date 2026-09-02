@@ -20,7 +20,6 @@ from isctest.asyncserver import (
     DnsProtocol,
     DnsResponseSend,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
 )
 
@@ -28,7 +27,7 @@ from isctest.asyncserver import (
 class TruncateOnUdpHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         assert qctx.protocol == DnsProtocol.UDP, "This server only supports UDP"
         qctx.response.flags |= dns.flags.TC
         yield DnsResponseSend(qctx.response)

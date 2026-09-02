@@ -21,7 +21,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     DomainHandler,
     QueryContext,
-    ResponseAction,
 )
 
 from ..qmin_ans import (
@@ -53,7 +52,7 @@ class SlowHandler(DelayedResponseHandler):
 
 def send_delegation(
     qctx: QueryContext, zone_cut: dns.name.Name, target_addr: str
-) -> ResponseAction:
+) -> DnsResponseSend:
     """
     Delegate `zone_cut` to a single in-bailiwick name server, `ns.<zone_cut>`,
     with a single IPv4 glue record (provided in `target_addr`) included in the
@@ -84,7 +83,7 @@ class StaleHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
         a_b_stale = dns.name.from_text("a.b.stale.")
         b_stale = dns.name.from_text("b.stale.")

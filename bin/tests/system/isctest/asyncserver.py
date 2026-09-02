@@ -945,7 +945,7 @@ class IgnoreAllQueries(ResponseHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[ResponseDrop, None]:
         yield ResponseDrop()
 
 
@@ -1191,7 +1191,7 @@ class ForwarderHandler(ResponseHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[BytesResponseSend | DnsResponseSend, None]:
         loop = asyncio.get_running_loop()
         response = loop.create_future()
         forwarding_target = f"{self.target}:{self.port or qctx.socket.port}"

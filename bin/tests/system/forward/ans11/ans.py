@@ -19,7 +19,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     DomainHandler,
     QueryContext,
-    ResponseAction,
     ToggleResponsesCommand,
 )
 
@@ -33,7 +32,7 @@ class ExtraAnswersHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         if qctx.qtype == dns.rdatatype.A:
             ns_rrset = dns.rrset.from_text(
                 "net3.", 300, qctx.qclass, dns.rdatatype.NS, "local.net3."

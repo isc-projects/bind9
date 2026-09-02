@@ -23,7 +23,6 @@ from isctest.asyncserver import (
     ControllableAsyncDnsServer,
     DnsResponseSend,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
 )
 
@@ -39,7 +38,7 @@ class ErraticAxfrHandler(ResponseHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[CloseConnection | DnsResponseSend, None]:
         action = self.actions[self.counter % len(self.actions)]
         self.counter += 1
 

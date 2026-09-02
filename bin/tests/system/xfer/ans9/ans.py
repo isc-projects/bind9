@@ -22,7 +22,6 @@ from isctest.asyncserver import (
     ControllableAsyncDnsServer,
     DnsResponseSend,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
     ToggleResponsesCommand,
 )
@@ -103,7 +102,7 @@ class ZoneAxfrHandler(AxfrHandler, SerialCounted):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         async for action in super().get_responses(qctx):
             yield action
         self._serials.serial += 1

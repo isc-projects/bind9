@@ -20,7 +20,6 @@ from isctest.asyncserver import (
     DomainHandler,
     IgnoreAllQueries,
     QueryContext,
-    ResponseAction,
     ResponseDrop,
 )
 
@@ -42,7 +41,7 @@ class CloseHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[CloseConnection, None]:
         yield CloseConnection()
 
 
@@ -56,7 +55,7 @@ class SilentThenServfailHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
         if self.counter % 2 == 0:
             yield ResponseDrop()
         else:

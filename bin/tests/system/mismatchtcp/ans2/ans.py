@@ -19,7 +19,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     QnameQtypeHandler,
     QueryContext,
-    ResponseAction,
 )
 
 
@@ -41,7 +40,7 @@ class MismatchedIdOnUdpHandler(QnameQtypeHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         qctx.response.id = qctx.query.id ^ 0xFFFF
         yield DnsResponseSend(qctx.response)
 
