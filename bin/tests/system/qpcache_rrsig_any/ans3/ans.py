@@ -22,7 +22,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     QnameHandler,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
     StaticResponseHandler,
 )
@@ -66,7 +65,7 @@ class RrsigCoversTypeHandler(ResponseHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         covered_label = qctx.qname.labels[0].decode("ascii").upper()
         covered = dns.rdatatype.from_text(covered_label)
         qctx.response.answer.append(rrsig_covering(qctx.qname, covered))

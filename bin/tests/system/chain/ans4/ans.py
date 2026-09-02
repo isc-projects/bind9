@@ -29,7 +29,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     DomainHandler,
     QueryContext,
-    ResponseAction,
 )
 
 
@@ -422,7 +421,7 @@ class ChainResponseHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         trigger_qname = dns.name.from_text("test.domain.nil.")
         if qctx.qname == trigger_qname:
             answer_rrsets = self._answer_rrsets

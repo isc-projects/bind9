@@ -28,7 +28,6 @@ from isctest.asyncserver import (
     DnsResponseSend,
     QnameHandler,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
 )
 
@@ -83,7 +82,7 @@ class ReclimitHandler(ResponseHandler):
     @final
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         self._state.count += 1
         async for response in self._get_counted_responses(qctx):
             yield response
@@ -91,7 +90,7 @@ class ReclimitHandler(ResponseHandler):
     @abc.abstractmethod
     async def _get_counted_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         yield DnsResponseSend(qctx.response)
 
 
@@ -190,7 +189,7 @@ class Ns1ExampleOrgHandler(ReclimitHandler):
 
     async def _get_counted_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         ns_number = int(qctx.qname.labels[1])
         next_ns_number = ns_number + 1
         if not self._state.limit or (

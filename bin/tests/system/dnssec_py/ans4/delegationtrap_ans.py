@@ -54,12 +54,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
 
 ZONE_NAME = "attack.delegationtrap."
 SERVER_IP = "10.53.0.4"
@@ -133,7 +128,7 @@ class DelegationTrapHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         qname = qctx.qname
         qtype = qctx.qtype
         response = qctx.prepare_new_response(with_zone_data=False)

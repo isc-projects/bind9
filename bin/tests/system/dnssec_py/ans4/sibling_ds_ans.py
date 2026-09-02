@@ -23,12 +23,7 @@ from collections.abc import AsyncGenerator
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
 
 
 class SiblingDsInjectionHandler(DomainHandler):
@@ -40,7 +35,7 @@ class SiblingDsInjectionHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         # The default zone-data response already has the NS delegation for
         # child.sibling-ds. and glue.  Add a DS record for the *sibling* zone
         # (wrong name for this referral).
