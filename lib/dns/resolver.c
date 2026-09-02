@@ -9600,7 +9600,14 @@ rctx_referral(respctx_t *rctx) {
 	INSIST(!dns_name_empty(fctx->domain));
 	fcount_decr(fctx);
 
-	dns_delegset_detach(&fctx->delegset);
+	/*
+	 * A forward only forwarder doesn't have a delegset (since it's
+	 * useless), however if the forwarder (oddly) returns us a referral, we
+	 * could end up here.
+	 */
+	if (fctx->delegset != NULL) {
+		dns_delegset_detach(&fctx->delegset);
+	}
 
 	dns_name_copy(rctx->ns_name, fctx->domain);
 
