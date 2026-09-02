@@ -286,6 +286,10 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			RETERR(uint16_tobuffer(ul, target));
 			break;
 		case sbpr_ipv4s:
+			/* Reject embedded NUL bytes. */
+			if (memchr(region->base, 0, region->length) != NULL) {
+				return DNS_R_SYNTAX;
+			}
 			do {
 				snprintf(tbuf, sizeof(tbuf), "%*s",
 					 (int)(region->length), region->base);
@@ -302,6 +306,10 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 			} while (e != NULL);
 			break;
 		case sbpr_ipv6s:
+			/* Reject embedded NUL bytes. */
+			if (memchr(region->base, 0, region->length) != NULL) {
+				return DNS_R_SYNTAX;
+			}
 			do {
 				snprintf(tbuf, sizeof(tbuf), "%*s",
 					 (int)(region->length), region->base);
