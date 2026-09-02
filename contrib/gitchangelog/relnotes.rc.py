@@ -38,6 +38,7 @@ section_regexps = [
 body_process = (
     ReSub(r"\n*See merge request isc-private/bind9!\d+", r"")
     | ReSub(r"https://gitlab.isc.org/isc-projects/bind9/-/issues/", r"#")
+    | ReSub(r"https://gitlab.isc.org/isc-projects/bind9/-/work_items/", r"#")
     | ReSub(r"https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/", r"!")
     | ReSub(r"\n*Backport of [^\n]+", r"")
     | ReSub(r"\n*(Replaces|Supercedes)[^\n]+", r"")
