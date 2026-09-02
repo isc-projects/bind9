@@ -351,4 +351,20 @@ dns_diff_print(const dns_diff_t *diff, FILE *file);
  *\li	any error from dns_rdataset_totext()
  */
 
+isc_result_t
+dns_diff_applytuple(dns_difftuple_t **tuplep, dns_db_t *db,
+		    dns_dbversion_t *ver, dns_diff_t *diff);
+/*%<
+ * Apply the tuple (*tuplep) to the database (db) using version (ver) and if
+ * successful save to 'diff' or it is freed.
+ *
+ * Requires:
+ *\li	'tuplep' to be non NULL and '*tuplep' to be a valid tuple.
+ *\li	'db' to be a valid database.
+ *\li	'diff' to be a valid diff.
+ *
+ * Ensures:
+ *\li	'*tuplep' is NULL.
+ */
+
 ISC_LANG_ENDDECLS

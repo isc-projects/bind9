@@ -422,49 +422,6 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 }
 
 /*%
- * Update a single RR in version 'ver' of 'db' and log the
- * update in 'diff'.
- *
- * Ensures:
- * \li	'*tuple' == NULL.  Either the tuple is freed, or its
- *	ownership has been transferred to the diff.
- */
-static isc_result_t
-do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
-	     dns_diff_t *diff) {
-	dns_diff_t temp_diff;
-	dns_difftuple_t *temp_tuple = *tuple;
-	isc_result_t result;
-
-	/*
-	 * Create a singleton diff.
-	 */
-	dns_diff_init(diff->mctx, &temp_diff);
-	dns_diff_append(&temp_diff, tuple);
-
-	/*
-	 * Apply it to the database.
-	 */
-	result = dns_diff_apply(&temp_diff, db, ver);
-	dns_diff_unlink(&temp_diff, temp_tuple);
-	*tuple = MOVE_OWNERSHIP(temp_tuple);
-	if (result != ISC_R_SUCCESS) {
-		dns_difftuple_free(tuple);
-		return result;
-	}
-
-	/*
-	 * Merge it into the current pending journal entry.
-	 */
-	dns_diff_appendminimal(diff, tuple);
-
-	/*
-	 * Do not clear temp_diff.
-	 */
-	return ISC_R_SUCCESS;
-}
-
-/*%
  * Perform the updates in 'updates' in version 'ver' of 'db' and log the
  * update in 'diff'.
  *
@@ -479,7 +436,7 @@ do_diff(dns_diff_t *updates, dns_db_t *db, dns_dbversion_t *ver,
 
 	ISC_LIST_FOREACH_SAFE(updates->tuples, t, link, next) {
 		dns_diff_unlink(updates, t);
-		CHECK(do_one_tuple(&t, db, ver, diff));
+		CHECK(dns_diff_applytuple(&t, db, ver, diff));
 	}
 	return ISC_R_SUCCESS;
 
@@ -498,7 +455,7 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	if (result != ISC_R_SUCCESS) {
 		return result;
 	}
-	return do_one_tuple(&tuple, db, ver, diff);
+	return dns_diff_applytuple(&tuple, db, ver, diff);
 }
 
 /**************************************************************************/
@@ -1613,8 +1570,8 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	serial = dns_soa_getserial(&addtuple->rdata);
 	serial = dns_update_soaserial(serial, method, NULL);
 	dns_soa_setserial(serial, &addtuple->rdata);
-	CHECK(do_one_tuple(&deltuple, db, ver, diff));
-	CHECK(do_one_tuple(&addtuple, db, ver, diff));
+	CHECK(dns_diff_applytuple(&deltuple, db, ver, diff));
+	CHECK(dns_diff_applytuple(&addtuple, db, ver, diff));
 	result = ISC_R_SUCCESS;
 
 cleanup:
@@ -2544,7 +2501,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 							   : DNS_DIFFOP_DEL;
 			CHECK(dns_difftuple_create(diff->mctx, op, name, ttl,
 						   &tuple->rdata, &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			CHECK(dns_diff_applytuple(&newtuple, db, ver, diff));
 			dns_diff_unlink(&temp_diff, tuple);
 			dns_diff_appendminimal(diff, &tuple);
 		}
@@ -2626,7 +2583,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				CHECK(dns_difftuple_create(
 					diff->mctx, DNS_DIFFOP_ADD, name, 0,
 					&rdata, &newtuple));
-				CHECK(do_one_tuple(&newtuple, db, ver, diff));
+				CHECK(dns_diff_applytuple(&newtuple, db, ver,
+							  diff));
 			}
 
 			/*
@@ -2641,7 +2599,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				CHECK(dns_difftuple_create(
 					diff->mctx, DNS_DIFFOP_DEL, name, 0,
 					&rdata, &newtuple));
-				CHECK(do_one_tuple(&newtuple, db, ver, diff));
+				CHECK(dns_diff_applytuple(&newtuple, db, ver,
+							  diff));
 			}
 
 			/*
@@ -2652,7 +2611,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL,
 						   name, ttl, &tuple->rdata,
 						   &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			CHECK(dns_diff_applytuple(&newtuple, db, ver, diff));
 			dns_diff_unlink(&temp_diff, tuple);
 			dns_diff_appendminimal(diff, &tuple);
 			dns_rdata_reset(&rdata);
@@ -2684,11 +2643,11 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		if (!flag) {
 			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
 						   name, 0, &rdata, &newtuple));
-			CHECK(do_one_tuple(&newtuple, db, ver, diff));
+			CHECK(dns_diff_applytuple(&newtuple, db, ver, diff));
 		}
 		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
 					   ttl, &tuple->rdata, &newtuple));
-		CHECK(do_one_tuple(&newtuple, db, ver, diff));
+		CHECK(dns_diff_applytuple(&newtuple, db, ver, diff));
 		dns_diff_unlink(&temp_diff, tuple);
 		dns_diff_appendminimal(diff, &tuple);
 		dns_rdata_reset(&rdata);
@@ -2750,7 +2709,7 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 						   : DNS_DIFFOP_DEL;
 		CHECK(dns_difftuple_create(mctx, op, name, tuple->ttl,
 					   &tuple->rdata, &newtuple));
-		CHECK(do_one_tuple(&newtuple, db, ver, &temp_diff));
+		CHECK(dns_diff_applytuple(&newtuple, db, ver, &temp_diff));
 	}
 	result = ISC_R_SUCCESS;
 
