@@ -3418,11 +3418,19 @@ ISC_RUN_TEST_IMPL(https_svcb_nulbyte) {
 	const unsigned char port[] = "1 svc.example.net. port=\"53\0x\"\n";
 	/* ech="<valid-base64>\0..." must not parse as the truncated prefix. */
 	const unsigned char ech[] = "1 svc.example.net. ech=\"abcd\0efgh\"\n";
+	/* ipv4hint="1.2.3.4\0..." must not parse as 1.2.3.4. */
+	const unsigned char ipv4[] = "1 svc.example.net. "
+				     "ipv4hint=\"1.2.3.4\0x\"\n";
+	/* ipv6hint="2001:db8::1\0..." must not parse as 2001:db8::1. */
+	const unsigned char ipv6[] = "1 svc.example.net. "
+				     "ipv6hint=\"2001:db8::1\0x\"\n";
 
 	UNUSED(state);
 
 	check_svcb_nulbyte(port, sizeof(port) - 1);
 	check_svcb_nulbyte(ech, sizeof(ech) - 1);
+	check_svcb_nulbyte(ipv4, sizeof(ipv4) - 1);
+	check_svcb_nulbyte(ipv6, sizeof(ipv6) - 1);
 }
 
 /*
