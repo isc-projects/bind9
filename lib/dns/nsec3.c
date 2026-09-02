@@ -289,57 +289,6 @@ dns_nsec3_supportedhash(dns_hash_t hash) {
 }
 
 /*%
- * Update a single RR in version 'ver' of 'db' and log the
- * update in 'diff'.
- *
- * Ensures:
- * \li  '*tuple' == NULL.  Either the tuple is freed, or its
- *      ownership has been transferred to the diff.
- */
-static isc_result_t
-do_one_tuple(dns_difftuple_t **tuplep, dns_db_t *db, dns_dbversion_t *ver,
-	     dns_diff_t *diff) {
-	dns_diff_t temp_diff;
-	dns_difftuple_t *tuple = MOVE_OWNERSHIP(*tuplep);
-	isc_result_t result;
-
-	/*
-	 * Create a singleton diff.
-	 */
-	dns_diff_init(diff->mctx, &temp_diff);
-	dns_diff_append(&temp_diff, &tuple);
-
-	/*
-	 * Apply it to the database.
-	 */
-	result = dns_diff_apply(&temp_diff, db, ver);
-
-	/*
-	 * Retrieve the tuple from the 'temp_diff' so we can
-	 * add it to 'diff' on success or free it.
-	 */
-	tuple = ISC_LIST_HEAD(temp_diff.tuples);
-	dns_diff_unlink(&temp_diff, tuple);
-
-	/*
-	 * This should be a no op.
-	 */
-	dns_diff_clear(&temp_diff);
-
-	if (result != ISC_R_SUCCESS) {
-		dns_difftuple_free(&tuple);
-		return result;
-	}
-
-	/*
-	 * Merge it into the current pending journal entry.
-	 */
-	dns_diff_appendminimal(diff, &tuple);
-
-	return ISC_R_SUCCESS;
-}
-
-/*%
  * Set '*exists' to true iff the given name exists, to false otherwise.
  */
 static isc_result_t
@@ -438,7 +387,7 @@ delnsec3(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
 				     rdataset.ttl, &rdata, &tuple);
-		CHECK(do_one_tuple(&tuple, db, version, diff));
+		CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 	}
 
 	result = ISC_R_SUCCESS;
@@ -712,7 +661,7 @@ find_previous:
 					   &buffer));
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, prev,
 				     rdataset.ttl, &rdata, &tuple);
-		CHECK(do_one_tuple(&tuple, db, version, diff));
+		CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 		INSIST(old_length <= sizeof(nexthash));
 		memmove(nexthash, old_next, old_length);
 		if (!CREATE(nsec3param->flags)) {
@@ -746,7 +695,7 @@ addnsec3:
 	 */
 	dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, hashname, nsecttl,
 			     &rdata, &tuple);
-	CHECK(do_one_tuple(&tuple, db, version, diff));
+	CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 	INSIST(tuple == NULL);
 	dns_rdata_reset(&rdata);
 	dns_db_detachnode(&newnode);
@@ -844,7 +793,7 @@ addnsec3:
 						   &buffer));
 			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, prev,
 					     rdataset.ttl, &rdata, &tuple);
-			CHECK(do_one_tuple(&tuple, db, version, diff));
+			CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 			INSIST(old_length <= sizeof(nexthash));
 			memmove(nexthash, old_next, old_length);
 			if (!CREATE(nsec3param->flags)) {
@@ -873,7 +822,7 @@ addnsec3:
 		 */
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, hashname,
 				     nsecttl, &rdata, &tuple);
-		CHECK(do_one_tuple(&tuple, db, version, diff));
+		CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 		INSIST(tuple == NULL);
 		dns_rdata_reset(&rdata);
 		dns_db_detachnode(&newnode);
@@ -1113,7 +1062,7 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 		if (!flag) {
 			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, origin,
 					     0, &private, &tuple);
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
+			CHECK(dns_diff_applytuple(&tuple, db, ver, diff));
 			INSIST(tuple == NULL);
 		}
 	}
@@ -1163,7 +1112,7 @@ try_private:
 
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin, 0,
 				     &rdata, &tuple);
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
+		CHECK(dns_diff_applytuple(&tuple, db, ver, diff));
 		INSIST(tuple == NULL);
 
 		rdata.data = buf;
@@ -1177,7 +1126,7 @@ try_private:
 		if (!flag) {
 			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, origin,
 					     0, &rdata, &tuple);
-			CHECK(do_one_tuple(&tuple, db, ver, diff));
+			CHECK(dns_diff_applytuple(&tuple, db, ver, diff));
 			INSIST(tuple == NULL);
 		}
 	}
@@ -1458,7 +1407,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version,
 					   &buffer));
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, prev,
 				     rdataset.ttl, &rdata, &tuple);
-		CHECK(do_one_tuple(&tuple, db, version, diff));
+		CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 		dns_rdata_reset(&rdata);
 		dns_rdataset_disassociate(&rdataset);
 		break;
@@ -1558,7 +1507,7 @@ cleanup_orphaned_ents:
 						   &buffer));
 			dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, prev,
 					     rdataset.ttl, &rdata, &tuple);
-			CHECK(do_one_tuple(&tuple, db, version, diff));
+			CHECK(dns_diff_applytuple(&tuple, db, version, diff));
 			dns_rdata_reset(&rdata);
 			dns_rdataset_disassociate(&rdataset);
 			break;

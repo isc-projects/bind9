@@ -111,56 +111,13 @@ update_log(dns_update_log_t *callback, dns_zone_t *zone, int level,
 	(callback->func)(callback->arg, zone, level, message);
 }
 
-/*%
- * Update a single RR in version 'ver' of 'db' and log the
- * update in 'diff'.
- *
- * Ensures:
- * \li	'*tuple' == NULL.  Either the tuple is freed, or its
- *	ownership has been transferred to the diff.
- */
-static isc_result_t
-do_one_tuple(dns_difftuple_t **tuple, dns_db_t *db, dns_dbversion_t *ver,
-	     dns_diff_t *diff) {
-	dns_diff_t temp_diff;
-	dns_difftuple_t *temp_tuple = *tuple;
-	isc_result_t result;
-
-	/*
-	 * Create a singleton diff.
-	 */
-	dns_diff_init(diff->mctx, &temp_diff);
-	dns_diff_append(&temp_diff, tuple);
-
-	/*
-	 * Apply it to the database.
-	 */
-	result = dns_diff_apply(&temp_diff, db, ver);
-	dns_diff_unlink(&temp_diff, temp_tuple);
-	*tuple = MOVE_OWNERSHIP(temp_tuple);
-	if (result != ISC_R_SUCCESS) {
-		dns_difftuple_free(tuple);
-		return result;
-	}
-
-	/*
-	 * Merge it into the current pending journal entry.
-	 */
-	dns_diff_appendminimal(diff, tuple);
-
-	/*
-	 * Do not clear temp_diff.
-	 */
-	return ISC_R_SUCCESS;
-}
-
 static isc_result_t
 update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
 	dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
-	return do_one_tuple(&tuple, db, ver, diff);
+	return dns_diff_applytuple(&tuple, db, ver, diff);
 }
 
 /**************************************************************************/
@@ -873,7 +830,7 @@ add_nsec(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 */
 	dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, nsecttl, &rdata,
 			     &tuple);
-	CHECK(do_one_tuple(&tuple, db, ver, diff));
+	CHECK(dns_diff_applytuple(&tuple, db, ver, diff));
 	INSIST(tuple == NULL);
 
 cleanup:
@@ -900,7 +857,7 @@ add_placeholder_nsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdata_fromregion(&rdata, dns_db_class(db), dns_rdatatype_nsec, &r);
 	dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, 0, &rdata,
 			     &tuple);
-	CHECK(do_one_tuple(&tuple, db, ver, diff));
+	CHECK(dns_diff_applytuple(&tuple, db, ver, diff));
 cleanup:
 	return result;
 }

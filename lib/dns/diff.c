@@ -746,3 +746,49 @@ cleanup:
 	}
 	return result;
 }
+
+isc_result_t
+dns_diff_applytuple(dns_difftuple_t **tuplep, dns_db_t *db,
+		    dns_dbversion_t *ver, dns_diff_t *diff) {
+	dns_diff_t temp_diff;
+	isc_result_t result;
+
+	REQUIRE(DNS_DIFF_VALID(diff));
+	REQUIRE(tuplep != NULL && DNS_DIFFTUPLE_VALID(*tuplep));
+	dns_difftuple_t *tuple = MOVE_OWNERSHIP(*tuplep);
+
+	/*
+	 * Create a singleton diff.
+	 */
+	dns_diff_init(diff->mctx, &temp_diff);
+	dns_diff_append(&temp_diff, &tuple);
+
+	/*
+	 * Apply it to the database.
+	 */
+	result = dns_diff_apply(&temp_diff, db, ver);
+
+	/*
+	 * Retrieve the tuple from the 'temp_diff' so we can
+	 * add it to 'diff' on success or free it.
+	 */
+	tuple = ISC_LIST_HEAD(temp_diff.tuples);
+	dns_diff_unlink(&temp_diff, tuple);
+
+	/*
+	 * This should be a no-op.
+	 */
+	dns_diff_clear(&temp_diff);
+
+	if (result != ISC_R_SUCCESS) {
+		dns_difftuple_free(&tuple);
+		return result;
+	}
+
+	/*
+	 * Merge it into the current pending journal entry.
+	 */
+	dns_diff_appendminimal(diff, &tuple);
+
+	return ISC_R_SUCCESS;
+}
