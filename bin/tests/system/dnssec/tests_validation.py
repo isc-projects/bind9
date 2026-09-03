@@ -58,3 +58,13 @@ def test_positive_validation_dname_at_apex():
     answers = {(str(rr.name), rr.rdtype) for rr in res.answer}
     assert ("dname-at-apex-nsec3.example.", rdatatype.DNAME) in answers
     assert ("a.example.", rdatatype.A) in answers
+
+
+def test_unknown_algorithms():
+    # check that unknown DNSKEY algorithm using a HMAC code point validates as insecure
+    msg = isctest.query.create("dnskey-163-unknown.example", "A", dnssec=False)
+    res1 = isctest.query.tcp(msg, "10.53.0.3")
+    res2 = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.noerror(res1)
+    isctest.check.noerror(res2)
+    isctest.check.noadflag(res2)

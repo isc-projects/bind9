@@ -245,6 +245,16 @@ dst_algorithm_supported(unsigned int alg);
  */
 
 bool
+dst_dnssec_algorithm(unsigned int alg);
+/*%<
+ * Can this DST algorithm be use for DNSSEC validation.
+ *
+ * Returns:
+ * \li	true
+ * \li	false
+ */
+
+bool
 dst_ds_digest_supported(unsigned int digest_type);
 /*%<
  * Checks that a given digest algorithm is supported by DST.

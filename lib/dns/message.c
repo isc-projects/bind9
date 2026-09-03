@@ -3227,7 +3227,7 @@ dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
 
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
-	isc_buffer_t b, msgb;
+	isc_buffer_t msgb;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
@@ -3317,11 +3317,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&keyset, &rdata);
-			isc_buffer_init(&b, rdata.data, rdata.length);
-			isc_buffer_add(&b, rdata.length);
 
-			result = dst_key_fromdns(&sig.signer, rdata.rdclass, &b,
-						 view->mctx, &key);
+			result = dns_dnssec_keyfromrdata(&sig.signer, &rdata,
+							 view->mctx, &key);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}
