@@ -11090,7 +11090,10 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 				 unsigned char *private, size_t len) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
+	/*
+	 * Reject non DNSSEC code points (includes appropriated code points).
+	 */
+	if (!dst_dnssec_algorithm(alg)) {
 		return false;
 	}
 

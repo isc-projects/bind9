@@ -1255,6 +1255,14 @@ def test_unknown_algorithms():
     isctest.check.noerror(res2)
     isctest.check.noadflag(res2)
 
+    # check that unknown DNSKEY algorithm using a HMAC code point validates as insecure
+    msg = isctest.query.create("dnskey-163-unknown.example", "A", dnssec=False)
+    res1 = isctest.query.tcp(msg, "10.53.0.3")
+    res2 = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.noerror(res1)
+    isctest.check.noerror(res2)
+    isctest.check.noadflag(res2)
+
     # check that unsupported DNSKEY algorithms are in the DNSKEY RRsets
     msg = isctest.query.create("dnskey-unsupported.example", "DNSKEY")
     res = isctest.query.tcp(msg, "10.53.0.3")

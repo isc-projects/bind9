@@ -135,6 +135,41 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 	REQUIRE(rdata->type == dns_rdatatype_key ||
 		rdata->type == dns_rdatatype_dnskey);
 
+	/*
+	 * Extract the algorithm from the raw data to perform validation before
+	 * actually converting it to a key. Expecting at least 4 bytes: flags
+	 * (2b), protocol (1b), algorithm (1b).
+	 */
+	if (rdata->length < 4) {
+		return DST_R_INVALIDPUBLICKEY;
+	}
+	const unsigned int alg = rdata->data[3];
+
+	switch (rdata->type) {
+	case dns_rdatatype_dnskey:
+		/*
+		 * Reject non DNSSEC code points (includes appropriated
+		 * code points).
+		 */
+		if (!dst_dnssec_algorithm(alg)) {
+			return DST_R_UNSUPPORTEDALG;
+		}
+		break;
+	case dns_rdatatype_key:
+		/*
+		 * Reject non SIG(0) code points (includes appropriated
+		 * code points).
+		 */
+		if (alg == DST_ALG_DH ||
+		    (alg >= DST_ALG_HMAC_FIRST && alg <= DST_ALG_HMAC_LAST))
+		{
+			return DST_R_UNSUPPORTEDALG;
+		}
+		break;
+	default:
+		UNREACHABLE();
+	}
+
 	dns_rdata_toregion(rdata, &r);
 	isc_buffer_init(&b, r.base, r.length);
 	isc_buffer_add(&b, r.length);
@@ -1575,6 +1610,15 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 
 		algorithm = dst_algorithm_fromdata(
 			keystruct.algorithm, keystruct.data, keystruct.datalen);
+
+		/*
+		 *
+		 * Reject non DNSSEC code points (includes appropriated code
+		 * points).
+		 */
+		if (!dst_dnssec_algorithm(algorithm)) {
+			goto skip;
+		}
 
 		/* Skip unsupported algorithms */
 		if (!dst_algorithm_supported(algorithm)) {
