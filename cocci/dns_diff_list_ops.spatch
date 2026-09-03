@@ -1,0 +1,140 @@
+// Replace direct mutation of dns_diff_t.tuples with dns_diff_* helpers.
+//
+// Do not run this over lib/dns/diff.c: that file implements the helper
+// functions and must keep the raw ISC_LIST_* operations internally.
+
+@append_ptr_tuplep depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t *D;
+dns_difftuple_t **TP;
+@@
+- ISC_LIST_APPEND(D->tuples, *TP, LINK);
++ dns_diff_append(D, TP);
+
+@append_value_tuplep depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t D;
+dns_difftuple_t **TP;
+@@
+- ISC_LIST_APPEND(D.tuples, *TP, LINK);
++ dns_diff_append(&D, TP);
+
+@append_ptr depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t *D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_APPEND(D->tuples, T, LINK);
++ dns_diff_append(D, &T);
+
+@append_value depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_APPEND(D.tuples, T, LINK);
++ dns_diff_append(&D, &T);
+
+@prepend_ptr_tuplep depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t *D;
+dns_difftuple_t **TP;
+@@
+- ISC_LIST_PREPEND(D->tuples, *TP, LINK);
++ dns_diff_prepend(D, TP);
+
+@prepend_value_tuplep depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t D;
+dns_difftuple_t **TP;
+@@
+- ISC_LIST_PREPEND(D.tuples, *TP, LINK);
++ dns_diff_prepend(&D, TP);
+
+@prepend_ptr depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t *D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_PREPEND(D->tuples, T, LINK);
++ dns_diff_prepend(D, &T);
+
+@prepend_value depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_PREPEND(D.tuples, T, LINK);
++ dns_diff_prepend(&D, &T);
+
+@unlink_ptr depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t *D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_UNLINK(D->tuples, T, LINK);
++ dns_diff_unlink(D, T);
+
+@unlink_value depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+typedef dns_difftuple_t;
+identifier LINK =~ "^link$";
+dns_diff_t D;
+dns_difftuple_t *T;
+@@
+- ISC_LIST_UNLINK(D.tuples, T, LINK);
++ dns_diff_unlink(&D, T);
+
+@appendlist_ptr_ptr depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+identifier LINK =~ "^link$";
+dns_diff_t *DST;
+dns_diff_t *SRC;
+@@
+- ISC_LIST_APPENDLIST(DST->tuples, SRC->tuples, LINK);
++ dns_diff_appendlist(DST, SRC);
+
+@appendlist_value_value depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+identifier LINK =~ "^link$";
+dns_diff_t DST;
+dns_diff_t SRC;
+@@
+- ISC_LIST_APPENDLIST(DST.tuples, SRC.tuples, LINK);
++ dns_diff_appendlist(&DST, &SRC);
+
+@appendlist_ptr_value depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+identifier LINK =~ "^link$";
+dns_diff_t *DST;
+dns_diff_t SRC;
+@@
+- ISC_LIST_APPENDLIST(DST->tuples, SRC.tuples, LINK);
++ dns_diff_appendlist(DST, &SRC);
+
+@appendlist_value_ptr depends on !(file in "lib/dns/diff.c") disable ptr_to_array@
+typedef dns_diff_t;
+identifier LINK =~ "^link$";
+dns_diff_t DST;
+dns_diff_t *SRC;
+@@
+- ISC_LIST_APPENDLIST(DST.tuples, SRC->tuples, LINK);
++ dns_diff_appendlist(&DST, SRC);

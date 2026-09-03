@@ -55,6 +55,7 @@ NSEC3_SALTLEN = {
     "nsec3-dynamic-update-inline.kasp": NSEC3Saltlen(initial=None, reconfig=None),
     "nsec3.kasp": NSEC3Saltlen(initial=0, reconfig=0),
     "nsec3-dynamic.kasp": NSEC3Saltlen(initial=0, reconfig=0),
+    "nsec3-private-type-delete.kasp": NSEC3Saltlen(initial=0, reconfig=0),
     "nsec3-change.kasp": NSEC3Saltlen(initial=0, reconfig=8),
     "nsec3-dynamic-change.kasp": NSEC3Saltlen(initial=0, reconfig=8),
     "nsec3-dynamic-to-inline.kasp": NSEC3Saltlen(initial=0, reconfig=0),
