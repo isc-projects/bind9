@@ -163,6 +163,7 @@ uinfo01.example. 3600 IN TYPE100 \# 1 01
 unspec01.example. 3600 IN UNSPEC \# 1 04
 uri01.example. 3600 IN URI 10 20 "https://www.isc.org/"
 uri02.example. 3600 IN URI 30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontEvenKnowWhatSomeoneWouldEverWantWithSuchAThingButTheSpecificationRequiresThatWesupportItSoHereWeGoTestingItLaLaLaLaLaLaLaSeriouslyThoughWhyWouldYouEvenConsiderUsingAURIThisLongItSeemsLikeASillyIdeaButEnhWhatAreYouGonnaDo/"
+uri03.example. 3600 IN URI 30 40 " "
 wks01.example. 3600 IN WKS 10.0.0.1 6 0 1 2 21 23
 wks02.example. 3600 IN WKS 10.0.0.1 17 0 1 2 53
 wks03.example. 3600 IN WKS 10.0.0.2 6 65535

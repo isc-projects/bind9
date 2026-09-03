@@ -13,10 +13,9 @@
 
 . ../conf.sh
 
-# Drop unusual RR sets dnspython can't handle. For more information
+# Drop unusual RR sets that dnspython can't handle. For more information
 # see https://github.com/rthalley/dnspython/issues/1034#issuecomment-1896541899.
 $SHELL "${TOP_SRCDIR}/bin/tests/system/genzone.sh" 2 \
   | sed \
     -e '/AMTRELAY.*\# 2 0004/d' \
-    -e '/GPOS.*"" "" ""/d' \
-    -e '/URI.*30 40 ""/d' >ns1/example.db
+    -e '/GPOS.*"" "" ""/d' >ns1/example.db

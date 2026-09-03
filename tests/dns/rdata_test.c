@@ -2883,6 +2883,41 @@ ISC_RUN_TEST_IMPL(sshfp) {
 		    dns_rdatatype_sshfp, sizeof(dns_rdata_sshfp_t));
 }
 
+ISC_RUN_TEST_IMPL(uri) {
+	text_ok_t text_ok[] = { /*
+				 * Too short.
+				 */
+				TEXT_INVALID(""), TEXT_INVALID("0"),
+				TEXT_INVALID("0 0"),
+				/*
+				 * An empty URI field is not permitted.
+				 */
+				TEXT_INVALID("0 0 \"\""),
+				/*
+				 * A non empty URI field.
+				 */
+				TEXT_VALID("0 0 \" \""), TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = { /*
+				 * Too short.
+				 */
+				WIRE_INVALID(0x00), WIRE_INVALID(0x00, 0x00),
+				WIRE_INVALID(0x00, 0x00, 0x00),
+				/*
+				 * An empty URI field is not permitted.
+				 */
+				WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
+				/*
+				 * A non empty URI field.
+				 */
+				WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
+				WIRE_SENTINEL()
+	};
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_uri, sizeof(dns_rdata_uri_t));
+}
+
 ISC_RUN_TEST_IMPL(wallet) {
 	text_ok_t text_ok[] = { TEXT_VALID_CHANGED("cid-example wid-example",
 						   "\"cid-example\" "
@@ -3643,6 +3678,7 @@ ISC_TEST_ENTRY(resinfo)
 ISC_TEST_ENTRY(rkey)
 ISC_TEST_ENTRY(rrsig)
 ISC_TEST_ENTRY(sshfp)
+ISC_TEST_ENTRY(uri)
 ISC_TEST_ENTRY(wallet)
 ISC_TEST_ENTRY(wks)
 ISC_TEST_ENTRY(zonemd)
