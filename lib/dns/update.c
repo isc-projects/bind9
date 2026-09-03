@@ -1781,8 +1781,12 @@ next_state:
 	case update_nsec3:
 		state->state = update_nsec3;
 
-		/* Record our changes for the journal. */
-		dns_diff_appendlistminimal(diff, &state->sig_diff);
+		/*
+		 * Record our changes for the journal. Minimize both lists in
+		 * one pass; dns_diff_appendlistminimal() also minimizes tuples
+		 * already present in diff.
+		 */
+		dns_diff_appendlist(diff, &state->sig_diff);
 		dns_diff_appendlistminimal(diff, &state->nsec_mindiff);
 
 		INSIST(ISC_LIST_EMPTY(state->sig_diff.tuples));
@@ -1942,8 +1946,12 @@ next_state:
 		}
 		dns_diff_appendlist(&state->nsec_mindiff, &state->work);
 
-		/* Record our changes for the journal. */
-		dns_diff_appendlistminimal(diff, &state->sig_diff);
+		/*
+		 * Record our changes for the journal. Minimize both lists in
+		 * one pass; dns_diff_appendlistminimal() also minimizes tuples
+		 * already present in diff.
+		 */
+		dns_diff_appendlist(diff, &state->sig_diff);
 		dns_diff_appendlistminimal(diff, &state->nsec_mindiff);
 
 		INSIST(ISC_LIST_EMPTY(state->sig_diff.tuples));
