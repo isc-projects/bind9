@@ -390,7 +390,7 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 			isc_buffer_putstr(buf, "Signing with ");
 		}
 
-		dns_secalg_format(alg, algbuf, sizeof(algbuf));
+		dst_algorithm_format(alg, algbuf, sizeof(algbuf));
 		snprintf(keybuf, sizeof(keybuf), "key %d/%s", keyid, algbuf);
 		isc_buffer_putstr(buf, keybuf);
 	} else {

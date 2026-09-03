@@ -44,10 +44,11 @@
 static dns_rdatatype_t privatetype = 65534;
 
 typedef struct {
-	unsigned char alg;
+	dst_algorithm_t alg;
 	dns_keytag_t keyid;
 	bool remove;
 	bool complete;
+	const char *result;
 } signing_testcase_t;
 
 typedef struct {
@@ -58,6 +59,7 @@ typedef struct {
 	bool remove;
 	bool pending;
 	bool nonsec;
+	const char *result;
 } nsec3_testcase_t;
 
 static void
@@ -73,11 +75,15 @@ make_private(dns_rdata_t *private, unsigned char *buf, size_t len) {
 static void
 make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 	     unsigned char *buf, size_t len) {
-	buf[0] = testcase->alg;
+	buf[0] = dst_algorithm_tosecalg(testcase->alg);
 	buf[1] = (testcase->keyid & 0xff00) >> 8;
 	buf[2] = (testcase->keyid & 0xff);
 	buf[3] = testcase->remove;
 	buf[4] = testcase->complete;
+	if (len >= 7) {
+		buf[5] = (testcase->alg & 0xff00) >> 8;
+		buf[6] = testcase->alg & 0xff;
+	}
 	make_private(private, buf, len);
 }
 
@@ -134,69 +140,77 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 /* convert private signing records to text */
 ISC_RUN_TEST_IMPL(private_signing_totext) {
 	dns_rdata_t private;
-	int i;
+	size_t i;
 
-	signing_testcase_t testcases[] = { { DST_ALG_RSASHA512, 12345, 0, 0 },
-					   { DST_ALG_RSASHA256, 54321, 1, 0 },
-					   { DST_ALG_NSEC3RSASHA1, 22222, 0,
-					     1 },
-					   { DST_ALG_RSASHA1, 33333, 1, 1 } };
-	const char *results[] = { "Signing with key 12345/RSASHA512",
-				  "Removing signatures for key 54321/RSASHA256",
-				  "Done signing with key 22222/NSEC3RSASHA1",
-				  ("Done removing signatures for key "
-				   "33333/RSASHA1") };
-	int ncases = 4;
-
+	signing_testcase_t testcases[] = {
+		{ DST_ALG_RSASHA512, 12345, 0, 0,
+		  "Signing with key 12345/RSASHA512" },
+		{ DST_ALG_RSASHA256, 54321, 1, 0,
+		  "Removing signatures for key 54321/RSASHA256" },
+		{ DST_ALG_NSEC3RSASHA1, 22222, 0, 1,
+		  "Done signing with key 22222/NSEC3RSASHA1" },
+		{ DST_ALG_RSASHA1, 33333, 1, 1,
+		  "Done removing signatures for key 33333/RSASHA1" },
+		{ DST_ALG_RSASHA256PRIVATEOID, 4444, 0, 0,
+		  "Signing with key 4444/RSASHA256OID" }
+	};
 	UNUSED(state);
 
-	for (i = 0; i < ncases; i++) {
-		unsigned char data[5];
+	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
+		unsigned char data[7];
 		char output[BUFSIZ];
 		isc_buffer_t buf;
+		isc_result_t result;
 
+		if (testcases[i].alg <= 255) {
+			memset(output, 0, sizeof(output));
+			isc_buffer_init(&buf, output, sizeof(output));
+			make_signing(&testcases[i], &private, data, 5);
+			result = dns_private_totext(&private, &buf);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_string_equal(output, testcases[i].result);
+		}
+
+		memset(output, 0, sizeof(output));
 		isc_buffer_init(&buf, output, sizeof(output));
-
-		make_signing(&testcases[i], &private, data, sizeof(data));
-		dns_private_totext(&private, &buf);
-		assert_string_equal(output, results[i]);
+		make_signing(&testcases[i], &private, data, 7);
+		result = dns_private_totext(&private, &buf);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_string_equal(output, testcases[i].result);
 	}
 }
 
 /* convert private chain records to text */
 ISC_RUN_TEST_IMPL(private_nsec3_totext) {
 	dns_rdata_t private;
-	int i;
+	size_t i;
 
 	nsec3_testcase_t testcases[] = {
-		{ 1, 0, 1, 0xbeef, 0, 0, 0 },
-		{ 1, 1, 10, 0xdadd, 0, 0, 0 },
-		{ 1, 0, 20, 0xbead, 0, 1, 0 },
-		{ 1, 0, 30, 0xdeaf, 1, 0, 0 },
-		{ 1, 0, 100, 0xfeedabee, 1, 0, 1 },
+		{ 1, 0, 1, 0xbeef, 0, 0, 0, "Creating NSEC3 chain 1 0 1 BEEF" },
+		{ 1, 1, 10, 0xdadd, 0, 0, 0,
+		  "Creating NSEC3 chain 1 1 10 DADD" },
+		{ 1, 0, 20, 0xbead, 0, 1, 0,
+		  "Pending NSEC3 chain 1 0 20 BEAD" },
+		{ 1, 0, 30, 0xdeaf, 1, 0, 0,
+		  "Removing NSEC3 chain 1 0 30 DEAF / creating NSEC chain" },
+		{ 1, 0, 100, 0xfeedabee, 1, 0, 1,
+		  "Removing NSEC3 chain 1 0 100 FEEDABEE" },
 	};
-	const char *results[] = { "Creating NSEC3 chain 1 0 1 BEEF",
-				  "Creating NSEC3 chain 1 1 10 DADD",
-				  "Pending NSEC3 chain 1 0 20 BEAD",
-				  /* clang-format off */
-				  ("Removing NSEC3 chain 1 0 30 DEAF / "
-				   "creating NSEC chain"),
-				  /* clang-format on */
-				  "Removing NSEC3 chain 1 0 100 FEEDABEE" };
-	int ncases = 5;
-
 	UNUSED(state);
 
-	for (i = 0; i < ncases; i++) {
+	for (i = 0; i < ARRAY_SIZE(testcases); i++) {
 		unsigned char data[DNS_PRIVATE_BUFFERSIZE];
 		char output[BUFSIZ];
 		isc_buffer_t buf;
+		isc_result_t result;
 
+		memset(output, 0, sizeof(output));
 		isc_buffer_init(&buf, output, sizeof(output));
 
 		make_nsec3(&testcases[i], &private, data, sizeof(data));
-		dns_private_totext(&private, &buf);
-		assert_string_equal(output, results[i]);
+		result = dns_private_totext(&private, &buf);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_string_equal(output, testcases[i].result);
 	}
 }
 
