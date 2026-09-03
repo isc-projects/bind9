@@ -20,14 +20,18 @@ pytestmark = [isctest.mark.live_internet_test]
 NAMED_ROOT_URL = "https://www.internic.net/zones/named.root"
 
 
-def strip_comments(text):
-    """Return only the resource records, without comments and blank lines."""
-    records = []
+def normalize_text(text):
+    """Omit lines we don't want to compare"""
+    skip_starts_with = (
+        ";       last update:",
+        ";       related version of root zone:",
+    )
+    normalized = []
     for line in text.splitlines():
-        line = line.split(";", 1)[0].rstrip()
-        if line:
-            records.append(line)
-    return records
+        if line.startswith(skip_starts_with):
+            continue
+        normalized.append(line)
+    return normalized
 
 
 def test_named_root_hints():
@@ -38,12 +42,10 @@ def test_named_root_hints():
     resp = requests.get(NAMED_ROOT_URL, timeout=30)
     resp.raise_for_status()
 
-    internic_records = strip_comments(resp.text)
+    internic = normalize_text(resp.text)
 
     named = isctest.vars.ALL["NAMED"]
     cmd = isctest.run.cmd([named, "-H"])
-    builtin_records = strip_comments(cmd.out)
+    builtin = normalize_text(cmd.out)
 
-    assert (
-        internic_records == builtin_records
-    ), "Built-in root hints differ from official named.root"
+    assert internic == builtin, "Built-in root hints differ from official named.root"
