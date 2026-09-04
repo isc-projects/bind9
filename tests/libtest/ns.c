@@ -114,7 +114,9 @@ setup_server(void **state) {
 
 	CHECK(dns_dispatchmgr_create(isc_g_mctx, &dispatchmgr));
 
+	isc_loop_setup(isc_loop_main(), setup_zone_services, NULL);
 	isc_loop_setup(isc_loop_main(), setup_interfacemgr, NULL);
+	isc_loop_teardown(isc_loop_main(), shutdown_zone_services, NULL);
 
 	return 0;
 
