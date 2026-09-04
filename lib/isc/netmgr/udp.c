@@ -480,7 +480,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc__nm_uvreq_t *req = NULL;
 	uint32_t maxudp;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t sockaddr, *sa = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -516,11 +516,14 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		 */
 		goto free;
 	}
-
 	/*
-	 * - If there was a networking error.
+	 * - If there was a networking error, except when route socket
+	 *   receives ENOBUFS - in that case, we want to pass the error
+	 *   and continue reading.
 	 */
-	if (nrecv < 0) {
+	if (sock->route_sock && nrecv == UV_ENOBUFS) {
+		result = ISC_R_NORESOURCES;
+	} else if (nrecv < 0) {
 		isc__nm_failed_read_cb(sock, isc_uverr2result(nrecv), false);
 		goto free;
 	}
@@ -539,6 +542,17 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if (!isc__nmsocket_active(sock)) {
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto free;
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * Route socket errors do not carry a datagram or a source
+		 * address, but are delivered using the normal read callback so
+		 * the caller can resume reading.
+		 */
+		req = isc__nm_get_read_req(sock, NULL);
+		req->uvbuf = (uv_buf_t){ 0 };
+		goto callback;
 	}
 
 	/*
@@ -567,12 +581,13 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	req = isc__nm_get_read_req(sock, sa);
 
 	/*
-	 * The callback will be called synchronously, because result is
-	 * ISC_R_SUCCESS, so we are ok of passing the buf directly.
+	 * The callback will be called synchronously, so we are ok passing the
+	 * buffer directly.
 	 */
 	req->uvbuf.base = buf->base;
 	req->uvbuf.len = nrecv;
 
+callback:
 	sock->reading = false;
 
 	/*
@@ -588,7 +603,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	REQUIRE(!sock->processing);
 	sock->processing = true;
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
+	isc__nm_readcb(sock, req, result, false);
 	sock->processing = false;
 
 free:

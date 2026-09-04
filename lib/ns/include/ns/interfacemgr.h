@@ -50,6 +50,7 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/time.h>
 
 #include <dns/geoip.h>
 
@@ -198,14 +199,6 @@ ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr);
  * (This cannot be run from outside a network manager thread.)
  */
 
-bool
-ns_interfacemgr_dynamic_updates_are_reliable(void);
-/*%<
- * Returns 'true' if periodic interface re-scans timer should be
- * disabled. That is the case on the platforms where kernel-based
- * mechanisms for tracking networking interface states is reliable enough.
- */
-
 void
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    const char *name, ns_interface_t **ifpret);
@@ -213,3 +206,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
  * Create an interface 'name' associated with address 'addr'. If
  * 'name' is NULL then it is set to "default".
  */
+
+void
+ns_interfacemgr_routetimer(ns_interfacemgr_t *mgr,
+			   isc_interval_t    *interface_interval);

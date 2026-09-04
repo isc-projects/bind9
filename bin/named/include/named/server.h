@@ -69,12 +69,10 @@ struct named_server {
 	ns_interfacemgr_t *interfacemgr;
 	dns_db_t	  *in_roothints;
 
-	isc_timer_t *interface_timer;
 	isc_timer_t *heartbeat_timer;
 	isc_timer_t *pps_timer;
 	isc_timer_t *tat_timer;
 
-	uint32_t interface_interval;
 	uint32_t heartbeat_interval;
 
 	atomic_int reload_status;
