@@ -302,6 +302,10 @@ route_socket(uv_os_sock_t *fdp) {
 		return result;
 	}
 
+	INSIST(fd >= 0);
+
+	isc__nm_socket_error_reporting(fd);
+
 #ifdef USE_NETLINK
 	sa.nl_family = PF_NETLINK;
 	sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR;

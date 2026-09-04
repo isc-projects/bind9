@@ -441,3 +441,14 @@ isc__nm_socket_max_port_range(uv_os_sock_t fd ISC_ATTR_UNUSED,
 #endif
 	return ISC_R_SUCCESS;
 }
+
+isc_result_t
+isc__nm_socket_error_reporting(uv_os_sock_t fd ISC_ATTR_UNUSED) {
+#ifdef SO_RERROR
+	if (setsockopt_on(fd, SOL_SOCKET, SO_RERROR) == -1) {
+		return ISC_R_FAILURE;
+	}
+#endif
+
+	return ISC_R_SUCCESS;
+}
