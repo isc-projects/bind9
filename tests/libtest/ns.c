@@ -76,17 +76,32 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	return ISC_R_NOTIMPLEMENTED;
 }
 
+/*
+ * The interface manager owns a timer bound to the main loop, so it has to
+ * be created (and, by the tests, shut down) from that loop.
+ */
 static void
-scan_interfaces(void *arg) {
-	UNUSED(arg);
+setup_interfacemgr(void *arg ISC_ATTR_UNUSED) {
+	isc_result_t result;
+	ns_listenlist_t *listenon = NULL;
+	in_port_t port = 5300 + isc_random8();
+
+	result = ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr,
+					dispatchmgr, NULL, &interfacemgr);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	result = ns_listenlist_default(mctx, port, true, AF_INET, &listenon);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
+	ns_listenlist_detach(&listenon);
+
 	ns_interfacemgr_scan(interfacemgr, true, false);
 }
 
 int
 setup_server(void **state) {
 	isc_result_t result;
-	ns_listenlist_t *listenon = NULL;
-	in_port_t port = 5300 + isc_random8();
 
 	setup_managers(state);
 
@@ -97,21 +112,7 @@ setup_server(void **state) {
 		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr,
-					dispatchmgr, NULL, &interfacemgr);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	result = ns_listenlist_default(mctx, port, true, AF_INET, &listenon);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
-	ns_listenlist_detach(&listenon);
-
-	isc_loop_setup(mainloop, scan_interfaces, NULL);
+	isc_loop_setup(mainloop, setup_interfacemgr, NULL);
 
 	return 0;
 

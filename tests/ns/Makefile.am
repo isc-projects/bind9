@@ -15,10 +15,15 @@ LDADD +=			\
 	$(LIBUV_LIBS)
 
 check_PROGRAMS =		\
+	interfacemgr_test	\
 	listenlist_test		\
 	notify_test		\
 	plugin_test		\
 	query_test
+
+interfacemgr_test_SOURCES =	\
+	interfacemgr_test.c	\
+	netmgr_wrap.c
 
 notify_test_SOURCES =		\
 	notify_test.c		\
