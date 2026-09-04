@@ -425,7 +425,9 @@ route_connect_direct(isc_nmsocket_t *sock) {
 		return isc_uverr2result(r);
 	}
 
-	isc__nm_set_network_buffers(&sock->uv_handle.handle);
+	/* Make the receive buffer size larger, but ignore any failure */
+	int32_t recv_buffer_size = 1 * 1024 * 1024;
+	(void)uv_recv_buffer_size(&sock->uv_handle.handle, &recv_buffer_size);
 
 	sock->connecting = false;
 	sock->connected = true;
