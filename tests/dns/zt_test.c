@@ -28,11 +28,14 @@
 #include <isc/buffer.h>
 #include <isc/lib.h>
 #include <isc/loop.h>
+#include <isc/sockaddr.h>
 #include <isc/timer.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/forward.h>
+#include <dns/keytable.h>
 #include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/view.h>
@@ -61,6 +64,66 @@ count_zone(dns_zone_t *zone, void *uap) {
 
 	*nzones += 1;
 	return ISC_R_SUCCESS;
+}
+
+ISC_LOOP_TEST_IMPL(sfd_forward_only_deepest) {
+	dns_fixedname_t child, found, parent, qname;
+	dns_name_t *childname = dns_fixedname_initname(&child);
+	dns_name_t *name = dns_fixedname_initname(&qname);
+	dns_name_t *namespace = dns_fixedname_initname(&found);
+	dns_name_t *parentname = dns_fixedname_initname(&parent);
+	isc_sockaddrlist_t addrs;
+	isc_result_t result;
+
+	result = dns_test_makeview("view", false, false, &view);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	ISC_LIST_INIT(addrs);
+
+	dns_test_namefromstring("example.", &parent);
+	dns_test_namefromstring("child.example.", &child);
+
+	result = dns_fwdtable_add(view->fwdtable, parentname, &addrs,
+				  dns_fwdpolicy_only);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_fwdtable_add(view->fwdtable, childname, &addrs,
+				  dns_fwdpolicy_first);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_test_namefromstring("www.child.example.", &qname);
+	dns_view_sfd_find(view, name, namespace);
+	assert_true(dns_name_equal(namespace, parentname));
+
+	dns_view_detach(&view);
+	isc_loopmgr_shutdown();
+}
+
+ISC_LOOP_TEST_IMPL(sfd_secroots_boundary) {
+	dns_fixedname_t anchor, found, qname;
+	dns_name_t *anchorname = dns_fixedname_initname(&anchor);
+	dns_name_t *name = dns_fixedname_initname(&qname);
+	dns_name_t *namespace = dns_fixedname_initname(&found);
+	dns_keytable_t *secroots = NULL;
+	isc_result_t result;
+
+	result = dns_test_makeview("view", false, false, &view);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_view_initsecroots(view);
+	result = dns_view_getsecroots(view, &secroots);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_test_namefromstring("secure.example.", &anchor);
+	result = dns_keytable_marksecure(secroots, anchorname);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_keytable_detach(&secroots);
+
+	dns_test_namefromstring("www.secure.example.", &qname);
+	dns_view_sfd_find(view, name, namespace);
+	assert_true(dns_name_equal(namespace, anchorname));
+
+	dns_view_detach(&view);
+	isc_loopmgr_shutdown();
 }
 
 /* apply a function to a zone table */
@@ -261,6 +324,8 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(sfd_forward_only_deepest, setup_managers, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(sfd_secroots_boundary, setup_managers, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(apply, setup_managers, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(asyncload_zone, setup_managers, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(asyncload_zt, setup_managers, teardown_test)

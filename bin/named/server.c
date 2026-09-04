@@ -875,13 +875,6 @@ cleanup:
 	return result;
 }
 
-static void
-sfd_add(const dns_name_t *name, void *arg) {
-	if (arg != NULL) {
-		dns_view_sfd_add(arg, name);
-	}
-}
-
 /*%
  * Parse 'key' in the context of view configuration 'vconfig'.  If successful,
  * add the key to 'secroots' if both of the following conditions are true:
@@ -971,7 +964,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * dns_keytable_add().
 	 */
 	result = dns_keytable_add(secroots, initializing, initializing, keyname,
-				  &ds, sfd_add, view);
+				  &ds);
 
 done:
 	return result;
@@ -5832,10 +5825,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 			    "could not set up forwarding for domain '%s': %s",
 			    namebuf, isc_result_totext(result));
 		goto cleanup;
-	}
-
-	if (fwdpolicy == dns_fwdpolicy_only) {
-		dns_view_sfd_add(view, origin);
 	}
 
 cleanup:

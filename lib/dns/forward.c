@@ -175,6 +175,44 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	return result;
 }
 
+isc_result_t
+dns_fwdtable_finddeepestonly(dns_fwdtable_t *fwdtable, const dns_name_t *name,
+			     dns_name_t *foundname) {
+	isc_result_t result;
+	dns_qpread_t qpr;
+	dns_qpchain_t chain;
+	void *pval = NULL;
+
+	REQUIRE(VALID_FWDTABLE(fwdtable));
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(foundname != NULL);
+
+	dns_qpmulti_query(fwdtable->table, &qpr);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, &chain,
+			       &pval, NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		unsigned int len = dns_qpchain_length(&chain);
+
+		for (unsigned int i = len; i-- > 0;) {
+			dns_forwarders_t *fwdrs = NULL;
+
+			dns_qpchain_node(&chain, i, (void **)&fwdrs, NULL);
+			if (fwdrs->fwdpolicy == dns_fwdpolicy_only) {
+				dns_name_copy(&fwdrs->name, foundname);
+				result = ISC_R_SUCCESS;
+				goto done;
+			}
+		}
+	}
+
+	result = ISC_R_NOTFOUND;
+
+done:
+	dns_qpread_destroy(fwdtable->table, &qpr);
+
+	return result;
+}
+
 void
 dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	dns_fwdtable_t *fwdtable = NULL;

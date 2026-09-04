@@ -94,6 +94,22 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
  * \li	#ISC_R_NOTFOUND        No match
  */
 
+isc_result_t
+dns_fwdtable_finddeepestonly(dns_fwdtable_t *fwdtable, const dns_name_t *name,
+			     dns_name_t *foundname);
+/*%<
+ * Finds the deepest enclosing 'forward only' domain in the forwarding table.
+ *
+ * Requires:
+ * \li	fwdtable is a valid forwarding table.
+ * \li	name is a valid name
+ * \li	foundname is a valid name with enough space to hold the result
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS         Success
+ * \li	#ISC_R_NOTFOUND        No forward-only match
+ */
+
 void
 dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep);
 /*%<
