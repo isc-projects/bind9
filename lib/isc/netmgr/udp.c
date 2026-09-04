@@ -378,6 +378,9 @@ route_socket(uv_os_sock_t *fdp) {
 
 	RETERR(isc__nm_socket(ROUTE_SOCKET_PF, SOCK_RAW, ROUTE_SOCKET_PROTOCOL,
 			      &fd));
+	INSIST(fd >= 0);
+
+	isc__nm_socket_error_reporting(fd);
 
 #ifdef USE_NETLINK
 	sa.nl_family = PF_NETLINK;

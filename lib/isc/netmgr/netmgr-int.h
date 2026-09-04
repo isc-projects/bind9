@@ -1395,6 +1395,12 @@ isc__nm_socket_max_port_range(uv_os_sock_t fd ISC_ATTR_UNUSED,
  * (Linux only).
  */
 
+isc_result_t
+isc__nm_socket_error_reporting(uv_os_sock_t fd ISC_ATTR_UNUSED);
+/*%<
+ * Set SO_RERROR for error reporting on the socket (FreeBSD and NetBSD-only).
+ */
+
 void
 isc__nm_set_network_buffers(uv_handle_t *handle);
 /*%>
