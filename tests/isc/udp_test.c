@@ -73,6 +73,55 @@ udp_connect_nomemory_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_loopmgr_shutdown();
 }
 
+#ifdef USE_ROUTE_SOCKET
+static unsigned int route_overflow_reads;
+
+static void
+route_overflow_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		       isc_region_t *region, void *cbarg) {
+	UNUSED(cbarg);
+
+	assert_int_equal(eresult, ISC_R_NORESOURCES);
+	assert_non_null(region);
+	assert_null(region->base);
+	assert_int_equal(region->length, 0);
+	route_overflow_reads++;
+	isc_nm_read(handle, route_overflow_read_cb, NULL);
+}
+
+static void
+route_overflow_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			  void *cbarg) {
+	isc_nmsocket_t *sock = NULL;
+	uv_buf_t buf = { 0 };
+
+	UNUSED(cbarg);
+
+	assert_int_equal(eresult, ISC_R_SUCCESS);
+
+	sock = handle->sock;
+	assert_true(sock->route_sock);
+
+	isc_nm_read(handle, route_overflow_read_cb, NULL);
+
+	/*
+	 * Deliver ENOBUFS the way libuv does: the receive buffer has
+	 * already been allocated when the read fails.
+	 */
+	isc__nm_alloc_cb(&sock->uv_handle.handle, 0, &buf);
+	isc__nm_udp_read_cb(&sock->uv_handle.udp, UV_ENOBUFS, &buf, NULL, 0);
+
+	/* The error was passed on, the read re-armed, the buffer released */
+	assert_int_equal(route_overflow_reads, 1);
+	assert_true(sock->reading);
+	assert_false(isc__nmsocket_closing(sock));
+	assert_false(sock->worker->recvbuf_inuse);
+
+	isc_nmhandle_close(handle);
+	isc_loopmgr_shutdown();
+}
+#endif /* USE_ROUTE_SOCKET */
+
 /* UDP */
 
 ISC_LOOP_TEST_IMPL(mock_listenudp_uv_udp_open) {
@@ -213,6 +262,18 @@ ISC_LOOP_TEST_IMPL(udp_listener_child_ref) {
 	isc_loopmgr_shutdown();
 }
 
+#ifdef USE_ROUTE_SOCKET
+ISC_LOOP_TEST_IMPL(udp_route_overflow) {
+	isc_result_t result;
+
+	route_overflow_reads = 0;
+	result = isc_nm_routeconnect(route_overflow_connect_cb, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+}
+#else
+ISC_RUN_TEST_IMPL(udp_route_overflow) { skip(); }
+#endif /* USE_ROUTE_SOCKET */
+
 ISC_LOOP_TEST_IMPL(udp_noop) { udp_noop(arg); }
 
 ISC_LOOP_TEST_IMPL(udp_noresponse) { udp_noresponse(arg); }
@@ -252,6 +313,7 @@ ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_recv_buffer_size, setup_udp_test,
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_send_buffer_size, setup_udp_test,
 		      teardown_udp_test)
 ISC_TEST_ENTRY_CUSTOM(udp_listener_child_ref, setup_udp_test, teardown_udp_test)
+ISC_TEST_ENTRY_CUSTOM(udp_route_overflow, setup_udp_test, teardown_udp_test)
 
 ISC_TEST_ENTRY_CUSTOM(udp_noop, udp_noop_setup, udp_noop_teardown)
 ISC_TEST_ENTRY_CUSTOM(udp_noresponse, udp_noresponse_setup,

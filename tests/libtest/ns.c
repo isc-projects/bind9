@@ -81,9 +81,16 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	return ISC_R_NOTIMPLEMENTED;
 }
 
+/*
+ * The interface manager owns a timer bound to the main loop, so it has to
+ * be created (and, by the tests, shut down) from that loop.
+ */
 static void
-scan_interfaces(void *arg) {
-	UNUSED(arg);
+setup_interfacemgr(void *arg ISC_ATTR_UNUSED) {
+	isc_result_t result = ns_interfacemgr_create(
+		isc_g_mctx, sctx, dispatchmgr, NULL, &interfacemgr);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 	ns_interfacemgr_scan(interfacemgr, true, false);
 }
 
@@ -106,12 +113,8 @@ setup_server(void **state) {
 	ns_server_create(isc_g_mctx, matchview, &sctx);
 
 	CHECK(dns_dispatchmgr_create(isc_g_mctx, &dispatchmgr));
-	CHECK(ns_interfacemgr_create(isc_g_mctx, sctx, dispatchmgr, NULL,
-				     &interfacemgr));
 
-	isc_loop_setup(isc_loop_main(), setup_zone_services, NULL);
-	isc_loop_setup(isc_loop_main(), scan_interfaces, NULL);
-	isc_loop_teardown(isc_loop_main(), shutdown_zone_services, NULL);
+	isc_loop_setup(isc_loop_main(), setup_interfacemgr, NULL);
 
 	return 0;
 

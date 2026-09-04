@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 ns_tests = [
+    'interfacemgr',
     'notify',
     'plugin',
     'query',
