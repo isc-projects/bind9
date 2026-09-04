@@ -230,6 +230,7 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
 	struct MSGHDR *rtm = NULL;
 	size_t rtmlen = 0;
+	bool rtm_desync = false;
 
 	isc_log_write(NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR,
 		      ISC_LOG_DEBUG(9), "route_recv: %s",
@@ -258,7 +259,21 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			return;
 		}
 #endif /* ifdef RTM_VERSION */
-		break;
+
+#if defined(RTM_DESYNC)
+		/*
+		 * On OpenBSD, the route socket overflow is reported as
+		 * a RTM_DESYNC message, so we need to fall through to
+		 * ISC_R_NORESOURCES.
+		 */
+		if (rtm->rtm_type == RTM_DESYNC) {
+			rtm_desync = true;
+		}
+#endif
+		if (!rtm_desync) {
+			break;
+		}
+		FALLTHROUGH;
 	case ISC_R_NORESOURCES:
 		if (mgr->sctx->interface_auto) {
 			/* There might have been route that we missed */
