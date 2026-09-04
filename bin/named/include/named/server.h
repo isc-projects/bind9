@@ -66,12 +66,9 @@ struct named_server {
 	dns_keystorelist_t keystorelist;
 	ns_interfacemgr_t *interfacemgr;
 
-	isc_timer_t *interface_timer;
 	isc_timer_t *heartbeat_timer;
 	isc_timer_t *pps_timer;
 	isc_timer_t *tat_timer;
-
-	uint32_t interface_interval;
 
 	atomic_int reload_status;
 

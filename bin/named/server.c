@@ -6522,18 +6522,6 @@ configure_server_quota(const cfg_obj_t **maps, enum cfg_clause name,
 	isc_quota_max(quota, cfg_obj_asuint32(obj));
 }
 
-/*
- * This event callback is invoked to do periodic network interface
- * scanning.
- */
-
-static void
-interface_timer_tick(void *arg) {
-	named_server_t *server = (named_server_t *)arg;
-
-	(void)ns_interfacemgr_scan(server->interfacemgr, false, false);
-}
-
 typedef struct {
 	isc_mem_t *mctx;
 	isc_loop_t *loop;
@@ -8412,7 +8400,6 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *userconfig,
 	result = named_config_get(maps, CFG_CLAUSE_INTERFACE_INTERVAL, &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	interface_interval = cfg_obj_asduration(obj);
-	server->interface_interval = interface_interval;
 
 	/*
 	 * Enable automatic interface scans.
@@ -8424,33 +8411,14 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *userconfig,
 	server->sctx->interface_auto = cfg_obj_asboolean(obj);
 
 	if (server->sctx->interface_auto) {
-		if (ns_interfacemgr_dynamic_updates_are_reliable() &&
-		    server->interface_interval != 0)
-		{
-			/*
-			 * In some cases the user might expect a certain
-			 * behaviour from the rescan timer, let's try to deduce
-			 * that from the configuration options.
-			 */
-			isc_log_write(
-				NAMED_LOGCATEGORY_GENERAL,
-				NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				"Disabling periodic interface re-scans timer");
-			server->interface_interval = 0;
-		}
-
 		ns_interfacemgr_routeconnect(server->interfacemgr);
 	} else {
 		ns_interfacemgr_routedisconnect(server->interfacemgr);
 	}
 
-	if (server->interface_interval == 0) {
-		isc_timer_stop(server->interface_timer);
-	} else {
-		isc_interval_set(&interval, interface_interval, 0);
-		isc_timer_start(server->interface_timer, isc_timertype_ticker,
-				&interval);
-	}
+	ns_interfacemgr_routetimer(
+		server->interfacemgr,
+		&(isc_interval_t){ .seconds = interface_interval });
 
 	isc_interval_set(&interval, 1200, 0);
 	isc_timer_start(server->pps_timer, isc_timertype_ticker, &interval);
@@ -9322,9 +9290,6 @@ run_server(void *arg) {
 					  &server->interfacemgr),
 		   "creating interface manager");
 
-	isc_timer_create(isc_loop_main(), interface_timer_tick, server,
-			 &server->interface_timer);
-
 	isc_timer_create(isc_loop_main(), tat_timer_tick, server,
 			 &server->tat_timer);
 
@@ -9412,7 +9377,6 @@ shutdown_server(void *arg) {
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
 	}
 
-	isc_timer_destroy(&server->interface_timer);
 	isc_timer_destroy(&server->pps_timer);
 	isc_timer_destroy(&server->tat_timer);
 
