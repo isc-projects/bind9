@@ -291,10 +291,6 @@ static isc_result_t
 route_socket(uv_os_sock_t *fdp) {
 	isc_result_t result;
 	uv_os_sock_t fd = -1;
-#ifdef USE_NETLINK
-	struct sockaddr_nl sa = { 0 };
-	int r;
-#endif
 
 	result = isc__nm_socket(ROUTE_SOCKET_PF, SOCK_RAW,
 				ROUTE_SOCKET_PROTOCOL, &fd);
@@ -307,14 +303,32 @@ route_socket(uv_os_sock_t *fdp) {
 	isc__nm_socket_error_reporting(fd);
 
 #ifdef USE_NETLINK
-	sa.nl_family = PF_NETLINK;
-	sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR;
-	r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
+	/* Linux */
+	struct sockaddr_nl sa = {
+		.nl_family = PF_NETLINK,
+		.nl_groups = RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR,
+	};
+
+	int r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
 	if (r < 0) {
 		result = isc_errno_toresult(errno);
 		isc__nm_closesocket(fd);
 		return result;
 	}
+#elif defined(RO_MSGFILTER)
+	/* FreeBSD and NetBSD */
+	unsigned char msgtypes[] = { RTM_NEWADDR, RTM_DELADDR };
+
+	(void)setsockopt(fd, PF_ROUTE, RO_MSGFILTER, &msgtypes,
+			 sizeof(msgtypes));
+#elif defined(ROUTE_MSGFILTER)
+	/* OpenBSD */
+	unsigned int rtfilter = ROUTE_FILTER(RTM_NEWADDR) |
+				ROUTE_FILTER(RTM_DELADDR) |
+				ROUTE_FILTER(RTM_DESYNC);
+
+	(void)setsockopt(fd, AF_ROUTE, ROUTE_MSGFILTER, &rtfilter,
+			 sizeof(rtfilter));
 #endif
 
 	*fdp = fd;
