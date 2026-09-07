@@ -1331,7 +1331,7 @@ dst_key_setflags(dst_key_t *key, uint32_t flags) {
 void
 dst_key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
-	char algstr[DNS_NAME_FORMATSIZE];
+	char algstr[DST_ALG_FORMATSIZE];
 	dst_algorithm_t algorithm = dst_key_alg(key);
 
 	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));

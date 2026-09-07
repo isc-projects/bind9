@@ -122,7 +122,7 @@ version(const char *name) {
 void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
-	char algstr[DNS_NAME_FORMATSIZE];
+	char algstr[DST_ALG_FORMATSIZE];
 	dst_algorithm_t algorithm = dst_algorithm_fromdata(
 		sig->algorithm, sig->signature, sig->siglen);
 

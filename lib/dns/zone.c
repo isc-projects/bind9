@@ -5571,7 +5571,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 */
 				if (zone->log_key_expired_timer <= now) {
 					char origin[DNS_NAME_FORMATSIZE];
-					char algbuf[DNS_NAME_FORMATSIZE];
+					char algbuf[DST_ALG_FORMATSIZE];
 					dns_name_format(&zone->origin, origin,
 							sizeof(origin));
 					dst_algorithm_format(algorithm, algbuf,
