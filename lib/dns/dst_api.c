@@ -2126,14 +2126,11 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 		}
 	}
 
+	RETERR(algorithm_status(alg));
+
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
 
 	if (isc_buffer_remaininglength(source) > 0) {
-		result = algorithm_status(alg);
-		if (result != ISC_R_SUCCESS) {
-			dst_key_free(&key);
-			return result;
-		}
 		if (key->func->fromdns == NULL) {
 			dst_key_free(&key);
 			return DST_R_UNSUPPORTEDALG;
