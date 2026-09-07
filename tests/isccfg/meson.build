@@ -12,6 +12,7 @@
 isccfg_tests = [
     'duration',
     'grammar',
+    'kaspconf',
     'parser',
 ]
 
@@ -32,6 +33,7 @@ foreach unit : isccfg_tests
         sources: default_sanitize_options,
         dependencies: [
             libisc_dep,
+            libdns_dep,
             libisccfg_dep,
             libtest_dep,
 

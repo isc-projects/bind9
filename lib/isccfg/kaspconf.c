@@ -327,8 +327,14 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			case DST_ALG_RSASHA512PRIVATEOID:
 				if (isc_crypto_fips_mode()) {
 					min = 2048;
+				} else if (key->algorithm ==
+						   DST_ALG_RSASHA512 ||
+					   key->algorithm ==
+						   DST_ALG_RSASHA512PRIVATEOID)
+				{
+					min = 1024;
 				} else {
-					min = DST_ALG_RSASHA512 ? 1024 : 512;
+					min = 512;
 				}
 				if (size < min || size > 4096) {
 					if (log_errors) {
