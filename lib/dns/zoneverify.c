@@ -789,7 +789,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	  dns_dbnode_t *node, dst_key_t **dstkeys, size_t nkeys) {
 	unsigned char set_algorithms[DST_MAX_ALGS] = { 0 };
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char algbuf[DNS_SECALG_FORMATSIZE];
+	char algbuf[DST_ALG_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_rdataset_t sigrdataset = DNS_RDATASET_INIT;
 	dns_rdatasetiter_t *rdsiter = NULL;
@@ -1592,7 +1592,7 @@ static void
 determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 			    bool keyset_kskonly,
 			    void (*report)(const char *, ...)) {
-	char algbuf[DNS_SECALG_FORMATSIZE];
+	char algbuf[DST_ALG_FORMATSIZE];
 
 	report("Verifying the zone using the following algorithms:");
 
@@ -1857,7 +1857,7 @@ done:
 
 static isc_result_t
 check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
-	char algbuf[DNS_SECALG_FORMATSIZE];
+	char algbuf[DST_ALG_FORMATSIZE];
 	bool first = true;
 
 	for (size_t i = 0; i < ARRAY_SIZE(vctx->bad_algorithms); i++) {
@@ -1883,7 +1883,7 @@ check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 static void
 print_summary(const vctx_t *vctx, bool keyset_kskonly,
 	      void (*report)(const char *, ...)) {
-	char algbuf[DNS_SECALG_FORMATSIZE];
+	char algbuf[DST_ALG_FORMATSIZE];
 
 	report("Zone fully signed:");
 	for (size_t i = 0; i < ARRAY_SIZE(vctx->ksk_algorithms); i++) {
