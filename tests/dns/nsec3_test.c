@@ -110,6 +110,111 @@ nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
+ISC_RUN_TEST_IMPL(activex) {
+	isc_result_t result;
+	bool answer;
+	dns_db_t *db = NULL;
+
+	/*
+	 * Test a zone with only a NSEC3PARAM record with flags 0 and
+	 * no private type records.  All three scenarios should return
+	 * true.
+	 */
+	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
+				 TESTS_DIR "/testdata/nsec3/activex-1.db");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, false, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, true, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, false, 0, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	dns_db_detach(&db);
+
+	/*
+	 * Test a zone with no NSEC3PARAM records and no private type records.
+	 * All three scenarios should return false.
+	 */
+	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
+				 TESTS_DIR "/testdata/nsec3/activex-2.db");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	answer = true;
+	result = dns_nsec3_activex(db, NULL, false, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(answer);
+
+	answer = true;
+	result = dns_nsec3_activex(db, NULL, true, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(answer);
+
+	answer = true;
+	result = dns_nsec3_activex(db, NULL, false, 0, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(answer);
+
+	dns_db_detach(&db);
+
+	/*
+	 * Test a zone with no NSEC3PARAM records and a private CREATE record.
+	 */
+	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
+				 TESTS_DIR "/testdata/nsec3/activex-3.db");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, false, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	answer = true;
+	result = dns_nsec3_activex(db, NULL, true, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(answer);
+
+	answer = true;
+	result = dns_nsec3_activex(db, NULL, false, 0, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(answer);
+
+	dns_db_detach(&db);
+
+	/*
+	 * Test a zone with an NSEC3PARAM record and a private CREATE record.
+	 */
+	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
+				 TESTS_DIR "/testdata/nsec3/activex-4.db");
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, false, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, true, 65534, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	answer = false;
+	result = dns_nsec3_activex(db, NULL, false, 0, &answer);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(answer);
+
+	dns_db_detach(&db);
+}
+
 /*
  * check that appropriate max iterations is returned for different
  * key size mixes
@@ -150,6 +255,7 @@ ISC_RUN_TEST_IMPL(nsec3param_salttotext) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY(activex)
 ISC_TEST_ENTRY(max_iterations)
 ISC_TEST_ENTRY(nsec3param_salttotext)
 ISC_TEST_LIST_END
