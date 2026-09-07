@@ -1098,6 +1098,7 @@ cross-version-config-tests:
     # should not be run.
     - rm -r dlzexternal
     - rm -r dyndb
+    - rm -r allow_query_on
     # Run the setup phase of all system tests in the most recently tagged BIND 9
     # release using the binaries built for the current BIND 9 version.  This
     # intends to detect obvious backward compatibility issues with the latter.
