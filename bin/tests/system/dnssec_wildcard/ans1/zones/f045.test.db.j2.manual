@@ -1,0 +1,4 @@
+{% include "_common/zones/template.db.j2.manual" %}
+
+q	MX	10 svc.child
+*	A	198.51.100.45
