@@ -47,15 +47,15 @@
 
 /*% usage */
 ISC_NORETURN static void
-usage(void);
+usage(int status);
 
 static void
-usage(void) {
+usage(int status) {
 	fprintf(stderr,
 		"usage: %s [-achijklnvz] [-pe [-x]] [-b] [-t directory] "
 		"[named.conf]\n",
 		isc_commandline_progname);
-	exit(EXIT_SUCCESS);
+	exit(status);
 }
 
 static bool
@@ -686,9 +686,10 @@ main(int argc, char **argv) {
 					isc_commandline_progname,
 					isc_commandline_option);
 			}
-			FALLTHROUGH;
+			usage(EXIT_FAILURE);
+
 		case 'h':
-			usage();
+			usage(EXIT_SUCCESS);
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n",
@@ -715,7 +716,8 @@ main(int argc, char **argv) {
 	}
 
 	if (isc_commandline_index + 1 < argc) {
-		usage();
+		INSIST(config == NULL);
+		usage(EXIT_FAILURE);
 	}
 	if (argv[isc_commandline_index] != NULL) {
 		conffile = argv[isc_commandline_index];
