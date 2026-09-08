@@ -20,10 +20,9 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import (
     DomainHandler,
     IgnoreAllQueries,
-    QnameQtypeHandler,
     StaticResponseHandler,
 )
-from isctest.asyncserver.matchers import Qname
+from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -37,11 +36,18 @@ from ..resolver_ans import (
 )
 
 
-class ApexNSHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["example.net."]
-    qtypes = [dns.rdatatype.NS]
-    answer = [rrset(qnames[0], dns.rdatatype.NS, f"ns.{qnames[0]}")]
-    additional = [rrset(f"ns.{qnames[0]}", dns.rdatatype.A, "10.53.0.3")]
+class ApexNSHandler(StaticResponseHandler):
+    matcher = Qname("example.net.") & Qtype(dns.rdatatype.NS)
+    answer = [
+        rrset(
+            matcher.of(Qname).qnames[0],
+            dns.rdatatype.NS,
+            f"ns.{matcher.of(Qname).qnames[0]}",
+        )
+    ]
+    additional = [
+        rrset(f"ns.{matcher.of(Qname).qnames[0]}", dns.rdatatype.A, "10.53.0.3")
+    ]
 
 
 class AttackDnameHandler(StaticResponseHandler):
@@ -54,9 +60,10 @@ class BadCnameHandler(StaticResponseHandler):
     answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "badcname.example.org.")]
 
 
-class BadGoodDnameNsHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["baddname.example.net.", "gooddname.example.net."]
-    qtypes = [dns.rdatatype.NS]
+class BadGoodDnameNsHandler(StaticResponseHandler):
+    matcher = Qname("baddname.example.net.", "gooddname.example.net.") & Qtype(
+        dns.rdatatype.NS
+    )
     authority = [soa_rrset("example.net.")]
 
 
@@ -65,10 +72,11 @@ class CnameSubHandler(StaticResponseHandler):
     answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "ok.sub.example.org.")]
 
 
-class ExampleOrgHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["example.org."]
-    qtypes = [dns.rdatatype.A]
-    answer = [rrset(qnames[0], qtypes[0], "1.2.3.4")]
+class ExampleOrgHandler(StaticResponseHandler):
+    matcher = Qname("example.org.") & Qtype(dns.rdatatype.A)
+    answer = [
+        rrset(matcher.of(Qname).qnames[0], matcher.of(Qtype).qtypes[0], "1.2.3.4")
+    ]
 
 
 class FooBadDnameHandler(StaticResponseHandler):
@@ -100,10 +108,11 @@ class GoodCnameHandler(StaticResponseHandler):
     answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "goodcname.example.org.")]
 
 
-class IscHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["isc.org."]
-    qtypes = [dns.rdatatype.A]
-    answer = [rrset(qnames[0], qtypes[0], "1.2.3.4")]
+class IscHandler(StaticResponseHandler):
+    matcher = Qname("isc.org.") & Qtype(dns.rdatatype.A)
+    answer = [
+        rrset(matcher.of(Qname).qnames[0], matcher.of(Qtype).qtypes[0], "1.2.3.4")
+    ]
 
 
 class LameExampleOrgDelegation(DelegationHandler):
@@ -111,12 +120,11 @@ class LameExampleOrgDelegation(DelegationHandler):
     server_number = 3
 
 
-class LargeReferralHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["large-referral.example.net."]
-    qtypes = [dns.rdatatype.NS]
+class LargeReferralHandler(StaticResponseHandler):
+    matcher = Qname("large-referral.example.net.") & Qtype(dns.rdatatype.NS)
     authority = [
         rrset_from_list(
-            qnames[0],
+            matcher.of(Qname).qnames[0],
             dns.rdatatype.NS,
             [f"ns{i}.fake.redirect.com." for i in range(1, 1000)],
         )

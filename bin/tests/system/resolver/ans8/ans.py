@@ -26,12 +26,8 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import (
-    DomainHandler,
-    QnameQtypeHandler,
-    StaticResponseHandler,
-)
-from isctest.asyncserver.matchers import Qname
+from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..resolver_ans import rrset
 
@@ -86,11 +82,18 @@ class FormerrToAllHandler(DomainHandler, StaticResponseHandler):
     rcode = dns.rcode.FORMERR
 
 
-class NoQuestionsNSHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["no-questions."]
-    qtypes = [dns.rdatatype.NS]
-    answer = [rrset(qnames[0], dns.rdatatype.NS, f"ns.{qnames[0]}")]
-    additional = [rrset(f"ns.{qnames[0]}", dns.rdatatype.A, "10.53.0.8")]
+class NoQuestionsNSHandler(StaticResponseHandler):
+    matcher = Qname("no-questions.") & Qtype(dns.rdatatype.NS)
+    answer = [
+        rrset(
+            matcher.of(Qname).qnames[0],
+            dns.rdatatype.NS,
+            f"ns.{matcher.of(Qname).qnames[0]}",
+        )
+    ]
+    additional = [
+        rrset(f"ns.{matcher.of(Qname).qnames[0]}", dns.rdatatype.A, "10.53.0.8")
+    ]
 
 
 class NsNoQuestionsAHandler(ResponseHandler):

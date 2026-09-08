@@ -11,14 +11,19 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
 import dns.rdatatype
 
-from isctest.asyncserver import AsyncDnsServer, DnsProtocol, QueryContext
+from isctest.asyncserver import (
+    AsyncDnsServer,
+    DnsProtocol,
+    QueryContext,
+    ResponseHandler,
+)
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameQtypeHandler
 
 
-class MismatchedIdOnUdpHandler(QnameQtypeHandler):
+class MismatchedIdOnUdpHandler(ResponseHandler):
     """
     Simulate Kaminsky-style off-path spoofing: answer every UDP query for
     trigger.example./A with the correct response prepared from zone data,
@@ -28,11 +33,12 @@ class MismatchedIdOnUdpHandler(QnameQtypeHandler):
     the correct answer.
     """
 
-    qnames = ["trigger.example."]
-    qtypes = [dns.rdatatype.A]
-
     def match(self, qctx: QueryContext) -> bool:
-        return qctx.protocol == DnsProtocol.UDP and super().match(qctx)
+        return (
+            qctx.qname == dns.name.from_text("trigger.example.")
+            and qctx.qtype == dns.rdatatype.A
+            and qctx.protocol == DnsProtocol.UDP
+        )
 
     async def get_responses(
         self, qctx: QueryContext
