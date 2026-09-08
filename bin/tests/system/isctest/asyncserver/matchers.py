@@ -17,7 +17,7 @@ import abc
 import dns.name
 import dns.rdatatype
 
-from .context import QueryContext
+from .context import DnsProtocol, QueryContext
 
 M = TypeVar("M", bound="Matcher")
 
@@ -204,3 +204,18 @@ class Domain(Matcher):
 
     def __str__(self) -> str:
         return f"QNAME under [{', '.join(str(name) for name in self._domains)}]"
+
+
+class Protocol(Matcher):
+    """
+    Match queries received over the given transport protocol.
+    """
+
+    def __init__(self, protocol: DnsProtocol) -> None:
+        self._protocol = protocol
+
+    def match(self, qctx: QueryContext) -> bool:
+        return qctx.protocol == self._protocol
+
+    def __str__(self) -> str:
+        return f"over {self._protocol.name}"
