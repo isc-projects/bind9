@@ -298,18 +298,21 @@ class QueryContext:
         else:
             self._initialized_response = copy.deepcopy(self.response)
 
-    def get_rrsig(self, rrset: dns.rrset.RRset) -> dns.rrset.RRset | None:
+    def get_rrsig(
+        self, rrset: dns.rrset.RRset, /, node: dns.node.Node | None = None
+    ) -> dns.rrset.RRset | None:
         if not self.query.ednsflags & dns.flags.DO:
             return None
 
         assert self.zone
         assert self.zone.origin
 
-        node = (
-            self.node
-            if rrset.rdtype != dns.rdatatype.SOA
-            else self.zone.get_node(self.zone.origin)
-        )
+        if node is None:
+            node = (
+                self.node
+                if rrset.rdtype != dns.rdatatype.SOA
+                else self.zone.get_node(self.zone.origin)
+            )
         assert node
 
         rrsig_rdataset = node.get_rdataset(
@@ -1077,12 +1080,26 @@ class _ZoneTree:
             node_from.children.remove(child)
             node_to.children.append(child)
 
-    def find_best_zone(self, name: dns.name.Name) -> dns.zone.Zone | None:
+    def _find_best_zone_for_name(self, name: dns.name.Name) -> dns.zone.Zone | None:
         """
-        Return the closest matching zone (if any) for the domain name.
+        Return the closest matching zone (if any) for the provided domain name.
         """
         node = self._find_best_match(name, self._root)
         return node.zone if node != self._root else None
+
+    def find_best_zone(
+        self, name: dns.name.Name, qtype: dns.rdatatype.RdataType
+    ) -> dns.zone.Zone | None:
+        """
+        Return the zone (if any) from which to answer a <name, qtype> query.
+        """
+        if qtype == dns.rdatatype.DS and name != dns.name.root:
+            # A DS query (other than ./DS) should be answered from the parent
+            # side of the zone cut, but this server might not be hosting it.
+            if parent_zone := self._find_best_zone_for_name(name.parent()):
+                return parent_zone
+
+        return self._find_best_zone_for_name(name)
 
 
 class _DnsMessageWithTsigDisabled(dns.message.Message):
@@ -1608,7 +1625,7 @@ class AsyncDnsServer(AsyncServer):
         self._noerror_response(qctx)
 
     def _refused_response(self, qctx: QueryContext) -> bool:
-        zone = self._zone_tree.find_best_zone(qctx.current_qname)
+        zone = self._zone_tree.find_best_zone(qctx.current_qname, qctx.qtype)
         if zone:
             qctx.zone = zone
             return False
@@ -1632,11 +1649,28 @@ class AsyncDnsServer(AsyncServer):
         if not ns_rdataset:
             return False
 
+        # Only answer DS queries for the delegation point itself; return a
+        # referral for anything below the delegation point.
+        if qctx.qtype == dns.rdatatype.DS and name == qctx.current_qname:
+            return False
+
         ns_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.NS)
         ns_rrset.update(ns_rdataset)
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.authority.append(ns_rrset)
+
+        if qctx.query.ednsflags & dns.flags.DO:
+            assert node
+            if ds_rdataset := node.get_rdataset(qctx.qclass, dns.rdatatype.DS):
+                ds_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.DS)
+                ds_rrset.update(ds_rdataset)
+
+                rrsig_rrset = qctx.get_rrsig(ds_rrset, node=node)
+                assert rrsig_rrset
+
+                qctx.response.authority.append(ds_rrset)
+                qctx.response.authority.append(rrsig_rrset)
 
         self._delegation_response_additional(qctx)
 
