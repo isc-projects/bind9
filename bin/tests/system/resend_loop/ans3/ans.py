@@ -22,10 +22,10 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import (
     DomainHandler,
-    QnameHandler,
     QnameQtypeHandler,
     StaticResponseHandler,
 )
+from isctest.asyncserver.matchers import Qname
 
 
 def rrset(
@@ -78,8 +78,8 @@ class ExampleCookieHandler(DomainHandler):
             yield DnsResponseSend(qctx.response)
 
 
-class TestDotComServFailHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["test.com."]
+class TestDotComServFailHandler(StaticResponseHandler):
+    matcher = Qname("test.com.")
     authoritative = False
     rcode = dns.rcode.SERVFAIL
 

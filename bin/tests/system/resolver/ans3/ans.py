@@ -20,10 +20,10 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import (
     DomainHandler,
     IgnoreAllQueries,
-    QnameHandler,
     QnameQtypeHandler,
     StaticResponseHandler,
 )
+from isctest.asyncserver.matchers import Qname
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -44,14 +44,14 @@ class ApexNSHandler(QnameQtypeHandler, StaticResponseHandler):
     additional = [rrset(f"ns.{qnames[0]}", dns.rdatatype.A, "10.53.0.3")]
 
 
-class AttackDnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["www.example.attack.example.net", "isc.attack.example.net."]
+class AttackDnameHandler(StaticResponseHandler):
+    matcher = Qname("www.example.attack.example.net", "isc.attack.example.net.")
     answer = [rrset("attack.example.net.", dns.rdatatype.DNAME, "org.")]
 
 
-class BadCnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["badcname.example.net."]
-    answer = [rrset(qnames[0], dns.rdatatype.CNAME, "badcname.example.org.")]
+class BadCnameHandler(StaticResponseHandler):
+    matcher = Qname("badcname.example.net.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "badcname.example.org.")]
 
 
 class BadGoodDnameNsHandler(QnameQtypeHandler, StaticResponseHandler):
@@ -60,9 +60,9 @@ class BadGoodDnameNsHandler(QnameQtypeHandler, StaticResponseHandler):
     authority = [soa_rrset("example.net.")]
 
 
-class CnameSubHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["cname.sub.example.org."]
-    answer = [rrset(qnames[0], dns.rdatatype.CNAME, "ok.sub.example.org.")]
+class CnameSubHandler(StaticResponseHandler):
+    matcher = Qname("cname.sub.example.org.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "ok.sub.example.org.")]
 
 
 class ExampleOrgHandler(QnameQtypeHandler, StaticResponseHandler):
@@ -71,33 +71,33 @@ class ExampleOrgHandler(QnameQtypeHandler, StaticResponseHandler):
     answer = [rrset(qnames[0], qtypes[0], "1.2.3.4")]
 
 
-class FooBadDnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["foo.baddname.example.net."]
+class FooBadDnameHandler(StaticResponseHandler):
+    matcher = Qname("foo.baddname.example.net.")
     answer = [
         rrset("baddname.example.net.", dns.rdatatype.DNAME, "baddname.example.org.")
     ]
 
 
-class FooBarSubTld1Handler(QnameHandler, StaticResponseHandler):
-    qnames = ["foo.bar.sub.tld1."]
-    answer = [rrset(qnames[0], dns.rdatatype.TXT, "baz")]
+class FooBarSubTld1Handler(StaticResponseHandler):
+    matcher = Qname("foo.bar.sub.tld1.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.TXT, "baz")]
 
 
-class FooGlueInAnswerHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["foo.glue-in-answer.example.org."]
-    answer = [rrset(qnames[0], dns.rdatatype.A, "192.0.2.1")]
+class FooGlueInAnswerHandler(StaticResponseHandler):
+    matcher = Qname("foo.glue-in-answer.example.org.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.A, "192.0.2.1")]
 
 
-class FooGoodDnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["foo.gooddname.example.net."]
+class FooGoodDnameHandler(StaticResponseHandler):
+    matcher = Qname("foo.gooddname.example.net.")
     answer = [
         rrset("gooddname.example.net.", dns.rdatatype.DNAME, "gooddname.example.org.")
     ]
 
 
-class GoodCnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["goodcname.example.net."]
-    answer = [rrset(qnames[0], dns.rdatatype.CNAME, "goodcname.example.org.")]
+class GoodCnameHandler(StaticResponseHandler):
+    matcher = Qname("goodcname.example.net.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "goodcname.example.org.")]
 
 
 class IscHandler(QnameQtypeHandler, StaticResponseHandler):
@@ -138,26 +138,26 @@ class LongCnameHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class NodataHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["nodata.example.net."]
+class NodataHandler(StaticResponseHandler):
+    matcher = Qname("nodata.example.net.")
 
 
-class NoresponseHandler(QnameHandler, IgnoreAllQueries):
-    qnames = ["noresponse.example.net."]
+class NoresponseHandler(IgnoreAllQueries):
+    matcher = Qname("noresponse.example.net.")
 
 
-class NsHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["ns.example.net."]
-    answer = [rrset(qnames[0], dns.rdatatype.A, "10.53.0.3")]
+class NsHandler(StaticResponseHandler):
+    matcher = Qname("ns.example.net.")
+    answer = [rrset(matcher.qnames[0], dns.rdatatype.A, "10.53.0.3")]
 
 
-class NxdomainHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["nxdomain.example.net."]
+class NxdomainHandler(StaticResponseHandler):
+    matcher = Qname("nxdomain.example.net.")
     rcode = dns.rcode.NXDOMAIN
 
 
-class OkSubHandler(QnameHandler):
-    qnames = ["ok.sub.example.org.", "www.ok.sub.example.org."]
+class OkSubHandler(ResponseHandler):
+    matcher = Qname("ok.sub.example.org.", "www.ok.sub.example.org.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -178,20 +178,20 @@ class PartialFormerrHandler(DomainHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class WwwDnameSubHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["www.dname.sub.example.org."]
+class WwwDnameSubHandler(StaticResponseHandler):
+    matcher = Qname("www.dname.sub.example.org.")
     answer = [
         rrset("dname.sub.example.org.", dns.rdatatype.DNAME, "ok.sub.example.org.")
     ]
 
 
-class WwwGoodDnameHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["www.example.gooddname.example.net"]
+class WwwGoodDnameHandler(StaticResponseHandler):
+    matcher = Qname("www.example.gooddname.example.net")
     answer = [rrset("gooddname.example.net.", dns.rdatatype.DNAME, "org.")]
 
 
-class WwwHandler(QnameHandler):
-    qnames = ["www.example.net."]
+class WwwHandler(ResponseHandler):
+    matcher = Qname("www.example.net.")
 
     async def get_responses(
         self, qctx: QueryContext

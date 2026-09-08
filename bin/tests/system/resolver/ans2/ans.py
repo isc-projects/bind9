@@ -22,10 +22,10 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import (
     DomainHandler,
     IgnoreAllQueries,
-    QnameHandler,
     QnameQtypeHandler,
     StaticResponseHandler,
 )
+from isctest.asyncserver.matchers import Qname
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -58,28 +58,28 @@ def _cname_rrsets(
     )
 
 
-class Cname1Handler(QnameHandler, StaticResponseHandler):
-    qnames = ["cname1.example.com."]
+class Cname1Handler(StaticResponseHandler):
+    matcher = Qname("cname1.example.com.")
     # Data for the "cname + other data / 1" test
-    answer = _cname_rrsets(qnames[0])
+    answer = _cname_rrsets(matcher.qnames[0])
     authoritative = False
 
 
-class Cname2Handler(QnameHandler, StaticResponseHandler):
-    qnames = ["cname2.example.com."]
+class Cname2Handler(StaticResponseHandler):
+    matcher = Qname("cname2.example.com.")
     # Data for the "cname + other data / 2" test: same RRs in opposite order
-    answer = tuple(reversed(_cname_rrsets(qnames[0])))
+    answer = tuple(reversed(_cname_rrsets(matcher.qnames[0])))
     authoritative = False
 
 
-class ExampleOrgHandler(QnameHandler):
-    qnames = [
+class ExampleOrgHandler(ResponseHandler):
+    matcher = Qname(
         "www.example.org",
         "badcname.example.org",
         "goodcname.example.org",
         "foo.baddname.example.org",
         "foo.gooddname.example.org",
-    ]
+    )
 
     async def get_responses(
         self, qctx: QueryContext
@@ -94,8 +94,8 @@ class ExampleOrgHandler(QnameHandler):
         yield DnsResponseSend(qctx.response, authoritative=True)
 
 
-class NoResponseExampleUdpHandler(QnameHandler, IgnoreAllQueries):
-    qnames = ["noresponse.exampleudp.net."]
+class NoResponseExampleUdpHandler(IgnoreAllQueries):
+    matcher = Qname("noresponse.exampleudp.net.")
 
 
 class RootNsHandler(QnameQtypeHandler):
@@ -117,8 +117,8 @@ class RootNsHandler(QnameQtypeHandler):
         yield DnsResponseSend(qctx.response, authoritative=True)
 
 
-class ZoneVersionHandler(QnameHandler):
-    qnames = ["zoneversion."]
+class ZoneVersionHandler(ResponseHandler):
+    matcher = Qname("zoneversion.")
 
     async def get_responses(
         self, qctx: QueryContext

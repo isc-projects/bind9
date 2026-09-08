@@ -29,16 +29,16 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameHandler
+from isctest.asyncserver.matchers import Qname
 
 
-class ReclimitStateHandler(QnameHandler):
+class ReclimitStateHandler(ResponseHandler):
     """
     Handler for the "count." and "reset." queries that also holds the state
     shared by all the handlers in one server.
     """
 
-    qnames = ["count.", "reset."]
+    matcher = Qname("count.", "reset.")
 
     def __init__(self, indirect_send_response_default: bool = True) -> None:
         self._indirect_send_response_default = indirect_send_response_default
@@ -128,8 +128,8 @@ def ns(owner: str | dns.name.Name, target: str | dns.name.Name) -> dns.rrset.RRs
     )
 
 
-class DirectExampleHandler(ReclimitHandler, QnameHandler):
-    qnames = ["direct.example.org", "direct.example.net"]
+class DirectExampleHandler(ReclimitHandler):
+    matcher = Qname("direct.example.org", "direct.example.net")
 
     def __init__(
         self, state_handler: ReclimitStateHandler, local_ns_number: int
@@ -145,8 +145,8 @@ class DirectExampleHandler(ReclimitHandler, QnameHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class IndirectExampleOrgHandler(ReclimitHandler, QnameHandler):
-    qnames = [f"indirect{i}.example.org" for i in range(1, 9)]
+class IndirectExampleOrgHandler(ReclimitHandler):
+    matcher = Qname(*[f"indirect{i}.example.org" for i in range(1, 9)])
 
     def __init__(
         self, state_handler: ReclimitStateHandler, local_ns_number: int
