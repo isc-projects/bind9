@@ -34,6 +34,7 @@ import dns.zone
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseAction
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import ForwarderHandler, ResponseHandlerWrapper
+from isctest.asyncserver.matchers import Always, Qtype
 from isctest.zone import FileZoneKey
 
 # The malicious proxy relays every query to the real signed authoritative
@@ -183,10 +184,7 @@ class RelayForwarder(ForwarderHandler):
 
     def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
         super().__init__()
-        self._qtypes = qtypes
-
-    def match(self, qctx: QueryContext) -> bool:
-        return not self._qtypes or qctx.qtype in self._qtypes
+        self.matcher = Qtype(*qtypes) if qtypes else Always()
 
 
 class DsInjector(ResponseHandlerWrapper):

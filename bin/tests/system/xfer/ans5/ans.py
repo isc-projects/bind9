@@ -29,6 +29,7 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import SwitchControlCommand
 from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
+from isctest.asyncserver.matchers import Qtype
 from isctest.vars.algorithms import ALG_VARS
 
 GOOD_KEY_DATA = "LSAnCU+Z"
@@ -184,8 +185,7 @@ class SoaHandler(ResponseHandler):
     def __init__(self, serial: int = 1) -> None:
         self._serial = serial
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.SOA
+    matcher = Qtype(dns.rdatatype.SOA)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -289,8 +289,7 @@ class WrongQnameInFinalSoa(ResponseHandlerWrapper):
 
 
 class IxfrNotimpHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR
+    matcher = Qtype(dns.rdatatype.IXFR)
 
     async def get_responses(
         self, qctx: QueryContext

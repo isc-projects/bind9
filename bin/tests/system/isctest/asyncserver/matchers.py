@@ -12,6 +12,7 @@
 import abc
 
 import dns.name
+import dns.rdatatype
 
 from .context import QueryContext
 
@@ -126,3 +127,18 @@ class Qname(Matcher):
 
     def __str__(self) -> str:
         return f"QNAME in [{', '.join(str(name) for name in self.qnames)}]"
+
+
+class Qtype(Matcher):
+    """
+    Match queries whose QTYPE is one of the given types.
+    """
+
+    def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
+        self.qtypes = qtypes
+
+    def match(self, qctx: QueryContext) -> bool:
+        return qctx.qtype in self.qtypes
+
+    def __str__(self) -> str:
+        return f"QTYPE in [{', '.join(map(dns.rdatatype.to_text, self.qtypes))}]"

@@ -25,6 +25,7 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
 from isctest.asyncserver.handlers import AxfrHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 TTL = 300
 
@@ -78,8 +79,7 @@ class SerialCounted(ResponseHandler):
 
 
 class SoaHandler(SerialCounted):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.SOA
+    matcher = Qtype(dns.rdatatype.SOA)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -97,8 +97,9 @@ class ZoneAxfrHandler(AxfrHandler, SerialCounted):
 
     zone: str
 
-    def match(self, qctx: QueryContext) -> bool:
-        return super().match(qctx) and qctx.qname == dns.name.from_text(self.zone)
+    def __init__(self, serials: SerialCounter) -> None:
+        super().__init__(serials)
+        self.matcher = Qtype(dns.rdatatype.AXFR) & Qname(self.zone)
 
     async def get_responses(
         self, qctx: QueryContext
