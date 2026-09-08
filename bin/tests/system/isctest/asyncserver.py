@@ -1686,8 +1686,7 @@ class AsyncDnsServer(AsyncServer):
             return False
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
-        if not qctx.response.answer:
-            qctx.response.authority.append(qctx.soa)
+        qctx.response.authority.append(qctx.soa)
         return True
 
     def _noerror_response(self, qctx: QueryContext) -> None:
