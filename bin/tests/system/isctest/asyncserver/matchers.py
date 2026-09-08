@@ -9,12 +9,17 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from collections.abc import Iterator
+from typing import TypeVar
+
 import abc
 
 import dns.name
 import dns.rdatatype
 
 from .context import QueryContext
+
+M = TypeVar("M", bound="Matcher")
 
 
 class Matcher(abc.ABC):
@@ -41,6 +46,22 @@ class Matcher(abc.ABC):
     def __invert__(self) -> "Matcher":
         return Not(self)
 
+    def of(self, cls: type[M]) -> M:
+        """
+        The one matcher of class `cls` this matcher is built from, for a
+        handler to read what it was declared with: `matcher.of(Qname).qnames`.
+        """
+        found = [m for m in self.leaves() if isinstance(m, cls)]
+        assert len(found) == 1, f"{self} has {len(found)} {cls.__name__} matchers"
+        return found[0]
+
+    def leaves(self) -> Iterator["Matcher"]:
+        """
+        The matchers this one is built from; a matcher built from nothing
+        yields itself.
+        """
+        yield self
+
     def __str__(self) -> str:
         return f"{self.__class__.__name__}()"
 
@@ -54,6 +75,10 @@ class _Combinator(Matcher):
 
     def __init__(self, *matchers: Matcher) -> None:
         self._matchers = matchers
+
+    def leaves(self) -> Iterator[Matcher]:
+        for matcher in self._matchers:
+            yield from matcher.leaves()
 
     def __str__(self) -> str:
         return f"({self._SEPARATOR.join(str(m) for m in self._matchers)})"
@@ -94,6 +119,9 @@ class Not(Matcher):
 
     def __init__(self, matcher: Matcher) -> None:
         self._matcher = matcher
+
+    def leaves(self) -> Iterator[Matcher]:
+        yield from self._matcher.leaves()
 
     def match(self, qctx: QueryContext) -> bool:
         return not self._matcher.match(qctx)
