@@ -373,6 +373,8 @@ notify_send_toaddr(void *arg) {
 		goto cleanup;
 	}
 
+	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
+
 	CHECK(notify_createmessage(notify, &message));
 
 	if (notify->key != NULL) {
@@ -380,7 +382,6 @@ notify_send_toaddr(void *arg) {
 		key = notify->key;
 		notify->key = NULL;
 	} else {
-		isc_netaddr_fromsockaddr(&dstip, &notify->dst);
 		result = dns_view_getpeertsig(view, &dstip, &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			notify_log(notify, ISC_LOG_ERROR,
