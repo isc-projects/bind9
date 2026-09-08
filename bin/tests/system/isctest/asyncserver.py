@@ -1621,24 +1621,22 @@ class AsyncDnsServer(AsyncServer):
         assert qctx.zone
 
         name = qctx.current_qname
-        delegation = None
+        ns_rdataset = None
 
         while name != qctx.zone.origin:
-            node = qctx.zone.get_node(name)
-            if node:
-                delegation = node.get_rdataset(qctx.qclass, dns.rdatatype.NS)
-                if delegation:
+            if node := qctx.zone.get_node(name):
+                if ns_rdataset := node.get_rdataset(qctx.qclass, dns.rdatatype.NS):
                     break
             name = name.parent()
 
-        if not delegation:
+        if not ns_rdataset:
             return False
 
-        delegation_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.NS)
-        delegation_rrset.update(delegation)
+        ns_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.NS)
+        ns_rrset.update(ns_rdataset)
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
-        qctx.response.authority.append(delegation_rrset)
+        qctx.response.authority.append(ns_rrset)
 
         self._delegation_response_additional(qctx)
 
