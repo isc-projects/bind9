@@ -29,6 +29,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Qname, Qtype
 
 TTL = 300
 TLD = "tld.test."
@@ -176,8 +177,7 @@ class VictimForgedNxdomainHandler(SignedResponseHandler):
     This serves the forged response for the victim's domain.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname == name(VICTIM) and qctx.qtype == dns.rdatatype.A
+    matcher = Qname(VICTIM) & Qtype(dns.rdatatype.A)
 
     def respond(self, qctx: QueryContext) -> None:
         forged_nxdomain(qctx.response, self.keys)
@@ -189,8 +189,7 @@ class ChildDsHandler(SignedResponseHandler):
     It is actually a validly signed DS response.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname == name(ATTACKER) and qctx.qtype == dns.rdatatype.DS
+    matcher = Qname(ATTACKER) & Qtype(dns.rdatatype.DS)
 
     def respond(self, qctx: QueryContext) -> None:
         response = qctx.response
