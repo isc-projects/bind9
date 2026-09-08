@@ -273,16 +273,6 @@ class ResponseHandler(abc.ABC):
 
     matcher: Matcher = Always()
 
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Whether this handler handles the query in `qctx`.
-
-        The default implementation defers to `matcher`, which is how handlers
-        are expected to declare what they handle.  A handler overriding this
-        method still takes precedence, silently, for the time being.
-        """
-        return self.matcher.match(qctx)
-
     @abc.abstractmethod
     async def get_responses(
         self, qctx: QueryContext
@@ -1033,7 +1023,7 @@ class AsyncDnsServer(AsyncServer):
         Yield response(s) to the query from a matching query handler.
         """
         for handler in self._response_handlers:
-            if handler.match(qctx):
+            if handler.matcher.match(qctx):
                 logging.debug("Matched response handler: %s", handler)
                 async for response in handler.get_responses(qctx):
                     yield response
