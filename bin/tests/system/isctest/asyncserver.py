@@ -29,6 +29,7 @@ import re
 import signal
 import sys
 
+import dns.dnssec
 import dns.exception
 import dns.flags
 import dns.message
@@ -501,6 +502,80 @@ class NsecNonExistenceProver(NonExistenceProver):
 
     def _is_usable_encloser(self, name: dns.name.Name) -> bool:
         return any(n.is_subdomain(name) for n in self._zone.nodes)
+
+
+@final
+class Nsec3NonExistenceProver(NonExistenceProver):
+
+    proof_rdatatype = dns.rdatatype.NSEC3
+
+    def prove_no_ds(self, name: dns.name.Name) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(name)
+
+    def prove_ent(self) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+
+    def prove_nxdomain(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+        self._add_nsec3_covering(self._wildcard_for_closest_encloser)
+
+    def _prove_nodata_no_wildcard(self) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+
+    def _prove_nodata_wildcard(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+        self._add_nsec3_matching(self._wildcard_for_closest_encloser)
+
+    def _prove_noerror_wildcard(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+
+    def _get_nsec3_owner(self, name: dns.name.Name) -> dns.name.Name:
+        assert self._zone.origin
+
+        nsec3param = self._zone.get_rdataset(
+            self._zone.origin, dns.rdatatype.NSEC3PARAM
+        )
+        assert nsec3param
+
+        nsec3_hash = dns.dnssec.nsec3_hash(
+            name,
+            nsec3param[0].salt,
+            nsec3param[0].iterations,
+            nsec3param[0].algorithm,
+        )
+        return dns.name.from_text(nsec3_hash, origin=self._zone.origin)
+
+    def _add_nsec3_matching(self, name: dns.name.Name) -> None:
+        nsec3_owner = self._get_nsec3_owner(name)
+        if nsec3_owner not in self._chain:
+            raise NonExistenceException("Matching NSEC3 record not found")
+        self._add_chain_element_matching(nsec3_owner)
+
+    def _add_nsec3_covering(self, name: dns.name.Name) -> None:
+        nsec3_owner = self._get_nsec3_owner(name)
+        if nsec3_owner in self._chain:
+            raise NonExistenceException(
+                "Expected a covering NSEC3 record, got a matching one"
+            )
+        self._add_chain_element_covering(nsec3_owner)
+
+    def _add_closest_encloser_proof(self, name: dns.name.Name) -> None:
+        closest_encloser_name, next_closer_name = self._get_closest_encloser(name)
+        self._add_nsec3_matching(closest_encloser_name)
+        self._add_nsec3_covering(next_closer_name)
+
+    def _add_nsec3_matching_or_closest_encloser_proof(
+        self, name: dns.name.Name
+    ) -> None:
+        try:
+            # No Opt-Out
+            self._add_nsec3_matching(name)
+        except NonExistenceException:
+            # Opt-Out
+            self._add_closest_encloser_proof(name)
+
+    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
+        return self._get_nsec3_owner(name) in self._chain
 
 
 @dataclass
