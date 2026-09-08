@@ -47,6 +47,18 @@ import isctest.zone
 from .context import DnsProtocol, Peer, QueryContext
 from .dnssec import SigningKey
 
+__all__ = [
+    "AsyncDnsServer",
+    "AsyncServer",
+    "ConnectionHandler",
+    "ControlCommand",
+    "ControllableAsyncDnsServer",
+    "DnsProtocol",
+    "QueryContext",
+    "ResponseAction",
+    "ResponseHandler",
+]
+
 _UdpHandler = Callable[
     [bytes, tuple[str, int], asyncio.DatagramTransport], Coroutine[Any, Any, None]
 ]
@@ -1173,65 +1185,3 @@ class ControlCommand(abc.ABC):
 
     def __str__(self) -> str:
         return self.__class__.__name__
-
-
-# The concrete handlers, actions, commands and provers are re-exported here, so
-# that the custom servers keep importing everything from the package.  They
-# import the architecture above from the package in turn, hence the position.
-# pylint: disable=wrong-import-position,cyclic-import
-from .actions import BytesResponseSend, CloseConnection, DnsResponseSend, ResponseDrop
-from .commands import SwitchControlCommand, ToggleResponsesCommand
-from .dnssec import (
-    NonExistenceException,
-    NonExistenceProver,
-    Nsec3NonExistenceProver,
-    NsecNonExistenceProver,
-)
-from .handlers import (
-    AxfrHandler,
-    ConnectionReset,
-    DomainHandler,
-    ForwarderHandler,
-    IgnoreAllConnections,
-    IgnoreAllQueries,
-    QnameHandler,
-    QnameQtypeHandler,
-    ResponseHandlerWrapper,
-    StaticResponseHandler,
-    block_reading,
-)
-
-__all__ = [
-    "AsyncDnsServer",
-    "AsyncServer",
-    "AxfrHandler",
-    "BytesResponseSend",
-    "CloseConnection",
-    "ConnectionHandler",
-    "ConnectionReset",
-    "ControlCommand",
-    "ControllableAsyncDnsServer",
-    "DnsProtocol",
-    "DnsResponseSend",
-    "DomainHandler",
-    "ForwarderHandler",
-    "IgnoreAllConnections",
-    "IgnoreAllQueries",
-    "NonExistenceException",
-    "NonExistenceProver",
-    "Nsec3NonExistenceProver",
-    "NsecNonExistenceProver",
-    "Peer",
-    "QnameHandler",
-    "QnameQtypeHandler",
-    "QueryContext",
-    "ResponseAction",
-    "ResponseDrop",
-    "ResponseHandler",
-    "ResponseHandlerWrapper",
-    "SigningKey",
-    "StaticResponseHandler",
-    "SwitchControlCommand",
-    "ToggleResponsesCommand",
-    "block_reading",
-]

@@ -14,12 +14,9 @@ from collections.abc import AsyncGenerator
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import DomainHandler
 
 from ..qmin_ans import (
     DelayedResponseHandler,

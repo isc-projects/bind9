@@ -18,13 +18,12 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import (
-    CloseConnection,
     ControlCommand,
     ControllableAsyncDnsServer,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import CloseConnection, DnsResponseSend
 
 
 class ErraticAxfrHandler(ResponseHandler):

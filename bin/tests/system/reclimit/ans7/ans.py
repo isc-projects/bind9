@@ -13,7 +13,8 @@ from collections.abc import AsyncGenerator
 
 import dns.rcode
 
-from isctest.asyncserver import AsyncDnsServer, DnsResponseSend, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
 
 from ..reclimit_ans import ReclimitHandler, ReclimitStateHandler
 

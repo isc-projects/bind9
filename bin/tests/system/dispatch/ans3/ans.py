@@ -16,12 +16,12 @@ import dns.rcode
 
 from isctest.asyncserver import (
     AsyncDnsServer,
-    ConnectionReset,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import ConnectionReset
 
 
 class TruncateOnUdpHandler(ResponseHandler):

@@ -15,13 +15,8 @@ import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseDrop,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend, ResponseDrop
 
 
 class ReplyA(ResponseHandler):

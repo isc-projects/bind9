@@ -14,12 +14,8 @@ from collections.abc import AsyncGenerator
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
 
 from ..resolver_ans import rrset, soa_rrset
 

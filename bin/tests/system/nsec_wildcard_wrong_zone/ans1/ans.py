@@ -26,12 +26,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import DomainHandler
 
 TTL = 300
 VICTIM = "victim.example."

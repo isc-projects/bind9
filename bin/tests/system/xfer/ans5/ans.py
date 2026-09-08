@@ -20,16 +20,15 @@ import dns.rrset
 import dns.tsig
 
 from isctest.asyncserver import (
-    AxfrHandler,
     ControllableAsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseAction,
     ResponseHandler,
-    ResponseHandlerWrapper,
-    SwitchControlCommand,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import SwitchControlCommand
+from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
 from isctest.vars.algorithms import ALG_VARS
 
 GOOD_KEY_DATA = "LSAnCU+Z"

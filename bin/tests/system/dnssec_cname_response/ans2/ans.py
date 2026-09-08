@@ -19,13 +19,9 @@ import dns.rdatatype
 import dns.rrset
 import dns.zone
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import DomainHandler
 
 # 'example.' answers DNSKEY/NSEC/NSEC3/RRSIG queries with a CNAME (the
 # meta-types whose CNAME answer the resolver and validator must cope with).

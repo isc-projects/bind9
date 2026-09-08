@@ -14,13 +14,10 @@ from collections.abc import AsyncGenerator
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    ControllableAsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ToggleResponsesCommand,
-)
+from isctest.asyncserver import ControllableAsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.handlers import DomainHandler
 
 
 class ExtraAnswersHandler(DomainHandler):

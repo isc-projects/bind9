@@ -13,13 +13,9 @@ from collections.abc import AsyncGenerator
 
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsProtocol,
-    DnsResponseSend,
-    QnameQtypeHandler,
-    QueryContext,
-)
+from isctest.asyncserver import AsyncDnsServer, DnsProtocol, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import QnameQtypeHandler
 
 
 class MismatchedIdOnUdpHandler(QnameQtypeHandler):

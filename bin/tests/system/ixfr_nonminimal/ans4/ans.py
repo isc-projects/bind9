@@ -20,11 +20,11 @@ import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
-    SwitchControlCommand,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import SwitchControlCommand
 
 
 def rrset(owner: str, rdtype: dns.rdatatype.RdataType, rdata: str) -> dns.rrset.RRset:

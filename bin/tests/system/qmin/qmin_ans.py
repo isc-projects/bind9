@@ -16,7 +16,9 @@ import abc
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
+from isctest.asyncserver import QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import DomainHandler
 
 
 def log_query(qctx: QueryContext) -> None:

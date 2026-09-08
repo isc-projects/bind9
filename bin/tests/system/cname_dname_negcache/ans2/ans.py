@@ -15,13 +15,9 @@ import asyncio
 
 from dns import name, rcode, rdataclass, rdatatype, rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QnameQtypeHandler,
-    QueryContext,
-    StaticResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import QnameQtypeHandler, StaticResponseHandler
 
 # The attack relies on the resolver caching the positive CNAME/DNAME answer
 # *before* it processes the negative answer for the same name.  The negative
