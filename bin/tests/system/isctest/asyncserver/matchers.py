@@ -293,3 +293,19 @@ class LeftmostLabelPrefix(LabelPredicate):
             lambda label: label.startswith(prefix),
             f"starting with {prefix.decode()}",
         )
+
+
+class LabelCount(Matcher):
+    """
+    Match queries whose QNAME has the given number of labels, the root label
+    included.
+    """
+
+    def __init__(self, count: int) -> None:
+        self._count = count
+
+    def match(self, qctx: QueryContext) -> bool:
+        return len(qctx.qname.labels) == self._count
+
+    def __str__(self) -> str:
+        return f"QNAME of {self._count} labels"
