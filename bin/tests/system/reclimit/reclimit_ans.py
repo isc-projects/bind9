@@ -29,7 +29,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Qname
+from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 
 
 class ReclimitStateHandler(ResponseHandler):
@@ -165,15 +165,26 @@ class IndirectExampleOrgHandler(ReclimitHandler):
         yield DnsResponseSend(qctx.response)
 
 
-def is_ns1_example(qname: dns.name.Name, tld: str) -> bool:
-    labels = qname.labels
-    return (
-        len(labels) == 5
-        and labels[3] == tld.encode()
-        and labels[2] == b"example"
-        and labels[1].isdigit()
-        and labels[0] == b"ns1"
-    )
+class Ns1Example(Matcher):
+    """
+    Match queries for ns1.<n>.example.<tld>.
+    """
+
+    def __init__(self, tld: str) -> None:
+        self.tld = tld.encode()
+
+    def match(self, qctx: QueryContext) -> bool:
+        labels = qctx.qname.labels
+        return (
+            len(labels) == 5
+            and labels[3] == self.tld
+            and labels[2] == b"example"
+            and labels[1].isdigit()
+            and labels[0] == b"ns1"
+        )
+
+    def __str__(self) -> str:
+        return f"QNAME is ns1.<n>.example.{self.tld.decode()}"
 
 
 class Ns1ExampleOrgHandler(ReclimitHandler):
@@ -181,11 +192,7 @@ class Ns1ExampleOrgHandler(ReclimitHandler):
         self._second_query_events: dict[dns.name.Name, asyncio.Event] = {}
         super().__init__(state_handler)
 
-    def match(self, qctx: QueryContext) -> bool:
-        return is_ns1_example(qctx.qname, "org") and qctx.qtype in (
-            dns.rdatatype.A,
-            dns.rdatatype.AAAA,
-        )
+    matcher = Ns1Example("org") & Qtype(dns.rdatatype.A, dns.rdatatype.AAAA)
 
     async def _get_counted_responses(
         self, qctx: QueryContext

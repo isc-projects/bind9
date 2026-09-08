@@ -21,18 +21,17 @@ from ..reclimit_ans import (
     FallbackNxdomainHandler,
     IndirectExampleOrgHandler,
     LimitControlCommand,
+    Ns1Example,
     Ns1ExampleOrgHandler,
     ReclimitHandler,
     ReclimitStateHandler,
     a,
-    is_ns1_example,
     ns,
 )
 
 
 class Ns1ExampleNetHandler(ReclimitHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return is_ns1_example(qctx.qname, "net")
+    matcher = Ns1Example("net")
 
     async def _get_counted_responses(
         self, qctx: QueryContext
