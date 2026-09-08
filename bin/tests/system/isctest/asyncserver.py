@@ -30,6 +30,7 @@ import bisect
 import collections
 import contextlib
 import copy
+import datetime
 import enum
 import functools
 import logging
@@ -346,6 +347,29 @@ class QueryContext:
         rrsig_rrset = dns.rrset.RRset(rrset.name, self.qclass, dns.rdatatype.RRSIG)
         rrsig_rrset.update(rrsig_rdataset)
         return rrsig_rrset
+
+    def sign(
+        self, signed: dns.rrset.RRset, /, key: SigningKey | None = None
+    ) -> dns.rrset.RRset:
+        assert self.zone
+        assert self.zone.origin
+
+        if not key:
+            keys = self.keys.get(self.zone.origin)
+            assert keys
+            key = keys[0]
+
+        one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+        signature = dns.dnssec.sign(
+            signed,
+            key.private_key,
+            key.zone,
+            key.dnskey[0],
+            inception=one_hour_ago,
+            lifetime=86400,
+        )
+
+        return dns.rrset.from_rdata(signed.name, signed.ttl, signature)
 
     @functools.cached_property
     def nsecx(self) -> "NonExistenceProver":
