@@ -85,9 +85,7 @@ class SerializedHandler(ResponseHandler):
         self._inner = inner
         self._lock = lock
         super().__init__()
-
-    def match(self, qctx: QueryContext) -> bool:
-        return self._inner.match(qctx)
+        self.matcher = inner.matcher
 
     async def get_responses(
         self, qctx: QueryContext
