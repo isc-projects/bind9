@@ -15,9 +15,10 @@ import asyncio
 
 from dns import name, rcode, rdataclass, rdatatype, rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameQtypeHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 # The attack relies on the resolver caching the positive CNAME/DNAME answer
 # *before* it processes the negative answer for the same name.  The negative
@@ -61,16 +62,14 @@ def build_rrset(
     return rrset.from_text(qname, ttl, rdataclass.IN, rtype, rdata)
 
 
-class FooTestNsHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["foo.test."]
-    qtypes = [rdatatype.NS]
+class FooTestNsHandler(StaticResponseHandler):
+    matcher = Qname("foo.test.") & Qtype(rdatatype.NS)
     answer = [build_rrset("foo.test.", rdatatype.NS, "ns.foo.test.")]
     additional = [build_rrset("ns.foo.test.", rdatatype.A, "10.53.0.2")]
 
 
-class DelayedDnameNegHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["foo.test."]
-    qtypes = [rdatatype.DNAME]
+class DelayedDnameNegHandler(StaticResponseHandler):
+    matcher = Qname("foo.test.") & Qtype(rdatatype.DNAME)
     authority = [
         build_rrset(
             "foo.test.",
@@ -87,9 +86,8 @@ class DelayedDnameNegHandler(QnameQtypeHandler, StaticResponseHandler):
             yield response
 
 
-class DnamePosHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["a.foo.test."]
-    qtypes = [rdatatype.A]
+class DnamePosHandler(StaticResponseHandler):
+    matcher = Qname("a.foo.test.") & Qtype(rdatatype.A)
     answer = [
         build_rrset("foo.test.", rdatatype.DNAME, "bar.test."),
         build_rrset("a.foo.test.", rdatatype.CNAME, "a.bar.test."),
@@ -103,9 +101,8 @@ class DnamePosHandler(QnameQtypeHandler, StaticResponseHandler):
         _dname_positive_sent.set()
 
 
-class CnameHandler(QnameQtypeHandler):
-    qnames = ["cname.foo.test."]
-    qtypes = [rdatatype.CNAME, rdatatype.A]
+class CnameHandler(ResponseHandler):
+    matcher = Qname("cname.foo.test.") & Qtype(rdatatype.CNAME, rdatatype.A)
     answer = [build_rrset("cname.foo.test.", rdatatype.CNAME, "cname.foo.test.")]
     authority = [
         build_rrset(
