@@ -433,7 +433,9 @@ Implementing a custom `ansN` server happens in two phases:
 
   - define all static DNS data that the server needs to serve (if any) in `*.db`
     files placed in the `zones/` subdirectory, like you would for a regular
-    `named` instance,
+    `named` instance; signed zones are also supported: if `zones/<origin>.db`
+    and `zones/<origin>.db.signed` files both exist for the same `<origin>`,
+    only the latter is loaded,
 
   - implement any non-standard behavior (modifying zone-based responses or
     generating responses from scratch) by defining a response handler class,
