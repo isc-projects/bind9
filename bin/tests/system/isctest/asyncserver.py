@@ -298,6 +298,30 @@ class QueryContext:
         else:
             self._initialized_response = copy.deepcopy(self.response)
 
+    def get_rrsig(self, rrset: dns.rrset.RRset) -> dns.rrset.RRset | None:
+        if not self.query.ednsflags & dns.flags.DO:
+            return None
+
+        assert self.zone
+        assert self.zone.origin
+
+        node = (
+            self.node
+            if rrset.rdtype != dns.rdatatype.SOA
+            else self.zone.get_node(self.zone.origin)
+        )
+        assert node
+
+        rrsig_rdataset = node.get_rdataset(
+            self.qclass, dns.rdatatype.RRSIG, rrset.rdtype
+        )
+        if not rrsig_rdataset:
+            return None
+
+        rrsig_rrset = dns.rrset.RRset(rrset.name, self.qclass, dns.rdatatype.RRSIG)
+        rrsig_rrset.update(rrsig_rdataset)
+        return rrsig_rrset
+
 
 @dataclass
 class ResponseAction(abc.ABC):
@@ -1653,6 +1677,8 @@ class AsyncDnsServer(AsyncServer):
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
         return True
 
     def _match_wildcard(self, qctx: QueryContext) -> dns.node.Node | None:
@@ -1674,6 +1700,8 @@ class AsyncDnsServer(AsyncServer):
 
         qctx.response.set_rcode(dns.rcode.NXDOMAIN)
         qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
         return True
 
     def _cname_response(self, qctx: QueryContext) -> bool:
@@ -1687,6 +1715,8 @@ class AsyncDnsServer(AsyncServer):
         cname_rrset = dns.rrset.RRset(qctx.current_qname, qctx.qclass, cname.rdtype)
         cname_rrset.update(cname)
         qctx.response.answer.append(cname_rrset)
+        if cname_rrsig := qctx.get_rrsig(cname_rrset):
+            qctx.response.answer.append(cname_rrsig)
 
         qctx.alias = cname[0].target
         self._prepare_response_from_zone_data(qctx)
@@ -1702,6 +1732,8 @@ class AsyncDnsServer(AsyncServer):
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
         return True
 
     def _noerror_response(self, qctx: QueryContext) -> None:
@@ -1712,6 +1744,8 @@ class AsyncDnsServer(AsyncServer):
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.answer.append(answer_rrset)
+        if answer_rrsig := qctx.get_rrsig(answer_rrset):
+            qctx.response.answer.append(answer_rrsig)
 
     async def _run_response_handlers(
         self, qctx: QueryContext
