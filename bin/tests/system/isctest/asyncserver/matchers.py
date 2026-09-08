@@ -309,3 +309,22 @@ class LabelCount(Matcher):
 
     def __str__(self) -> str:
         return f"QNAME of {self._count} labels"
+
+
+class Once(Matcher):
+    """
+    Match the first query the given matcher matches, and only that one.
+    """
+
+    def __init__(self, matcher: Matcher) -> None:
+        self._matcher = matcher
+        self._done = False
+
+    def match(self, qctx: QueryContext) -> bool:
+        if self._done or not self._matcher.match(qctx):
+            return False
+        self._done = True
+        return True
+
+    def __str__(self) -> str:
+        return f"once, {self._matcher}"
