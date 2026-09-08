@@ -14,9 +14,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer
 from isctest.asyncserver.handlers import StaticResponseHandler
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.matchers import Once, Qname, Qtype
 
 DNS64_TRIGGER = "nodata.test."
 
@@ -44,18 +44,8 @@ class NodataOnceHandler(StaticResponseHandler):
     AAAA (answered by AaaaHandler), triggering the bug.
     """
 
-    matcher = Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA)
+    matcher = Once(Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA))
     authority = [soa()]
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._answered = False
-
-    def match(self, qctx: QueryContext) -> bool:
-        if self._answered:
-            return False
-        self._answered = True
-        return super().match(qctx)
 
 
 class AaaaHandler(StaticResponseHandler):
