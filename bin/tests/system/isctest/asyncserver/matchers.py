@@ -219,3 +219,27 @@ class Protocol(Matcher):
 
     def __str__(self) -> str:
         return f"over {self._protocol.name}"
+
+
+class Edns(Matcher):
+    """
+    Match queries carrying an OPT record.
+    """
+
+    def match(self, qctx: QueryContext) -> bool:
+        return qctx.query.edns > -1
+
+    def __str__(self) -> str:
+        return "with EDNS"
+
+
+class EdnsOptions(Matcher):
+    """
+    Match queries carrying EDNS options.
+    """
+
+    def match(self, qctx: QueryContext) -> bool:
+        return bool(qctx.query.options)
+
+    def __str__(self) -> str:
+        return "with EDNS options"
