@@ -19,19 +19,20 @@ import dns.rrset
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
     QueryContext,
+    ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 
-class AXFRServer(DomainHandler):
+class AXFRServer(ResponseHandler):
     """
     Yield SOA and AXFR responses. Every new AXFR response increments the SOA
     version.
     """
 
-    domains = ["xfr-and-reconfig", "private-dns-overrun"]
+    matcher = Domain("xfr-and-reconfig", "private-dns-overrun")
 
     def __init__(self) -> None:
         super().__init__()

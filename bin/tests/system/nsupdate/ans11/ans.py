@@ -29,9 +29,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 ZONE = dns.name.from_text("sigaxfr.nil.")
 NS_NAME = dns.name.from_text("ns.sigaxfr.nil.")
@@ -49,12 +49,12 @@ def _make_sig_rdata(covered_text):
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.SIG, wire, 0, len(wire))
 
 
-class SigAxfrServer(DomainHandler):
+class SigAxfrServer(ResponseHandler):
     """
     Serve SOA and AXFR for sigaxfr.nil.; other qtypes get NOERROR/NODATA.
     """
 
-    domains = ["sigaxfr.nil."]
+    matcher = Domain("sigaxfr.nil.")
 
     async def get_responses(
         self, qctx: QueryContext

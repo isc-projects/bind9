@@ -26,9 +26,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 VICTIM = "victim.example."
@@ -125,8 +125,8 @@ def add_wildcard_answer(response, key: Key) -> None:
     response.answer.append(dns.rrset.from_rdata(name(CONTROL), TTL, rrsig))
 
 
-class NsecWildcardWrongZoneHandler(DomainHandler):
-    domains = [VICTIM, ATTACKER]
+class NsecWildcardWrongZoneHandler(ResponseHandler):
+    matcher = Domain(VICTIM, ATTACKER)
 
     def __init__(self, keys: dict[str, Key]) -> None:
         super().__init__()
