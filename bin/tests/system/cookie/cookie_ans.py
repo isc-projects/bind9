@@ -25,7 +25,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Protocol, Qtype
+from isctest.asyncserver.matchers import LeftmostLabel, Protocol, Qtype
 from isctest.name import prepend_label
 from isctest.vars.algorithms import ALG_VARS
 
@@ -135,12 +135,9 @@ class TcpAHandler(ResponseHandler):
 
 
 class WithtsigUdpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return (
-            qctx.qtype == dns.rdatatype.A
-            and qctx.protocol == DnsProtocol.UDP
-            and _first_label(qctx) == "withtsig"
-        )
+    matcher = (
+        Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP) & LeftmostLabel(b"withtsig")
+    )
 
     async def get_responses(
         self, qctx: QueryContext
