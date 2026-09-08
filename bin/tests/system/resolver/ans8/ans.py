@@ -26,8 +26,8 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 from ..resolver_ans import rrset
 
@@ -77,8 +77,8 @@ class TcpFallbackHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class FormerrToAllHandler(DomainHandler, StaticResponseHandler):
-    domains = ["formerr-to-all."]
+class FormerrToAllHandler(StaticResponseHandler):
+    matcher = Domain("formerr-to-all.")
     rcode = dns.rcode.FORMERR
 
 

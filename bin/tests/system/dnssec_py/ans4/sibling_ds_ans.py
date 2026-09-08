@@ -23,17 +23,17 @@ from collections.abc import AsyncGenerator
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 
-class SiblingDsInjectionHandler(DomainHandler):
+class SiblingDsInjectionHandler(ResponseHandler):
     """
     Inject a DS record for sibling.sibling-ds into child.sibling-ds referrals.
     """
 
-    domains = ["child.sibling-ds."]
+    matcher = Domain("child.sibling-ds.")
 
     async def get_responses(
         self, qctx: QueryContext

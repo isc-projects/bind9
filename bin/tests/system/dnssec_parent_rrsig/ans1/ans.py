@@ -29,6 +29,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 PARENT = "f044.test."
@@ -124,12 +125,10 @@ class AncestorAdditionalHandler(ResponseHandler):
     def __init__(self, keys: dict[str, Key]) -> None:
         self.keys = keys
         self.parent = name(PARENT)
+        self.matcher = Domain(self.parent)
         self.child = name(CHILD)
         self.query = name(QUERY)
         self.service = name(SERVICE)
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(self.parent)
 
     async def get_responses(
         self, qctx: QueryContext

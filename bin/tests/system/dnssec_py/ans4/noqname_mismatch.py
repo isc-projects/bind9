@@ -36,9 +36,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 ZONE = "f217.test."
@@ -236,12 +236,12 @@ def add_both_attack_answer(response: dns.message.Message) -> None:
     response.authority.append(nsec3_rrsig(NSEC3_OWNER))
 
 
-class RuntimeCheckHandler(DomainHandler):
+class RuntimeCheckHandler(ResponseHandler):
     """
     Serve f217.test. and the forged wildcard answers below evil.f217.test.
     """
 
-    domains = [ZONE]
+    matcher = Domain(ZONE)
 
     def __init__(self) -> None:
         super().__init__()

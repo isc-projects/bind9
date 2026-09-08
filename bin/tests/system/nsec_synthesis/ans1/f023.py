@@ -21,9 +21,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 from nsec_synthesis.ans1.common import (
     Key,
     add_signed,
@@ -81,8 +81,8 @@ def add_parent_denial(
     add_signed(response.authority, nsec, signer)
 
 
-class F023Handler(DomainHandler):
-    domains = [F023_ZONE, EVIL]
+class F023Handler(ResponseHandler):
+    matcher = Domain(F023_ZONE, EVIL)
 
     def __init__(self, keys: dict[str, Key]) -> None:
         super().__init__()

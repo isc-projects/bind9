@@ -13,25 +13,26 @@ from collections.abc import AsyncGenerator
 
 import dns.rcode
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import CloseConnection, DnsResponseSend, ResponseDrop
-from isctest.asyncserver.handlers import DomainHandler, IgnoreAllQueries
+from isctest.asyncserver.handlers import IgnoreAllQueries
+from isctest.asyncserver.matchers import Domain
 
 
-class SilentHandler(DomainHandler, IgnoreAllQueries):
+class SilentHandler(IgnoreAllQueries):
     """
     Handler that doesn't respond.
     """
 
-    domains = ["silent.example"]
+    matcher = Domain("silent.example")
 
 
-class CloseHandler(DomainHandler):
+class CloseHandler(ResponseHandler):
     """
     Handler that doesn't respond and closes TCP connection.
     """
 
-    domains = ["close.example"]
+    matcher = Domain("close.example")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -39,12 +40,12 @@ class CloseHandler(DomainHandler):
         yield CloseConnection()
 
 
-class SilentThenServfailHandler(DomainHandler):
+class SilentThenServfailHandler(ResponseHandler):
     """
     Handler that drops one query and response to the next one with SERVFAIL.
     """
 
-    domains = ["silent-then-servfail.example"]
+    matcher = Domain("silent-then-servfail.example")
     counter = 0
 
     async def get_responses(

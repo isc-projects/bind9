@@ -24,8 +24,8 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
@@ -65,7 +65,7 @@ class Ns1AaaaHandler(StaticResponseHandler):
     edns = None
 
 
-class SldDelegationHandler(DomainHandler):
+class SldDelegationHandler(ResponseHandler):
     """
     Delegate every NS query at or below sld.tld. to ns1.sld.tld., copying the
     owner name from the QNAME.  Together with Ns1AHandler / Ns1AaaaHandler
@@ -73,10 +73,7 @@ class SldDelegationHandler(DomainHandler):
     negative catch-all), this drives named's DS-chasing logic.
     """
 
-    domains = [SLD]
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.NS and super().match(qctx)
+    matcher = Domain(SLD) & Qtype(dns.rdatatype.NS)
 
     async def get_responses(
         self, qctx: QueryContext

@@ -18,9 +18,9 @@ import dns.rdatatype
 import dns.rrset
 import dns.zone
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 
 def get_dname_rrset_at_name(
@@ -35,13 +35,13 @@ def get_dname_rrset_at_name(
     return rrset
 
 
-class CnameThenDnameHandler(DomainHandler):
+class CnameThenDnameHandler(ResponseHandler):
     """
     For certain trigger QNAMEs, insert a DNAME RRset after the CNAME chain
     prepared from zone data.
     """
 
-    domains = ["example.broken."]
+    matcher = Domain("example.broken.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -60,7 +60,7 @@ class CnameThenDnameHandler(DomainHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class Cve202125215(DomainHandler):
+class Cve202125215(ResponseHandler):
     """
     Attempt to trigger the resolver variant of CVE-2021-25215.  A `named`
     instance cannot be used for serving the DNAME records returned by this
@@ -68,7 +68,7 @@ class Cve202125215(DomainHandler):
     crash while answering the queries sent by the tested resolver.
     """
 
-    domains = ["example.dname."]
+    matcher = Domain("example.dname.")
 
     async def get_responses(
         self, qctx: QueryContext

@@ -19,7 +19,6 @@ import logging
 
 import dns.exception
 import dns.message
-import dns.name
 import dns.rcode
 import dns.rdatatype
 import dns.rrset
@@ -269,52 +268,6 @@ class StaticResponseHandler(ResponseHandler):
         yield DnsResponseSend(
             qctx.response, authoritative=self.authoritative, delay=self.delay
         )
-
-
-class DomainHandler(ResponseHandler):
-    """
-    Base class used for deriving custom domain handlers.
-
-    The derived class must specify a list of `domains` that it wants to handle.
-    Queries for any of these domains (and their subdomains) will then be passed
-    to the `get_response()` method in the derived class.
-
-    The most specific matching domain is stored in the `matched_domain` attribute.
-    """
-
-    @property
-    @abc.abstractmethod
-    def domains(self) -> list[str]:
-        """
-        A list of domain names handled by this class.
-        """
-        raise NotImplementedError
-
-    def __init__(self) -> None:
-        self._domains: list[dns.name.Name] = sorted(
-            [dns.name.from_text(d) for d in self.domains], reverse=True
-        )
-        self._matched_domain: dns.name.Name | None = None
-
-    @property
-    def matched_domain(self) -> dns.name.Name:
-        assert self._matched_domain is not None
-        return self._matched_domain
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(domains: {', '.join(self.domains)})"
-
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Handle queries whose QNAME matches any of the domains handled by this
-        class.
-        """
-        self._matched_domain = None
-        for domain in self._domains:
-            if qctx.qname.is_subdomain(domain):
-                self._matched_domain = domain
-                return True
-        return False
 
 
 class ForwarderHandler(ResponseHandler):

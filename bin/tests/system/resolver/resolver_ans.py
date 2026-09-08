@@ -21,8 +21,7 @@ import dns.rrset
 
 from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
-from isctest.asyncserver.matchers import Qname
+from isctest.asyncserver.matchers import Domain, Qname
 
 
 def rrset(
@@ -72,16 +71,25 @@ def setup_delegation(
     qctx.response.additional.append(delegation.a_rrset)
 
 
-class DelegationHandler(DomainHandler):
+class DelegationHandler(ResponseHandler):
+    @property
+    @abc.abstractmethod
+    def domains(self) -> list[str]:
+        raise NotImplementedError
+
     @property
     @abc.abstractmethod
     def server_number(self) -> int:
         raise NotImplementedError
 
+    def __init__(self) -> None:
+        self.matcher = Domain(*self.domains)
+
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        setup_delegation(qctx, self.matched_domain, self.server_number)
+        domain = self.matcher.of(Domain).matched_domain
+        setup_delegation(qctx, domain, self.server_number)
         yield DnsResponseSend(qctx.response, authoritative=False)
 
 
