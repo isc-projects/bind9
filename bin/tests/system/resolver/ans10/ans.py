@@ -16,13 +16,13 @@ import dns.rdatatype
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Edns, EdnsOptions
 
 from ..resolver_ans import rrset, soa_rrset
 
 
 class EdnsWithOptionsFormerrHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.query.edns > -1 and qctx.query.options
+    matcher = Edns() & EdnsOptions()
 
     async def get_responses(
         self, qctx: QueryContext
