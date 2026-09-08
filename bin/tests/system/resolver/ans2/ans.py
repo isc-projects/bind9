@@ -18,12 +18,8 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import (
-    DomainHandler,
-    IgnoreAllQueries,
-    StaticResponseHandler,
-)
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.handlers import IgnoreAllQueries, StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -151,8 +147,8 @@ class Ns7Delegation(DelegationHandler):
     server_number = 7
 
 
-class PartialFormerrHandler(DomainHandler, StaticResponseHandler):
-    domains = ["partial-formerr."]
+class PartialFormerrHandler(StaticResponseHandler):
+    matcher = Domain("partial-formerr.")
     authoritative = False
     rcode = dns.rcode.FORMERR
 

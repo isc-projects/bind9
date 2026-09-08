@@ -15,11 +15,12 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain
 
 
-class PoisonReferralForwarder(DomainHandler, StaticResponseHandler):
-    domains = ["fwd.hack."]
+class PoisonReferralForwarder(StaticResponseHandler):
+    matcher = Domain("fwd.hack.")
     authority = [
         dns.rrset.from_text(
             "hack.", 300, dns.rdataclass.IN, dns.rdatatype.NS, "ns.fwd.hack."

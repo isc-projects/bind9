@@ -18,10 +18,10 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 
 def rrset(
@@ -39,8 +39,8 @@ class RootNsHandler(StaticResponseHandler):
     additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleCookieHandler(DomainHandler):
-    domains = ["example."]
+class ExampleCookieHandler(ResponseHandler):
+    matcher = Domain("example.")
 
     def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
         for o in qctx.query.options:

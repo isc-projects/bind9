@@ -21,7 +21,7 @@ import dns.zone
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain, Qtype
 
 # 'example.' answers DNSKEY/NSEC/NSEC3/RRSIG queries with a CNAME (the
 # meta-types whose CNAME answer the resolver and validator must cope with).
@@ -62,7 +62,7 @@ def rrset_with_rrsig(
     return rrsets
 
 
-class LoneAHandler(DomainHandler):
+class LoneAHandler(ResponseHandler):
     """
     Answer any query with a single unrelated A record (no RRSIG and no
     alias).  An RRSIG query is handled by the resolver as a subset of ANY,
@@ -70,7 +70,7 @@ class LoneAHandler(DomainHandler):
     for a validator that was never started.
     """
 
-    domains = ["lone-a.example."]
+    matcher = Domain("lone-a.example.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -94,40 +94,28 @@ class CnameHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class ExampleMetatypeCnameHandler(DomainHandler, CnameHandler):
-    domains = ["example."]
-    _qtypes = frozenset(
-        {
-            dns.rdatatype.DNSKEY,
-            dns.rdatatype.NSEC,
-            dns.rdatatype.NSEC3,
-            dns.rdatatype.RRSIG,
-        }
+class ExampleMetatypeCnameHandler(CnameHandler):
+    matcher = Domain("example.") & Qtype(
+        dns.rdatatype.DNSKEY,
+        dns.rdatatype.NSEC,
+        dns.rdatatype.NSEC3,
+        dns.rdatatype.RRSIG,
     )
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype in self._qtypes and super().match(qctx)
+
+class SecureDsCnameHandler(CnameHandler):
+    matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
 
 
-class SecureDsCnameHandler(DomainHandler, CnameHandler):
-    domains = ["secure."]
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.DS and super().match(qctx)
-
-
-class SignedZoneHandler(DomainHandler):
+class SignedZoneHandler(ResponseHandler):
     """
     Serve a signed zone faithfully.
     """
 
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
-        super().__init__()
-
-    @property
-    def domains(self) -> list[str]:
-        return [self._zone.origin.to_text()]
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin)
 
     def _soa(self) -> list[dns.rrset.RRset]:
         return rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
@@ -156,19 +144,16 @@ class SignedZoneHandler(DomainHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class StuffedNxdomainHandler(DomainHandler):
+class StuffedNxdomainHandler(ResponseHandler):
     """
     Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
     """
 
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
-        super().__init__()
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin)
         self._nsec3_authority = self._build_authority()
-
-    @property
-    def domains(self) -> list[str]:
-        return [self._zone.origin.to_text()]
 
     def _build_authority(self) -> list[dns.rrset.RRset]:
         authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)

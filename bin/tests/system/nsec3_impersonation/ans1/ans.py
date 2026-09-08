@@ -29,7 +29,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 TTL = 300
 TLD = "tld.test."
@@ -208,8 +208,7 @@ class AttackerZoneHandler(SignedResponseHandler):
     the apex are answered with an NXDOMAIN with no NSEC or NSEC3 present.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(name(ATTACKER))
+    matcher = Domain(ATTACKER)
 
     def respond(self, qctx: QueryContext) -> None:
         if qctx.qname == name(ATTACKER):
@@ -239,8 +238,7 @@ class TldZoneHandler(SignedResponseHandler):
     The attack assumes that the adversary can inject these responses on-path.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(name(TLD))
+    matcher = Domain(TLD)
 
     def respond(self, qctx: QueryContext) -> None:
         if qctx.qname == name(TLD):

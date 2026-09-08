@@ -23,9 +23,14 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import ControlCommand, ControllableAsyncDnsServer, QueryContext
+from isctest.asyncserver import (
+    ControlCommand,
+    ControllableAsyncDnsServer,
+    QueryContext,
+    ResponseHandler,
+)
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 
 class ChainNameGenerator:
@@ -401,7 +406,7 @@ class ChainSetupCommand(ControlCommand):
         return rrsets
 
 
-class ChainResponseHandler(DomainHandler):
+class ChainResponseHandler(ResponseHandler):
     """
     For trigger queries (`test.domain.nil`), return a chained response
     previously prepared by `ChainSetupCommand`.
@@ -409,7 +414,7 @@ class ChainResponseHandler(DomainHandler):
     For any other query, return a non-chained response (a single A RRset).
     """
 
-    domains = ["domain.nil."]
+    matcher = Domain("domain.nil.")
 
     def __init__(self, answer_rrsets: list[dns.rrset.RRset]):
         super().__init__()

@@ -54,9 +54,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Domain
 
 ZONE_NAME = "attack.delegationtrap."
 SERVER_IP = "10.53.0.4"
@@ -64,12 +64,12 @@ TTL = 300
 PEM_PATH = Path("attack_delegationtrap.pem")
 
 
-class DelegationTrapHandler(DomainHandler):
+class DelegationTrapHandler(ResponseHandler):
     """
     Serve every label under attack.delegationtrap. as a secure zone cut.
     """
 
-    domains = [ZONE_NAME]
+    matcher = Domain(ZONE_NAME)
 
     def __init__(self) -> None:
         super().__init__()

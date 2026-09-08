@@ -170,3 +170,37 @@ class Qtype(Matcher):
 
     def __str__(self) -> str:
         return f"QTYPE in [{', '.join(map(dns.rdatatype.to_text, self.qtypes))}]"
+
+
+class Domain(Matcher):
+    """
+    Match queries for one of the given domains or any of their subdomains.
+
+    The most specific domain matched is kept in `matched_domain` for the
+    handler to read.
+    """
+
+    def __init__(self, *domains: str | dns.name.Name) -> None:
+        self._domains = sorted(
+            (
+                name if isinstance(name, dns.name.Name) else dns.name.from_text(name)
+                for name in domains
+            ),
+            reverse=True,
+        )
+        self._matched_domain: dns.name.Name | None = None
+
+    @property
+    def matched_domain(self) -> dns.name.Name:
+        assert self._matched_domain is not None, f"{self} has not matched yet"
+        return self._matched_domain
+
+    def match(self, qctx: QueryContext) -> bool:
+        for domain in self._domains:
+            if qctx.qname.is_subdomain(domain):
+                self._matched_domain = domain
+                return True
+        return False
+
+    def __str__(self) -> str:
+        return f"QNAME under [{', '.join(str(name) for name in self._domains)}]"
