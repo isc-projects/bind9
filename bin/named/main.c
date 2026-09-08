@@ -329,8 +329,9 @@ save_command_line(int argc, char *argv[]) {
 					continue;
 				} else {
 					char tmp[5];
-					int c = snprintf(tmp, sizeof(tmp),
-							 "\\%03o", *src++);
+					int c = snprintf(
+						tmp, sizeof(tmp), "\\%03o",
+						(unsigned char)(*src++));
 					if (dst + c >= eob) {
 						goto add_ellipsis;
 					}
