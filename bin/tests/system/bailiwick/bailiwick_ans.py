@@ -11,7 +11,6 @@
 
 import abc
 
-import dns.name
 import dns.rcode
 import dns.rdatatype
 
@@ -22,6 +21,7 @@ from isctest.asyncserver import (
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.matchers import Protocol, Qname, Qtype
 
 
 class ResponseSpoofer(ResponseHandler, abc.ABC):
@@ -44,11 +44,9 @@ class ResponseSpoofer(ResponseHandler, abc.ABC):
     def qname(self) -> str:
         raise NotImplementedError
 
-    def match(self, qctx: QueryContext) -> bool:
-        return (
-            qctx.qname == dns.name.from_text(self.qname)
-            and qctx.qtype == dns.rdatatype.TXT
-            and qctx.protocol == DnsProtocol.UDP
+    def __init__(self) -> None:
+        self.matcher = (
+            Qname(self.qname) & Qtype(dns.rdatatype.TXT) & Protocol(DnsProtocol.UDP)
         )
 
 
