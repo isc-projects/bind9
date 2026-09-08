@@ -1699,13 +1699,17 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 				j->xhdr_version, (long long)j->it.cpos.offset,
 				j->curxhdr.size, j->curxhdr.count,
 				j->curxhdr.serial0, j->curxhdr.serial1);
-			if (j->it.cpos.offset > j->index[i].offset) {
-				fprintf(file,
-					"ERROR: Offset mismatch, "
-					"expected %lld\n",
-					(long long)j->index[i].offset);
-			} else if (j->it.cpos.offset == j->index[i].offset) {
-				i++;
+			if (j->index != NULL && i < j->header.index_size) {
+				if (j->it.cpos.offset > j->index[i].offset) {
+					fprintf(file,
+						"ERROR: Offset mismatch, "
+						"expected %lld\n",
+						(long long)j->index[i].offset);
+				} else if (j->it.cpos.offset ==
+					   j->index[i].offset)
+				{
+					i++;
+				}
 			}
 		}
 		CHECK(dns_difftuple_create(
