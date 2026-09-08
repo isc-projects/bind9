@@ -1616,6 +1616,7 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 	unsigned int n_soa = 0;
 	unsigned int n_put = 0;
 	bool printxhdr = ((flags & DNS_JOURNAL_PRINTXHDR) != 0);
+	uint32_t i;
 
 	REQUIRE(filename != NULL);
 
@@ -1636,7 +1637,7 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 		fprintf(file, "Start serial = %u\n", j->header.begin.serial);
 		fprintf(file, "End serial = %u\n", j->header.end.serial);
 		fprintf(file, "Index (size = %u):\n", j->header.index_size);
-		for (uint32_t i = 0; i < j->header.index_size; i++) {
+		for (i = 0; i < j->header.index_size; i++) {
 			if (j->index[i].offset == 0) {
 				fputc('\n', file);
 				break;
@@ -1663,13 +1664,13 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 
 	CHECK(dns_journal_iter_init(j, start_serial, end_serial, NULL));
 
+	i = 0;
 	for (result = dns_journal_first_rr(j); result == ISC_R_SUCCESS;
 	     result = dns_journal_next_rr(j))
 	{
 		dns_name_t *name = NULL;
 		dns_rdata_t *rdata = NULL;
 		dns_difftuple_t *tuple = NULL;
-		static uint32_t i = 0;
 		bool print = false;
 		uint32_t ttl;
 
@@ -1699,13 +1700,17 @@ dns_journal_print(isc_mem_t *mctx, uint32_t flags, const char *filename,
 				j->xhdr_version, (long long)j->it.cpos.offset,
 				j->curxhdr.size, j->curxhdr.count,
 				j->curxhdr.serial0, j->curxhdr.serial1);
-			if (j->it.cpos.offset > j->index[i].offset) {
-				fprintf(file,
-					"ERROR: Offset mismatch, "
-					"expected %lld\n",
-					(long long)j->index[i].offset);
-			} else if (j->it.cpos.offset == j->index[i].offset) {
-				i++;
+			if (j->index != NULL && i < j->header.index_size) {
+				if (j->it.cpos.offset > j->index[i].offset) {
+					fprintf(file,
+						"ERROR: Offset mismatch, "
+						"expected %lld\n",
+						(long long)j->index[i].offset);
+				} else if (j->it.cpos.offset ==
+					   j->index[i].offset)
+				{
+					i++;
+				}
 			}
 		}
 		CHECK(dns_difftuple_create(
