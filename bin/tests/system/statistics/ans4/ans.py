@@ -17,11 +17,12 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import IgnoreAllQueries, QnameHandler
+from isctest.asyncserver.handlers import IgnoreAllQueries
+from isctest.asyncserver.matchers import Qname
 
 
-class FooInfoHandler(QnameHandler, IgnoreAllQueries):
-    qnames = ["foo.info."]
+class FooInfoHandler(IgnoreAllQueries):
+    matcher = Qname("foo.info.")
 
 
 class FallbackHandler(ResponseHandler):

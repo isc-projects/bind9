@@ -25,6 +25,7 @@ from isctest.asyncserver.handlers import (
     QnameQtypeHandler,
     StaticResponseHandler,
 )
+from isctest.asyncserver.matchers import Qname
 
 
 def rrset(

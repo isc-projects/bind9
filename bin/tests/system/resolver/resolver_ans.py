@@ -19,9 +19,10 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import DomainHandler, QnameHandler
+from isctest.asyncserver.handlers import DomainHandler
+from isctest.asyncserver.matchers import Qname
 
 
 def rrset(
@@ -84,8 +85,8 @@ class DelegationHandler(DomainHandler):
         yield DnsResponseSend(qctx.response, authoritative=False)
 
 
-class Gl6412AHandler(QnameHandler):
-    qnames = ["a.gl6412.", "a.a.gl6412."]
+class Gl6412AHandler(ResponseHandler):
+    matcher = Qname("a.gl6412.", "a.a.gl6412.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -94,8 +95,8 @@ class Gl6412AHandler(QnameHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class Gl6412Handler(QnameHandler):
-    qnames = ["gl6412."]
+class Gl6412Handler(ResponseHandler):
+    matcher = Qname("gl6412.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -112,8 +113,8 @@ class Gl6412Handler(QnameHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class Gl6412Ns2Handler(QnameHandler):
-    qnames = ["ns2.gl6412."]
+class Gl6412Ns2Handler(ResponseHandler):
+    matcher = Qname("ns2.gl6412.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -126,8 +127,8 @@ class Gl6412Ns2Handler(QnameHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class Gl6412Ns3Handler(QnameHandler):
-    qnames = ["ns3.gl6412."]
+class Gl6412Ns3Handler(ResponseHandler):
+    matcher = Qname("ns3.gl6412.")
 
     async def get_responses(
         self, qctx: QueryContext

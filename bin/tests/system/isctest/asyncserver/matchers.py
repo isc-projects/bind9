@@ -11,6 +11,8 @@
 
 import abc
 
+import dns.name
+
 from .context import QueryContext
 
 
@@ -106,3 +108,21 @@ class Always(Matcher):
 
     def match(self, qctx: QueryContext) -> bool:
         return True
+
+
+class Qname(Matcher):
+    """
+    Match queries whose QNAME is one of the given names.
+    """
+
+    def __init__(self, *qnames: str | dns.name.Name) -> None:
+        self.qnames = [
+            name if isinstance(name, dns.name.Name) else dns.name.from_text(name)
+            for name in qnames
+        ]
+
+    def match(self, qctx: QueryContext) -> bool:
+        return qctx.qname in self.qnames
+
+    def __str__(self) -> str:
+        return f"QNAME in [{', '.join(str(name) for name in self.qnames)}]"

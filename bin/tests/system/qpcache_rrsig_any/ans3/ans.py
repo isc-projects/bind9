@@ -19,7 +19,8 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Qname
 
 
 def rrsig_covering(
@@ -35,7 +36,7 @@ def rrsig_covering(
     )
 
 
-class RrsigCoversRrsigHandler(QnameHandler, StaticResponseHandler):
+class RrsigCoversRrsigHandler(StaticResponseHandler):
     """
     An RRSIG covering RRSIG only trips the QP-cache RRSIG-pairing assertion when
     a second RRSIG header shares the owner name, so serve two ordinary RRSIGs
@@ -43,11 +44,11 @@ class RrsigCoversRrsigHandler(QnameHandler, StaticResponseHandler):
     RRSIG-covers-RRSIG record is cached harmlessly.
     """
 
-    qnames = ["rrsig.attacker.test."]
+    matcher = Qname("rrsig.attacker.test.")
     answer = [
-        rrsig_covering(qnames[0], dns.rdatatype.A),
-        rrsig_covering(qnames[0], dns.rdatatype.AAAA),
-        rrsig_covering(qnames[0], dns.rdatatype.RRSIG),
+        rrsig_covering(matcher.qnames[0], dns.rdatatype.A),
+        rrsig_covering(matcher.qnames[0], dns.rdatatype.AAAA),
+        rrsig_covering(matcher.qnames[0], dns.rdatatype.RRSIG),
     ]
 
 
