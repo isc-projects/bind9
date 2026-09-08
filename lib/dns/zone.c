@@ -17515,6 +17515,8 @@ checkds_send_toaddr(void *arg) {
 		CLEANUP(ISC_R_CANCELED);
 	}
 
+	isc_netaddr_fromsockaddr(&dstip, &checkds->dst);
+
 	checkds_createmessage(checkds->zone, &message);
 
 	isc_sockaddr_format(&checkds->dst, addrbuf, sizeof(addrbuf));
@@ -17523,7 +17525,6 @@ checkds_send_toaddr(void *arg) {
 		key = checkds->key;
 		checkds->key = NULL;
 	} else {
-		isc_netaddr_fromsockaddr(&dstip, &checkds->dst);
 		result = dns_view_getpeertsig(checkds->zone->view, &dstip,
 					      &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
