@@ -274,6 +274,7 @@ class QueryContext:
 
     query: dns.message.Message
     response: dns.message.Message
+    zones: Mapping[dns.name.Name, dns.zone.Zone]
     keys: Mapping[dns.name.Name, Sequence[SigningKey]]
     socket: Peer
     peer: Peer
@@ -1350,12 +1351,11 @@ class _ZoneTree:
     def __init__(self) -> None:
         self._root: _ZoneTreeNode = _ZoneTreeNode(None)
 
-    def add(self, zone: dns.zone.Zone) -> None:
+    def add(self, origin: dns.name.Name, zone: dns.zone.Zone) -> None:
         """
         Add a zone to the tree and rearrange sub-zones if necessary.
         """
-        assert zone.origin
-        best_match = self._find_best_match(zone.origin, self._root)
+        best_match = self._find_best_match(origin, self._root)
         added_node = _ZoneTreeNode(zone)
         self._move_children(best_match, added_node)
         best_match.children.append(added_node)
@@ -1514,6 +1514,7 @@ class AsyncDnsServer(AsyncServer):
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
 
         self._zone_tree: _ZoneTree = _ZoneTree()
+        self._zones: dict[dns.name.Name, dns.zone.Zone] = {}
         self._keys: dict[dns.name.Name, MutableSequence[SigningKey]] = (
             collections.defaultdict(list)
         )
@@ -1584,14 +1585,18 @@ class AsyncDnsServer(AsyncServer):
             entry_path = pathlib.Path(entry.path)
             if entry_path.suffix != ".db":
                 continue
-            zone = self._load_zone(entry_path)
-            self._zone_tree.add(zone)
+            origin, zone = self._load_zone(entry_path)
+            self._zone_tree.add(origin, zone)
+            self._zones[origin] = zone
 
-    def _load_zone(self, zone_file_path: pathlib.Path) -> dns.zone.Zone:
+    def _load_zone(
+        self, zone_file_path: pathlib.Path
+    ) -> tuple[dns.name.Name, dns.zone.Zone]:
         logging.info("Loading zone file %s", zone_file_path)
         zone = self._load_zone_file(zone_file_path)
         self._abort_if_dname_found_unless_acknowledged(zone)
-        return zone
+        assert zone.origin
+        return zone.origin, zone
 
     def _load_zone_file(self, zone_file_path: pathlib.Path) -> dns.zone.Zone:
         try:
@@ -1871,7 +1876,9 @@ class AsyncDnsServer(AsyncServer):
             return
         response_stub = _make_asyncserver_response(query)
         keys = {k: tuple(v) for k, v in self._keys.items()}
-        qctx = QueryContext(query, response_stub, keys, socket, peer, protocol)
+        qctx = QueryContext(
+            query, response_stub, self._zones, keys, socket, peer, protocol
+        )
         self._log_query(qctx)
         responses = self._prepare_responses(qctx)
         async for response in responses:
