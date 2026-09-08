@@ -349,7 +349,11 @@ class QueryContext:
         return rrsig_rrset
 
     def sign(
-        self, signed: dns.rrset.RRset, /, key: SigningKey | None = None
+        self,
+        signed: dns.rrset.RRset,
+        /,
+        key: SigningKey | None = None,
+        bogus: bool = False,
     ) -> dns.rrset.RRset:
         assert self.zone
         assert self.zone.origin
@@ -369,7 +373,12 @@ class QueryContext:
             lifetime=86400,
         )
 
-        return dns.rrset.from_rdata(signed.name, signed.ttl, signature)
+        rdata: dns.rdata.Rdata = signature
+
+        if bogus:
+            rdata = signature.replace(signature=bytes(len(signature.signature)))
+
+        return dns.rrset.from_rdata(signed.name, signed.ttl, rdata)
 
     @functools.cached_property
     def nsecx(self) -> "NonExistenceProver":
