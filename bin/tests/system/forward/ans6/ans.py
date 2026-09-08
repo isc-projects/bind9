@@ -24,11 +24,8 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import (
-    DomainHandler,
-    QnameQtypeHandler,
-    StaticResponseHandler,
-)
+from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
@@ -56,16 +53,14 @@ def soa(owner: dns.name.Name | str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.SOA, ". . 0 0 0 0 0")
 
 
-class Ns1AHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [NS1]
-    qtypes = [dns.rdatatype.A]
+class Ns1AHandler(StaticResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
     answer = [a(NS1)]
     edns = None
 
 
-class Ns1AaaaHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [NS1]
-    qtypes = [dns.rdatatype.AAAA]
+class Ns1AaaaHandler(StaticResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
     answer = [aaaa(NS1)]
     edns = None
 

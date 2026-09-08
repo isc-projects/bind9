@@ -15,9 +15,9 @@ import dns.name
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameQtypeHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 
 def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> None:
@@ -53,9 +53,8 @@ def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> 
     # from a wildcard record.
 
 
-class WildcardAdditionalHandler(QnameQtypeHandler):
-    qnames = ["svc.f043.test."]
-    qtypes = [dns.rdatatype.MX]
+class WildcardAdditionalHandler(ResponseHandler):
+    matcher = Qname("svc.f043.test.") & Qtype(dns.rdatatype.MX)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -64,9 +63,8 @@ class WildcardAdditionalHandler(QnameQtypeHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class ParentWildcardHandler(QnameQtypeHandler):
-    qnames = ["q.f045.test."]
-    qtypes = [dns.rdatatype.MX]
+class ParentWildcardHandler(ResponseHandler):
+    matcher = Qname("q.f045.test.") & Qtype(dns.rdatatype.MX)
 
     async def get_responses(
         self, qctx: QueryContext

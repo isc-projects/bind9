@@ -17,12 +17,12 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import QnameQtypeHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 
-class DelayedQnameRangeHandler(QnameQtypeHandler):
+class DelayedQnameRangeHandler(ResponseHandler):
     """
     Respond to queries for QNAMEs "foo1.example." through "foo<N>.example."
     with QTYPE=A, where <N> must be defined by the subclass.  Every response is
@@ -30,11 +30,10 @@ class DelayedQnameRangeHandler(QnameQtypeHandler):
     by the subclass.
     """
 
-    @property
-    def qnames(self) -> list[str]:
-        return [f"foo{x}.example." for x in range(1, self.max_qname + 1)]
-
-    qtypes = [dns.rdatatype.A]
+    def __init__(self) -> None:
+        self.matcher = Qname(
+            *(f"foo{x}.example." for x in range(1, self.max_qname + 1))
+        ) & Qtype(dns.rdatatype.A)
 
     @property
     @abc.abstractmethod

@@ -14,8 +14,8 @@ import dns.rdatatype
 
 from isctest.asyncserver import ControllableAsyncDnsServer, ResponseHandler
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import QnameQtypeHandler, StaticResponseHandler
-from isctest.asyncserver.matchers import Qname
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..serve_stale_ans import (
     a_handler,
@@ -51,9 +51,8 @@ class LongttlNxdomainExampleHandler(StaticResponseHandler):
     authority = [soa("example.", ttl=600, minimum=600)]
 
 
-class OthertypeExampleCaaHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["othertype.example."]
-    qtypes = [dns.rdatatype.CAA]
+class OthertypeExampleCaaHandler(StaticResponseHandler):
+    matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
     answer = [
         rrset(
             "othertype.example.",

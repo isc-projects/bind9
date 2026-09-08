@@ -16,11 +16,8 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import (
-    AxfrHandler,
-    QnameQtypeHandler,
-    StaticResponseHandler,
-)
+from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.matchers import Qname, Qtype
 
 ZONE = "sigaxfr.nil."
 NS_NAME = "ns.sigaxfr.nil."
@@ -60,13 +57,12 @@ def sig() -> dns.rrset.RRset:
     )
 
 
-class SoaHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [ZONE]
-    qtypes = [dns.rdatatype.SOA]
+class SoaHandler(StaticResponseHandler):
+    matcher = Qname(ZONE) & Qtype(dns.rdatatype.SOA)
     answer = [soa()]
 
 
-class SigAxfrHandler(QnameQtypeHandler, AxfrHandler):
+class SigAxfrHandler(AxfrHandler):
     """
     Serve an AXFR carrying two legacy SIG (24) rdatas at one owner whose
     body "covered type" fields differ (A, MX); per RFC 3755 SIG has no
@@ -74,8 +70,7 @@ class SigAxfrHandler(QnameQtypeHandler, AxfrHandler):
     in a single opaque rdataset.
     """
 
-    qnames = [ZONE]
-    qtypes = [dns.rdatatype.AXFR]
+    matcher = Qname(ZONE) & Qtype(dns.rdatatype.AXFR)
     initial_soa = soa()
     zone_contents = [
         rrset(ZONE, dns.rdatatype.NS, NS_NAME),
