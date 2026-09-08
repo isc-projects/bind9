@@ -14,12 +14,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    QnameQtypeHandler,
-    QueryContext,
-    StaticResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.handlers import QnameQtypeHandler, StaticResponseHandler
 
 DNS64_TRIGGER = "nodata.test."
 

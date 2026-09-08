@@ -25,11 +25,11 @@ import dns.rrset
 from isctest.asyncserver import (
     ControlCommand,
     ControllableAsyncDnsServer,
-    DnsResponseSend,
-    QnameHandler,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import QnameHandler
 
 
 class ReclimitStateHandler(QnameHandler):

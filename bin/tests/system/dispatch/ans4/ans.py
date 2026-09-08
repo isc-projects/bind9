@@ -14,11 +14,10 @@ from collections.abc import AsyncGenerator
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
-    ResponseDrop,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend, ResponseDrop
 
 
 class DropUdpHandler(ResponseHandler):

@@ -15,8 +15,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import (
     AxfrHandler,
     QnameQtypeHandler,
     StaticResponseHandler,

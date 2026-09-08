@@ -18,13 +18,13 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import (
-    AxfrHandler,
     ControllableAsyncDnsServer,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
-    ToggleResponsesCommand,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.handlers import AxfrHandler
 
 TTL = 300
 

@@ -19,13 +19,12 @@ import dns.rrset
 
 from isctest.asyncserver import (
     AsyncDnsServer,
-    AxfrHandler,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
-    StaticResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
 
 ZONE = "ixfr-race."
 NS_NAME = f"ns.{ZONE}"

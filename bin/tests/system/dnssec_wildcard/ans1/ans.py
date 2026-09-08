@@ -15,12 +15,9 @@ import dns.name
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QnameQtypeHandler,
-    QueryContext,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import QnameQtypeHandler
 
 
 def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> None:

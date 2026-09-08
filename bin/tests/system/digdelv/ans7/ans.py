@@ -13,15 +13,9 @@ from collections.abc import AsyncGenerator
 
 import dns.rcode
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    CloseConnection,
-    DnsResponseSend,
-    DomainHandler,
-    IgnoreAllQueries,
-    QueryContext,
-    ResponseDrop,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import CloseConnection, DnsResponseSend, ResponseDrop
+from isctest.asyncserver.handlers import DomainHandler, IgnoreAllQueries
 
 
 class SilentHandler(DomainHandler, IgnoreAllQueries):

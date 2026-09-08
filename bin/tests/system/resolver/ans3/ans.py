@@ -15,15 +15,13 @@ import dns.name
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import (
     DomainHandler,
     IgnoreAllQueries,
     QnameHandler,
     QnameQtypeHandler,
-    QueryContext,
-    ResponseHandler,
     StaticResponseHandler,
 )
 

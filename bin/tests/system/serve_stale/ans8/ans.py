@@ -11,13 +11,9 @@
 
 import dns.rcode
 
-from isctest.asyncserver import (
-    ControllableAsyncDnsServer,
-    QnameHandler,
-    ResponseHandler,
-    StaticResponseHandler,
-    SwitchControlCommand,
-)
+from isctest.asyncserver import ControllableAsyncDnsServer, ResponseHandler
+from isctest.asyncserver.commands import SwitchControlCommand
+from isctest.asyncserver.handlers import QnameHandler, StaticResponseHandler
 
 from ..serve_stale_ans import (
     a_handler,

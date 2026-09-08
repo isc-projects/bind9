@@ -31,14 +31,9 @@ import dns.rrset
 import dns.tokenizer
 import dns.zone
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    ForwarderHandler,
-    QueryContext,
-    ResponseAction,
-    ResponseHandlerWrapper,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseAction
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import ForwarderHandler, ResponseHandlerWrapper
 from isctest.zone import FileZoneKey
 
 # The malicious proxy relays every query to the real signed authoritative

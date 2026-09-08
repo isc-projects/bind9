@@ -14,7 +14,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QnameQtypeHandler, StaticResponseHandler
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import QnameQtypeHandler, StaticResponseHandler
 
 VICTIM = "victim.sibling.hack."
 POISON_ADDRESS = "6.6.6.6"

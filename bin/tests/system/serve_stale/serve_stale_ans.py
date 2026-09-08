@@ -17,7 +17,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import QueryContext, ResponseHandler, StaticResponseHandler
+from isctest.asyncserver import QueryContext, ResponseHandler
+from isctest.asyncserver.handlers import StaticResponseHandler
 
 
 def rrset(

@@ -19,13 +19,15 @@ import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QnameQtypeHandler,
     QueryContext,
     ResponseHandler,
+)
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.handlers import (
+    DomainHandler,
+    QnameQtypeHandler,
     StaticResponseHandler,
-    ToggleResponsesCommand,
 )
 
 SLD = "sld.tld."

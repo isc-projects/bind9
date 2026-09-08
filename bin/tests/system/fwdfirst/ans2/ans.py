@@ -14,7 +14,8 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, DomainHandler, StaticResponseHandler
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import DomainHandler, StaticResponseHandler
 
 
 class PoisonReferralForwarder(DomainHandler, StaticResponseHandler):
