@@ -142,7 +142,7 @@ class ConnectionReset(ConnectionHandler):
 class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
     """
     Base class for handlers that wrap another handler and modify each response
-    it yields.  `match()` and the response stream are delegated to the wrapped
+    it yields.  The matcher and the response stream are those of the wrapped
     `inner` handler; subclasses implement `_modify_response()` to mutate each
     yielded action in place, and may override `_on_query_received()` to reset
     per-query state.
@@ -150,9 +150,7 @@ class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
 
     def __init__(self, inner: ResponseHandler) -> None:
         self._inner = inner
-
-    def match(self, qctx: QueryContext) -> bool:
-        return self._inner.match(qctx)
+        self.matcher = inner.matcher
 
     def _on_query_received(self, qctx: QueryContext) -> None:
         pass
