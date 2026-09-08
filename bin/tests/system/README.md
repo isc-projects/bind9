@@ -451,7 +451,7 @@ specificity):
 These handler classes require certain properties (e.g. `qnames`, `qtypes`,
 `domains`) to be defined by their subclasses.  These properties define the set
 of queries that a given handler should be used for.  Please see
-`isctest/asyncserver.py` for up-to-date information on available handler classes
+`isctest/asyncserver/handlers.py` for up-to-date information on available handler classes
 and existing `ans.py` files for how they can be used in practice.  Consult the
 log files (`ans.run`) in case a query is not matched by its intended handler.
 
@@ -526,7 +526,7 @@ logic, extract that logic into a `<test-name>_ans.py` module in the system test
 directory.  See the `qmin` system test for a practical example.
 
 If multiple system tests would benefit from sharing some common logic, consider
-submitting a merge request adding that logic to `isctest/asyncserver.py` itself.
+submitting a merge request adding that logic to the `isctest/asyncserver/` package itself.
 
 To the extent possible, try to keep each `ans.py` file limited in length and
 scope.  Look at existing `ans.py` files to see what is meant by that.  If the
@@ -591,7 +591,7 @@ mock, and a grep for the base class
 (`DomainHandler`, `QnameHandler`, `ConnectionHandler`) or the response
 action (`ResponseDrop`, `BytesResponseSend`, ...) you need usually turns
 up a test already doing something similar.  The full toolbox lives in
-`isctest/asyncserver.py` (query matching, TCP connection handling, TSIG
+`isctest/asyncserver/` (query matching, TCP connection handling, TSIG
 keyrings).
 
 
