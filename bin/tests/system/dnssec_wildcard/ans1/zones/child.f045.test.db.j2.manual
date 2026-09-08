@@ -1,0 +1,3 @@
+{% include "_common/zones/template.db.j2.manual" %}
+
+svc	A	192.0.2.113

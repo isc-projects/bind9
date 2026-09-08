@@ -17,7 +17,6 @@ import dns.name
 import dns.rdatatype
 import dns.rrset
 
-from dnssec_wildcard.ans1 import common, f045
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsResponseSend,
@@ -70,12 +69,22 @@ class WildcardAdditionalHandler(QnameQtypeHandler):
         yield DnsResponseSend(qctx.response)
 
 
+class ParentWildcardHandler(QnameQtypeHandler):
+    qnames = ["q.f045.test."]
+    qtypes = [dns.rdatatype.MX]
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        append_forged_a_rrset_to_additional(qctx, "svc.child.f045.test.")
+        yield DnsResponseSend(qctx.response)
+
+
 def main() -> None:
-    keys = common.load_keys()
-    server = AsyncDnsServer(default_aa=True)
+    server = AsyncDnsServer()
     server.install_response_handlers(
         WildcardAdditionalHandler(),
-        f045.F045Handler(keys),
+        ParentWildcardHandler(),
     )
     server.run()
 
