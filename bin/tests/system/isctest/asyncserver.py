@@ -1638,7 +1638,7 @@ class AsyncDnsServer(AsyncServer):
         assert qctx.zone
         assert qctx.zone.origin
 
-        qctx.soa = qctx.zone.find_rrset(qctx.zone.origin, dns.rdatatype.SOA)
+        qctx.soa = qctx.zone.get_rrset(qctx.zone.origin, dns.rdatatype.SOA)
         assert qctx.soa
 
         qctx.node = qctx.zone.get_node(qctx.current_qname)
