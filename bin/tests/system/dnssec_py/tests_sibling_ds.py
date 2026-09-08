@@ -42,9 +42,8 @@ def bootstrap():
     sibling = Zone("sibling.sibling-ds", NS2)
     sibling.configure()
 
-    # Parent zone rendered into ans4/ (subdir=None puts the .db file
-    # directly in the ans4 directory where AsyncDnsServer loads it).
-    parent = Zone("sibling-ds", ANS4, subdir=None)
+    # Parent zone rendered into ans4/.
+    parent = Zone("sibling-ds", ANS4)
     parent.delegations = [child, sibling]
     parent.configure()
 

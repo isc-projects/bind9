@@ -432,7 +432,8 @@ The runner starts it automatically on 10.53.0.N, logging to `ans.run`.
 Implementing a custom `ansN` server happens in two phases:
 
   - define all static DNS data that the server needs to serve (if any) in `*.db`
-    files, like you would for a regular `named` instance,
+    files placed in the `zones/` subdirectory, like you would for a regular
+    `named` instance,
 
   - implement any non-standard behavior (modifying zone-based responses or
     generating responses from scratch) by defining a response handler class,
@@ -510,7 +511,7 @@ The available response actions are `DnsResponseSend` (optionally with a
 `delay`), `ResponseDrop` (don't answer at all), `BytesResponseSend` (raw
 bytes, for malformed packets) and `CloseConnection` (TCP).  Queries that no
 handler matches are answered from zone data — `AsyncDnsServer` loads every
-`*.db` zone file found in the `ansN` directory at startup — or with the
+`*.db` zone file found in the `ansN/zones/` directory at startup — or with the
 server's default rcode (REFUSED unless configured otherwise).
 
 **NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
