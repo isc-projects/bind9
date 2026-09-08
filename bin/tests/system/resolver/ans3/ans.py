@@ -18,7 +18,7 @@ import dns.rdatatype
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import IgnoreAllQueries, StaticResponseHandler
-from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.asyncserver.matchers import Domain, LeftmostLabelPrefix, Qname, Qtype
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -128,8 +128,7 @@ class LargeReferralHandler(StaticResponseHandler):
 
 
 class LongCnameHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.labels[0].startswith(b"longcname")
+    matcher = LeftmostLabelPrefix(b"longcname")
 
     async def get_responses(
         self, qctx: QueryContext

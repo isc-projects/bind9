@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import TypeVar
 
 import abc
@@ -243,3 +243,53 @@ class EdnsOptions(Matcher):
 
     def __str__(self) -> str:
         return "with EDNS options"
+
+
+class LabelPredicate(Matcher):
+    """
+    Match queries whose QNAME label at the given index passes the given test,
+    described for the log; a QNAME without such a label does not match.
+    """
+
+    def __init__(
+        self, index: int, test: Callable[[bytes], bool], description: str
+    ) -> None:
+        self._index = index
+        self._test = test
+        self._description = description
+
+    def match(self, qctx: QueryContext) -> bool:
+        try:
+            label = qctx.qname.labels[self._index]
+        except IndexError:
+            return False
+        return self._test(label)
+
+    def __str__(self) -> str:
+        return f"label {self._index} {self._description}"
+
+
+class LeftmostLabel(LabelPredicate):
+    """
+    Match queries whose leftmost label is one of the given labels.
+    """
+
+    def __init__(self, *labels: bytes) -> None:
+        super().__init__(
+            0,
+            lambda label: label in labels,
+            f"in [{', '.join(label.decode() for label in labels)}]",
+        )
+
+
+class LeftmostLabelPrefix(LabelPredicate):
+    """
+    Match queries whose leftmost label starts with the given prefix.
+    """
+
+    def __init__(self, prefix: bytes) -> None:
+        super().__init__(
+            0,
+            lambda label: label.startswith(prefix),
+            f"starting with {prefix.decode()}",
+        )
