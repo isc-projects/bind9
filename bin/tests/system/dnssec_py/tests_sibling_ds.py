@@ -21,14 +21,12 @@ name and treat the response as a form error.
 from re import compile as Re
 
 from dnssec_py.common import DNSSEC_PY_MARK
-from isctest.template import NS2, Nameserver, zones
+from isctest.template import ANS4, NS2, zones
 from isctest.zone import Zone, configure_root
 
 import isctest
 
 pytestmark = DNSSEC_PY_MARK
-
-ANS4 = Nameserver("ans4")
 
 
 def bootstrap():
