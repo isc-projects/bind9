@@ -17,7 +17,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import DnsResponseSend, QnameQtypeHandler, QueryContext
+from isctest.asyncserver import QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import QnameQtypeHandler
 
 
 class DelayedQnameRangeHandler(QnameQtypeHandler):

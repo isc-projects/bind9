@@ -14,7 +14,8 @@ from typing import AsyncGenerator
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import DnsResponseSend, QueryContext
+from isctest.asyncserver import QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
 
 from bailiwick_ans import ResponseSpoofer, spoofing_server
 

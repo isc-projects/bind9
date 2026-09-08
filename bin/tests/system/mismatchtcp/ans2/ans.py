@@ -25,10 +25,10 @@ import dns.rdatatype
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
 
 
 class MismatchOnUdpHandler(ResponseHandler):

@@ -54,7 +54,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
+from isctest.asyncserver import QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import DomainHandler
 
 ZONE_NAME = "attack.delegationtrap."
 SERVER_IP = "10.53.0.4"
