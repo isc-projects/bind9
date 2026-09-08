@@ -29,7 +29,7 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import SwitchControlCommand
 from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
-from isctest.asyncserver.matchers import Qtype
+from isctest.asyncserver.matchers import Edns, Qtype
 from isctest.vars.algorithms import ALG_VARS
 
 GOOD_KEY_DATA = "LSAnCU+Z"
@@ -292,8 +292,7 @@ class AxfrEdnsRcodeHandler(ResponseHandler):
     def __init__(self, rcode: dns.rcode.Rcode) -> None:
         self._rcode = rcode
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.AXFR and qctx.query.edns > -1
+    matcher = Qtype(dns.rdatatype.AXFR) & Edns()
 
     async def get_responses(
         self, qctx: QueryContext
