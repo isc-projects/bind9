@@ -26,7 +26,5 @@ zone "f043.test" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	f043.test. static-key 257 3 13 "@TESTZONE_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
 {% endif %}

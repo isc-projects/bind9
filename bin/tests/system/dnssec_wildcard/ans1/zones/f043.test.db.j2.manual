@@ -1,0 +1,5 @@
+{% include "_common/zones/template.db.j2.manual" %}
+
+svc	MX	10 victim
+victim	A	192.0.2.113
+*	A	198.51.100.45
