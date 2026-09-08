@@ -14,14 +14,13 @@ from collections.abc import AsyncGenerator
 import dns.name
 import dns.rcode
 import dns.rdataclass
-import dns.rdataset
 import dns.rdatatype
 import dns.rrset
 import dns.zone
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Domain, Qtype
+from isctest.asyncserver.matchers import Domain, Matcher, Qtype
 
 # 'example.' answers DNSKEY/NSEC/NSEC3/RRSIG queries with a CNAME (the
 # meta-types whose CNAME answer the resolver and validator must cope with).
@@ -144,6 +143,24 @@ class SignedZoneHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
+class NoDataIn(Matcher):
+    """
+    Match queries the given zone holds no rdataset for.
+    """
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
+
+    def match(self, qctx: QueryContext) -> bool:
+        node = self._zone.get_node(qctx.qname)
+        if node is None:
+            return True
+        return node.get_rdataset(dns.rdataclass.IN, qctx.qtype) is None
+
+    def __str__(self) -> str:
+        return f"no data in {self._zone.origin}"
+
+
 class StuffedNxdomainHandler(ResponseHandler):
     """
     Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
@@ -152,7 +169,7 @@ class StuffedNxdomainHandler(ResponseHandler):
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
         assert self._zone.origin
-        self.matcher = Domain(self._zone.origin)
+        self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
         self._nsec3_authority = self._build_authority()
 
     def _build_authority(self) -> list[dns.rrset.RRset]:
@@ -160,15 +177,6 @@ class StuffedNxdomainHandler(ResponseHandler):
         for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
             authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
         return authority
-
-    def match(self, qctx: QueryContext) -> bool:
-        return super().match(qctx) and self._answer_rds(qctx) is None
-
-    def _answer_rds(self, qctx: QueryContext) -> dns.rdataset.Rdataset | None:
-        node = self._zone.get_node(qctx.qname)
-        if node is None:
-            return None
-        return node.get_rdataset(dns.rdataclass.IN, qctx.qtype)
 
     async def get_responses(
         self, qctx: QueryContext
