@@ -36,6 +36,8 @@ def name(text: str) -> dns.name.Name:
 
 def load_keys() -> dict[str, Key]:
     path = Path(".") / "keys.json"
+    if not path.exists():
+        return {}
     with path.open(encoding="utf-8") as keys_file:
         raw_keys = json.load(keys_file)
 
