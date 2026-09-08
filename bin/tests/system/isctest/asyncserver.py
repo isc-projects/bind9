@@ -11,13 +11,23 @@ See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 """
 
-from collections.abc import AsyncGenerator, Callable, Collection, Coroutine, Sequence
+from collections.abc import (
+    AsyncGenerator,
+    Callable,
+    Collection,
+    Coroutine,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from dataclasses import dataclass, field
 from typing import Any, cast, final
 
 import abc
 import asyncio
 import bisect
+import collections
 import contextlib
 import copy
 import enum
@@ -43,6 +53,8 @@ import dns.rdatatype
 import dns.rrset
 import dns.tsig
 import dns.zone
+
+import isctest.zone
 
 _UdpHandler = Callable[
     [bytes, tuple[str, int], asyncio.DatagramTransport], Coroutine[Any, Any, None]
@@ -246,6 +258,13 @@ class Peer:
         return f"{host}:{self.port}"
 
 
+@dataclass(frozen=True)
+class SigningKey:
+    zone: dns.name.Name
+    dnskey: dns.rrset.RRset
+    private_key: isctest.zone.PrivateKey
+
+
 @dataclass
 class QueryContext:
     """
@@ -254,6 +273,7 @@ class QueryContext:
 
     query: dns.message.Message
     response: dns.message.Message
+    keys: Mapping[dns.name.Name, Sequence[SigningKey]]
     socket: Peer
     peer: Peer
     protocol: DnsProtocol
@@ -1461,6 +1481,9 @@ class AsyncDnsServer(AsyncServer):
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
 
         self._zone_tree: _ZoneTree = _ZoneTree()
+        self._keys: dict[dns.name.Name, MutableSequence[SigningKey]] = (
+            collections.defaultdict(list)
+        )
         self._connection_handler: ConnectionHandler | None = None
         self._response_handlers: list[ResponseHandler] = []
         self._default_rcode = default_rcode
@@ -1469,6 +1492,7 @@ class AsyncDnsServer(AsyncServer):
         self._acknowledge_manual_dname_handling = acknowledge_manual_dname_handling
 
         self._load_zones()
+        self._load_keys()
 
     def install_response_handler(
         self, handler: ResponseHandler, prepend: bool = False
@@ -1516,6 +1540,11 @@ class AsyncDnsServer(AsyncServer):
         if self._connection_handler:
             raise RuntimeError("Only one connection handler can be installed")
         self._connection_handler = handler
+
+    def _scan_directory(self, directory: str) -> Iterator[os.DirEntry]:
+        directory_path = pathlib.Path(directory)
+        if directory_path.exists():
+            yield from os.scandir(directory_path)
 
     def _load_zones(self) -> None:
         for entry in os.scandir():
@@ -1569,6 +1598,21 @@ class AsyncDnsServer(AsyncServer):
             for rdataset in node:
                 if rdataset.rdtype == dns.rdatatype.DNAME:
                     raise ValueError(error)
+
+    def _load_keys(self) -> None:
+        for entry in self._scan_directory("keys/"):
+            entry_path = pathlib.Path(entry.path)
+            if entry_path.suffix != ".key":
+                continue
+            key = self._load_key(entry_path)
+            self._keys[key.zone].append(key)
+
+    def _load_key(self, key_file_path: pathlib.Path) -> SigningKey:
+        zone = dns.name.from_text(key_file_path.stem.split("+")[0].removeprefix("K"))
+        zone_key = isctest.zone.FileZoneKey(key_file_path.stem, key_file_path.parent)
+        dnskey = zone_key.dnskey
+        private_key = zone_key.private_key
+        return SigningKey(zone=zone, dnskey=dnskey, private_key=private_key)
 
     async def _handle_udp(
         self, wire: bytes, addr: tuple[str, int], transport: asyncio.DatagramTransport
@@ -1793,7 +1837,8 @@ class AsyncDnsServer(AsyncServer):
             logging.error("Invalid query from %s (%s): %s", peer, wire.hex(), exc)
             return
         response_stub = _make_asyncserver_response(query)
-        qctx = QueryContext(query, response_stub, socket, peer, protocol)
+        keys = {k: tuple(v) for k, v in self._keys.items()}
+        qctx = QueryContext(query, response_stub, keys, socket, peer, protocol)
         self._log_query(qctx)
         responses = self._prepare_responses(qctx)
         async for response in responses:
