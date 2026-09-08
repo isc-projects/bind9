@@ -1644,17 +1644,19 @@ class AsyncDnsServer(AsyncServer):
 
     def _delegation_response_additional(self, qctx: QueryContext) -> None:
         assert qctx.zone
-        assert qctx.response.authority[0]
 
-        for nameserver in qctx.response.authority[0]:
-            if not nameserver.target.is_subdomain(qctx.response.authority[0].name):
+        ns_rrset = next(
+            (r for r in qctx.response.authority if r.rdtype == dns.rdatatype.NS), None
+        )
+        if not ns_rrset:
+            return
+
+        for nameserver in ns_rrset:
+            if not nameserver.target.is_subdomain(ns_rrset.name):
                 continue
-            glue_a = qctx.zone.get_rrset(nameserver.target, dns.rdatatype.A)
-            if glue_a:
-                qctx.response.additional.append(glue_a)
-            glue_aaaa = qctx.zone.get_rrset(nameserver.target, dns.rdatatype.AAAA)
-            if glue_aaaa:
-                qctx.response.additional.append(glue_aaaa)
+            for rdtype in dns.rdatatype.A, dns.rdatatype.AAAA:
+                if glue := qctx.zone.get_rrset(nameserver.target, rdtype):
+                    qctx.response.additional.append(glue)
 
     def _name_exists(self, qctx: QueryContext, name: dns.name.Name) -> bool:
         assert qctx.zone
