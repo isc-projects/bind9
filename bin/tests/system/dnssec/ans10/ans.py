@@ -16,11 +16,11 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Qtype
 
 
 class AddRrsigToAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A
+    matcher = Qtype(dns.rdatatype.A)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -37,8 +37,7 @@ class AddRrsigToAHandler(ResponseHandler):
 
 
 class AddNsecToTxtHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.TXT
+    matcher = Qtype(dns.rdatatype.TXT)
 
     async def get_responses(
         self, qctx: QueryContext

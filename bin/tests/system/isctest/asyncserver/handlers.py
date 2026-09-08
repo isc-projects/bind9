@@ -32,6 +32,7 @@ from . import (
 )
 from .actions import BytesResponseSend, DnsResponseSend, ResponseDrop
 from .context import Peer, QueryContext
+from .matchers import Matcher, Qtype
 
 
 def block_reading(peer: Peer, writer_not_the_reader: asyncio.StreamWriter) -> None:
@@ -494,8 +495,7 @@ class AxfrHandler(ResponseHandler):
         """
         raise NotImplementedError
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.AXFR
+    matcher: Matcher = Qtype(dns.rdatatype.AXFR)
 
     async def get_responses(
         self, qctx: QueryContext
