@@ -204,6 +204,18 @@ NS10 = Nameserver("ns10")
 NS11 = Nameserver("ns11")
 NO_NS = Nameserver(".", 0, "", "")
 
+ANS1 = Nameserver("ans1")
+ANS2 = Nameserver("ans2")
+ANS3 = Nameserver("ans3")
+ANS4 = Nameserver("ans4")
+ANS5 = Nameserver("ans5")
+ANS6 = Nameserver("ans6")
+ANS7 = Nameserver("ans7")
+ANS8 = Nameserver("ans8")
+ANS9 = Nameserver("ans9")
+ANS10 = Nameserver("ans10")
+ANS11 = Nameserver("ans11")
+
 
 @dataclass
 class Zone:

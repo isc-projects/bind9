@@ -22,6 +22,8 @@ import dns.rdataclass
 import dns.zone
 import pytest
 
+from isctest.template import ANS2
+
 import isctest
 
 
@@ -55,7 +57,7 @@ def _sign_nsec3_zone(db_in, signed_out, origin) -> isctest.template.TrustAnchor:
     return the KSK as a static-key trust anchor."""
     zone = isctest.zone.Zone(
         origin,
-        isctest.template.Nameserver("ans2"),
+        ANS2,
         signed=True,
         filepath_unsigned=db_in,
         filepath_signed=signed_out,

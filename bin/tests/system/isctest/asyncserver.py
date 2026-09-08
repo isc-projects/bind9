@@ -11,14 +11,26 @@ See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 """
 
-from collections.abc import AsyncGenerator, Callable, Collection, Coroutine, Sequence
+from collections.abc import (
+    AsyncGenerator,
+    Callable,
+    Collection,
+    Coroutine,
+    Iterator,
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from dataclasses import dataclass, field
 from typing import Any, cast, final
 
 import abc
 import asyncio
+import bisect
+import collections
 import contextlib
 import copy
+import datetime
 import enum
 import functools
 import logging
@@ -28,6 +40,7 @@ import re
 import signal
 import sys
 
+import dns.dnssec
 import dns.exception
 import dns.flags
 import dns.message
@@ -41,6 +54,8 @@ import dns.rdatatype
 import dns.rrset
 import dns.tsig
 import dns.zone
+
+import isctest.zone
 
 _UdpHandler = Callable[
     [bytes, tuple[str, int], asyncio.DatagramTransport], Coroutine[Any, Any, None]
@@ -244,6 +259,13 @@ class Peer:
         return f"{host}:{self.port}"
 
 
+@dataclass(frozen=True)
+class SigningKey:
+    zone: dns.name.Name
+    dnskey: dns.rrset.RRset
+    private_key: isctest.zone.PrivateKey
+
+
 @dataclass
 class QueryContext:
     """
@@ -252,6 +274,8 @@ class QueryContext:
 
     query: dns.message.Message
     response: dns.message.Message
+    zones: Mapping[dns.name.Name, dns.zone.Zone]
+    keys: Mapping[dns.name.Name, Sequence[SigningKey]]
     socket: Peer
     peer: Peer
     protocol: DnsProtocol
@@ -297,6 +321,315 @@ class QueryContext:
             self._initialized_response_with_zone_data = copy.deepcopy(self.response)
         else:
             self._initialized_response = copy.deepcopy(self.response)
+
+    def get_rrsig(
+        self, rrset: dns.rrset.RRset, /, node: dns.node.Node | None = None
+    ) -> dns.rrset.RRset | None:
+        if not self.query.ednsflags & dns.flags.DO:
+            return None
+
+        assert self.zone
+        assert self.zone.origin
+
+        if node is None:
+            node = (
+                self.node
+                if rrset.rdtype != dns.rdatatype.SOA
+                else self.zone.get_node(self.zone.origin)
+            )
+        assert node
+
+        rrsig_rdataset = node.get_rdataset(
+            self.qclass, dns.rdatatype.RRSIG, rrset.rdtype
+        )
+        if not rrsig_rdataset:
+            return None
+
+        rrsig_rrset = dns.rrset.RRset(rrset.name, self.qclass, dns.rdatatype.RRSIG)
+        rrsig_rrset.update(rrsig_rdataset)
+        return rrsig_rrset
+
+    def sign(
+        self,
+        signed: dns.rrset.RRset,
+        /,
+        key: SigningKey | None = None,
+        bogus: bool = False,
+    ) -> dns.rrset.RRset:
+        assert self.zone
+        assert self.zone.origin
+
+        if not key:
+            keys = self.keys.get(self.zone.origin)
+            assert keys
+            key = keys[0]
+
+        one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
+        signature = dns.dnssec.sign(
+            signed,
+            key.private_key,
+            key.zone,
+            key.dnskey[0],
+            inception=one_hour_ago,
+            lifetime=86400,
+        )
+
+        rdata: dns.rdata.Rdata = signature
+
+        if bogus:
+            rdata = signature.replace(signature=bytes(len(signature.signature)))
+
+        return dns.rrset.from_rdata(signed.name, signed.ttl, rdata)
+
+    @functools.cached_property
+    def nsecx(self) -> "NonExistenceProver":
+        return NonExistenceProver.for_query_context(self)
+
+
+class NonExistenceException(Exception):
+    pass
+
+
+class NonExistenceProver(abc.ABC):
+    """
+    Base class for NSEC/NSEC3 implementations that add RRsets required by the
+    relevant RFCs to negative DNS responses created from zone data.
+    """
+
+    proof_rdatatype: dns.rdatatype.RdataType
+    _provers: dict[dns.rdatatype.RdataType, type["NonExistenceProver"]] = {}
+
+    def __init_subclass__(cls) -> None:
+        assert cls.proof_rdatatype not in cls._provers
+        cls._provers[cls.proof_rdatatype] = cls
+
+    @classmethod
+    def for_query_context(cls, qctx: QueryContext) -> "NonExistenceProver":
+        if not qctx.zone:
+            raise RuntimeError(
+                "Non-existence proof requested for a query context that did not match any zone"
+            )
+
+        for proof_rdatatype, prover_class in cls._provers.items():
+            if next(qctx.zone.iterate_rdatasets(proof_rdatatype), None):
+                return prover_class(qctx)
+
+        raise RuntimeError(
+            "Non-existence proof requested for a zone with no NSEC(3) records"
+        )
+
+    def __init__(self, qctx: QueryContext) -> None:
+        self._qctx = qctx
+
+    @property
+    def _zone(self) -> dns.zone.Zone:
+        assert self._qctx.zone
+        return self._qctx.zone
+
+    @property
+    def _qname(self) -> dns.name.Name:
+        return self._qctx.current_qname
+
+    @abc.abstractmethod
+    def prove_no_ds(self, name: dns.name.Name) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def prove_ent(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def prove_nxdomain(self) -> None:
+        raise NotImplementedError
+
+    def prove_nodata(self) -> None:
+        if self._zone.get_node(self._qname):
+            self._prove_nodata_no_wildcard()
+            return
+
+        self._prove_nodata_wildcard()
+
+    @abc.abstractmethod
+    def _prove_nodata_no_wildcard(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _prove_nodata_wildcard(self) -> None:
+        raise NotImplementedError
+
+    def prove_noerror(self) -> None:
+        if self._zone.get_node(self._qname):
+            return
+
+        self._prove_noerror_wildcard()
+
+    @abc.abstractmethod
+    def _prove_noerror_wildcard(self) -> None:
+        raise NotImplementedError
+
+    def _get_closest_encloser(
+        self, name: dns.name.Name
+    ) -> tuple[dns.name.Name, dns.name.Name]:
+        names = [name, name.parent()]
+        while not self._is_usable_encloser(names[-1]):
+            names.append(names[-1].parent())
+
+        return names[-1], names[-2]
+
+    @abc.abstractmethod
+    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
+        raise NotImplementedError
+
+    @property
+    def _wildcard_for_closest_encloser(self) -> dns.name.Name:
+        closest_encloser_name, _ = self._get_closest_encloser(self._qname)
+        return dns.name.from_text("*", origin=closest_encloser_name)
+
+    @functools.cached_property
+    def _chain(self) -> tuple[dns.name.Name, ...]:
+        proof_rdatasets = self._zone.iterate_rdatasets(self.proof_rdatatype)
+        return tuple(sorted(n for n, _ in proof_rdatasets))
+
+    def _add_chain_element_matching(self, name: dns.name.Name) -> None:
+        self._add_rrset_with_rrsig(name)
+
+    def _add_chain_element_covering(self, name: dns.name.Name) -> None:
+        index = bisect.bisect_left(self._chain, name)
+        self._add_rrset_with_rrsig(self._chain[index - 1])
+
+    def _add_rrset_with_rrsig(self, owner: dns.name.Name) -> None:
+        node = self._zone.get_node(owner)
+        assert node
+
+        rdataset = node.get_rdataset(self._qctx.qclass, self.proof_rdatatype)
+        rrset = dns.rrset.RRset(owner, self._qctx.qclass, self.proof_rdatatype)
+        rrset.update(rdataset)
+
+        sigrdataset = node.get_rdataset(
+            self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
+        )
+        assert sigrdataset
+        rrsig = dns.rrset.RRset(
+            owner, self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
+        )
+        rrsig.update(sigrdataset)
+
+        if rrset not in self._qctx.response.authority:
+            self._qctx.response.authority.append(rrset)
+            self._qctx.response.authority.append(rrsig)
+
+
+@final
+class NsecNonExistenceProver(NonExistenceProver):
+
+    proof_rdatatype = dns.rdatatype.NSEC
+
+    def prove_no_ds(self, name: dns.name.Name) -> None:
+        self._add_nsec_matching(name)
+
+    def prove_ent(self) -> None:
+        self._add_nsec_covering(self._qname)
+
+    def prove_nxdomain(self) -> None:
+        self._add_nsec_covering(self._qname)
+        self._add_nsec_covering(self._wildcard_for_closest_encloser)
+
+    def _prove_nodata_no_wildcard(self) -> None:
+        self._add_nsec_matching(self._qname)
+
+    def _prove_nodata_wildcard(self) -> None:
+        self._add_nsec_covering(self._qname)
+        self._add_nsec_matching(self._wildcard_for_closest_encloser)
+
+    def _prove_noerror_wildcard(self) -> None:
+        self._add_nsec_covering(self._qname)
+
+    def _add_nsec_matching(self, name: dns.name.Name) -> None:
+        if name not in self._chain:
+            raise NonExistenceException("Expected NSEC record not found")
+        self._add_chain_element_matching(name)
+
+    def _add_nsec_covering(self, name: dns.name.Name) -> None:
+        if name in self._chain:
+            raise NonExistenceException("Unexpected NSEC record found")
+        self._add_chain_element_covering(name)
+
+    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
+        return any(n.is_subdomain(name) for n in self._zone.nodes)
+
+
+@final
+class Nsec3NonExistenceProver(NonExistenceProver):
+
+    proof_rdatatype = dns.rdatatype.NSEC3
+
+    def prove_no_ds(self, name: dns.name.Name) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(name)
+
+    def prove_ent(self) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+
+    def prove_nxdomain(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+        self._add_nsec3_covering(self._wildcard_for_closest_encloser)
+
+    def _prove_nodata_no_wildcard(self) -> None:
+        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
+
+    def _prove_nodata_wildcard(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+        self._add_nsec3_matching(self._wildcard_for_closest_encloser)
+
+    def _prove_noerror_wildcard(self) -> None:
+        self._add_closest_encloser_proof(self._qname)
+
+    def _get_nsec3_owner(self, name: dns.name.Name) -> dns.name.Name:
+        assert self._zone.origin
+
+        nsec3param = self._zone.get_rdataset(
+            self._zone.origin, dns.rdatatype.NSEC3PARAM
+        )
+        assert nsec3param
+
+        nsec3_hash = dns.dnssec.nsec3_hash(
+            name,
+            nsec3param[0].salt,
+            nsec3param[0].iterations,
+            nsec3param[0].algorithm,
+        )
+        return dns.name.from_text(nsec3_hash, origin=self._zone.origin)
+
+    def _add_nsec3_matching(self, name: dns.name.Name) -> None:
+        nsec3_owner = self._get_nsec3_owner(name)
+        if nsec3_owner not in self._chain:
+            raise NonExistenceException("Matching NSEC3 record not found")
+        self._add_chain_element_matching(nsec3_owner)
+
+    def _add_nsec3_covering(self, name: dns.name.Name) -> None:
+        nsec3_owner = self._get_nsec3_owner(name)
+        if nsec3_owner in self._chain:
+            raise NonExistenceException(
+                "Expected a covering NSEC3 record, got a matching one"
+            )
+        self._add_chain_element_covering(nsec3_owner)
+
+    def _add_closest_encloser_proof(self, name: dns.name.Name) -> None:
+        closest_encloser_name, next_closer_name = self._get_closest_encloser(name)
+        self._add_nsec3_matching(closest_encloser_name)
+        self._add_nsec3_covering(next_closer_name)
+
+    def _add_nsec3_matching_or_closest_encloser_proof(
+        self, name: dns.name.Name
+    ) -> None:
+        try:
+            # No Opt-Out
+            self._add_nsec3_matching(name)
+        except NonExistenceException:
+            # Opt-Out
+            self._add_closest_encloser_proof(name)
+
+    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
+        return self._get_nsec3_owner(name) in self._chain
 
 
 @dataclass
@@ -1018,12 +1351,11 @@ class _ZoneTree:
     def __init__(self) -> None:
         self._root: _ZoneTreeNode = _ZoneTreeNode(None)
 
-    def add(self, zone: dns.zone.Zone) -> None:
+    def add(self, origin: dns.name.Name, zone: dns.zone.Zone) -> None:
         """
         Add a zone to the tree and rearrange sub-zones if necessary.
         """
-        assert zone.origin
-        best_match = self._find_best_match(zone.origin, self._root)
+        best_match = self._find_best_match(origin, self._root)
         added_node = _ZoneTreeNode(zone)
         self._move_children(best_match, added_node)
         best_match.children.append(added_node)
@@ -1053,12 +1385,26 @@ class _ZoneTree:
             node_from.children.remove(child)
             node_to.children.append(child)
 
-    def find_best_zone(self, name: dns.name.Name) -> dns.zone.Zone | None:
+    def _find_best_zone_for_name(self, name: dns.name.Name) -> dns.zone.Zone | None:
         """
-        Return the closest matching zone (if any) for the domain name.
+        Return the closest matching zone (if any) for the provided domain name.
         """
         node = self._find_best_match(name, self._root)
         return node.zone if node != self._root else None
+
+    def find_best_zone(
+        self, name: dns.name.Name, qtype: dns.rdatatype.RdataType
+    ) -> dns.zone.Zone | None:
+        """
+        Return the zone (if any) from which to answer a <name, qtype> query.
+        """
+        if qtype == dns.rdatatype.DS and name != dns.name.root:
+            # A DS query (other than ./DS) should be answered from the parent
+            # side of the zone cut, but this server might not be hosting it.
+            if parent_zone := self._find_best_zone_for_name(name.parent()):
+                return parent_zone
+
+        return self._find_best_zone_for_name(name)
 
 
 class _DnsMessageWithTsigDisabled(dns.message.Message):
@@ -1149,10 +1495,11 @@ class AsyncDnsServer(AsyncServer):
     sorts of scenarios, including delaying responses, synthesizing them based
     on query contents etc.
 
-    The server also loads any zone files (*.db) found in its directory and
-    serves them. Responses prepared using zone data can then be modified,
-    replaced, or suppressed by query handlers. Query handlers can also generate
-    response from scratch, without using zone data at all.
+    The server also loads any zone files found in the zones/ subdirectory and
+    serves them (*.db and *.db.signed files; if both exist for the same origin,
+    only the signed variant is loaded). Responses prepared using zone data can
+    then be modified, replaced, or suppressed by query handlers. Query handlers
+    can also generate response from scratch, without using zone data at all.
     """
 
     def __init__(
@@ -1168,6 +1515,10 @@ class AsyncDnsServer(AsyncServer):
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
 
         self._zone_tree: _ZoneTree = _ZoneTree()
+        self._zones: dict[dns.name.Name, dns.zone.Zone] = {}
+        self._keys: dict[dns.name.Name, MutableSequence[SigningKey]] = (
+            collections.defaultdict(list)
+        )
         self._connection_handler: ConnectionHandler | None = None
         self._response_handlers: list[ResponseHandler] = []
         self._default_rcode = default_rcode
@@ -1176,6 +1527,7 @@ class AsyncDnsServer(AsyncServer):
         self._acknowledge_manual_dname_handling = acknowledge_manual_dname_handling
 
         self._load_zones()
+        self._load_keys()
 
     def install_response_handler(
         self, handler: ResponseHandler, prepend: bool = False
@@ -1224,19 +1576,35 @@ class AsyncDnsServer(AsyncServer):
             raise RuntimeError("Only one connection handler can be installed")
         self._connection_handler = handler
 
-    def _load_zones(self) -> None:
-        for entry in os.scandir():
-            entry_path = pathlib.Path(entry.path)
-            if entry_path.suffix != ".db":
-                continue
-            zone = self._load_zone(entry_path)
-            self._zone_tree.add(zone)
+    def _scan_directory(self, directory: str) -> Iterator[os.DirEntry]:
+        directory_path = pathlib.Path(directory)
+        if directory_path.exists():
+            yield from os.scandir(directory_path)
 
-    def _load_zone(self, zone_file_path: pathlib.Path) -> dns.zone.Zone:
+    def _is_preferred_zone_file(self, file: pathlib.Path) -> bool:
+        if file.name.endswith(".db.signed"):
+            return True
+        if file.name.endswith(".db"):
+            return not pathlib.Path(f"{file}.signed").exists()
+        return False
+
+    def _load_zones(self) -> None:
+        for entry in self._scan_directory("zones/"):
+            entry_path = pathlib.Path(entry.path)
+            if not self._is_preferred_zone_file(entry_path):
+                continue
+            origin, zone = self._load_zone(entry_path)
+            self._zone_tree.add(origin, zone)
+            self._zones[origin] = zone
+
+    def _load_zone(
+        self, zone_file_path: pathlib.Path
+    ) -> tuple[dns.name.Name, dns.zone.Zone]:
         logging.info("Loading zone file %s", zone_file_path)
         zone = self._load_zone_file(zone_file_path)
         self._abort_if_dname_found_unless_acknowledged(zone)
-        return zone
+        assert zone.origin
+        return zone.origin, zone
 
     def _load_zone_file(self, zone_file_path: pathlib.Path) -> dns.zone.Zone:
         try:
@@ -1260,7 +1628,7 @@ class AsyncDnsServer(AsyncServer):
     def _load_zone_file_without_origin(
         self, zone_file_path: pathlib.Path
     ) -> dns.zone.Zone:
-        origin = dns.name.from_text(zone_file_path.stem)
+        origin = zone_file_path.name.removesuffix(".signed").removesuffix(".db")
         return dns.zone.from_file(str(zone_file_path), origin=origin, relativize=False)
 
     def _abort_if_dname_found_unless_acknowledged(self, zone: dns.zone.Zone) -> None:
@@ -1276,6 +1644,21 @@ class AsyncDnsServer(AsyncServer):
             for rdataset in node:
                 if rdataset.rdtype == dns.rdatatype.DNAME:
                     raise ValueError(error)
+
+    def _load_keys(self) -> None:
+        for entry in self._scan_directory("keys/"):
+            entry_path = pathlib.Path(entry.path)
+            if entry_path.suffix != ".key":
+                continue
+            key = self._load_key(entry_path)
+            self._keys[key.zone].append(key)
+
+    def _load_key(self, key_file_path: pathlib.Path) -> SigningKey:
+        zone = dns.name.from_text(key_file_path.stem.split("+")[0].removeprefix("K"))
+        zone_key = isctest.zone.FileZoneKey(key_file_path.stem, key_file_path.parent)
+        dnskey = zone_key.dnskey
+        private_key = zone_key.private_key
+        return SigningKey(zone=zone, dnskey=dnskey, private_key=private_key)
 
     async def _handle_udp(
         self, wire: bytes, addr: tuple[str, int], transport: asyncio.DatagramTransport
@@ -1500,7 +1883,10 @@ class AsyncDnsServer(AsyncServer):
             logging.error("Invalid query from %s (%s): %s", peer, wire.hex(), exc)
             return
         response_stub = _make_asyncserver_response(query)
-        qctx = QueryContext(query, response_stub, socket, peer, protocol)
+        keys = {k: tuple(v) for k, v in self._keys.items()}
+        qctx = QueryContext(
+            query, response_stub, self._zones, keys, socket, peer, protocol
+        )
         self._log_query(qctx)
         responses = self._prepare_responses(qctx)
         async for response in responses:
@@ -1584,7 +1970,7 @@ class AsyncDnsServer(AsyncServer):
         self._noerror_response(qctx)
 
     def _refused_response(self, qctx: QueryContext) -> bool:
-        zone = self._zone_tree.find_best_zone(qctx.current_qname)
+        zone = self._zone_tree.find_best_zone(qctx.current_qname, qctx.qtype)
         if zone:
             qctx.zone = zone
             return False
@@ -1597,24 +1983,41 @@ class AsyncDnsServer(AsyncServer):
         assert qctx.zone
 
         name = qctx.current_qname
-        delegation = None
+        ns_rdataset = None
 
         while name != qctx.zone.origin:
-            node = qctx.zone.get_node(name)
-            if node:
-                delegation = node.get_rdataset(qctx.qclass, dns.rdatatype.NS)
-                if delegation:
+            if node := qctx.zone.get_node(name):
+                if ns_rdataset := node.get_rdataset(qctx.qclass, dns.rdatatype.NS):
                     break
             name = name.parent()
 
-        if not delegation:
+        if not ns_rdataset:
             return False
 
-        delegation_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.NS)
-        delegation_rrset.update(delegation)
+        # Only answer DS queries for the delegation point itself; return a
+        # referral for anything below the delegation point.
+        if qctx.qtype == dns.rdatatype.DS and name == qctx.current_qname:
+            return False
+
+        ns_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.NS)
+        ns_rrset.update(ns_rdataset)
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
-        qctx.response.authority.append(delegation_rrset)
+        qctx.response.authority.append(ns_rrset)
+
+        if qctx.query.ednsflags & dns.flags.DO:
+            assert node
+            if ds_rdataset := node.get_rdataset(qctx.qclass, dns.rdatatype.DS):
+                ds_rrset = dns.rrset.RRset(name, qctx.qclass, dns.rdatatype.DS)
+                ds_rrset.update(ds_rdataset)
+
+                rrsig_rrset = qctx.get_rrsig(ds_rrset, node=node)
+                assert rrsig_rrset
+
+                qctx.response.authority.append(ds_rrset)
+                qctx.response.authority.append(rrsig_rrset)
+            elif next(qctx.zone.iterate_rdatasets(dns.rdatatype.DNSKEY), None):
+                qctx.nsecx.prove_no_ds(name)
 
         self._delegation_response_additional(qctx)
 
@@ -1622,43 +2025,67 @@ class AsyncDnsServer(AsyncServer):
 
     def _delegation_response_additional(self, qctx: QueryContext) -> None:
         assert qctx.zone
-        assert qctx.response.authority[0]
 
-        for nameserver in qctx.response.authority[0]:
-            if not nameserver.target.is_subdomain(qctx.response.authority[0].name):
+        ns_rrset = next(
+            (r for r in qctx.response.authority if r.rdtype == dns.rdatatype.NS), None
+        )
+        if not ns_rrset:
+            return
+
+        for nameserver in ns_rrset:
+            if not nameserver.target.is_subdomain(ns_rrset.name):
                 continue
-            glue_a = qctx.zone.get_rrset(nameserver.target, dns.rdatatype.A)
-            if glue_a:
-                qctx.response.additional.append(glue_a)
-            glue_aaaa = qctx.zone.get_rrset(nameserver.target, dns.rdatatype.AAAA)
-            if glue_aaaa:
-                qctx.response.additional.append(glue_aaaa)
+            for rdtype in dns.rdatatype.A, dns.rdatatype.AAAA:
+                if glue := qctx.zone.get_rrset(nameserver.target, rdtype):
+                    qctx.response.additional.append(glue)
+
+    def _name_exists(self, qctx: QueryContext, name: dns.name.Name) -> bool:
+        assert qctx.zone
+        return qctx.zone.get_node(name) is not None or any(
+            n.is_subdomain(name) for n in qctx.zone.nodes
+        )
 
     def _ent_response(self, qctx: QueryContext) -> bool:
         assert qctx.zone
         assert qctx.zone.origin
 
-        qctx.soa = qctx.zone.find_rrset(qctx.zone.origin, dns.rdatatype.SOA)
+        qctx.soa = qctx.zone.get_rrset(qctx.zone.origin, dns.rdatatype.SOA)
         assert qctx.soa
 
         qctx.node = qctx.zone.get_node(qctx.current_qname)
-        if qctx.node or not any(
-            n for n in qctx.zone.nodes if n.is_subdomain(qctx.current_qname)
-        ):
+        if qctx.node or not self._name_exists(qctx, qctx.current_qname):
             return False
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
+            qctx.nsecx.prove_ent()
         return True
+
+    def _match_wildcard(self, qctx: QueryContext) -> dns.node.Node | None:
+        assert qctx.zone
+
+        closest_encloser = qctx.current_qname.parent()
+        while not self._name_exists(qctx, closest_encloser):
+            closest_encloser = closest_encloser.parent()
+
+        wildcard_owner = dns.name.from_text("*", origin=closest_encloser)
+        return qctx.zone.get_node(wildcard_owner)
 
     def _nxdomain_response(self, qctx: QueryContext) -> bool:
         assert qctx.soa
 
+        qctx.node = qctx.node or self._match_wildcard(qctx)
         if qctx.node:
             return False
 
         qctx.response.set_rcode(dns.rcode.NXDOMAIN)
         qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
+            qctx.nsecx.prove_nxdomain()
+
         return True
 
     def _cname_response(self, qctx: QueryContext) -> bool:
@@ -1672,6 +2099,8 @@ class AsyncDnsServer(AsyncServer):
         cname_rrset = dns.rrset.RRset(qctx.current_qname, qctx.qclass, cname.rdtype)
         cname_rrset.update(cname)
         qctx.response.answer.append(cname_rrset)
+        if cname_rrsig := qctx.get_rrsig(cname_rrset):
+            qctx.response.answer.append(cname_rrsig)
 
         qctx.alias = cname[0].target
         self._prepare_response_from_zone_data(qctx)
@@ -1686,8 +2115,10 @@ class AsyncDnsServer(AsyncServer):
             return False
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
-        if not qctx.response.answer:
-            qctx.response.authority.append(qctx.soa)
+        qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
+            qctx.nsecx.prove_nodata()
         return True
 
     def _noerror_response(self, qctx: QueryContext) -> None:
@@ -1698,6 +2129,9 @@ class AsyncDnsServer(AsyncServer):
 
         qctx.response.set_rcode(dns.rcode.NOERROR)
         qctx.response.answer.append(answer_rrset)
+        if answer_rrsig := qctx.get_rrsig(answer_rrset):
+            qctx.response.answer.append(answer_rrsig)
+            qctx.nsecx.prove_noerror()
 
     async def _run_response_handlers(
         self, qctx: QueryContext

@@ -195,9 +195,12 @@ def bootstrap():
 ```
 
 With `signed=True`, `configure()` also generates a KSK+ZSK with
-`dnssec-keygen` and signs the rendered zone with `dnssec-signzone`.  To
-sign a hand-written zone file checked into git (no rendering at all), put
-it at `ns2/zones/<name>.db` and drive the steps yourself:
+`dnssec-keygen` and signs the rendered zone with `dnssec-signzone`.  Pass
+`configure(csk=True)` to generate a single CSK instead of the pair; the
+zone is then signed with `dnssec-signzone -z` so that the one key signs
+everything.  To sign a hand-written zone file checked into git (no
+rendering at all), put it at `ns2/zones/<name>.db` and drive the steps
+yourself:
 
 ```python
 def bootstrap():

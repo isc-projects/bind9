@@ -20,7 +20,7 @@ Zone hierarchy used by this module:
 """
 
 from dnssec_py.common import DNSSEC_PY_MARK
-from isctest.template import NS2, Nameserver, zones
+from isctest.template import ANS4, NS2, zones
 from isctest.zone import PythonZoneKey, Zone, configure_root
 
 import isctest
@@ -28,8 +28,6 @@ import isctest.check
 import isctest.query
 
 pytestmark = DNSSEC_PY_MARK
-
-ANS4 = Nameserver("ans4")
 
 
 def bootstrap():
