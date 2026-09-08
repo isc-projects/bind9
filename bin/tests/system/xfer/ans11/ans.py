@@ -25,6 +25,7 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.matchers import Protocol, Qtype
 
 ZONE = "ixfr-race."
 NS_NAME = f"ns.{ZONE}"
@@ -144,8 +145,7 @@ class TruncatedIxfrHandler(ResponseHandler):
     Set TC on an IXFR received over UDP to force the secondary to retry over TCP.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR and qctx.protocol == DnsProtocol.UDP
+    matcher = Qtype(dns.rdatatype.IXFR) & Protocol(DnsProtocol.UDP)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -165,8 +165,7 @@ class RaceIxfrHandler(ResponseHandler):
     then has to detach the queued second chunk before freeing it.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR and qctx.protocol == DnsProtocol.TCP
+    matcher = Qtype(dns.rdatatype.IXFR) & Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext

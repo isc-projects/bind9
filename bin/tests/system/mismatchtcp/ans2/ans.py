@@ -11,7 +11,6 @@
 
 from collections.abc import AsyncGenerator
 
-import dns.name
 import dns.rdatatype
 
 from isctest.asyncserver import (
@@ -21,6 +20,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Protocol, Qname, Qtype
 
 
 class MismatchedIdOnUdpHandler(ResponseHandler):
@@ -33,12 +33,9 @@ class MismatchedIdOnUdpHandler(ResponseHandler):
     the correct answer.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return (
-            qctx.qname == dns.name.from_text("trigger.example.")
-            and qctx.qtype == dns.rdatatype.A
-            and qctx.protocol == DnsProtocol.UDP
-        )
+    matcher = (
+        Qname("trigger.example.") & Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP)
+    )
 
     async def get_responses(
         self, qctx: QueryContext

@@ -15,7 +15,6 @@ import abc
 
 import dns.flags
 import dns.message
-import dns.name
 import dns.rcode
 import dns.rdatatype
 
@@ -27,7 +26,7 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import StaticResponseHandler
-from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.asyncserver.matchers import Domain, Protocol, Qname, Qtype
 
 from ..resolver_ans import rrset
 
@@ -57,18 +56,13 @@ class HeaderOnlyHandler(ResponseHandler):
 
 
 class RefusedOnTcpHandler(HeaderOnlyHandler):
+    matcher = Qname("tcpalso.no-questions.") & Protocol(DnsProtocol.TCP)
     flags = dns.flags.QR
     rcode = dns.rcode.REFUSED
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.protocol == DnsProtocol.TCP and qctx.qname == dns.name.from_text(
-            "tcpalso.no-questions."
-        )
-
 
 class TcpFallbackHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.protocol == DnsProtocol.TCP
+    matcher = Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext

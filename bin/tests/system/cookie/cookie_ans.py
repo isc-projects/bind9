@@ -25,6 +25,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Protocol, Qtype
 from isctest.name import prepend_label
 from isctest.vars.algorithms import ALG_VARS
 
@@ -122,8 +123,7 @@ class GlueHandler(_SpoofableHandler):
 
 
 class TcpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A and qctx.protocol == DnsProtocol.TCP
+    matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -157,8 +157,7 @@ class WithtsigUdpAHandler(ResponseHandler):
 
 
 class UdpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A and qctx.protocol == DnsProtocol.UDP
+    matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP)
 
     async def get_responses(
         self, qctx: QueryContext
