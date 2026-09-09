@@ -1367,7 +1367,8 @@ load_text(dns_loadctx_t *lctx) {
 				}
 				EXPECTEOL;
 				continue;
-			} else if (strncasecmp(DNS_AS_STR(token), "$", 1) == 0)
+			} else if (isc_string_casehasprefix(DNS_AS_STR(token),
+							    "$"))
 			{
 				(callbacks->error)(callbacks,
 						   "%s: %s:%lu: "

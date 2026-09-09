@@ -48,6 +48,7 @@ check_PROGRAMS =	\
 	sockaddr_test	\
 	spinlock_test	\
 	stats_test	\
+	string_test	\
 	symtab_test	\
 	tcp_test	\
 	tcpdns_test	\

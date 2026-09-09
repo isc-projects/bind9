@@ -1122,7 +1122,8 @@ get_reverse(char *reverse, size_t len, const char *value) {
 static void
 plus_option(char *option, struct query *query, bool global) {
 	isc_result_t result;
-	char *cmd, *value, *last = NULL, *code;
+	const char *cmd, *tail;
+	char *value, *last = NULL, *code;
 	uint32_t num;
 	bool state = true;
 	size_t n;
@@ -1133,8 +1134,9 @@ plus_option(char *option, struct query *query, bool global) {
 		printf(";; Invalid option %s\n", option);
 		return;
 	}
-	if (strncasecmp(cmd, "no", 2) == 0) {
-		cmd += 2;
+	tail = isc_string_casestripprefix(cmd, "no");
+	if (tail != NULL) {
+		cmd = tail;
 		state = false;
 	}
 	/* parse the rest of the string */
@@ -1972,7 +1974,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		if (strncmp(rv[0], "%", 1) == 0) {
+		if (isc_string_hasprefix(rv[0], "%")) {
 			break;
 		}
 		if (rv[0][0] == '@') {

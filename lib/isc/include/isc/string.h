@@ -15,7 +15,9 @@
 
 /*! \file isc/string.h */
 
+#include <stdbool.h>
 #include <string.h>
+#include <strings.h>
 
 #include <isc/lang.h>
 
@@ -38,5 +40,45 @@ strnstr(const char *s, const char *find, size_t slen);
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen);
+
+/*
+ * Return true when 'str' begins with 'prefix', compared case
+ * sensitively.
+ */
+static inline bool
+isc_string_hasprefix(const char *str, const char *prefix) {
+	return strncmp(str, prefix, strlen(prefix)) == 0;
+}
+
+/*
+ * Return true when 'str' begins with 'prefix', compared case
+ * insensitively.
+ */
+static inline bool
+isc_string_casehasprefix(const char *str, const char *prefix) {
+	return strncasecmp(str, prefix, strlen(prefix)) == 0;
+}
+
+/*
+ * Match the beginning of 'str' against 'prefix' (case sensitively)
+ * and strip the prefix: return the remainder of 'str' after 'prefix',
+ * or NULL when 'str' does not begin with 'prefix'.
+ */
+static inline const char *
+isc_string_stripprefix(const char *str, const char *prefix) {
+	size_t len = strlen(prefix);
+	return strncmp(str, prefix, len) == 0 ? str + len : NULL;
+}
+
+/*
+ * Match the beginning of 'str' against 'prefix' (case insensitively)
+ * and strip the prefix: return the remainder of 'str' after 'prefix',
+ * or NULL when 'str' does not begin with 'prefix'.
+ */
+static inline const char *
+isc_string_casestripprefix(const char *str, const char *prefix) {
+	size_t len = strlen(prefix);
+	return strncasecmp(str, prefix, len) == 0 ? str + len : NULL;
+}
 
 ISC_LANG_ENDDECLS

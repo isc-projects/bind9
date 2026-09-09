@@ -40,9 +40,9 @@
  */
 dns_secalg_t
 alg_fromtext(const char *name) {
-	const char *p = name;
-	if (strncasecmp(p, "hmac-", 5) == 0) {
-		p = &name[5];
+	const char *p = isc_string_casestripprefix(name, "hmac-");
+	if (p == NULL) {
+		p = name;
 	}
 
 	if (strcasecmp(p, "md5") == 0) {

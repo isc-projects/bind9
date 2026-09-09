@@ -324,7 +324,7 @@ setup_systemd_notify(void) {
 
 	if (path[0] == '/' || path[0] == '@') {
 		result = connect_systemd_notify_unix(path);
-	} else if (strncmp(path, "vsock", 5) == 0) {
+	} else if (isc_string_hasprefix(path, "vsock")) {
 		result = ISC_R_FAMILYNOSUPPORT;
 	} else {
 		result = ISC_R_INVALIDPROTO;

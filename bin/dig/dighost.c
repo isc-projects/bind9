@@ -936,7 +936,7 @@ parse_xint(uint32_t *uip, const char *value, uint32_t max, const char *desc) {
 }
 
 static uint32_t
-parse_bits(char *arg, const char *desc, uint32_t max) {
+parse_bits(const char *arg, const char *desc, uint32_t max) {
 	isc_result_t result;
 	uint32_t tmp;
 
@@ -1032,6 +1032,7 @@ done:
 void
 parse_hmac(const char *algname) {
 	char buf[20];
+	const char *bits = NULL;
 	size_t len;
 
 	REQUIRE(algname != NULL);
@@ -1046,35 +1047,47 @@ parse_hmac(const char *algname) {
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		hmac_alg = DST_ALG_HMACMD5;
-	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-md5-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACMD5;
-		digestbits = parse_bits(&buf[9], "digest-bits [0..128]", 128);
+		digestbits = parse_bits(bits, "digest-bits [0..128]", 128);
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
 		hmac_alg = DST_ALG_HMACSHA1;
 		digestbits = 0;
-	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha1-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACSHA1;
-		digestbits = parse_bits(&buf[10], "digest-bits [0..160]", 160);
+		digestbits = parse_bits(bits, "digest-bits [0..160]", 160);
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
 		hmac_alg = DST_ALG_HMACSHA224;
-	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha224-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACSHA224;
-		digestbits = parse_bits(&buf[12], "digest-bits [0..224]", 224);
+		digestbits = parse_bits(bits, "digest-bits [0..224]", 224);
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
 		hmac_alg = DST_ALG_HMACSHA256;
-	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha256-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACSHA256;
-		digestbits = parse_bits(&buf[12], "digest-bits [0..256]", 256);
+		digestbits = parse_bits(bits, "digest-bits [0..256]", 256);
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
 		hmac_alg = DST_ALG_HMACSHA384;
-	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha384-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACSHA384;
-		digestbits = parse_bits(&buf[12], "digest-bits [0..384]", 384);
+		digestbits = parse_bits(bits, "digest-bits [0..384]", 384);
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
 		hmac_alg = DST_ALG_HMACSHA512;
-	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
+	} else if ((bits = isc_string_casestripprefix(buf, "hmac-sha512-")) !=
+		   NULL)
+	{
 		hmac_alg = DST_ALG_HMACSHA512;
-		digestbits = parse_bits(&buf[12], "digest-bits [0..512]", 512);
+		digestbits = parse_bits(bits, "digest-bits [0..512]", 512);
 	} else {
 		fprintf(stderr,
 			";; Warning, ignoring "
