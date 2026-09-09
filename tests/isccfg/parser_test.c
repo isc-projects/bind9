@@ -121,11 +121,13 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	assert_non_null(logfile);
 
 	isc_logdestination_t *logdest = ISC_LOGDESTINATION_FILE(logfile);
-	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_logconfig_t *logconfig = NULL;
+	isc_logconfig_create(&logconfig);
 	isc_log_createandusechannel(logconfig, "default_stderr",
 				    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
 				    logdest, 0, ISC_LOGCATEGORY_DEFAULT,
 				    ISC_LOGMODULE_DEFAULT);
+	isc_logconfig_set(logconfig);
 
 	/* Parse with default line numbering. */
 	isc_buffer_init(&buf, &text[0], sizeof(text) - 1);
@@ -165,6 +167,18 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 		strstr(logfilebuf, "text2:102: unknown option 'idonotexists'"));
 	assert_non_null(
 		strstr(logfilebuf, "none:102: unknown option 'idonotexists'"));
+
+	/*
+	 * Restore logging to stderr before closing the file, so that
+	 * later tests do not write into a closed stream.
+	 */
+	logconfig = NULL;
+	isc_logconfig_create(&logconfig);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
+	isc_logconfig_set(logconfig);
 
 	fclose(logfile);
 	remove(logfilename);
