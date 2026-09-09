@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include <isc/lib.h>
+#include <isc/string.h>
 
 #include <dns/lib.h>
 
@@ -101,6 +102,7 @@ main(int argc, char **argv) {
 	int ret;
 	char corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
+	const char *tail = NULL;
 
 	ret = LLVMFuzzerInitialize(&argc, &argv);
 	if (ret != 0) {
@@ -125,8 +127,9 @@ main(int argc, char **argv) {
 	}
 
 	target = (target != NULL) ? target + 1 : argv[0];
-	if (strncmp(target, "lt-", 3) == 0) {
-		target += 3;
+	tail = isc_string_stripprefix(target, "lt-");
+	if (tail != NULL) {
+		target = tail;
 	}
 
 	snprintf(corpusdir, sizeof(corpusdir), FUZZDIR "/%s.in", target);

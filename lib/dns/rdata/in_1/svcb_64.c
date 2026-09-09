@@ -197,7 +197,7 @@ svc_keyfromregion(isc_textregion_t *region, char sep, uint16_t *value,
 		goto finish;
 	}
 	/* Handle keyXXXXX form. */
-	if (strncmp(region->base, "key", 3) != 0) {
+	if (!isc_string_hasprefix(region->base, "key")) {
 		return DNS_R_SYNTAX;
 	}
 	isc_textregion_consume(region, 3);

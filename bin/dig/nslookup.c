@@ -480,12 +480,12 @@ show_settings(bool full, bool serv_only) {
 }
 
 static bool
-testtype(char *typetext) {
+testtype(const char *typetext) {
 	isc_result_t result;
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 
-	tr.base = typetext;
+	tr.base = UNCONST(typetext);
 	tr.length = strlen(typetext);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	if (result == ISC_R_SUCCESS) {
@@ -497,12 +497,12 @@ testtype(char *typetext) {
 }
 
 static bool
-testclass(char *typetext) {
+testclass(const char *typetext) {
 	isc_result_t result;
 	isc_textregion_t tr;
 	dns_rdataclass_t rdclass;
 
-	tr.base = typetext;
+	tr.base = UNCONST(typetext);
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	if (result == ISC_R_SUCCESS) {
@@ -553,74 +553,78 @@ set_ndots(const char *value) {
 static void
 setoption(char *opt) {
 	size_t l = strlen(opt);
+	const char *val = NULL;
 
 #define CHECKOPT(A, N) \
 	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
 
 	if (CHECKOPT("all", 3)) {
 		show_settings(true, false);
-	} else if (strncasecmp(opt, "class=", 6) == 0) {
-		if (testclass(&opt[6])) {
-			strlcpy(defclass, &opt[6], sizeof(defclass));
+	} else if ((val = isc_string_casestripprefix(opt, "class=")) != NULL) {
+		if (testclass(val)) {
+			strlcpy(defclass, val, sizeof(defclass));
 		}
-	} else if (strncasecmp(opt, "cl=", 3) == 0) {
-		if (testclass(&opt[3])) {
-			strlcpy(defclass, &opt[3], sizeof(defclass));
+	} else if ((val = isc_string_casestripprefix(opt, "cl=")) != NULL) {
+		if (testclass(val)) {
+			strlcpy(defclass, val, sizeof(defclass));
 		}
-	} else if (strncasecmp(opt, "type=", 5) == 0) {
-		if (testtype(&opt[5])) {
-			strlcpy(deftype, &opt[5], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "type=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "ty=", 3) == 0) {
-		if (testtype(&opt[3])) {
-			strlcpy(deftype, &opt[3], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "ty=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
-		if (testtype(&opt[10])) {
-			strlcpy(deftype, &opt[10], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "querytype"
+							  "=")) != NULL)
+	{
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "query=", 6) == 0) {
-		if (testtype(&opt[6])) {
-			strlcpy(deftype, &opt[6], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "query=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "qu=", 3) == 0) {
-		if (testtype(&opt[3])) {
-			strlcpy(deftype, &opt[3], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "qu=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "q=", 2) == 0) {
-		if (testtype(&opt[2])) {
-			strlcpy(deftype, &opt[2], sizeof(deftype));
+	} else if ((val = isc_string_casestripprefix(opt, "q=")) != NULL) {
+		if (testtype(val)) {
+			strlcpy(deftype, val, sizeof(deftype));
 			default_lookups = false;
 		}
-	} else if (strncasecmp(opt, "domain=", 7) == 0) {
-		strlcpy(domainopt, &opt[7], sizeof(domainopt));
+	} else if ((val = isc_string_casestripprefix(opt, "domain=")) != NULL) {
+		strlcpy(domainopt, val, sizeof(domainopt));
 		set_search_domain(domainopt);
 		usesearch = true;
-	} else if (strncasecmp(opt, "do=", 3) == 0) {
-		strlcpy(domainopt, &opt[3], sizeof(domainopt));
+	} else if ((val = isc_string_casestripprefix(opt, "do=")) != NULL) {
+		strlcpy(domainopt, val, sizeof(domainopt));
 		set_search_domain(domainopt);
 		usesearch = true;
-	} else if (strncasecmp(opt, "port=", 5) == 0) {
-		set_port(&opt[5]);
-	} else if (strncasecmp(opt, "po=", 3) == 0) {
-		set_port(&opt[3]);
-	} else if (strncasecmp(opt, "timeout=", 8) == 0) {
-		set_timeout(&opt[8]);
-	} else if (strncasecmp(opt, "t=", 2) == 0) {
-		set_timeout(&opt[2]);
+	} else if ((val = isc_string_casestripprefix(opt, "port=")) != NULL) {
+		set_port(val);
+	} else if ((val = isc_string_casestripprefix(opt, "po=")) != NULL) {
+		set_port(val);
+	} else if ((val = isc_string_casestripprefix(opt, "timeout=")) != NULL)
+	{
+		set_timeout(val);
+	} else if ((val = isc_string_casestripprefix(opt, "t=")) != NULL) {
+		set_timeout(val);
 	} else if (CHECKOPT("recurse", 3)) {
 		recurse = true;
 	} else if (CHECKOPT("norecurse", 5)) {
 		recurse = false;
-	} else if (strncasecmp(opt, "retry=", 6) == 0) {
-		set_tries(&opt[6]);
-	} else if (strncasecmp(opt, "ret=", 4) == 0) {
-		set_tries(&opt[4]);
+	} else if ((val = isc_string_casestripprefix(opt, "retry=")) != NULL) {
+		set_tries(val);
+	} else if ((val = isc_string_casestripprefix(opt, "ret=")) != NULL) {
+		set_tries(val);
 	} else if (CHECKOPT("defname", 3)) {
 		usesearch = true;
 	} else if (CHECKOPT("nodefname", 5)) {
@@ -651,8 +655,8 @@ setoption(char *opt) {
 		nofail = false;
 	} else if (CHECKOPT("nofail", 5)) {
 		nofail = true;
-	} else if (strncasecmp(opt, "ndots=", 6) == 0) {
-		set_ndots(&opt[6]);
+	} else if ((val = isc_string_casestripprefix(opt, "ndots=")) != NULL) {
+		set_ndots(val);
 	} else {
 		printf("*** Invalid option: %s\n", opt);
 	}
@@ -817,7 +821,7 @@ parse_args(int argc, char **argv) {
 	for (argc--, argv++; argc > 0 && argv[0] != NULL; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
-			if (strncasecmp(argv[0], "-ver", 4) == 0) {
+			if (isc_string_casehasprefix(argv[0], "-ver")) {
 				printf("nslookup %s\n", PACKAGE_VERSION);
 				exit(EXIT_SUCCESS);
 			} else if (argv[0][1] != 0) {

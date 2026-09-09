@@ -342,9 +342,11 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 				     "autonomous_system_number", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			int i;
+			const char *tail;
 			s = elt->as_string;
-			if (strncasecmp(s, "AS", 2) == 0) {
-				s += 2;
+			tail = isc_string_casestripprefix(s, "AS");
+			if (tail != NULL) {
+				s = tail;
 			}
 			i = strtol(s, NULL, 10);
 			return match_int(&value, i);

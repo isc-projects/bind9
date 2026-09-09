@@ -46,6 +46,7 @@ isc_test = [
     'sockaddr',
     'spinlock',
     'stats',
+    'string',
     'symtab',
     'tcp',
     'tcpdns',
