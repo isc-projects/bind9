@@ -48,15 +48,15 @@ isc_log_t *logc = NULL;
 
 /*% usage */
 noreturn static void
-usage(void);
+usage(int status);
 
 static void
-usage(void) {
+usage(int status) {
 	fprintf(stderr,
 		"usage: %s [-achijklvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n",
 		program);
-	exit(EXIT_SUCCESS);
+	exit(status);
 }
 
 /*% directory callback */
@@ -691,10 +691,11 @@ main(int argc, char **argv) {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
 			}
-			FALLTHROUGH;
+			usage(EXIT_FAILURE);
+
 		case 'h':
 			isc_mem_detach(&mctx);
-			usage();
+			usage(EXIT_SUCCESS);
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", program,
@@ -714,7 +715,7 @@ main(int argc, char **argv) {
 
 	if (isc_commandline_index + 1 < argc) {
 		isc_mem_detach(&mctx);
-		usage();
+		usage(EXIT_FAILURE);
 	}
 	if (argv[isc_commandline_index] != NULL) {
 		conffile = argv[isc_commandline_index];
