@@ -12683,6 +12683,8 @@ notify_send_toaddr(void *arg) {
 		goto cleanup;
 	}
 
+	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
+
 	result = notify_createmessage(notify->zone, notify->flags, &message);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -12693,7 +12695,6 @@ notify_send_toaddr(void *arg) {
 		key = notify->key;
 		notify->key = NULL;
 	} else {
-		isc_netaddr_fromsockaddr(&dstip, &notify->dst);
 		result = dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			notify_log(notify->zone, ISC_LOG_ERROR,
@@ -21612,6 +21613,8 @@ checkds_send_toaddr(void *arg) {
 		goto cleanup;
 	}
 
+	isc_netaddr_fromsockaddr(&dstip, &checkds->dst);
+
 	checkds_createmessage(checkds->zone, &message);
 
 	isc_sockaddr_format(&checkds->dst, addrbuf, sizeof(addrbuf));
@@ -21620,7 +21623,6 @@ checkds_send_toaddr(void *arg) {
 		key = checkds->key;
 		checkds->key = NULL;
 	} else {
-		isc_netaddr_fromsockaddr(&dstip, &checkds->dst);
 		result = dns_view_getpeertsig(checkds->zone->view, &dstip,
 					      &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
