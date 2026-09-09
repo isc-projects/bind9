@@ -180,7 +180,7 @@ named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg) {
 		},
 	};
 
-	if (sslkeylogfile_path == NULL ||
+	if (sslkeylogfile_path == NULL || *sslkeylogfile_path == 0 ||
 	    strcmp(sslkeylogfile_path, "config") == 0)
 	{
 		return;
