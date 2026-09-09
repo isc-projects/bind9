@@ -28,6 +28,22 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
+echo_i "checking that named-checkconf returns an error on a bad commandline ($n)"
+ret=0
+$CHECKCONF "-?" good.conf >checkconf.out$n 2>&1 && ret=1
+grep "usage: named-checkconf" checkconf.out$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that named-checkconf -h doesn't error ($n)"
+ret=0
+$CHECKCONF "-h" >checkconf.out$n 2>&1 || ret=1
+grep "usage: named-checkconf" checkconf.out$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
 echo_i "checking that named-checkconf prints a known good config ($n)"
 ret=0
 awk 'BEGIN { ok = 0; } /cut here/ { ok = 1; getline } ok == 1 { print }' good.conf >good.conf.raw
