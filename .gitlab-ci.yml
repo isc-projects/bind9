@@ -881,78 +881,6 @@ unit:clang:trixie:amd64:
     - job: clang:trixie:amd64
       artifacts: true
 
-# Job producing a release directory
-
-release:
-  <<: *base_image
-  stage: release
-  script:
-    # Determine BIND version
-    - source version
-    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Prepare release tarball contents (tarballs + zips + documentation)
-    - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
-    - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.xz" .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
-    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
-    - rm -rf "${BIND_DIRECTORY}"
-    - mv "../doc/arm/_build/html" doc/arm/
-    - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
-    - popd
-  needs:
-    - job: tarball-create
-      artifacts: true
-    - job: docs
-      artifacts: true
-  rules:
-    - if: '$CI_COMMIT_TAG != null'
-  artifacts:
-    paths:
-      - "*-release"
-    expire_in: "1 month"
-
-# Job signing the source tarballs in the release directory
-
-sign:
-  stage: release
-  tags:
-    - signer
-  script:
-    - export RELEASE_DIRECTORY="$(echo *-release)"
-    - pushd "${RELEASE_DIRECTORY}"
-    - |
-      echo
-      cat > /tmp/sign-bind9.sh <<EOF
-      #!/bin/sh
-      {
-          for FILE in \$(find "${PWD}" -name "*.tar.xz" | sort); do
-              echo ">>> Signing \${FILE}..."
-              gpg2 --local-user "\${SIGNING_KEY_FINGERPRINT}" --armor --digest-algo SHA512 --detach-sign --output "\${FILE}.asc" "\${FILE}"
-          done
-      } 2>&1 | tee "${CI_PROJECT_DIR}/signing.log"
-      EOF
-      chmod +x /tmp/sign-bind9.sh
-      echo -e "\e[31m*** Please sign the releases by following the instructions at:\e[0m"
-      echo -e "\e[31m*** \e[0m"
-      echo -e "\e[31m*** ${SIGNING_HELP_URL}\e[0m"
-      echo -e "\e[31m*** \e[0m"
-      echo -e "\e[31m*** Sleeping until files in ${PWD} are signed... ⌛\e[0m"
-      while [ "$(find . -name "*.asc" -size +0 | sed "s|\.asc$||" | sort)" != "$(find . -name "*.tar.xz" | sort)" ]; do sleep 10; done
-    - popd
-    - tar --create --file="${RELEASE_DIRECTORY}.tar.gz" --gzip "${RELEASE_DIRECTORY}"
-  artifacts:
-    paths:
-      - "*.tar.gz"
-      - signing.log
-    expire_in: never
-  needs:
-    - job: release
-      artifacts: true
-  rules:
-    - if: '$CI_COMMIT_TAG != null'
-  when: manual
-  allow_failure: false
 
 .customer-git: &customer_git
   <<: *base_image
@@ -991,9 +919,7 @@ customer-git:tag:
   environment:
     name: customer
     action: access
-  needs:
-    - job: release
-      artifacts: false
+  needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null'
   before_script:
