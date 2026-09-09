@@ -664,39 +664,6 @@ unit:clang:asan:
     - job: clang:asan
       artifacts: true
 
-# Job producing a release tarball
-
-release:
-  <<: *base_image
-  stage: release
-  script:
-    # Determine BIND version
-    - source version
-    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Prepare release tarball contents (tarballs + zips + documentation)
-    - mkdir -p release/doc/arm
-    - pushd release
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
-    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
-    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
-    - rm -rf "${BIND_DIRECTORY}"
-    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
-    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
-    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
-    - popd
-    # Create release tarball
-    - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
-  needs:
-    - job: tarball-create
-      artifacts: true
-  rules:
-    - if: '$CI_COMMIT_TAG != null'
-  artifacts:
-    paths:
-      - "*.tar.gz"
-    expire_in: "1 day"
-
 .customer-git: &customer_git
   <<: *base_image
   stage: release
@@ -734,9 +701,7 @@ customer-git:tag:
   environment:
     name: customer
     action: access
-  needs:
-    - job: release
-      artifacts: false
+  needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null'
   before_script:
