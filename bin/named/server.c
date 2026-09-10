@@ -7767,8 +7767,9 @@ configure_kasplist(const cfg_obj_t *config, dns_kasplist_t *kasplist,
 }
 
 static isc_result_t
-apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
-		    named_server_t *server, bool first_time) {
+apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *userconfig,
+		    cfg_obj_t *bindkeys, named_server_t *server,
+		    bool first_time) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
 	const cfg_obj_t *options = NULL;
@@ -8807,12 +8808,17 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	named_g_defaultconfigtime = isc_time_now();
 
 	/*
-	 * Save the current effective configuration
+	 * Set the current effective and user configuration
 	 */
 	if (server->effectiveconfig != NULL) {
 		cfg_obj_detach(&server->effectiveconfig);
 	}
 	cfg_obj_attach(effectiveconfig, &server->effectiveconfig);
+
+	if (server->userconfig != NULL) {
+		cfg_obj_detach(&server->userconfig);
+	}
+	cfg_obj_attach(userconfig, &server->userconfig);
 
 	isc_loopmgr_resume();
 	exclusive = false;
@@ -8932,28 +8938,11 @@ cleanup_aclctx:
 	return result;
 }
 
-static void
-emit_text(void *arg, const char *buf, int len) {
-	ns_dzarg_t *dzarg = arg;
-	isc_result_t result;
-
-	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
-	result = putmem(dzarg->text, buf, len);
-	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
-		dzarg->result = result;
-	}
-}
-
 static isc_result_t
 load_configuration(named_server_t *server, bool first_time) {
 	isc_result_t result;
 	cfg_obj_t *config = NULL, *effective = NULL;
 	cfg_obj_t *bindkeys = NULL, *builtin = NULL;
-	ns_dzarg_t dzarg = {
-		.magic = DZARG_MAGIC,
-		.result = ISC_R_SUCCESS,
-		.text = server->userconf,
-	};
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 		      ISC_LOG_DEBUG(1), "load_configuration");
@@ -8993,20 +8982,8 @@ load_configuration(named_server_t *server, bool first_time) {
 
 	/* Merge and apply */
 	effective = cfg_effective_config(config, builtin);
-
-	/*
-	 * Save the user configuration for later reference.
-	 * We keep it in text format to save space; we won't need
-	 * to access it as a tree again after this.
-	 */
-	if (server->userconf != NULL) {
-		isc_buffer_free(&server->userconf);
-	}
-	isc_buffer_allocate(isc_g_mctx, &server->userconf, BUFSIZ);
-	dzarg.text = server->userconf;
-	cfg_printx(config, 0, emit_text, &dzarg);
-
-	result = apply_configuration(effective, bindkeys, server, first_time);
+	result = apply_configuration(effective, config, bindkeys, server,
+				     first_time);
 
 cleanup:
 	if (bindkeys != NULL) {
@@ -9616,8 +9593,8 @@ named_server_destroy(named_server_t **serverp) {
 		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
 	}
 
-	if (server->userconf != NULL) {
-		isc_buffer_free(&server->userconf);
+	if (server->userconfig != NULL) {
+		cfg_obj_detach(&server->userconfig);
 	}
 
 	if (server->effectiveconfig != NULL) {
@@ -12950,6 +12927,18 @@ cleanup:
 	return result;
 }
 
+static void
+emit_text(void *arg, const char *buf, int len) {
+	ns_dzarg_t *dzarg = arg;
+	isc_result_t result;
+
+	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
+	result = putmem(dzarg->text, buf, len);
+	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
+		dzarg->result = result;
+	}
+}
+
 /*
  * Act on a "showzone" command from the command channel.
  */
@@ -12999,7 +12988,7 @@ cleanup:
 isc_result_t
 named_server_showconf(named_server_t *server, isc_lex_t *lex,
 		      isc_buffer_t *text) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	const char *arg = NULL;
 	cfg_obj_t *config = NULL;
 	ns_dzarg_t dzarg = {
@@ -13018,10 +13007,7 @@ named_server_showconf(named_server_t *server, isc_lex_t *lex,
 		return ISC_R_UNEXPECTEDEND;
 	}
 	if (strcasecmp(arg, "-user") == 0) {
-		putmem(text, isc_buffer_base(server->userconf),
-		       isc_buffer_usedlength(server->userconf));
-		result = ISC_R_SUCCESS;
-		goto cleanup;
+		cfg_obj_attach(server->userconfig, &config);
 	} else if (strcasecmp(arg, "-builtin") == 0) {
 		named_config_parsedefaults(&config);
 	} else if (strcasecmp(arg, "-effective") == 0) {

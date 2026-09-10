@@ -107,7 +107,7 @@ struct named_server {
 	isc_signal_t *sigusr1;
 
 	cfg_aclconfctx_t *aclctx;
-	isc_buffer_t	 *userconf;
+	cfg_obj_t	 *userconfig;
 	cfg_obj_t	 *effectiveconfig;
 };
 
