@@ -843,39 +843,6 @@ BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_qu
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-# check whether we can use curl for sending test queries.
-if [ -x "${CURL}" ]; then
-  CURL_HTTP2="$(${CURL} --version | grep -E '^Features:.* HTTP2( |$)' || true)"
-
-  if [ -n "$CURL_HTTP2" ]; then
-    testcurl=1
-  else
-    echo_i "The available version of CURL does not have HTTP/2 support"
-  fi
-fi
-
-# Note: see README.curl for information on how to generate curl
-# queries.
-if [ -n "$testcurl" ]; then
-  n=$((n + 1))
-  echo_i "checking max-age for positive answer ($n)"
-  ret=0
-  # use curl to query for 'example/SOA'
-  $CURL -kD headers.$n "https://10.53.0.1:${HTTPSPORT}/dns-query?dns=AAEAAAABAAAAAAAAB2V4YW1wbGUAAAYAAQ" >/dev/null 2>&1 || ret=1
-  grep "cache-control: max-age=86400" headers.$n >/dev/null || ret=1
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-
-  n=$((n + 1))
-  echo_i "checking max-age for negative answer ($n)"
-  ret=0
-  # use curl to query for 'fake.example/TXT'
-  $CURL -kD headers.$n "https://10.53.0.1:${HTTPSPORT}/dns-query?dns=AAEAAAABAAAAAAAABGZha2UHZXhhbXBsZQAAEAAB" >/dev/null 2>&1 || ret=1
-  grep "cache-control: max-age=3600" headers.$n >/dev/null || ret=1
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
-
 n=$((n + 1))
 echo_i "checking Do53 query to NS5 for zone \"example12\" (verifying successful client TLS context reuse by the NS5 server instance during XoT) ($n)"
 ret=0

@@ -16,7 +16,6 @@ import isctest.mark
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
-        "headers.*",
         "ns*/example*.db",
     ]
 )
