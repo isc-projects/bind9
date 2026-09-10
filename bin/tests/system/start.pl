@@ -100,6 +100,14 @@ my $DIG = $ENV{'DIG'};
 my $PERL = $ENV{'PERL'};
 my $PYTHON = $ENV{'PYTHON'};
 
+# Make the isctest package importable, for the standalone helper tools
+# ($PYTHON -m isctest.tools.<name>).
+if (defined $ENV{'PYTHONPATH'}) {
+	$ENV{'PYTHONPATH'} = "$srcdir:$ENV{'PYTHONPATH'}";
+} else {
+	$ENV{'PYTHONPATH'} = $srcdir;
+}
+
 # Start the server(s)
 
 my @ns;
@@ -173,7 +181,7 @@ sub check_ns_port {
 	my $tries = 0;
 
 	while (1) {
-		my $return = system("$PERL $srcdir/testsock.pl -p $port $options");
+		my $return = system("$PYTHON -m isctest.tools.testsock -p $port $options");
 
 		if ($return == 0) {
 			last;
