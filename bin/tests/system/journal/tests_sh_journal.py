@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+
 import pytest
 
 pytestmark = pytest.mark.extra_artifacts(
@@ -24,6 +26,13 @@ pytestmark = pytest.mark.extra_artifacts(
         "zones/*.jnl",
     ]
 )
+
+
+def bootstrap():
+    # ns1's managed-keys journal is a hand-crafted old-format specimen,
+    # committed as a hex dump
+    hex_dump = Path("ns1/managed-keys.bind.jnl.in").read_text(encoding="utf-8")
+    Path("ns1/managed-keys.bind.jnl").write_bytes(bytes.fromhex(hex_dump))
 
 
 def test_journal(run_tests_sh):
