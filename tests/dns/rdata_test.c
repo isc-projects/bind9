@@ -35,6 +35,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/keyvalues.h>
 #include <dns/lib.h>
 #include <dns/masterdump.h>
@@ -3365,6 +3366,74 @@ ISC_RUN_TEST_IMPL(https_svcb) {
 }
 
 /*
+ * A raw NUL byte embedded in a quoted SvcParam value must be rejected
+ * with DNS_R_SYNTAX rather than silently truncated.  The dns_test_*
+ * helpers build the lexer input with strlen() and so cannot carry an
+ * embedded NUL, so parse an explicit-length buffer here directly.
+ */
+static void
+svcb_nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
+	UNUSED(cb);
+	UNUSED(fmt);
+}
+
+static void
+check_svcb_nulbyte(const unsigned char *data, size_t len) {
+	unsigned char buf[1024];
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdatacallbacks_t callbacks;
+	isc_lexspecials_t specials = { 0 };
+	isc_buffer_t source, target;
+	isc_lex_t *lex = NULL;
+	isc_result_t result;
+
+	isc_buffer_constinit(&source, data, len);
+	isc_buffer_add(&source, len);
+
+	isc_lex_create(isc_g_mctx, 64, &lex);
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
+	result = isc_lex_openbuffer(lex, &source);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_buffer_init(&target, buf, sizeof(buf));
+
+	dns_rdatacallbacks_init(&callbacks);
+	callbacks.warn = callbacks.error = svcb_nullmsg;
+
+	result = dns_rdata_fromtext(&rdata, dns_rdataclass_in,
+				    dns_rdatatype_svcb, lex, dns_rootname, 0,
+				    isc_g_mctx, &target, &callbacks);
+	assert_int_equal(result, DNS_R_SYNTAX);
+
+	isc_lex_destroy(&lex);
+}
+
+ISC_RUN_TEST_IMPL(https_svcb_nulbyte) {
+	/* port="53\0..." must not parse as port 53. */
+	const unsigned char port[] = "1 svc.example.net. port=\"53\0x\"\n";
+	/* ech="<valid-base64>\0..." must not parse as the truncated prefix. */
+	const unsigned char ech[] = "1 svc.example.net. ech=\"abcd\0efgh\"\n";
+	/* ipv4hint="1.2.3.4\0..." must not parse as 1.2.3.4. */
+	const unsigned char ipv4[] = "1 svc.example.net. "
+				     "ipv4hint=\"1.2.3.4\0x\"\n";
+	/* ipv6hint="2001:db8::1\0..." must not parse as 2001:db8::1. */
+	const unsigned char ipv6[] = "1 svc.example.net. "
+				     "ipv6hint=\"2001:db8::1\0x\"\n";
+
+	UNUSED(state);
+
+	check_svcb_nulbyte(port, sizeof(port) - 1);
+	check_svcb_nulbyte(ech, sizeof(ech) - 1);
+	check_svcb_nulbyte(ipv4, sizeof(ipv4) - 1);
+	check_svcb_nulbyte(ipv6, sizeof(ipv6) - 1);
+}
+
+/*
  * ZONEMD tests.
  *
  * Excerpted from RFC 8976:
@@ -3762,6 +3831,7 @@ ISC_TEST_ENTRY(eid)
 ISC_TEST_ENTRY(hhit)
 ISC_TEST_ENTRY(hip)
 ISC_TEST_ENTRY(https_svcb)
+ISC_TEST_ENTRY(https_svcb_nulbyte)
 ISC_TEST_ENTRY(isdn)
 ISC_TEST_ENTRY(key)
 ISC_TEST_ENTRY(l32)

@@ -3699,6 +3699,14 @@ redo:
 				goto redo;
 			}
 			pctx->seen_eof = true;
+		} else if (isc_token_hasnul(&pctx->token)) {
+			/*
+			 * An embedded NUL would be silently truncated once
+			 * the token is turned into a C string, so reject it.
+			 */
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "string contains embedded NUL");
+			result = ISC_R_UNEXPECTEDTOKEN;
 		}
 		break;
 

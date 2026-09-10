@@ -46,6 +46,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <isc/region.h>
 #include <isc/types.h>
@@ -340,6 +341,30 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
  *\li	'tokenp' points to a valid token.
  *
  *\li	There is no ungotten token already.
+ */
+
+static inline bool
+isc_token_hasnul(const isc_token_t *token) {
+	/*
+	 * Only string tokens carry a text region; other types have no
+	 * text to inspect.
+	 */
+	if (token->type != isc_tokentype_string &&
+	    token->type != isc_tokentype_qstring)
+	{
+		return false;
+	}
+	return memchr(token->value.as_textregion.base, 0,
+		      token->value.as_textregion.length) != NULL;
+}
+/*%<
+ * Return true if 'token' is a string or quoted-string token whose text
+ * contains an embedded NUL byte.  Such a token would be silently
+ * truncated by any consumer that treats the text as a C string, so
+ * callers that go on to do that should reject it.
+ *
+ * Requires:
+ *\li	'token' points to a valid token.
  */
 
 void

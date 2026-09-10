@@ -121,11 +121,13 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	assert_non_null(logfile);
 
 	isc_logdestination_t *logdest = ISC_LOGDESTINATION_FILE(logfile);
-	isc_logconfig_t *logconfig = isc_logconfig_get();
+	isc_logconfig_t *logconfig = NULL;
+	isc_logconfig_create(&logconfig);
 	isc_log_createandusechannel(logconfig, "default_stderr",
 				    ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
 				    logdest, 0, ISC_LOGCATEGORY_DEFAULT,
 				    ISC_LOGMODULE_DEFAULT);
+	isc_logconfig_set(logconfig);
 
 	/* Parse with default line numbering. */
 	isc_buffer_init(&buf, &text[0], sizeof(text) - 1);
@@ -166,8 +168,44 @@ ISC_RUN_TEST_IMPL(parse_buffer) {
 	assert_non_null(
 		strstr(logfilebuf, "none:102: unknown option 'idonotexists'"));
 
+	/*
+	 * Restore logging to stderr before closing the file, so that
+	 * later tests do not write into a closed stream.
+	 */
+	logconfig = NULL;
+	isc_logconfig_create(&logconfig);
+	isc_log_createandusechannel(
+		logconfig, "default_stderr", ISC_LOG_TOFILEDESC,
+		ISC_LOG_DYNAMIC, ISC_LOGDESTINATION_STDERR, 0,
+		ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_DEFAULT);
+	isc_logconfig_set(logconfig);
+
 	fclose(logfile);
 	remove(logfilename);
+}
+
+/*
+ * A raw NUL byte embedded in a quoted string must be rejected rather
+ * than silently truncated (a truncated "directory" or "include" path
+ * would act on something other than what the config file shows).  The
+ * NUL is embedded with an explicit buffer length, since strlen() would
+ * hide it.
+ */
+ISC_RUN_TEST_IMPL(parse_nulbyte) {
+	isc_result_t result;
+	isc_buffer_t buf;
+	cfg_obj_t *c = NULL;
+	unsigned char text[] =
+		"zone \"test.baz\" { type primary; file \"a\0b\"; };\n";
+
+	UNUSED(state);
+
+	isc_buffer_init(&buf, &text[0], sizeof(text) - 1);
+	isc_buffer_add(&buf, sizeof(text) - 1);
+
+	result = cfg_parse_buffer(&buf, "text1", 0, &cfg_type_namedconf, 0, &c);
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+	assert_null(c);
 }
 
 /* test cfg_map_firstclause() */
@@ -319,6 +357,7 @@ ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(addzoneconf)
 ISC_TEST_ENTRY(parse_buffer)
+ISC_TEST_ENTRY(parse_nulbyte)
 ISC_TEST_ENTRY(cfg_map_firstclause)
 ISC_TEST_ENTRY(cfg_map_nextclause)
 ISC_TEST_ENTRY(cfg_clone_copy)
