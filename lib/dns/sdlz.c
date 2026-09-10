@@ -1102,16 +1102,14 @@ sdlz_addglue_addr(sdlz_addglue_ctx_t *ctx, dns_dbnode_t *node,
 
 	dns_message_gettemprdataset(ctx->msg, &rdataset);
 
-	result = findrdataset((dns_db_t *)ctx->sdlz, node, ctx->version, type,
-			      0, 0, rdataset, NULL DNS__DB_FLARG_PASS);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	CHECK(findrdataset((dns_db_t *)ctx->sdlz, node, ctx->version, type, 0,
+			   0, rdataset, NULL DNS__DB_FLARG_PASS));
 
 	if (*mnamep == NULL) {
 		dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 
 		dns_message_gettempname(ctx->msg, mnamep);
+		INSIST(*mnamep != NULL);
 		dns_name_copy(&sdlznode->name, dns_linkedname_name(*mnamep));
 	}
 
