@@ -11,7 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# see also ifconfig.sh.in and testsock.pl
+# see also ifconfig.sh.in and isctest/tools/testsock.py
 
 ifup() {
 	/sbin/ifconfig lo0 10.53.$1.$3 alias
