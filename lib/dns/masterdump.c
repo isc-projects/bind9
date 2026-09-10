@@ -1474,7 +1474,8 @@ closeandrename(FILE *f, isc_result_t result, const char *temp,
 	}
 	if (result == ISC_R_SUCCESS) {
 		result = isc_file_rename(temp, file);
-	} else {
+	}
+	if (result != ISC_R_SUCCESS) {
 		(void)isc_file_remove(temp);
 	}
 	if (result != ISC_R_SUCCESS && logit) {
