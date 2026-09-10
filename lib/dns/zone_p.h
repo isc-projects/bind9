@@ -622,8 +622,9 @@ struct dns_zone {
 	void *hooktable;
 	void (*hooktable_free)(isc_mem_t *, void **);
 
-	/* Configuration text */
-	char *cfg;
+	/* Configuration object */
+	void *cfg;
+	void (*cfg_detach)(void *);
 };
 
 typedef struct {

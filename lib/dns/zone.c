@@ -13103,7 +13103,7 @@ zone_shutdown(void *arg) {
 	}
 
 	/* Detach the zone configuration pointer */
-	dns_zone_setcfg(zone, NULL);
+	dns_zone_setcfg(zone, NULL, NULL);
 
 	zone_clear_inline_sync(zone);
 

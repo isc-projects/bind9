@@ -2040,18 +2040,17 @@ dns_zone_sethooktable(dns_zone_t *zone, void *hooktable,
 }
 
 void
-dns_zone_setcfg(dns_zone_t *zone, const char *cfg) {
+dns_zone_setcfg(dns_zone_t *zone, void *cfg, void (*cfg_detach)(void *)) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (zone->cfg != NULL) {
-		isc_mem_free(zone->mctx, zone->cfg);
+	if (zone->cfg != NULL && zone->cfg_detach != NULL) {
+		zone->cfg_detach(zone->cfg);
 	}
-	if (cfg != NULL) {
-		zone->cfg = isc_mem_strdup(zone->mctx, cfg);
-	}
+	zone->cfg = cfg;
+	zone->cfg_detach = cfg_detach;
 }
 
-const char *
+void *
 dns_zone_getcfg(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
