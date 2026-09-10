@@ -720,6 +720,23 @@ dns_view_delzone(dns_view_t *view, dns_zone_t *zone) {
 	return result;
 }
 
+bool
+dns_view_containszone(dns_view_t *view, const dns_name_t *name) {
+	bool found = false;
+	dns_zt_t *zonetable = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		found = dns_zt_contains(zonetable, name);
+	}
+	rcu_read_unlock();
+
+	return found;
+}
+
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  unsigned int options, dns_zone_t **zonep) {
@@ -1889,7 +1906,6 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 		  dns_name_t *foundname) {
 	dns_fixedname_t fcandidate;
 	dns_name_t *candidate = dns_fixedname_initname(&fcandidate);
-	dns_zone_t *zone = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_zt_t *zonetable = NULL;
 	unsigned int foundlabels = 0;
@@ -1902,16 +1918,14 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 	rcu_read_lock();
 	zonetable = rcu_dereference(view->zonetable);
 	if (zonetable != NULL) {
-		result = dns_zt_find(zonetable, name, 0, &zone);
+		result = dns_zt_covers(zonetable, name, foundname);
 	} else {
 		result = ISC_R_NOTFOUND;
 	}
 	rcu_read_unlock();
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		dns_name_copy(dns_zone_getorigin(zone), foundname);
 		foundlabels = dns_name_countlabels(foundname);
-		dns_zone_detach(&zone);
 	}
 
 	result = dns_fwdtable_finddeepestonly(view->fwdtable, name, candidate);

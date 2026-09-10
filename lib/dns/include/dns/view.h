@@ -731,6 +731,17 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
  *\li	#ISC_R_MULTIPLE         Multiple zones with the same name were found.
  */
 
+bool
+dns_view_containszone(dns_view_t *view, const dns_name_t *name);
+/*%<
+ * Return whether 'view' has a zone with exactly the origin 'name', without
+ * attaching the zone. Includes unloaded mirror zones.
+ *
+ * Requires:
+ * \li	'view' to be valid
+ * \li	'name' to be absolute
+ */
+
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  unsigned int options, dns_zone_t **zonep);

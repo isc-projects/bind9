@@ -95,6 +95,27 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
  */
 
 isc_result_t
+dns_fwdtable_covers(dns_fwdtable_t *fwdtable, const dns_name_t *name,
+		    dns_name_t *foundname, dns_fwdpolicy_t *policy);
+/*%<
+ * Find the closest matching forwarding entry without attaching it. Copy its
+ * name and policy into the non-NULL outputs. Outputs are unchanged on no match.
+ * The closest entry is used regardless of policy; a more distant ancestor's
+ * policy does not override it.
+ *
+ * Requires:
+ * \li	fwdtable is a valid forwarding table
+ * \li	name is absolute
+ * \li	foundname is NULL or has a dedicated buffer large enough for the result
+ * \li	policy is NULL or points to a dns_fwdpolicy_t
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS for an exact match
+ * \li	#DNS_R_PARTIALMATCH for an ancestor match
+ * \li	#ISC_R_NOTFOUND if no covering entry exists
+ */
+
+isc_result_t
 dns_fwdtable_finddeepestonly(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 			     dns_name_t *foundname);
 /*%<

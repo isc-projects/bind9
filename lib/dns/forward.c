@@ -176,6 +176,31 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 }
 
 isc_result_t
+dns_fwdtable_covers(dns_fwdtable_t *fwdtable, const dns_name_t *name,
+		    dns_name_t *foundname, dns_fwdpolicy_t *policy) {
+	isc_result_t result;
+	dns_qpread_t qpr;
+	void *pval = NULL;
+
+	REQUIRE(VALID_FWDTABLE(fwdtable));
+	REQUIRE(dns_name_isabsolute(name));
+
+	dns_qpmulti_query(fwdtable->table, &qpr);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
+			       &pval, NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		dns_forwarders_t *fwdrs = pval;
+		if (foundname != NULL) {
+			dns_name_copy(&fwdrs->name, foundname);
+		}
+		SET_IF_NOT_NULL(policy, fwdrs->fwdpolicy);
+	}
+	dns_qpread_destroy(fwdtable->table, &qpr);
+
+	return result;
+}
+
+isc_result_t
 dns_fwdtable_finddeepestonly(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 			     dns_name_t *foundname) {
 	isc_result_t result;

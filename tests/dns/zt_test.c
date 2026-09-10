@@ -66,6 +66,75 @@ count_zone(dns_zone_t *zone, void *uap) {
 	return ISC_R_SUCCESS;
 }
 
+/* Covering lookups return the closest origin without attaching a zone. */
+ISC_LOOP_TEST_IMPL(covers) {
+	dns_fixedname_t qname, found, expected;
+	dns_name_t *name = dns_fixedname_initname(&qname);
+	dns_name_t *foundname = dns_fixedname_initname(&found);
+	dns_name_t *expectedname = dns_fixedname_initname(&expected);
+	dns_zone_t *zones[2] = { NULL, NULL };
+	dns_zt_t *zt = NULL;
+	const struct {
+		const char *name;
+		const char *origin;
+		isc_result_t result;
+	} cases[] = {
+		{ "example.", "example.", ISC_R_SUCCESS },
+		{ "child.example.", "child.example.", ISC_R_SUCCESS },
+		{ "www.child.example.", "child.example.", DNS_R_PARTIALMATCH },
+		{ "sibling.example.", "example.", DNS_R_PARTIALMATCH },
+		{ "unrelated.", ".", ISC_R_NOTFOUND },
+		{ ".", ".", ISC_R_NOTFOUND },
+	};
+
+	assert_int_equal(dns_test_makeview("view", false, false, &view),
+			 ISC_R_SUCCESS);
+	dns_zt_create(view->mctx, view, &zt);
+	dns_test_namefromstring("example.", &qname);
+	dns_name_copy(dns_rootname, foundname);
+	assert_int_equal(dns_zt_covers(zt, name, foundname), ISC_R_NOTFOUND);
+	assert_true(dns_name_isroot(foundname));
+	assert_false(dns_zt_contains(zt, name));
+
+	assert_int_equal(dns_test_makezone("example", &zones[0], NULL, false),
+			 ISC_R_SUCCESS);
+	assert_int_equal(
+		dns_test_makezone("child.example", &zones[1], NULL, false),
+		ISC_R_SUCCESS);
+	for (size_t i = 0; i < ARRAY_SIZE(zones); i++) {
+		assert_int_equal(dns_zt_mount(zt, zones[i]), ISC_R_SUCCESS);
+	}
+
+	for (size_t i = 0; i < ARRAY_SIZE(cases); i++) {
+		dns_test_namefromstring(cases[i].name, &qname);
+		dns_test_namefromstring(cases[i].origin, &expected);
+		dns_name_copy(dns_rootname, foundname);
+		assert_int_equal(dns_zt_covers(zt, name, foundname),
+				 cases[i].result);
+		assert_true(dns_name_equal(foundname, expectedname));
+		assert_int_equal(dns_zt_contains(zt, name),
+				 cases[i].result == ISC_R_SUCCESS);
+	}
+
+	/* The copied origin remains valid after removing its zone. */
+	dns_test_namefromstring("www.child.example.", &qname);
+	assert_int_equal(dns_zt_covers(zt, name, foundname),
+			 DNS_R_PARTIALMATCH);
+	assert_int_equal(dns_zt_unmount(zt, zones[1]), ISC_R_SUCCESS);
+	dns_zone_detach(&zones[1]);
+	dns_test_namefromstring("child.example.", &expected);
+	assert_true(dns_name_equal(foundname, expectedname));
+	assert_int_equal(dns_zt_covers(zt, name, foundname),
+			 DNS_R_PARTIALMATCH);
+	assert_true(dns_name_equal(foundname, dns_zone_getorigin(zones[0])));
+
+	assert_int_equal(dns_zt_unmount(zt, zones[0]), ISC_R_SUCCESS);
+	dns_zone_detach(&zones[0]);
+	dns_zt_detach(&zt);
+	dns_view_detach(&view);
+	isc_loopmgr_shutdown();
+}
+
 ISC_LOOP_TEST_IMPL(sfd_forward_only_deepest) {
 	dns_fixedname_t child, found, parent, qname;
 	dns_name_t *childname = dns_fixedname_initname(&child);
@@ -74,6 +143,7 @@ ISC_LOOP_TEST_IMPL(sfd_forward_only_deepest) {
 	dns_name_t *parentname = dns_fixedname_initname(&parent);
 	isc_sockaddrlist_t addrs;
 	isc_result_t result;
+	dns_fwdpolicy_t policy = dns_fwdpolicy_none;
 
 	result = dns_test_makeview("view", false, false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -90,7 +160,41 @@ ISC_LOOP_TEST_IMPL(sfd_forward_only_deepest) {
 				  dns_fwdpolicy_first);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	result = dns_fwdtable_covers(view->fwdtable, parentname, namespace,
+				     &policy);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_name_equal(namespace, parentname));
+	assert_int_equal(policy, dns_fwdpolicy_only);
+
+	result = dns_fwdtable_covers(view->fwdtable, childname, namespace,
+				     &policy);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_name_equal(namespace, childname));
+	assert_int_equal(policy, dns_fwdpolicy_first);
+
+	dns_test_namefromstring("unrelated.", &qname);
+	result = dns_fwdtable_covers(view->fwdtable, name, namespace, &policy);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_true(dns_name_equal(namespace, childname));
+	assert_int_equal(policy, dns_fwdpolicy_first);
+
 	dns_test_namefromstring("www.child.example.", &qname);
+	result = dns_fwdtable_covers(view->fwdtable, name, namespace, &policy);
+	assert_int_equal(result, DNS_R_PARTIALMATCH);
+	assert_true(dns_name_equal(namespace, childname));
+	assert_int_equal(policy, dns_fwdpolicy_first);
+	assert_int_equal(dns_fwdtable_covers(view->fwdtable, name, NULL, NULL),
+			 DNS_R_PARTIALMATCH);
+	policy = dns_fwdpolicy_none;
+	assert_int_equal(
+		dns_fwdtable_covers(view->fwdtable, name, NULL, &policy),
+		DNS_R_PARTIALMATCH);
+	assert_int_equal(policy, dns_fwdpolicy_first);
+	assert_int_equal(
+		dns_fwdtable_covers(view->fwdtable, name, namespace, NULL),
+		DNS_R_PARTIALMATCH);
+	assert_true(dns_name_equal(namespace, childname));
+
 	dns_view_sfd_find(view, name, namespace);
 	assert_true(dns_name_equal(namespace, parentname));
 
@@ -324,6 +428,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(covers, setup_managers, teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(sfd_forward_only_deepest, setup_managers, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(sfd_secroots_boundary, setup_managers, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(apply, setup_managers, teardown_test)
