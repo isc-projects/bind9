@@ -102,3 +102,22 @@ def test_additional_from_catz_member_zone(ns2):
         dns.rdatatype.A,
     )
     assert address is not None
+
+
+@pytest.mark.requires_zones_loaded("ns1", "ns2")
+def test_nxdomain_redirect_to_catz_member_zone(ns2):
+    with ns2.watch_log_from_start() as watcher:
+        watcher.wait_for_line("zone member/IN: transferred serial 1")
+
+    # NXDOMAIN for ns1. is redirected to ns1.member.
+    msg = isctest.query.create("ns1.", "A")
+    res = isctest.query.udp(msg, ns2.ip)
+    isctest.check.noerror(res)
+    answer = res.get_rrset(
+        res.answer,
+        dns.name.from_text("ns1."),
+        dns.rdataclass.IN,
+        dns.rdatatype.A,
+    )
+    assert answer is not None
+    assert str(answer[0]) == "10.53.0.1"
