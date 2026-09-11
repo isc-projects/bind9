@@ -1088,7 +1088,7 @@ query_validateacls(ns_client_t *client, const dns_name_t *name,
 		 * We've now evaluated the view's query ACL, and the queryok
 		 * attribute is now valid.
 		 */
-		client->query.attributes = NS_QUERYATTR_QUERYOKVALID;
+		client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
 	}
 
 	/* If and only if we've gotten this far, check allow-query-on too. */

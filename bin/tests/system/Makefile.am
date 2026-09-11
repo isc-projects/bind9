@@ -95,6 +95,7 @@ TESTS =				\
 	checkds			\
 	checknames		\
 	checkzone		\
+	cname_recursion		\
 	cookie			\
 	cpu			\
 	database		\
