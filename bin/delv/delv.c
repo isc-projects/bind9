@@ -2169,7 +2169,6 @@ sendquery(void *arg) {
 	CHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, NULL, NULL,
 				    &requestmgr));
 
-	dns_view_attach(view, &(dns_view_t *){ NULL });
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
 				 DNS_REQUESTOPT_TCP, NULL, 1, 0, 0, isc_loop(),
 				 recvresponse, message, &request));
@@ -2199,7 +2198,7 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	UNUSED(cbarg);
 	UNUSED(sigresultp);
 
-	*viewp = view;
+	dns_view_attach(view, viewp);
 	*viewpatchresultp = ISC_R_SUCCESS;
 	return ISC_R_SUCCESS;
 }
