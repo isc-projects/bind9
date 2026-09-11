@@ -2085,8 +2085,6 @@ sendquery(void *arg) {
 	CHECK(dns_requestmgr_create(isc_g_mctx, dispatchmgr, NULL, NULL,
 				    &requestmgr));
 
-	dns_view_attach(view, &(dns_view_t *){ NULL });
-
 	const unsigned int timeout = isc_nm_getinitialtimeout() / MS_PER_SEC;
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
 				 DNS_REQUESTOPT_TCP, NULL, timeout, timeout, 0,
@@ -2118,7 +2116,7 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	UNUSED(cbarg);
 	UNUSED(sigresultp);
 
-	*viewp = view;
+	dns_view_attach(view, viewp);
 	*viewpatchresultp = ISC_R_SUCCESS;
 	return ISC_R_SUCCESS;
 }
