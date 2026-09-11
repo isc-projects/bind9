@@ -48,6 +48,12 @@ view "vdlz1" {
 		type primary;
 		file "root.db";
 	};
+
+	zone "allowed.nil" {
+		type primary;
+		file "allowed.nil.db";
+		allow-query { any; };
+	};
 };
 
 view "vdlz2" {
@@ -76,5 +82,27 @@ view "vdlz3" {
 	zone "." {
 		type primary;
 		file "root.db";
+	};
+};
+
+view "vzone" {
+	match-clients { 10.53.0.6; };
+	recursion yes;
+	allow-recursion { any; };
+	zone "." {
+		type primary;
+		file "root.db";
+	};
+
+	zone "allowed.nil" {
+		type primary;
+		file "allowed.nil.db";
+		allow-query { any; };
+	};
+
+	zone "denied.nil" {
+		type primary;
+		file "denied.nil.db";
+		allow-query { none; };
 	};
 };
