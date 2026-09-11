@@ -57,6 +57,7 @@ view "vdlz3" {
 	};
 	allow-query { any; };
 	allow-query-on { 10.53.0.1; };
+	minimal-responses yes;
 	zone "." {
 		type primary;
 		file "root.db";

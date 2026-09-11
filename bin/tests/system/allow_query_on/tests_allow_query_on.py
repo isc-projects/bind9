@@ -32,3 +32,4 @@ def test_allow_query_on(ns1, qname, qtype, srcip, rcode):
     if qname == "example.nil" and rcode == NOERROR:
         assert res.answer
         isctest.check.aaflag(res)
+        assert not res.authority
