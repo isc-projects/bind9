@@ -1042,6 +1042,19 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 		if (hostname_ignore_subject) {
 			hostflags |= X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
 		}
+#if OPENSSL_VERSION_NUMBER >= 0x40100000L
+		/*
+		 * OpenSSL 4.1 stopped falling back to the Subject Common
+		 * Name for certificates without SubjectAltName.  Keep
+		 * accepting such certificates for DoH, as older releases
+		 * do, by asking for the Subject explicitly.  OpenSSL then
+		 * also consults the Common Name alongside any SubjectAltName,
+		 * which is the closest to the previous behaviour it offers.
+		 */
+		if (!hostname_ignore_subject) {
+			hostflags |= X509_CHECK_FLAG_ALWAYS_CHECK_SUBJECT;
+		}
+#endif
 #else
 		UNUSED(hostname_ignore_subject);
 #endif
