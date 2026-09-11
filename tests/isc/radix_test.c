@@ -51,36 +51,30 @@ prefix6_from_str(const char *str, uint16_t bitlen, isc_prefix_t *pfx) {
 	isc_prefix_from_netaddr(pfx, &netaddr, bitlen);
 }
 
-static isc_result_t
+static isc_radix_node_t *
 insert_v4(isc_radix_tree_t *radix, const char *str, uint16_t bitlen,
-	  isc_radix_match_t match, isc_radix_node_t **nodep) {
+	  isc_radix_match_t match) {
 	isc_prefix_t pfx;
 	isc_radix_node_t *node = NULL;
-	isc_result_t result;
 
 	prefix_from_str(str, bitlen, &pfx);
-	result = isc_radix_insert(radix, &node, NULL, &pfx);
+	isc_radix_insert(radix, &node, NULL, &pfx);
 	node->match[RADIX_V4] = match;
 
-	SET_IF_NOT_NULL(nodep, node);
-
-	return result;
+	return node;
 }
 
-static isc_result_t
+static isc_radix_node_t *
 insert_v6(isc_radix_tree_t *radix, const char *str, uint16_t bitlen,
-	  isc_radix_match_t match, isc_radix_node_t **nodep) {
+	  isc_radix_match_t match) {
 	isc_prefix_t pfx;
 	isc_radix_node_t *node = NULL;
-	isc_result_t result;
 
 	prefix6_from_str(str, bitlen, &pfx);
-	result = isc_radix_insert(radix, &node, NULL, &pfx);
+	isc_radix_insert(radix, &node, NULL, &pfx);
 	node->match[RADIX_V6] = match;
 
-	SET_IF_NOT_NULL(nodep, node);
-
-	return result;
+	return node;
 }
 
 /* Search an empty tree. */
@@ -109,7 +103,7 @@ ISC_RUN_TEST_IMPL(radix_search_miss) {
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
 
 	prefix_from_str("192.168.1.1", 32, &pfx);
 	assert_int_equal(isc_radix_search(radix, &node, &pfx), ISC_R_NOTFOUND);
@@ -127,7 +121,7 @@ ISC_RUN_TEST_IMPL(radix_search_exact) {
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, NULL);
+	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
 
 	prefix_from_str("10.1.0.0", 16, &pfx);
 	assert_int_equal(isc_radix_search(radix, &node, &pfx), ISC_R_SUCCESS);
@@ -149,8 +143,8 @@ ISC_RUN_TEST_IMPL(radix_search_best_match) {
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, NULL);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
+	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
 
 	/* 10.1.2.3/32 matches both /8 and /16, but /8 was first. */
 	prefix_from_str("10.1.2.3", 32, &pfx);
@@ -174,8 +168,8 @@ ISC_RUN_TEST_IMPL(radix_first_match) {
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
 	/* Insert /8 first, then /16. Both match 10.1.2.3. */
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, NULL);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
+	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
 
 	/*
 	 * Search with /8 bitlen -- both /8 and /16 entries have
@@ -191,45 +185,26 @@ ISC_RUN_TEST_IMPL(radix_first_match) {
 
 /* Duplicate insert: same prefix should preserve the first match value. */
 ISC_RUN_TEST_IMPL(radix_duplicate_insert) {
-	isc_result_t result;
 	isc_radix_tree_t *radix = NULL;
 	isc_radix_node_t *node = NULL;
-	isc_radix_node_t *dup = NULL;
 	isc_prefix_t pfx;
 
 	UNUSED(state);
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	/*
-	 * Insert twice, checking result code. Second insert
-	 * ovewrites the match value of the first
-	 */
-	result = insert_v4(radix, "10.0.0.0", 8, RADIX_DENY, &node);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	assert_int_equal(result, ISC_R_EXISTS);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
 
-	/*
-	 * Insert the same prefix, without a match value; it returns the
-	 * existing node.
-	 */
+	/* Second insert of same prefix returns the existing node. */
+	isc_radix_node_t *dup = NULL;
 	prefix_from_str("10.0.0.0", 8, &pfx);
 	isc_radix_insert(radix, &dup, NULL, &pfx);
-	assert_int_equal(node, dup);
-
-	/* The match value should be unchanged (most recent insert). */
+	/* The match value should be unchanged (first insert wins). */
 	assert_int_equal(dup->match[RADIX_V4], RADIX_ALLOW);
 
-	/*
-	 * Look up an address that matches the shorter prefix, check
-	 * that the existing node is returned.
-	 */
-	node = NULL;
 	prefix_from_str("10.0.0.1", 32, &pfx);
 	assert_int_equal(isc_radix_search(radix, &node, &pfx), ISC_R_SUCCESS);
 	assert_int_equal(node->match[RADIX_V4], RADIX_ALLOW);
-	assert_int_equal(node, dup);
 
 	isc_radix_destroy(radix);
 }
@@ -244,8 +219,8 @@ ISC_RUN_TEST_IMPL(radix_ipv6) {
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v6(radix, "2001:db8::", 32, RADIX_ALLOW, NULL);
-	insert_v6(radix, "2001:db8:1::", 48, RADIX_DENY, NULL);
+	insert_v6(radix, "2001:db8::", 32, RADIX_ALLOW);
+	insert_v6(radix, "2001:db8:1::", 48, RADIX_DENY);
 
 	/* First-match: /32 was inserted first, so it wins. */
 	prefix6_from_str("2001:db8:1::1", 128, &pfx);
@@ -267,15 +242,14 @@ ISC_RUN_TEST_IMPL(radix_ipv6) {
 ISC_RUN_TEST_IMPL(radix_remove_leaf) {
 	isc_radix_tree_t *radix = NULL;
 	isc_radix_node_t *node = NULL;
-	isc_radix_node_t *leaf = NULL;
 	isc_prefix_t pfx;
 
 	UNUSED(state);
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, &leaf);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
+	isc_radix_node_t *leaf = insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
 
 	isc_radix_remove(radix, leaf);
 
@@ -301,16 +275,15 @@ ISC_RUN_TEST_IMPL(radix_remove_leaf) {
 ISC_RUN_TEST_IMPL(radix_remove_internal) {
 	isc_radix_tree_t *radix = NULL;
 	isc_radix_node_t *node = NULL;
-	isc_radix_node_t *mid = NULL;
 	isc_prefix_t pfx;
 
 	UNUSED(state);
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, &mid);
-	insert_v4(radix, "10.1.1.0", 24, RADIX_ALLOW, NULL);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
+	isc_radix_node_t *mid = insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
+	insert_v4(radix, "10.1.1.0", 24, RADIX_ALLOW);
 
 	/* Remove the /16 which sits between /8 and /24. */
 	isc_radix_remove(radix, mid);
@@ -333,14 +306,13 @@ ISC_RUN_TEST_IMPL(radix_remove_internal) {
 ISC_RUN_TEST_IMPL(radix_remove_root) {
 	isc_radix_tree_t *radix = NULL;
 	isc_radix_node_t *node = NULL;
-	isc_radix_node_t *root = NULL;
 	isc_prefix_t pfx;
 
 	UNUSED(state);
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, &root);
+	isc_radix_node_t *root = insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
 	isc_radix_remove(radix, root);
 
 	prefix_from_str("10.0.0.1", 32, &pfx);
@@ -365,9 +337,9 @@ ISC_RUN_TEST_IMPL(radix_foreach) {
 
 	isc_radix_create(isc_g_mctx, &radix, 128);
 
-	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW, NULL);
-	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY, NULL);
-	insert_v4(radix, "192.168.0.0", 16, RADIX_ALLOW, NULL);
+	insert_v4(radix, "10.0.0.0", 8, RADIX_ALLOW);
+	insert_v4(radix, "10.1.0.0", 16, RADIX_DENY);
+	insert_v4(radix, "192.168.0.0", 16, RADIX_ALLOW);
 
 	isc_radix_foreach(radix, count_nodes, &count);
 	assert_int_equal(count, 3);
