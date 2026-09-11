@@ -128,6 +128,15 @@ named_server_destroy(named_server_t **serverp);
  * Destroy a server object, freeing its memory.
  */
 
+isc_result_t
+named_server_applyzones(named_server_t *server,
+			isc_result_t (*action)(dns_zone_t *, void *),
+			void *arg);
+/*%<
+ * Apply 'action' to every active zone owned by the server's current views,
+ * including raw, managed-keys, and redirect zones.
+ */
+
 void
 named_server_reloadwanted(void *arg, int signum);
 /*%<

@@ -512,7 +512,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 		.nsec3chain = ISC_LIST_INITIALIZER,
 		.maintenance_queue = ISC_LIST_INITIALIZER,
 		.forwards = ISC_LIST_INITIALIZER,
-		.link = ISC_LINK_INITIALIZER,
 		.statelink = ISC_LINK_INITIALIZER,
 	};
 	dns_remote_t r = {
@@ -561,7 +560,6 @@ dns__zone_free(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(!LOCKED_ZONE(zone));
 	REQUIRE(zone->timer == NULL);
-	REQUIRE(zone->zmgr == NULL);
 
 	dns_zone_unloadplugins(zone);
 
@@ -711,6 +709,9 @@ dns__zone_free(dns_zone_t *zone) {
 	}
 
 	/* last stuff */
+	if (zone->loop != NULL) {
+		isc_loop_detach(&zone->loop);
+	}
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	isc_mutex_destroy(&zone->lock);
 	zone->magic = 0;
@@ -1487,7 +1488,7 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_callback_t *done,
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (zone->zmgr == NULL) {
+	if (zone->loop == NULL) {
 		return ISC_R_FAILURE;
 	}
 
@@ -1714,7 +1715,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 
 	CHECK(dns_db_beginload(db, &load->callbacks));
 
-	if (zone->zmgr != NULL && zone->db != NULL) {
+	if (zone->loop != NULL && zone->db != NULL) {
 		CHECK(dns_master_loadfileasync(
 			zone->masterfile, dns_db_origin(db), dns_db_origin(db),
 			zone->rdclass, options, 0, &load->callbacks, zone->loop,
@@ -4581,6 +4582,41 @@ dns__zone_free_check(dns_zone_t *zone) {
 		return true;
 	}
 	return false;
+}
+
+void
+dns_zone_forcemaint(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK_ZONE(zone);
+	dns__zone_settimer(zone, isc_time_now());
+	UNLOCK_ZONE(zone);
+}
+
+unsigned int
+dns_zone_getcount(dns_zone_t *zone, dns_zonestate_t state) {
+	unsigned int count = 0;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK_ZONE(zone);
+	switch (state) {
+	case DNS_ZONESTATE_XFERFIRSTREFRESH:
+		count = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
+		break;
+	case DNS_ZONESTATE_SOAQUERY:
+		count = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH);
+		break;
+	case DNS_ZONESTATE_ANY:
+	case DNS_ZONESTATE_AUTOMATIC:
+		if (zone->view == NULL ||
+		    strcmp(zone->view->name, "_bind") != 0)
+		{
+			count = state == DNS_ZONESTATE_ANY || zone->automatic;
+		}
+		break;
+	default:
+		UNREACHABLE();
+	}
+	UNLOCK_ZONE(zone);
+	return count;
 }
 
 static bool
@@ -12534,7 +12570,7 @@ queue_soa_query(dns_zone_t *zone) {
 	 * Attach so that we won't clean up until the event is delivered.
 	 */
 	zone_iattach(zone, &sq->zone);
-	result = isc_ratelimiter_enqueue(zone->zmgr->refreshrl, zone->loop,
+	result = isc_ratelimiter_enqueue(dns_g_zonemgr->refreshrl, zone->loop,
 					 soa_query, sq, &sq->rlevent);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&sq->zone);
@@ -13061,24 +13097,23 @@ zone_shutdown(void *arg) {
 	/*
 	 * If we were waiting for xfrin quota, step out of
 	 * the queue.
-	 * If there's no zone manager, we can't be waiting for the
-	 * xfrin quota
+	 * A zone without an event loop cannot be waiting for transfer quota.
 	 */
-	if (zone->zmgr != NULL) {
-		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-		if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
-			ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
+	if (zone->loop != NULL) {
+		RWLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_write);
+		if (zone->statelist == &dns_g_zonemgr->waiting_for_xfrin) {
+			ISC_LIST_UNLINK(dns_g_zonemgr->waiting_for_xfrin, zone,
 					statelink);
 			linked = true;
 			zone->statelist = NULL;
 		}
-		if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
-			ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone,
+		if (zone->statelist == &dns_g_zonemgr->xfrin_in_progress) {
+			ISC_LIST_UNLINK(dns_g_zonemgr->xfrin_in_progress, zone,
 					statelink);
 			zone->statelist = NULL;
-			dns__zonemgr_resume_xfrs(zone->zmgr, false);
+			dns__zonemgr_resume_xfrs(dns_g_zonemgr, false);
 		}
-		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		RWUNLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_write);
 	}
 
 	/*
@@ -13087,11 +13122,6 @@ zone_shutdown(void *arg) {
 	if (zone->xfr != NULL) {
 		/* The final detach will happen in dns__zone_xfrdone() */
 		dns_xfrin_shutdown(zone->xfr);
-	}
-
-	/* Safe to release the zone now */
-	if (zone->zmgr != NULL) {
-		dns_zonemgr_releasezone(zone->zmgr, zone);
 	}
 
 	/* Detach the zone configuration pointer */
@@ -15712,15 +15742,16 @@ again:
 	 * This transfer finishing freed up a transfer quota slot.
 	 * Let any other zones waiting for quota have it.
 	 */
-	if (zone->zmgr != NULL &&
-	    zone->statelist == &zone->zmgr->xfrin_in_progress)
+	if (zone->loop != NULL &&
+	    zone->statelist == &dns_g_zonemgr->xfrin_in_progress)
 	{
 		UNLOCK_ZONE(zone);
-		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-		ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
+		RWLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_write);
+		ISC_LIST_UNLINK(dns_g_zonemgr->xfrin_in_progress, zone,
+				statelink);
 		zone->statelist = NULL;
-		dns__zonemgr_resume_xfrs(zone->zmgr, false);
-		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		dns__zonemgr_resume_xfrs(dns_g_zonemgr, false);
+		RWUNLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_write);
 		LOCK_ZONE(zone);
 	}
 
@@ -15814,7 +15845,7 @@ again:
 static void
 queue_xfrin(dns_zone_t *zone) {
 	isc_result_t result;
-	dns_zonemgr_t *zmgr = zone->zmgr;
+	dns_zonemgr_t *zmgr = dns_g_zonemgr;
 
 	ENTER;
 
@@ -15935,7 +15966,7 @@ next:
 		}
 	}
 
-	dns__zonemgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
+	dns__zonemgr_tlsctx_attach(dns_g_zonemgr, &zmgr_tlsctx_cache);
 	const unsigned int connect_timeout = isc_nm_getprimariestimeout() /
 					     MS_PER_SEC;
 	result = dns_request_createraw(
@@ -16182,15 +16213,15 @@ dns_zone_stopxfr(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	RWLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
-	if (zone->statelist == &zone->zmgr->xfrin_in_progress &&
+	if (zone->statelist == &dns_g_zonemgr->xfrin_in_progress &&
 	    zone->xfr != NULL)
 	{
 		dns_xfrin_attach(zone->xfr, &xfr);
 	}
 	UNLOCK_ZONE(zone);
-	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	RWUNLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_read);
 
 	if (xfr != NULL) {
 		dns_xfrin_shutdown(xfr);
@@ -16278,7 +16309,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
-	if (zone->zmgr == NULL) {
+	if (zone->loop == NULL) {
 		return ISC_R_FAILURE;
 	}
 
@@ -16290,20 +16321,20 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
 	*is_pending = false;
 	*needs_refresh = false;
 
-	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	RWLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
 	*is_firstrefresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
 	if (zone->xfr != NULL) {
 		dns_xfrin_attach(zone->xfr, xfrp);
 	}
-	if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
+	if (zone->statelist == &dns_g_zonemgr->xfrin_in_progress) {
 		*is_running = true;
 		/*
 		 * The NEEDREFRESH flag is set only when a notify was received
 		 * while the current zone transfer is running.
 		 */
 		*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
-	} else if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
+	} else if (zone->statelist == &dns_g_zonemgr->waiting_for_xfrin) {
 		*is_deferred = true;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 		if (zone->request != NULL) {
@@ -16329,7 +16360,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
 		}
 	}
 	UNLOCK_ZONE(zone);
-	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	RWUNLOCK(&dns_g_zonemgr->rwlock, isc_rwlocktype_read);
 
 	return ISC_R_SUCCESS;
 }
@@ -17570,7 +17601,7 @@ checkds_send_toaddr(void *arg) {
 
 	options |= DNS_REQUESTOPT_TCP;
 
-	dns__zonemgr_tlsctx_attach(checkds->zone->zmgr, &zmgr_tlsctx_cache);
+	dns__zonemgr_tlsctx_attach(dns_g_zonemgr, &zmgr_tlsctx_cache);
 	const unsigned int connect_timeout = isc_nm_getinitialtimeout() /
 					     MS_PER_SEC;
 
@@ -17644,10 +17675,9 @@ checkds_send_tons(dns_checkds_t *checkds) {
 			UNREACHABLE();
 		}
 
-		CHECK(isc_ratelimiter_enqueue(newcheckds->zone->zmgr->checkdsrl,
-					      newcheckds->zone->loop,
-					      checkds_send_toaddr, newcheckds,
-					      &newcheckds->rlevent));
+		CHECK(isc_ratelimiter_enqueue(
+			dns_g_zonemgr->checkdsrl, newcheckds->zone->loop,
+			checkds_send_toaddr, newcheckds, &newcheckds->rlevent));
 		newcheckds = NULL;
 	}
 
@@ -17764,7 +17794,7 @@ checkds_send(dns_zone_t *zone) {
 
 		ISC_LIST_APPEND(zone->checkds_requests, checkds, link);
 		result = isc_ratelimiter_enqueue(
-			checkds->zone->zmgr->checkdsrl, checkds->zone->loop,
+			dns_g_zonemgr->checkdsrl, checkds->zone->loop,
 			checkds_send_toaddr, checkds, &checkds->rlevent);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
@@ -19715,32 +19745,30 @@ again:
 }
 
 /*
- * Lock hierarchy: zmgr, zone, raw.
+ * Link a fresh raw zone to its signed counterpart on the same event loop.
  */
 isc_result_t
 dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
-	dns_zonemgr_t *zmgr;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->zmgr != NULL);
 	REQUIRE(zone->loop != NULL);
 	REQUIRE(zone->raw == NULL);
 
 	REQUIRE(DNS_ZONE_VALID(raw));
-	REQUIRE(raw->zmgr == NULL);
-	REQUIRE(raw->loop == NULL);
 	REQUIRE(raw->secure == NULL);
 
 	REQUIRE(zone != raw);
 
 	/*
-	 * Lock hierarchy: zmgr, zone, raw.
+	 * Lock hierarchy: zone, raw. No global registration is needed.
 	 */
-	zmgr = zone->zmgr;
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	LOCK_ZONE(zone);
 	LOCK_ZONE(raw);
 
+	REQUIRE(raw->timer == NULL);
+	if (raw->loop != NULL) {
+		isc_loop_detach(&raw->loop);
+	}
+	raw->tid = zone->tid;
 	isc_loop_attach(zone->loop, &raw->loop);
 
 	/* dns_zone_attach(raw, &zone->raw); */
@@ -19750,13 +19778,8 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	/* dns_zone_iattach(zone, &raw->secure); */
 	zone_iattach(zone, &raw->secure);
 
-	ISC_LIST_APPEND(zmgr->zones, raw, link);
-	raw->zmgr = zmgr;
-	isc_refcount_increment(&zmgr->refs);
-
 	UNLOCK_ZONE(raw);
 	UNLOCK_ZONE(zone);
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	return ISC_R_SUCCESS;
 }
 

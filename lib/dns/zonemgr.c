@@ -26,8 +26,7 @@
 
 #include "zone_p.h"
 
-static void
-zonemgr_free(dns_zonemgr_t *zmgr);
+dns_zonemgr_t *dns_g_zonemgr = NULL;
 
 /***
  ***	Zone manager.
@@ -71,6 +70,7 @@ dns_zonemgr_create(isc_mem_t *mctx, dns_zonemgr_t **zmgrp) {
 	isc_loop_t *loop = isc_loop();
 
 	REQUIRE(mctx != NULL);
+	REQUIRE(dns_g_zonemgr == NULL);
 	REQUIRE(zmgrp != NULL && *zmgrp == NULL);
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
@@ -81,10 +81,8 @@ dns_zonemgr_create(isc_mem_t *mctx, dns_zonemgr_t **zmgrp) {
 		.transfersperns = 2,
 	};
 
-	isc_refcount_init(&zmgr->refs, 1);
 	isc_mem_attach(mctx, &zmgr->mctx);
 
-	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	isc_rwlock_init(&zmgr->rwlock);
@@ -115,6 +113,7 @@ dns_zonemgr_create(isc_mem_t *mctx, dns_zonemgr_t **zmgrp) {
 
 	zmgr->magic = ZONEMGR_MAGIC;
 
+	dns_g_zonemgr = zmgr;
 	*zmgrp = zmgr;
 }
 
@@ -139,97 +138,16 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 	}
 
 	dns_zone_create(&zone, mctx, tid);
+	isc_loop_attach(isc_loop_get(tid), &zone->loop);
 
 	*zonep = zone;
 
 	return ISC_R_SUCCESS;
 }
 
-isc_result_t
-dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	LOCK_ZONE(zone);
-	REQUIRE(zone->timer == NULL);
-	REQUIRE(zone->zmgr == NULL);
-
-	isc_loop_t *loop = isc_loop_get(zone->tid);
-	isc_loop_attach(loop, &zone->loop);
-
-	ISC_LIST_APPEND(zmgr->zones, zone, link);
-	zone->zmgr = zmgr;
-
-	isc_refcount_increment(&zmgr->refs);
-
-	UNLOCK_ZONE(zone);
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return ISC_R_SUCCESS;
-}
-
 void
-dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
+dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-	REQUIRE(zone->zmgr == zmgr);
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	LOCK_ZONE(zone);
-
-	ISC_LIST_UNLINK(zmgr->zones, zone, link);
-
-	if (zone->timer != NULL) {
-		isc_refcount_decrement(&zone->irefs);
-		isc_timer_destroy(&zone->timer);
-	}
-
-	isc_loop_detach(&zone->loop);
-
-	/* Detach below, outside of the write lock. */
-	zone->zmgr = NULL;
-
-	UNLOCK_ZONE(zone);
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-
-	dns_zonemgr_detach(&zmgr);
-}
-
-void
-dns_zonemgr_attach(dns_zonemgr_t *source, dns_zonemgr_t **target) {
-	REQUIRE(DNS_ZONEMGR_VALID(source));
-	REQUIRE(target != NULL && *target == NULL);
-
-	isc_refcount_increment(&source->refs);
-
-	*target = source;
-}
-
-void
-dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
-	dns_zonemgr_t *zmgr;
-
-	REQUIRE(zmgrp != NULL);
-	zmgr = *zmgrp;
-	*zmgrp = NULL;
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	if (isc_refcount_decrement(&zmgr->refs) == 1) {
-		zonemgr_free(zmgr);
-	}
-}
-
-isc_result_t
-dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
-	ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-		LOCK_ZONE(zone);
-		dns__zone_settimer(zone, isc_time_now());
-		UNLOCK_ZONE(zone);
-	}
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
 	/*
 	 * Recent configuration changes may have increased the
@@ -240,12 +158,14 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	dns__zonemgr_resume_xfrs(zmgr, true);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	return ISC_R_SUCCESS;
 }
 
 void
 dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(!zmgr->shuttingdown);
+
+	zmgr->shuttingdown = true;
 
 	isc_ratelimiter_shutdown(zmgr->checkdsrl);
 	isc_ratelimiter_shutdown(zmgr->notifyrl);
@@ -256,23 +176,22 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		isc_mem_detach(&zmgr->mctxpool[i]);
 	}
-
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
-	ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-		LOCK_ZONE(zone);
-		dns__zone_forward_cancel(zone);
-		UNLOCK_ZONE(zone);
-	}
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 }
 
-static void
-zonemgr_free(dns_zonemgr_t *zmgr) {
-	REQUIRE(ISC_LIST_EMPTY(zmgr->zones));
+void
+dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
+	REQUIRE(zmgrp != NULL && DNS_ZONEMGR_VALID(*zmgrp));
+	REQUIRE(isc_loop() == NULL);
+	dns_zonemgr_t *zmgr = *zmgrp;
+	REQUIRE(zmgr->shuttingdown);
+	REQUIRE(zmgr == dns_g_zonemgr);
+	REQUIRE(ISC_LIST_EMPTY(zmgr->waiting_for_xfrin));
+	REQUIRE(ISC_LIST_EMPTY(zmgr->xfrin_in_progress));
+	*zmgrp = NULL;
+	dns_g_zonemgr = NULL;
 
 	zmgr->magic = 0;
 
-	isc_refcount_destroy(&zmgr->refs);
 	isc_ratelimiter_detach(&zmgr->checkdsrl);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
@@ -528,7 +447,7 @@ got_transfer_quota(void *arg) {
 
 	INSIST(isc_sockaddr_pf(&primaryaddr) == isc_sockaddr_pf(&sourceaddr));
 
-	dns__zonemgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
+	dns__zonemgr_tlsctx_attach(dns_g_zonemgr, &zmgr_tlsctx_cache);
 
 	dns_xfrin_create(zone, xfrtype, ixfr_maxdiffs, &primaryaddr,
 			 &sourceaddr, zone->tsigkey, soa_transport_type,
@@ -766,40 +685,6 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, dns_zonestate_t state) {
 			count++;
 		}
 		break;
-	case DNS_ZONESTATE_XFERFIRSTREFRESH:
-		ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIRSTREFRESH)) {
-				count++;
-			}
-		}
-		break;
-	case DNS_ZONESTATE_SOAQUERY:
-		ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
-				count++;
-			}
-		}
-		break;
-	case DNS_ZONESTATE_ANY:
-		ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-			dns_view_t *view = zone->view;
-			if (view != NULL && strcmp(view->name, "_bind") == 0) {
-				continue;
-			}
-			count++;
-		}
-		break;
-	case DNS_ZONESTATE_AUTOMATIC:
-		ISC_LIST_FOREACH(zmgr->zones, zone, link) {
-			dns_view_t *view = zone->view;
-			if (view != NULL && strcmp(view->name, "_bind") == 0) {
-				continue;
-			}
-			if (zone->automatic) {
-				count++;
-			}
-		}
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -807,30 +692,4 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, dns_zonestate_t state) {
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
 	return count;
-}
-
-isc_result_t
-dns_zonemgr_next_zone(dns_zone_t *zone, dns_zone_t **next) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(next != NULL && *next == NULL);
-
-	*next = ISC_LIST_NEXT(zone, link);
-	if (*next == NULL) {
-		return ISC_R_NOMORE;
-	} else {
-		return ISC_R_SUCCESS;
-	}
-}
-
-isc_result_t
-dns_zonemgr_first_zone(dns_zonemgr_t *zmgr, dns_zone_t **first) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-	REQUIRE(first != NULL && *first == NULL);
-
-	*first = ISC_LIST_HEAD(zmgr->zones);
-	if (*first == NULL) {
-		return ISC_R_NOMORE;
-	} else {
-		return ISC_R_SUCCESS;
-	}
 }

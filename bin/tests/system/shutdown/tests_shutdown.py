@@ -15,10 +15,15 @@ from string import ascii_lowercase as letters
 import os
 import random
 import signal
+import socket
+import struct
 import subprocess
 import time
 
 import dns.exception
+import dns.message
+import dns.opcode
+import dns.update
 import pytest
 
 import isctest
@@ -27,6 +32,10 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "resolver/named.conf",
         "resolver/named.run",
+        "forwarder/named.conf",
+        "forwarder/named.run",
+        "forwarder/forward.db",
+        "forwarder/db-*",
     ]
 )
 
@@ -185,3 +194,75 @@ def test_named_shutdown(kill_method):
                 assert named_proc.returncode == 0, "named crashed"
             finally:  # Ensure named is terminated in case of an exception
                 named_proc.kill()
+
+
+@pytest.mark.parametrize("retired_view", [False, True])
+@pytest.mark.parametrize("kill_method", ["rndc", "sigterm"])
+def test_shutdown_pending_forward(retired_view, kill_method, templates, named_port):
+    """
+    Shutdown must not wait for an unanswered forwarded UPDATE.
+
+    Keep the primary connection open until named exits.  In particular, do not
+    let closing the test socket accidentally unblock shutdown.  Reconfiguring
+    with a different view name leaves the old view held by the pending client.
+    """
+    cfg_dir = "forwarder"
+    templates.render(f"{cfg_dir}/named.conf", {"retired": False})
+    templates.render(f"{cfg_dir}/forward.db")
+    instance = isctest.instance.NamedInstance(cfg_dir, num=3)
+
+    def receive_exact(connection, length):
+        result = b""
+        while len(result) < length:
+            chunk = connection.recv(length - len(result))
+            assert chunk, "forwarding connection closed before UPDATE arrived"
+            result += chunk
+        return result
+
+    with socket.socket() as primary, socket.socket(
+        socket.AF_INET, socket.SOCK_DGRAM
+    ) as client:
+        primary.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        primary.bind(("10.53.0.4", named_port))
+        primary.listen()
+        primary.settimeout(10)
+        client.settimeout(0.2)
+        with open(f"{cfg_dir}/named.run", "ab") as log:
+            with subprocess.Popen(
+                isctest.run.get_named_cmdline(cfg_dir), cwd=cfg_dir, stderr=log
+            ) as proc:
+                try:
+                    isctest.check.named_alive(proc, "10.53.0.3")
+                    update = dns.update.Update("forward.test")
+                    update.add("pending", 300, "A", "192.0.2.1")
+                    client.sendto(update.to_wire(), ("10.53.0.3", named_port))
+                    connection, _ = primary.accept()
+                    with connection:
+                        connection.settimeout(10)
+                        length = struct.unpack("!H", receive_exact(connection, 2))[0]
+                        forwarded = dns.message.from_wire(
+                            receive_exact(connection, length)
+                        )
+                        assert forwarded.opcode() == dns.opcode.UPDATE
+                        assert forwarded.question == update.question
+                        if retired_view:
+                            templates.render(f"{cfg_dir}/named.conf", {"retired": True})
+                            instance.rndc("reconfig")
+                            # Prove the old view is no longer in the active config.
+                            result = instance.rndc(
+                                "showzone forward.test IN original",
+                                raise_on_exception=False,
+                            )
+                            assert result.rc != 0
+                        # The operation must still be outstanding at shutdown.
+                        with pytest.raises(socket.timeout):
+                            client.recv(65535)
+                        if kill_method == "rndc":
+                            instance.rndc("stop")
+                        else:
+                            proc.terminate()
+                        assert proc.wait(timeout=10) == 0
+                finally:
+                    if proc.poll() is None:
+                        proc.kill()
+                        proc.wait()

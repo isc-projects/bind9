@@ -334,7 +334,7 @@ typedef struct zone_settimer {
 struct dns_zonemgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
-	isc_refcount_t refs;
+	bool shuttingdown;
 	uint32_t workers;
 	isc_mem_t **mctxpool;
 	isc_ratelimiter_t *checkdsrl;
@@ -345,7 +345,6 @@ struct dns_zonemgr {
 	isc_rwlock_t rwlock;
 
 	/* Locked by rwlock. */
-	dns_zonelist_t zones;
 	dns_zonelist_t waiting_for_xfrin;
 	dns_zonelist_t xfrin_in_progress;
 
@@ -454,8 +453,6 @@ struct dns_zone {
 
 	isc_tid_t tid;
 	/* Locked */
-	dns_zonemgr_t *zmgr;
-	ISC_LINK(dns_zone_t) link; /* Used by zmgr. */
 	isc_loop_t *loop;
 	isc_timer_t *timer;
 	isc_refcount_t irefs;
