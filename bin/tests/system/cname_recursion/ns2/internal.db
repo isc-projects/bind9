@@ -14,3 +14,4 @@ internal.		IN SOA	ns2.internal. hostmaster.internal. 1 600 600 1200 600
 internal.		NS	ns2.internal.
 ns2.internal.		A	10.53.0.2
 alias.internal.		CNAME	target.external.
+mx.internal.		MX	10 ns1.member.

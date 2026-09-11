@@ -19,6 +19,7 @@
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation no;
+	minimal-responses no;
 	allow-query { any; };
 	allow-new-zones yes;
 	catalog-zones {
