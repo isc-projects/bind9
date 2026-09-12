@@ -773,7 +773,9 @@ prepare_response(void *arg) {
 
 	LOCK(&mgr->lock);
 	ISC_LIST_FOREACH(mgr->urls, url, link) {
-		if (strncmp(path, url->url, path_len) == 0) {
+		if (strlen(url->url) == path_len &&
+		    strncmp(path, url->url, path_len) == 0)
+		{
 			break;
 		}
 	}
