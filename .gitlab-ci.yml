@@ -321,7 +321,7 @@ coccinelle:
 danger:
   <<: *precheck_job
   environment:
-    name: api-danger
+    name: danger
     action: access
   needs: []
   script:
