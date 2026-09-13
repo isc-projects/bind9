@@ -824,7 +824,7 @@ shfmt:
 danger:
   <<: *quick_checks_job
   environment:
-    name: api-danger
+    name: danger
     action: access
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
