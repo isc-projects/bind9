@@ -12,6 +12,7 @@
 from . import (
     algorithms,
     check,
+    features,
     hypothesis,
     instance,
     kasp,
@@ -32,6 +33,7 @@ from . import (
 __all__ = [
     "algorithms",
     "check",
+    "features",
     "hypothesis",
     "instance",
     "kasp",

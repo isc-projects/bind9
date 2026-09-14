@@ -124,6 +124,10 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    # Probe feature support and export the FEATURE_* environment variables
+    # before test collection, since isctest.mark reads them at import time.
+    isctest.features.init_features()
+
     # Ensure this hook only runs on the main pytest instance if xdist is
     # used to spawn other workers.
     if not XDIST_WORKER:
