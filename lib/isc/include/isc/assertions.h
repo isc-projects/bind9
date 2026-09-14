@@ -32,7 +32,6 @@ typedef enum {
 typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
-/* coverity[+kill] */
 noreturn void
 isc_assertion_failed(const char *, int, isc_assertiontype_t, const char *);
 

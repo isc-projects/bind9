@@ -41,7 +41,6 @@ static isc_assertioncallback_t isc_assertion_failed_cb = default_callback;
  */
 
 /*% assertion failed handler */
-/* coverity[+kill] */
 void
 isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 		     const char *cond) {

@@ -41,7 +41,7 @@ clang-format over it — it is not your code to reformat.
   prose, not the fix; do not rationalize "the comment was AI" to keep
   the trailer.
 - After the model id, list specialized analysis tools actually used
-  (coccinelle, clang-tidy, AFL, Coverity, fuzzers) — never trivial
+  (coccinelle, clang-tidy, AFL, fuzzers) — never trivial
   tooling (git, compilers, meson, clang-format, black, ruff).
 - NEVER, in any repo:
   - `Co-Authored-By: ...` or any AI co-author line;
