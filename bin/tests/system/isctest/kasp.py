@@ -888,10 +888,15 @@ def check_dnssec_verify(server, zone, tsig=None):
     isctest.run.retry_with_timeout(_verify_zone, timeout=60, msg="zone not verified")
 
 
-def check_dnssecstatus(server, zone, keys, policy=None, view=None):
+def check_dnssecstatus(server, zone, keys, policy=None, view=None, verbose=False):
     # Call rndc dnssec -status on 'server' for 'zone'. Expect 'policy' in
     # the output. This is a loose verification, it just tests if the right
     # policy name is returned, and if all expected keys are listed.
+    #
+    # The verbose parameter is accepted for call compatibility with newer
+    # branches; rndc dnssec -status has no -v option here, so it is ignored.
+    if verbose:
+        isctest.log.debug("check_dnssecstatus: verbose output not supported here")
     response = ""
     if view is None:
         response = server.rndc(f"dnssec -status {zone}")
