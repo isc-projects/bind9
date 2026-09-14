@@ -29,6 +29,21 @@ live_internet_test = pytest.mark.skipif(
 )
 
 
+rsasha1 = pytest.mark.skipif(
+    os.getenv("FEATURE_RSASHA1") != "1", reason="RSASHA1 disabled"
+)
+
+
+# FEATURE_EXTENDED_DS_DIGEST is never set on this branch (the feature and its
+# feature-test probe only exist on newer branches), so this marker degrades to
+# an unconditional skip; it is defined here so that gated tests can be
+# backported without breaking test collection.
+extended_ds_digest = pytest.mark.skipif(
+    os.getenv("FEATURE_EXTENDED_DS_DIGEST") != "1",
+    reason="extended DS digest algorithms disabled",
+)
+
+
 DNSRPS_BIN = Path(os.environ["TOP_BUILDDIR"]) / "bin/tests/system/rpz/dnsrps"
 
 
