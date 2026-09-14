@@ -204,7 +204,7 @@ ASSISTED_BY_VALID_RE = re.compile(
 # given in CONTRIBUTING.md (git, compilers, meson, ninja, editors,
 # clang-format, black, ruff) with other formatters, generic linters, and
 # build/test runners commonly invoked by .gitlab-ci.yml.  Specialized
-# analysis tools (coccinelle, clang-tidy, AFL, Coverity, cppcheck,
+# analysis tools (coccinelle, clang-tidy, AFL, cppcheck,
 # valgrind, sanitizers) are intentionally absent.
 ASSISTED_BY_BASIC_TOOL_RE = re.compile(
     r"\b("
@@ -296,7 +296,7 @@ for commit in danger.git.commits:
                 "Per `CONTRIBUTING.md`, basic dev tools (git, compilers, "
                 "build systems, editors, formatters, generic linters, "
                 "etc.) should not be listed.  Only specialized analysis "
-                "tools (e.g. coccinelle, clang-tidy, AFL, Coverity) "
+                "tools (e.g. coccinelle, clang-tidy, AFL) "
                 "belong in the trailer."
             )
     match = MR_TITLE_RE.match(subject)

@@ -1,4 +1,4 @@
-@depends on !(file in "util/models.c") && !(file in "lib/dns/sdlz.c") && !(file in "lib/dns/include/dns/db.h")@
+@depends on !(file in "lib/dns/sdlz.c") && !(file in "lib/dns/include/dns/db.h")@
 iterator name DNS_DBITERATOR_FOREACH, DNS_RDATASET_FOREACH, DNS_RDATASETITER_FOREACH;
 @@
 
