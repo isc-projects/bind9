@@ -33,6 +33,7 @@ STABLE_PERIOD = 3600 * 3
 class Algorithm(NamedTuple):
     name: str
     number: int
+    dst: int
     bits: int
 
 
@@ -53,16 +54,18 @@ class AlgorithmSet(NamedTuple):
     "disable-algorithms" configuration option."""
 
 
-RSASHA1 = Algorithm("RSASHA1", 5, 1280)
-RSASHA256 = Algorithm("RSASHA256", 8, 1280)
-RSASHA512 = Algorithm("RSASHA512", 10, 1280)
-ECDSAP256SHA256 = Algorithm("ECDSAP256SHA256", 13, 256)
-ECDSAP384SHA384 = Algorithm("ECDSAP384SHA384", 14, 384)
-ED25519 = Algorithm("ED25519", 15, 256)
-ED448 = Algorithm("ED448", 16, 456)
+RSASHA1 = Algorithm("RSASHA1", 5, 5, 2048)
+NSEC3RSASHA1 = Algorithm("NSEC3RSASHA1", 7, 7, 2048)
+RSASHA256 = Algorithm("RSASHA256", 8, 8, 2048)
+RSASHA512 = Algorithm("RSASHA512", 10, 10, 2048)
+ECDSAP256SHA256 = Algorithm("ECDSAP256SHA256", 13, 13, 256)
+ECDSAP384SHA384 = Algorithm("ECDSAP384SHA384", 14, 14, 384)
+ED25519 = Algorithm("ED25519", 15, 15, 256)
+ED448 = Algorithm("ED448", 16, 16, 456)
 
 ALL_ALGORITHMS = [
     RSASHA1,
+    NSEC3RSASHA1,
     RSASHA256,
     RSASHA512,
     ECDSAP256SHA256,
@@ -214,10 +217,7 @@ def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
     def set_alg_env(alg: Algorithm, prefix):
         algs_env[f"{prefix}_ALGORITHM"] = alg.name
         algs_env[f"{prefix}_ALGORITHM_NUMBER"] = str(alg.number)
-        # For all algorithms selectable here, the DST algorithm identifier is
-        # the same as the on-wire number; they only differ for the private-OID
-        # algorithms, which are not supported by this branch.
-        algs_env[f"{prefix}_ALGORITHM_DST_NUMBER"] = str(alg.number)
+        algs_env[f"{prefix}_ALGORITHM_DST_NUMBER"] = str(alg.dst)
         algs_env[f"{prefix}_BITS"] = str(alg.bits)
 
     assert isinstance(algs.default, Algorithm)
@@ -246,6 +246,11 @@ def main():
         raise
     for name, value in algs_env.items():
         print(f"export {name}={value}")
+    # Indicate per-algorithm support, so that markers like
+    # isctest.mark.with_algorithm() and with_eddsa work on this branch.
+    for alg in ALL_ALGORITHMS:
+        supported = 1 if is_supported(alg) else 0
+        print(f"export {alg.name}_SUPPORTED={supported}")
 
 
 if __name__ == "__main__":
