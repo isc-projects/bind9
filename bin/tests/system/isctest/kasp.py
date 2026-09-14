@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import total_ordering
 from pathlib import Path
@@ -29,6 +30,7 @@ import dns.zone
 
 from isctest.algorithms import ALL_ALGORITHMS_BY_NUM, ECDSAP256SHA256, Algorithm
 from isctest.instance import NamedInstance
+from isctest.run import EnvCmd
 from isctest.zone import FileZoneKey
 
 import isctest.log
@@ -315,6 +317,64 @@ class KeyProperties:
             self.timing["ZRRSIGChange"] = None
 
 
+# pylint: disable=invalid-name
+@dataclass
+class SettimeOptions:
+
+    P: str | None = None
+    """-P date/[+-]offset/none: set/unset key publication date"""
+
+    P_ds: str | None = None
+    """-P ds date/[+-]offset/none: set/unset DS publication date"""
+
+    P_sync: str | None = None
+    """-P sync date/[+-]offset/none: set/unset CDS and CDNSKEY publication date"""
+
+    A: str | None = None
+    """-A date/[+-]offset/none: set/unset key activation date"""
+
+    R: str | None = None
+    """-R date/[+-]offset/none: set/unset key revocation date"""
+
+    I: str | None = None
+    """-I date/[+-]offset/none: set/unset key inactivation date"""
+
+    D: str | None = None
+    """-D date/[+-]offset/none: set/unset key deletion date"""
+
+    D_ds: str | None = None
+    """-D ds date/[+-]offset/none: set/unset DS deletion date"""
+
+    D_sync: str | None = None
+    """-D sync date/[+-]offset/none: set/unset CDS and CDNSKEY deletion date"""
+
+    g: str | None = None
+    """-g state: set the goal state for this key"""
+
+    d: str | None = None
+    """-d state date/[+-]offset: set the DS state"""
+
+    k: str | None = None
+    """-k state date/[+-]offset: set the DNSKEY state"""
+
+    r: str | None = None
+    """-r state date/[+-]offset: set the RRSIG (KSK) state"""
+
+    z: str | None = None
+    """-z state date/[+-]offset: set the RRSIG (ZSK) state"""
+
+    def __str__(self):
+        args = []
+        for opt, value in self.__dict__.items():
+            if value is None:
+                continue
+            if not isinstance(value, str):
+                raise ValueError(f"{opt}: invalid option value, only string supported")
+            opt_str = opt.replace("_", " ")
+            args.append(f"-{opt_str} {value}")
+        return " ".join(args)
+
+
 @total_ordering
 class Key(FileZoneKey):
     """
@@ -433,6 +493,13 @@ class Key(FileZoneKey):
 
     def is_zsk(self) -> bool:
         return self.get_metadata("ZSK") == "yes"
+
+    def role(self) -> str:
+        if self.is_ksk() and self.is_zsk():
+            return "CSK"
+        if self.is_ksk():
+            return "KSK"
+        return "ZSK"
 
     @property
     def algorithm(self) -> Algorithm:
@@ -667,6 +734,14 @@ class Key(FileZoneKey):
                 return False
 
         return True
+
+    def settime(self, options: SettimeOptions, with_state=True):
+        if with_state:
+            settime_cmd = EnvCmd("SETTIME", "-s")
+        else:
+            settime_cmd = EnvCmd("SETTIME")
+
+        settime_cmd(f"{options} {self.path}")
 
     def __lt__(self, other: "Key"):
         return self.name < other.name
