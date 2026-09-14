@@ -9,13 +9,18 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from collections.abc import Callable
+from typing import Any
+
 import os
 import time
-from typing import Any, Callable, Optional
 
+import dns.exception
+import dns.flags
+import dns.message
 import dns.name
 import dns.query
-import dns.message
+import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 
@@ -29,11 +34,12 @@ def generic_query(
     query_func: Callable[..., Any],
     message: dns.message.Message,
     ip: str,
-    port: Optional[int] = None,
-    source: Optional[str] = None,
+    port: int | None = None,
+    source: str | None = None,
     timeout: int = QUERY_TIMEOUT,
     attempts: int = 10,
-    expected_rcode: Optional[dns.rcode.Rcode] = None,
+    expected_rcode: dns.rcode.Rcode | None = None,
+    verify: bool = False,
     log_query: bool = True,
     log_response: bool = True,
 ) -> Any:
@@ -69,7 +75,21 @@ def generic_query(
             )
 
     if port is None:
-        port = int(os.environ["PORT"])
+        if query_func.__name__ == "tls":
+            port = int(os.environ["TLSPORT"])
+        else:
+            port = int(os.environ["PORT"])
+
+    query_args = {
+        "q": message,
+        "where": ip,
+        "timeout": timeout,
+        "port": port,
+        "source": source,
+    }
+    if query_func.__name__ == "tls":
+        query_args["verify"] = verify
+
     res = None
 
     for attempt in range(attempts):
@@ -81,7 +101,7 @@ def generic_query(
 
         exc = None
         try:
-            res = query_func(message, ip, timeout, port=port, source=source)
+            res = query_func(**query_args)
         except (dns.exception.Timeout, ConnectionRefusedError) as e:
             exc = e
         finally:
@@ -96,6 +116,7 @@ def generic_query(
                 return res
 
         time.sleep(1)
+
     if expected_rcode is not None:
         last_rcode = dns.rcode.to_text(res.rcode()) if res else None
         isctest.log.debug(
@@ -112,20 +133,33 @@ def tcp(*args, **kwargs) -> Any:
     return generic_query(dns.query.tcp, *args, **kwargs)
 
 
+def tls(*args, **kwargs) -> Any:
+    return generic_query(dns.query.tls, *args, **kwargs)
+
+
 def create(
     qname,
     qtype,
     qclass=dns.rdataclass.IN,
     dnssec: bool = True,
+    use_edns: int | bool = True,
+    payload: int = 1232,
     rd: bool = True,
     cd: bool = False,
     ad: bool = True,
+    message_id: int | None = None,
 ) -> dns.message.Message:
     """
     Create DNS query with defaults suitable for our tests.
     """
     msg = dns.message.make_query(
-        qname, qtype, qclass, use_edns=True, want_dnssec=dnssec
+        qname,
+        qtype,
+        qclass,
+        use_edns=use_edns,
+        want_dnssec=dnssec,
+        payload=payload,
+        id=message_id,
     )
     msg.flags = 0
     if rd:
@@ -137,29 +171,53 @@ def create(
     return msg
 
 
-def wait_for_serial(server_ip, zone, expected_serial, timeout=30):
+def get_soa_serial(server_ip, zone, timeout=10):
     """
-    Wait until the server has the expected SOA serial for the zone.
+    Get the current SOA serial of a zone from a server.
 
-    Queries the server repeatedly until the SOA serial matches or the
-    timeout expires.
-
-    'server_ip' is the IP address to query (string).
-    'zone' is the zone name (string, with or without trailing dot).
-    'expected_serial' is the expected SOA serial number (int).
-    'timeout' is the maximum time to wait in seconds (default 30).
+    Queries the server repeatedly until it responds with a well-formed
+    SOA answer or the timeout expires.
     """
     query = create(zone, "SOA", dnssec=False)
+    serial = None
 
     def check():
-        res = tcp(query, server_ip)
+        nonlocal serial
+        res = tcp(
+            query,
+            server_ip,
+            timeout=3,
+            attempts=1,
+            expected_rcode=dns.rcode.NOERROR,
+        )
         soa = res.get_rrset(
             res.answer,
             dns.name.from_text(zone),
             dns.rdataclass.IN,
             dns.rdatatype.SOA,
         )
-        return soa is not None and len(soa) == 1 and soa[0].serial == expected_serial
+        assert soa is not None and len(soa) == 1
+        serial = soa[0].serial
+        return True
+
+    isctest.run.retry_with_timeout(
+        check,
+        timeout=timeout,
+        msg=f"timed out getting SOA serial of {zone} from {server_ip}",
+    )
+    return serial
+
+
+def wait_for_serial(server_ip, zone, expected_serial, timeout=30):
+    """
+    Wait until the server has the expected SOA serial for the zone.
+
+    Queries the server repeatedly until the SOA serial matches or the
+    timeout expires.
+    """
+
+    def check():
+        return get_soa_serial(server_ip, zone) == expected_serial
 
     isctest.run.retry_with_timeout(
         check,

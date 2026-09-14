@@ -9,16 +9,18 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+
 import os
 import subprocess
 import time
-from typing import Optional
+
+import dns.exception
+import dns.message
+import dns.rcode
 
 import isctest.log
 import isctest.text
-
-import dns.message
-import dns.rcode
 
 
 class CmdResult:
@@ -41,9 +43,9 @@ def cmd(
     stderr=subprocess.PIPE,
     log_stdout=True,
     log_stderr=True,
-    input_text: Optional[bytes] = None,
+    input_text: bytes | None = None,
     raise_on_exception=True,
-    env: Optional[dict] = None,
+    env: dict | None = None,
 ) -> CmdResult:
     """
     Execute a command with given args as subprocess.
@@ -102,16 +104,70 @@ class EnvCmd:
         return cmd([self.bin_path] + args, **kwargs)
 
 
+def _run_script(
+    interpreter: str,
+    script: str,
+    args: list[str] | None = None,
+):
+    if args is None:
+        args = []
+    path = Path(script)
+    script = str(path)
+    cwd = os.getcwd()
+    if not path.exists():
+        raise FileNotFoundError(f"script {script} not found in {cwd}")
+    isctest.log.debug("running script: %s %s %s", interpreter, script, " ".join(args))
+    isctest.log.debug("  workdir: %s", cwd)
+    returncode = 1
+
+    command = [interpreter, script] + args
+    with subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        bufsize=1,
+        text=True,
+        errors="backslashreplace",
+    ) as proc:
+        if proc.stdout:
+            for line in proc.stdout:
+                isctest.log.info("    %s", line.rstrip("\n"))
+        proc.communicate()
+        returncode = proc.returncode
+        if returncode:
+            raise subprocess.CalledProcessError(returncode, command)
+        isctest.log.debug("  exited with %d", returncode)
+
+
+def shell(script: str, args: list[str] | None = None) -> None:
+    """
+    Run a given script with system's shell interpreter.
+    """
+    _run_script(os.environ["SHELL"], script, args)
+
+
+def perl(script: str, args: list[str] | None = None) -> None:
+    """
+    Run a given script with system's perl interpreter.
+    """
+    _run_script(os.environ["PERL"], script, args)
+
+
 def retry_with_timeout(func, timeout, delay=1, msg=None):
     start_time = time.monotonic()
     exc_msg = None
+    fname = f"{func.__module__}.{func.__qualname__}()"
     while time.monotonic() < start_time + timeout:
         exc_msg = None
+        isctest.log.debug(f"retry_with_timeout: {fname} called")
         try:
             if func():
+                isctest.log.debug(f"retry_with_timeout: {fname} succeeded")
                 return
-        except AssertionError as exc:
+        except (AssertionError, dns.exception.Timeout) as exc:
+            # A transient query timeout means "not ready yet"; keep retrying.
             exc_msg = str(exc)
+        isctest.log.debug(f"retry_with_timeout: {fname} failed, sleep {delay}s")
         time.sleep(delay)
     if exc_msg is not None:
         isctest.log.error(exc_msg)
@@ -119,7 +175,7 @@ def retry_with_timeout(func, timeout, delay=1, msg=None):
         if exc_msg is not None:
             msg = exc_msg
         else:
-            msg = f"{func.__module__}.{func.__qualname__} timed out after {timeout} s"
+            msg = f"{fname} timed out after {timeout} s"
     assert False, msg
 
 
