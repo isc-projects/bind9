@@ -388,7 +388,6 @@ struct dns_zone {
 	dns_name_t origin;
 	dns_rad_t *rad;
 	ISC_LIST(dns_include_t) newincludes; /* Loading */
-	unsigned int nincludes;
 	dns_masterformat_t masterformat;
 	const dns_master_style_t *masterstyle;
 	char *journal;
@@ -509,11 +508,6 @@ struct dns_zone {
 	dns_stats_t *dnssecsignstats;
 	dns_isselffunc_t isself;
 	void *isselfarg;
-
-	char *strnamerd;
-	char *strname;
-	char *strrdclass;
-	char *strviewname;
 
 	/*%
 	 * Serial number for deferred journal compaction.

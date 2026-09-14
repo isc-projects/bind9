@@ -34,8 +34,6 @@ static void
 zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
 zone_name_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void
-zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
 
 static void
 free_rad_rcu(struct rcu_head *rcu_head) {
@@ -50,8 +48,6 @@ free_rad_rcu(struct rcu_head *rcu_head) {
  */
 void
 dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
-	char namebuf[1024];
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(rdclass != dns_rdataclass_none);
 
@@ -63,18 +59,6 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
 	REQUIRE(zone->rdclass == dns_rdataclass_none ||
 		zone->rdclass == rdclass);
 	zone->rdclass = rdclass;
-
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-	if (zone->strrdclass != NULL) {
-		isc_mem_free(zone->mctx, zone->strrdclass);
-	}
-
-	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
-	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
-	zone_rdclass_tostr(zone, namebuf, sizeof namebuf);
-	zone->strrdclass = isc_mem_strdup(zone->mctx, namebuf);
 
 	if (dns__zone_inline_secure(zone)) {
 		dns_zone_setclass(zone->raw, rdclass);
@@ -124,8 +108,6 @@ dns_zone_setcheckdstype(dns_zone_t *zone, dns_checkdstype_t checkdstype) {
  */
 void
 dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
-	char namebuf[1024];
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(type != dns_zone_none);
 
@@ -136,12 +118,6 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 	REQUIRE(zone->type == dns_zone_none || zone->type == type);
 	zone->type = type;
 
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-
-	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
-	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
 	UNLOCK_ZONE(zone);
 }
 
@@ -225,8 +201,6 @@ dns_zone_getview(dns_zone_t *zone) {
 
 void
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
-	char namebuf[1024];
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(origin != NULL);
 
@@ -237,18 +211,6 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 		dns_name_init(&zone->origin);
 	}
 	dns_name_dup(origin, zone->mctx, &zone->origin);
-
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-	if (zone->strname != NULL) {
-		isc_mem_free(zone->mctx, zone->strname);
-	}
-
-	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
-	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
-	zone_name_tostr(zone, namebuf, sizeof namebuf);
-	zone->strname = isc_mem_strdup(zone->mctx, namebuf);
 
 	if (dns__zone_inline_secure(zone)) {
 		dns_zone_setorigin(zone->raw, origin);
@@ -1369,22 +1331,6 @@ zone_name_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	{
 		isc_buffer_putstr(&buffer, "<UNKNOWN>");
 	}
-
-	buf[isc_buffer_usedlength(&buffer)] = '\0';
-}
-
-static void
-zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length) {
-	isc_buffer_t buffer;
-
-	REQUIRE(buf != NULL);
-	REQUIRE(length > 1U);
-
-	/*
-	 * Leave space for terminating '\0'.
-	 */
-	isc_buffer_init(&buffer, buf, (unsigned int)length - 1);
-	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
 
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
 }

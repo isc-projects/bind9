@@ -272,8 +272,6 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime);
 static void
 zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
-zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void
 zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_phase_t state);
 static void
 refresh_callback(void *arg);
@@ -708,18 +706,6 @@ dns__zone_free(dns_zone_t *zone) {
 
 	dns_zone_setrad(zone, NULL);
 
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-	if (zone->strname != NULL) {
-		isc_mem_free(zone->mctx, zone->strname);
-	}
-	if (zone->strrdclass != NULL) {
-		isc_mem_free(zone->mctx, zone->strrdclass);
-	}
-	if (zone->strviewname != NULL) {
-		isc_mem_free(zone->mctx, zone->strviewname);
-	}
 	if (zone->ssutable != NULL) {
 		dns_ssutable_detach(&zone->ssutable);
 	}
@@ -859,8 +845,6 @@ dns__zone_freedbargs(dns_zone_t *zone) {
 
 void
 dns__zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
-	char namebuf[1024];
-
 	if (zone->prev_view == NULL && zone->view != NULL) {
 		dns_view_weakattach(zone->view, &zone->prev_view);
 	}
@@ -872,18 +856,6 @@ dns__zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
 	}
 	dns_view_weakattach(view, &zone->view);
 	dns_view_sfd_add(view, &zone->origin);
-
-	if (zone->strviewname != NULL) {
-		isc_mem_free(zone->mctx, zone->strviewname);
-	}
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-
-	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
-	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
-	zone_viewname_tostr(zone, namebuf, sizeof namebuf);
-	zone->strviewname = isc_mem_strdup(zone->mctx, namebuf);
 
 	if (dns__zone_inline_secure(zone)) {
 		dns_zone_setview(zone->raw, view);
@@ -4497,7 +4469,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		isc_mem_free(zone->mctx, inc->name);
 		isc_mem_put(zone->mctx, inc, sizeof(*inc));
 	}
-	zone->nincludes = 0;
 
 	/*
 	 * Transfer new include list.
@@ -4505,7 +4476,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	ISC_LIST_FOREACH(zone->newincludes, inc, link) {
 		ISC_LIST_UNLINK(zone->newincludes, inc, link);
 		ISC_LIST_APPEND(zone->includes, inc, link);
-		zone->nincludes++;
 	}
 
 	if (!dns_db_ispersistent(db)) {
@@ -13552,7 +13522,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
-		zone->notifysoa.notifyfrom = *from;
 		UNLOCK_ZONE(zone);
 		if (have_serial) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
@@ -13578,7 +13547,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 			      "notify from %s: no serial", fromtext);
 	}
-	zone->notifysoa.notifyfrom = *from;
 	UNLOCK_ZONE(zone);
 
 	if (to != NULL) {
@@ -13592,6 +13560,7 @@ void
 dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 	      const char *prefix, const char *fmt, va_list ap) {
 	char message[4096];
+	char namebuf[1024];
 	const char *zstr;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -13600,6 +13569,7 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 		return;
 	}
 
+	zone_namerd_tostr(zone, namebuf, sizeof(namebuf));
 	vsnprintf(message, sizeof(message), fmt, ap);
 
 	switch (zone->type) {
@@ -13615,7 +13585,7 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 
 	isc_log_write(category, DNS_LOGMODULE_ZONE, level, "%s%s%s%s: %s",
 		      prefix != NULL ? prefix : "", prefix != NULL ? ": " : "",
-		      zstr, zone->strnamerd, message);
+		      zstr, namebuf, message);
 }
 
 void
@@ -16266,40 +16236,13 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 		isc_buffer_putstr(&buffer, "/");
 		isc_buffer_putstr(&buffer, zone->view->name);
 	}
-	if (dns__zone_inline_secure(zone) &&
-	    9U < isc_buffer_availablelength(&buffer))
-	{
+	/* Logging also runs without the zone lock.  These configuration
+	 * fields are changed before publication or with exclusive access. */
+	if (zone->raw != NULL && 9U < isc_buffer_availablelength(&buffer)) {
 		isc_buffer_putstr(&buffer, " (signed)");
 	}
-	if (dns__zone_inline_raw(zone) &&
-	    11U < isc_buffer_availablelength(&buffer))
-	{
+	if (zone->secure != NULL && 11U < isc_buffer_availablelength(&buffer)) {
 		isc_buffer_putstr(&buffer, " (unsigned)");
-	}
-
-	buf[isc_buffer_usedlength(&buffer)] = '\0';
-}
-
-static void
-zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length) {
-	isc_buffer_t buffer;
-
-	REQUIRE(buf != NULL);
-	REQUIRE(length > 1U);
-
-	/*
-	 * Leave space for terminating '\0'.
-	 */
-	isc_buffer_init(&buffer, buf, (unsigned int)length - 1);
-
-	if (zone->view == NULL) {
-		isc_buffer_putstr(&buffer, "_none");
-	} else if (strlen(zone->view->name) <
-		   isc_buffer_availablelength(&buffer))
-	{
-		isc_buffer_putstr(&buffer, zone->view->name);
-	} else {
-		isc_buffer_putstr(&buffer, "_toolong");
 	}
 
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
@@ -19437,15 +19380,17 @@ dns_zone_dnssecstatus(dns_zone_t *zone, dns_kasp_t *kasp,
 	isc_time_t refreshkeytime;
 	isc_stdtime_t refresh;
 	char timestr[26];
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(out != NULL);
 
+	dns_zone_nameonly(zone, namebuf, sizeof(namebuf));
 	isc_buffer_init(&buf, out, out_len);
 
 	RETERR(isc_buffer_printf(
 		&buf, "DNSSEC status for zone '%s' using policy '%s':\n",
-		zone->strname, dns_kasp_getname(kasp)));
+		namebuf, dns_kasp_getname(kasp)));
 
 	isc_stdtime_tostring(now, timestr, sizeof(timestr));
 	RETERR(isc_buffer_printf(&buf, "Current time:   %s\n", timestr));
@@ -20554,22 +20499,25 @@ cleanup:
 unsigned int
 dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
 	char **array = NULL;
-	unsigned int n = 0;
+	unsigned int n = 0, count = 0;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(includesp != NULL && *includesp == NULL);
 
 	LOCK_ZONE(zone);
-	if (zone->nincludes == 0) {
+	ISC_LIST_FOREACH(zone->includes, include, link) {
+		count++;
+	}
+	if (count == 0) {
 		goto done;
 	}
 
-	array = isc_mem_allocate(zone->mctx, sizeof(char *) * zone->nincludes);
+	array = isc_mem_allocate(zone->mctx, sizeof(char *) * count);
 	ISC_LIST_FOREACH(zone->includes, include, link) {
-		INSIST(n < zone->nincludes);
+		INSIST(n < count);
 		array[n++] = isc_mem_strdup(zone->mctx, include->name);
 	}
-	INSIST(n == zone->nincludes);
+	INSIST(n == count);
 	*includesp = array;
 
 done:

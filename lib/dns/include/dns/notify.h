@@ -31,7 +31,6 @@ struct dns_notifyctx {
 
 	dns_rdatatype_t type;
 
-	isc_sockaddr_t	 notifyfrom;
 	dns_notifylist_t notifies;
 
 	/* Configuration data. */
