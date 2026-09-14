@@ -19,12 +19,15 @@
 #include <stdbool.h>
 
 #include <isc/os.h>
+#include <isc/sockaddr.h>
+#include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/notify.h>
 #include <dns/remote.h>
 #include <dns/update.h>
+#include <dns/zoneaddr.h>
 #include <dns/zonefetch.h>
 
 /*%
@@ -358,6 +361,74 @@ struct dns_zonemgr {
 	isc_rwlock_t tlsctx_cache_rwlock;
 };
 
+static inline zone_addr4_t
+zone_addr4_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	REQUIRE(sockaddr != NULL);
+	REQUIRE(sockaddr->type.sa.sa_family == AF_INET);
+	REQUIRE(sockaddr->type.sin.sin_port == 0);
+	return (zone_addr4_t){
+		.address = sockaddr->type.sin.sin_addr,
+	};
+}
+
+static inline zone_addr6_t
+zone_addr6_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	REQUIRE(sockaddr != NULL);
+	REQUIRE(sockaddr->type.sa.sa_family == AF_INET6);
+	REQUIRE(sockaddr->type.sin6.sin6_port == 0);
+	REQUIRE(sockaddr->type.sin6.sin6_flowinfo == 0);
+	return (zone_addr6_t){
+		.address = sockaddr->type.sin6.sin6_addr,
+		.scope = sockaddr->type.sin6.sin6_scope_id,
+	};
+}
+
+static inline isc_sockaddr_t
+zone_addr4_tosockaddr(const zone_addr4_t *address) {
+	isc_sockaddr_t sockaddr;
+	isc_sockaddr_fromin(&sockaddr, &address->address, 0);
+	return sockaddr;
+}
+
+static inline isc_sockaddr_t
+zone_addr6_tosockaddr(const zone_addr6_t *address) {
+	isc_sockaddr_t sockaddr;
+	isc_sockaddr_fromin6(&sockaddr, &address->address, 0);
+	sockaddr.type.sin6.sin6_scope_id = address->scope;
+	return sockaddr;
+}
+
+static inline zone_addr_t
+zone_addr_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	zone_addr_t address = { .family = sockaddr->type.sa.sa_family };
+	switch (address.family) {
+	case AF_INET:
+		address.type.in = zone_addr4_fromsockaddr(sockaddr);
+		break;
+	case AF_INET6:
+		address.type.in6 = zone_addr6_fromsockaddr(sockaddr);
+		break;
+	default:
+		UNREACHABLE();
+	}
+	return address;
+}
+
+static inline isc_sockaddr_t
+zone_addr_tosockaddr(const zone_addr_t *address) {
+	switch (address->family) {
+	case AF_INET:
+		return zone_addr4_tosockaddr(&address->type.in);
+	case AF_INET6:
+		return zone_addr6_tosockaddr(&address->type.in6);
+	case AF_UNSPEC:
+		/* No source has been selected for an operation yet. */
+		return (isc_sockaddr_t){ 0 };
+	default:
+		UNREACHABLE();
+	}
+}
+
 /*%
  * Zone structure.
  */
@@ -443,11 +514,11 @@ struct dns_zone {
 	dns_remote_t cds_endpoints;
 	dns_notifyctx_t notifycds;
 
-	isc_sockaddr_t parentalsrc4;
-	isc_sockaddr_t parentalsrc6;
-	isc_sockaddr_t xfrsource4;
-	isc_sockaddr_t xfrsource6;
-	isc_sockaddr_t sourceaddr;
+	zone_addr4_t parentalsrc4;
+	zone_addr6_t parentalsrc6;
+	zone_addr4_t xfrsource4;
+	zone_addr6_t xfrsource6;
+	zone_addr_t sourceaddr;
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */

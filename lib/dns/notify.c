@@ -48,8 +48,6 @@ dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type) {
 		.notifydelay = 5,
 		.notifies = ISC_LIST_INITIALIZER,
 	};
-	isc_sockaddr_any(&ctx.notifysrc4);
-	isc_sockaddr_any6(&ctx.notifysrc6);
 
 	*nctx = ctx;
 }
@@ -427,7 +425,8 @@ notify_send_toaddr(void *arg) {
 
 			src = notify->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = notifyctx->notifysrc4;
+				src = zone_addr4_tosockaddr(
+					&notifyctx->notifysrc4);
 			}
 		}
 		break;
@@ -438,7 +437,8 @@ notify_send_toaddr(void *arg) {
 
 			src = notify->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = notifyctx->notifysrc6;
+				src = zone_addr6_tosockaddr(
+					&notifyctx->notifysrc6);
 			}
 		}
 		break;
@@ -624,11 +624,11 @@ notify_isself(dns_notify_t *notify, isc_sockaddr_t *dst) {
 
 	switch (isc_sockaddr_pf(dst)) {
 	case PF_INET:
-		src = notifyctx->notifysrc4;
+		src = zone_addr4_tosockaddr(&notifyctx->notifysrc4);
 		isc_sockaddr_any(&any);
 		break;
 	case PF_INET6:
-		src = notifyctx->notifysrc6;
+		src = zone_addr6_tosockaddr(&notifyctx->notifysrc6);
 		isc_sockaddr_any6(&any);
 		break;
 	default:

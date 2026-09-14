@@ -526,10 +526,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin);
-	isc_sockaddr_any(&zone->parentalsrc4);
-	isc_sockaddr_any6(&zone->parentalsrc6);
-	isc_sockaddr_any(&zone->xfrsource4);
-	isc_sockaddr_any6(&zone->xfrsource6);
 
 	zone->primaries = r;
 	zone->parentals = r;
@@ -11306,7 +11302,7 @@ stub_glue_response(void *arg) {
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	uint32_t addr_count, cnamecnt;
 	isc_result_t result;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	dns_rdataset_t *addr_rdataset = NULL;
 	dns_dbnode_t *node = NULL;
 
@@ -11323,13 +11319,14 @@ stub_glue_response(void *arg) {
 		goto cleanup;
 	}
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	if (dns_request_getresult(request) != ISC_R_SUCCESS) {
 		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
-				     &zone->sourceaddr);
+				     &sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary %s"
 			     " (source %s): %s",
@@ -11505,7 +11502,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	dns_zone_t *zone;
 	isc_result_t result;
 	struct stub_glue_request *sgr;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 
 	zone = args->stub->zone;
 	sgr = isc_mem_get(zone->mctx, sizeof(*sgr));
@@ -11532,13 +11529,13 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 
 	atomic_fetch_add_release(&args->stub->pending_requests, 1);
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
-		args->connect_timeout, args->timeout, UDP_REQUEST_TIMEOUT,
-		UDP_REQUEST_RETRIES, zone->loop, stub_glue_response, sgr,
-		&sgr->request);
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, DNS_REQUESTOPT_TCP, args->tsig_key, args->connect_timeout,
+		args->timeout, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
+		zone->loop, stub_glue_response, sgr, &sgr->request);
 
 	if (result != ISC_R_SUCCESS) {
 		uint_fast32_t pr;
@@ -11717,7 +11714,7 @@ stub_callback(void *arg) {
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	uint32_t nscnt, cnamecnt;
 	isc_result_t result;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	isc_time_t now;
 	bool exiting = false;
 
@@ -11735,9 +11732,10 @@ stub_callback(void *arg) {
 		goto exiting;
 	}
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	result = dns_request_getresult(request);
 	switch (result) {
@@ -11758,7 +11756,7 @@ stub_callback(void *arg) {
 		FALLTHROUGH;
 	default:
 		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
-				     &zone->sourceaddr);
+				     &sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary "
 			     "%s (source %s): %s",
@@ -12056,7 +12054,7 @@ refresh_callback(void *arg) {
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	const isc_result_t eresult = dns_request_getresult(request);
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	uint32_t serial, oldserial = 0;
 	bool do_queue_xfrin = false;
 
@@ -12081,9 +12079,10 @@ refresh_callback(void *arg) {
 	/*
 	 * If timeout, log and try the next primary
 	 */
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
@@ -12114,7 +12113,7 @@ refresh_callback(void *arg) {
 			{
 				if (dns_unreachcache_find(
 					    zone->view->unreachcache, &curraddr,
-					    &zone->sourceaddr) != ISC_R_SUCCESS)
+					    &sourceaddr) != ISC_R_SUCCESS)
 				{
 					DNS_ZONE_SETFLAG(
 						zone,
@@ -12357,7 +12356,7 @@ refresh_callback(void *arg) {
 	    isc_serial_gt(serial, oldserial))
 	{
 		if (dns_unreachcache_find(zone->view->unreachcache, &curraddr,
-					  &zone->sourceaddr) == ISC_R_SUCCESS)
+					  &sourceaddr) == ISC_R_SUCCESS)
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
 				      ISC_LOG_INFO,
@@ -12539,7 +12538,7 @@ soa_query(void *arg) {
 	bool cancel = true;
 	bool have_xfrsource = false, reqnsid, reqexpire;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_sockaddr_t curraddr, sourceaddr;
+	isc_sockaddr_t curraddr, sourceaddr, remotesource;
 	bool do_queue_xfrin = false;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -12564,7 +12563,8 @@ again:
 	INSIST(dns_remote_count(&zone->primaries) > 0);
 	INSIST(!dns_remote_done(&zone->primaries));
 
-	sourceaddr = dns_remote_sourceaddr(&zone->primaries);
+	remotesource = dns_remote_sourceaddr(&zone->primaries);
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
 
@@ -12632,8 +12632,7 @@ again:
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			}
-			result = dns_peer_gettransfersource(peer,
-							    &zone->sourceaddr);
+			result = dns_peer_gettransfersource(peer, &sourceaddr);
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
 			}
@@ -12654,9 +12653,10 @@ again:
 			isc_sockaddr_t any;
 			isc_sockaddr_any(&any);
 
-			zone->sourceaddr = sourceaddr;
+			sourceaddr = remotesource;
 			if (isc_sockaddr_equal(&sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource4;
+				sourceaddr = zone_addr4_tosockaddr(
+					&zone->xfrsource4);
 			}
 		}
 		break;
@@ -12665,15 +12665,17 @@ again:
 			isc_sockaddr_t any;
 			isc_sockaddr_any6(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource6;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr6_tosockaddr(
+					&zone->xfrsource6);
 			}
 		}
 		break;
 	default:
 		CLEANUP(ISC_R_NOTIMPLEMENTED);
 	}
+	zone->sourceaddr = zone_addr_fromsockaddr(&sourceaddr);
 
 	/*
 	 * FIXME(OS): This is a bit hackish, but it enforces the SOA query to go
@@ -12703,8 +12705,8 @@ again:
 	const unsigned int connect_timeout = isc_nm_getprimariestimeout() /
 					     MS_PER_SEC;
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
 		UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES, zone->loop,
 		refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
@@ -12786,7 +12788,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	bool have_xfrsource = false;
 	bool reqnsid;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_sockaddr_t curraddr, sourceaddr;
+	isc_sockaddr_t curraddr, sourceaddr, remotesource;
 	struct stub_cb_args *cb_args = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -12882,7 +12884,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	INSIST(dns_remote_count(&zone->primaries) > 0);
 	INSIST(!dns_remote_done(&zone->primaries));
 
-	sourceaddr = dns_remote_sourceaddr(&zone->primaries);
+	remotesource = dns_remote_sourceaddr(&zone->primaries);
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
 	/*
@@ -12917,8 +12920,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			}
-			result = dns_peer_gettransfersource(peer,
-							    &zone->sourceaddr);
+			result = dns_peer_gettransfersource(peer, &sourceaddr);
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
 			}
@@ -12945,9 +12947,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			isc_sockaddr_t any;
 			isc_sockaddr_any(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource4;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr4_tosockaddr(
+					&zone->xfrsource4);
 			}
 		}
 		break;
@@ -12956,9 +12959,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			isc_sockaddr_t any;
 			isc_sockaddr_any6(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource6;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr6_tosockaddr(
+					&zone->xfrsource6);
 			}
 		}
 		break;
@@ -12967,6 +12971,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		POST(result);
 		goto cleanup;
 	}
+	zone->sourceaddr = zone_addr_fromsockaddr(&sourceaddr);
 
 	/*
 	 * Save request parameters so we can reuse them later on
@@ -12981,8 +12986,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->reqnsid = reqnsid;
 
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, key, cb_args->connect_timeout,
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, DNS_REQUESTOPT_TCP, key, cb_args->connect_timeout,
 		cb_args->timeout, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
 		zone->loop, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
@@ -15877,14 +15882,14 @@ next:
 		isc_sockaddr_any(&any);
 		src = zone->primaries.sources[forward->which];
 		if (isc_sockaddr_equal(&src, &any)) {
-			src = zone->xfrsource4;
+			src = zone_addr4_tosockaddr(&zone->xfrsource4);
 		}
 		break;
 	case PF_INET6:
 		isc_sockaddr_any6(&any);
 		src = zone->primaries.sources[forward->which];
 		if (isc_sockaddr_equal(&src, &any)) {
-			src = zone->xfrsource6;
+			src = zone_addr6_tosockaddr(&zone->xfrsource6);
 		}
 		break;
 	default:
@@ -17520,7 +17525,8 @@ checkds_send_toaddr(void *arg) {
 
 			src = checkds->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = checkds->zone->parentalsrc4;
+				src = zone_addr4_tosockaddr(
+					&checkds->zone->parentalsrc4);
 			}
 		}
 		break;
@@ -17531,7 +17537,8 @@ checkds_send_toaddr(void *arg) {
 
 			src = checkds->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = checkds->zone->parentalsrc6;
+				src = zone_addr6_tosockaddr(
+					&checkds->zone->parentalsrc6);
 			}
 		}
 		break;

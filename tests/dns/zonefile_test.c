@@ -302,9 +302,148 @@ ISC_LOOP_TEST_IMPL(callbacks) {
 	isc_loopmgr_shutdown();
 }
 
+static void
+assert_endpoint_equal(const isc_sockaddr_t *actual,
+		      const isc_sockaddr_t *expected) {
+	assert_true(isc_sockaddr_equal(actual, expected));
+	assert_int_equal(actual->length, expected->length);
+	assert_false(ISC_LINK_LINKED(actual, link));
+	if (isc_sockaddr_pf(expected) == PF_INET6) {
+		assert_int_equal(actual->type.sin6.sin6_flowinfo,
+				 expected->type.sin6.sin6_flowinfo);
+	}
+}
+
+ISC_LOOP_TEST_IMPL(addresses) {
+	dns_zone_t *zone = NULL;
+	isc_sockaddr_t addr4, addr6, actual, snapshot;
+	struct in_addr in;
+	struct in6_addr in6;
+	const char *ipv6[] = { "2001:db8::1234", "fe80::1",
+			       "::ffff:192.0.2.1" };
+	const uint32_t scopes[] = { 0, 42, UINT32_MAX };
+	UNUSED(arg);
+
+	assert_int_equal(dns_test_makezone("example", &zone, NULL, false),
+			 ISC_R_SUCCESS);
+
+	/* Newly created zones retain the wildcard defaults of both families. */
+	isc_sockaddr_any(&addr4);
+	isc_sockaddr_any6(&addr6);
+	dns_zone_getxfrsource4(zone, &actual);
+	assert_endpoint_equal(&actual, &addr4);
+	dns_zone_getparentalsrc4(zone, &actual);
+	assert_endpoint_equal(&actual, &addr4);
+	dns_zone_getxfrsource6(zone, &actual);
+	assert_endpoint_equal(&actual, &addr6);
+	dns_zone_getparentalsrc6(zone, &actual);
+	assert_endpoint_equal(&actual, &addr6);
+	dns_zone_setprimaries(zone, &addr4, NULL, NULL, NULL, 1);
+	dns_zone_getsourceaddr(zone, &actual);
+	assert_int_equal(actual.type.sa.sa_family, AF_UNSPEC);
+	assert_int_equal(actual.length, 0);
+
+	assert_int_equal(inet_pton(AF_INET, "192.0.2.123", &in), 1);
+	for (size_t i = 0; i < ARRAY_SIZE(ipv6); i++) {
+		assert_int_equal(inet_pton(AF_INET6, ipv6[i], &in6), 1);
+		isc_sockaddr_fromin(&addr4, &in, 0);
+		isc_sockaddr_fromin6(&addr6, &in6, 0);
+		addr6.type.sin6.sin6_scope_id = scopes[i];
+
+		dns_zone_setxfrsource4(zone, &addr4);
+		dns_zone_setparentalsrc4(zone, &addr4);
+		dns_zone_setxfrsource6(zone, &addr6);
+		dns_zone_setparentalsrc6(zone, &addr6);
+		dns_zone_getxfrsource4(zone, &actual);
+		assert_endpoint_equal(&actual, &addr4);
+		dns_zone_getparentalsrc4(zone, &actual);
+		assert_endpoint_equal(&actual, &addr4);
+		dns_zone_getxfrsource6(zone, &actual);
+		assert_endpoint_equal(&actual, &addr6);
+		dns_zone_getparentalsrc6(zone, &actual);
+		assert_endpoint_equal(&actual, &addr6);
+
+		/* Source snapshots preserve overrides across configuration
+		 * changes. */
+		zone->sourceaddr = zone_addr_fromsockaddr(&addr6);
+		dns_zone_getsourceaddr(zone, &snapshot);
+		assert_endpoint_equal(&snapshot, &addr6);
+		isc_sockaddr_any6(&actual);
+		dns_zone_setxfrsource6(zone, &actual);
+		dns_zone_getsourceaddr(zone, &actual);
+		assert_endpoint_equal(&actual, &snapshot);
+
+		/* Replacing IPv6 with IPv4 must also replace the address
+		 * family. */
+		zone->sourceaddr = zone_addr_fromsockaddr(&addr4);
+		dns_zone_getsourceaddr(zone, &snapshot);
+		assert_endpoint_equal(&snapshot, &addr4);
+		isc_sockaddr_any(&actual);
+		dns_zone_setxfrsource4(zone, &actual);
+		dns_zone_getsourceaddr(zone, &actual);
+		assert_endpoint_equal(&actual, &snapshot);
+	}
+
+	dns_zone_detach(&zone);
+	isc_loopmgr_shutdown();
+}
+
+ISC_LOOP_TEST_IMPL(notify_addresses) {
+	dns_zone_t *zone = NULL;
+	isc_sockaddr_t addr4, addr6, actual;
+	struct in_addr in;
+	struct in6_addr in6;
+	const dns_rdatatype_t types[] = { dns_rdatatype_soa,
+					  dns_rdatatype_cds };
+	UNUSED(arg);
+
+	assert_int_equal(dns_test_makezone("example", &zone, NULL, false),
+			 ISC_R_SUCCESS);
+	isc_sockaddr_any(&addr4);
+	isc_sockaddr_any6(&addr6);
+	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+		dns_notifyctx_t *ctx = dns__zone_getnotifyctx(zone, types[i]);
+		actual = zone_addr4_tosockaddr(&ctx->notifysrc4);
+		assert_endpoint_equal(&actual, &addr4);
+		actual = zone_addr6_tosockaddr(&ctx->notifysrc6);
+		assert_endpoint_equal(&actual, &addr6);
+	}
+
+	/* Both contexts keep independent IPv4 and scoped IPv6 sources. */
+	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+		assert_int_equal(inet_pton(AF_INET,
+					   i == 0 ? "192.0.2.1" : "192.0.2.2",
+					   &in),
+				 1);
+		assert_int_equal(inet_pton(AF_INET6, "fe80::1", &in6), 1);
+		isc_sockaddr_fromin(&addr4, &in, 0);
+		isc_sockaddr_fromin6(&addr6, &in6, 0);
+		addr6.type.sin6.sin6_scope_id = i == 0 ? 42 : UINT32_MAX;
+		dns_zone_setnotifysrc4(zone, types[i], &addr4);
+		dns_zone_setnotifysrc6(zone, types[i], &addr6);
+	}
+	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+		dns_notifyctx_t *ctx = dns__zone_getnotifyctx(zone, types[i]);
+		assert_int_equal(inet_pton(AF_INET,
+					   i == 0 ? "192.0.2.1" : "192.0.2.2",
+					   &in),
+				 1);
+		isc_sockaddr_fromin(&addr4, &in, 0);
+		addr6.type.sin6.sin6_scope_id = i == 0 ? 42 : UINT32_MAX;
+		actual = zone_addr4_tosockaddr(&ctx->notifysrc4);
+		assert_endpoint_equal(&actual, &addr4);
+		actual = zone_addr6_tosockaddr(&ctx->notifysrc6);
+		assert_endpoint_equal(&actual, &addr6);
+	}
+	dns_zone_detach(&zone);
+	isc_loopmgr_shutdown();
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(filename, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(callbacks, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(addresses, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(notify_addresses, setup_test, teardown_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

@@ -397,6 +397,7 @@ dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'xfrsource' to contain the address.
+ *\li	The source port must be zero.
  */
 
 void
@@ -418,6 +419,7 @@ dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'xfrsource' to contain the address.
+ *\li	The source port and IPv6 flow information must be zero.
  */
 
 void
@@ -439,6 +441,7 @@ dns_zone_setparentalsrc4(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'parentalsrc' to contain the address.
+ *\li	The source port must be zero.
  */
 
 void
@@ -460,6 +463,7 @@ dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
  * Require:
  *\li	'zone' to be a valid zone.
  *\li	'parentalsrc' to contain the address.
+ *\li	The source port and IPv6 flow information must be zero.
  */
 
 void
@@ -483,6 +487,7 @@ dns_zone_setnotifysrc4(dns_zone_t *zone, dns_rdatatype_t type,
  *\li	'zone' to be a valid zone.
  *\li	'type' to be a valid notify RRtype.
  *\li	'notifysrc' to contain the address.
+ *\li	The source port must be zero.
  */
 
 void
@@ -495,6 +500,7 @@ dns_zone_setnotifysrc6(dns_zone_t *zone, dns_rdatatype_t type,
  *\li	'zone' to be a valid zone.
  *\li	'type' to be a valid notify RRtype.
  *\li	'notifysrc' to contain the address.
+ *\li	The source port and IPv6 flow information must be zero.
  */
 
 void
