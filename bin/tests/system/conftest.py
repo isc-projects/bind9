@@ -38,7 +38,6 @@ isctest.log.avoid_duplicated_logs()
 
 # ----------------------- Globals definition -----------------------------
 
-XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
 FILE_DIR = os.path.abspath(Path(__file__).parent)
 ENV_RE = Re(b"([^=]+)=(.*)")
 PORT_MIN = 5001
@@ -111,6 +110,30 @@ CONF_ENV = get_env_bytes(". ./conf.sh && env")
 os.environb.update(CONF_ENV)
 isctest.log.debug("variables in env: %s", ", ".join([str(key) for key in CONF_ENV]))
 
+# ---- Fix pytest-xdist loadscope for node IDs containing "::" ----------
+
+# LoadScopeScheduling._split_scope uses rsplit("::", 1) which breaks when
+# test parameters contain "::" (e.g. IPv6 addresses like "cafe:cafe::cafe").
+# This causes tests from the same file to be assigned to different workers,
+# each paying the full fixture setup cost.  Override to split on ".py::"
+# which is unambiguous.
+# https://github.com/pytest-dev/pytest-xdist/issues/1335
+try:
+    from xdist.scheduler.loadscope import LoadScopeScheduling
+
+    # pylint: disable=protected-access
+    _orig_split_scope = LoadScopeScheduling._split_scope
+
+    def _fixed_split_scope(self, nodeid):
+        if ".py::" in nodeid:
+            return nodeid.split(".py::")[0] + ".py"
+        return _orig_split_scope(self, nodeid)
+
+    LoadScopeScheduling._split_scope = _fixed_split_scope
+    # pylint: enable=protected-access
+except ImportError:
+    pass
+
 # --------------------------- pytest hooks -------------------------------
 
 
@@ -123,27 +146,10 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config):  # pylint: disable=unused-argument
     # Probe feature support and export the FEATURE_* environment variables
     # before test collection, since isctest.mark reads them at import time.
     isctest.features.init_features()
-
-    # Ensure this hook only runs on the main pytest instance if xdist is
-    # used to spawn other workers.
-    if not XDIST_WORKER:
-        if config.pluginmanager.has_plugin("xdist") and config.option.numprocesses:
-            # system tests depend on module scope for setup & teardown
-            # enforce use "loadscope" scheduler or disable paralelism
-            try:
-                import xdist.scheduler.loadscope  # pylint: disable=unused-import
-            except ImportError:
-                isctest.log.debug(
-                    "xdist is too old and does not have "
-                    "scheduler.loadscope, disabling parallelism"
-                )
-                config.option.dist = "no"
-            else:
-                config.option.dist = "loadscope"
 
 
 def pytest_ignore_collect(collection_path):
@@ -322,6 +328,29 @@ def named_httpsport(ports):
 @pytest.fixture(scope="module")
 def control_port(ports):
     return ports["CONTROLPORT"]
+
+
+@pytest.fixture(scope="module")
+def default_algorithm():
+    return isctest.algorithms.Algorithm.default()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def configure_algorithm_set(request):
+    """
+    Skip modules which request an algorithm set this branch cannot switch to.
+
+    Newer branches can switch the algorithm set per test module; here the set
+    is fixed when conf.sh is sourced, so a module requesting any other set is
+    skipped.
+    """
+    mark = request.node.get_closest_marker("algorithm_set")
+    current = os.environ.get("ALGORITHM_SET", "stable")
+    if mark and mark.args and mark.args[0] != current:
+        pytest.skip(
+            f"algorithm set {mark.args[0]!r} is not selected "
+            f"(running with {current!r})"
+        )
 
 
 @pytest.fixture(scope="module")
