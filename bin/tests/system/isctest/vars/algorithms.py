@@ -41,17 +41,20 @@ ALG_VARS = {
     "ALGORITHM_SET": "none",
     "DEFAULT_ALGORITHM": "",
     "DEFAULT_ALGORITHM_NUMBER": "",
+    "DEFAULT_ALGORITHM_DST_NUMBER": "",
     "DEFAULT_BITS": "",
     # Alternative algorithm for test cases that require more than one algorithm
     # (for example algorithm rollover). Must be different from
     # DEFAULT_ALGORITHM.
     "ALTERNATIVE_ALGORITHM": "",
     "ALTERNATIVE_ALGORITHM_NUMBER": "",
+    "ALTERNATIVE_ALGORITHM_DST_NUMBER": "",
     "ALTERNATIVE_BITS": "",
     # Algorithm that is used for tests against the "disable-algorithms"
     # configuration option. Must be different from above algorithms.
     "DISABLED_ALGORITHM": "",
     "DISABLED_ALGORITHM_NUMBER": "",
+    "DISABLED_ALGORITHM_DST_NUMBER": "",
     "DISABLED_BITS": "",
     # Default HMAC algorithm. Must match the rndc configuration in
     # bin/tests/system/_common (rndc.conf, rndc.key)
@@ -138,6 +141,8 @@ CRYPTO_SUPPORTED_VARS = {
     "ECDSAP384SHA384_SUPPORTED": "0",
     "ED25519_SUPPORTED": "0",
     "ED448_SUPPORTED": "0",
+    "RSASHA256OID_SUPPORTED": "0",
+    "RSASHA512OID_SUPPORTED": "0",
 }
 
 SUPPORTED_ALGORITHMS: list[Algorithm] = []
@@ -246,6 +251,7 @@ def _algorithms_env(algs: AlgorithmSet, name: str) -> dict[str, str]:
     def set_alg_env(alg: Algorithm, prefix):
         algs_env[f"{prefix}_ALGORITHM"] = alg.name
         algs_env[f"{prefix}_ALGORITHM_NUMBER"] = str(alg.number)
+        algs_env[f"{prefix}_ALGORITHM_DST_NUMBER"] = str(alg.dst)
         algs_env[f"{prefix}_BITS"] = str(alg.bits)
 
     assert isinstance(algs.default, Algorithm)
