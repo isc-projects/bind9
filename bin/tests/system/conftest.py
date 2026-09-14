@@ -333,6 +333,10 @@ def env(ports):
     env["HYPOTHESIS_STORAGE_DIRECTORY"] = (
         f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}/.hypothesis"
     )
+    # Export the variables right away, so that code which reads them from
+    # os.environ (e.g. server instance construction) sees the same values as
+    # the shell scripts; the system_test fixture re-exports them later.
+    os.environ.update(env)
     return env
 
 
@@ -744,20 +748,20 @@ def system_test(
 
 
 @pytest.fixture(scope="module")
-def servers(ports, system_test_dir):
+def servers(system_test_dir):
     instances = {}
     for entry in system_test_dir.rglob("*"):
         if entry.is_dir():
-            try:
-                dir_name = entry.name
-                # LATER: Make ports fixture return NamedPorts directly
-                named_ports = isctest.instance.NamedPorts(
-                    dns=int(ports["PORT"]), rndc=int(ports["CONTROLPORT"])
-                )
-                instance = isctest.instance.NamedInstance(dir_name, named_ports)
-                instances[dir_name] = instance
-            except ValueError:
-                continue
+            dir_name = entry.name
+            for instance_class in (
+                isctest.instance.NamedInstance,
+                isctest.instance.AnsInstance,
+            ):
+                try:
+                    instances[dir_name] = instance_class(dir_name)
+                    break
+                except ValueError:
+                    continue
     return instances
 
 
@@ -814,3 +818,58 @@ def ns10(servers):
 @pytest.fixture(scope="module")
 def ns11(servers):
     return servers["ns11"]
+
+
+@pytest.fixture(scope="module")
+def ans1(servers):
+    return servers["ans1"]
+
+
+@pytest.fixture(scope="module")
+def ans2(servers):
+    return servers["ans2"]
+
+
+@pytest.fixture(scope="module")
+def ans3(servers):
+    return servers["ans3"]
+
+
+@pytest.fixture(scope="module")
+def ans4(servers):
+    return servers["ans4"]
+
+
+@pytest.fixture(scope="module")
+def ans5(servers):
+    return servers["ans5"]
+
+
+@pytest.fixture(scope="module")
+def ans6(servers):
+    return servers["ans6"]
+
+
+@pytest.fixture(scope="module")
+def ans7(servers):
+    return servers["ans7"]
+
+
+@pytest.fixture(scope="module")
+def ans8(servers):
+    return servers["ans8"]
+
+
+@pytest.fixture(scope="module")
+def ans9(servers):
+    return servers["ans9"]
+
+
+@pytest.fixture(scope="module")
+def ans10(servers):
+    return servers["ans10"]
+
+
+@pytest.fixture(scope="module")
+def ans11(servers):
+    return servers["ans11"]
