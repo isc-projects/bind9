@@ -1139,45 +1139,40 @@ dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t len);
  */
 
 void
-dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx);
+dns_zone_setcheckmx(dns_zone_t *zone, bool enabled);
 /*%<
- *	Set the post load integrity callback function 'checkmx'.
+ *	Enable or disable the post load 'checkmx' callback.
  *	'checkmx' will be called if the MX TARGET is not within the zone.
  *
  * Require:
  *	'zone' to be a valid zone.
+ *	Enabling requires an operations table with the callback(s) set.
+ *	Call before publishing the zone, or with exclusive access to it.
  */
 
 void
-dns_zone_setchecksrv(dns_zone_t *zone, dns_checkmxfunc_t checksrv);
+dns_zone_setchecksrv(dns_zone_t *zone, bool enabled);
 /*%<
- *	Set the post load integrity callback function 'checksrv'.
+ *	Enable or disable the post load 'checksrv' callback.
  *	'checksrv' will be called if the SRV TARGET is not within the zone.
  *
  * Require:
  *	'zone' to be a valid zone.
+ *	Enabling requires an operations table with the callback(s) set.
+ *	Call before publishing the zone, or with exclusive access to it.
  */
 
 void
-dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns);
+dns_zone_setcheckns(dns_zone_t *zone, bool enabled);
 /*%<
- *	Set the post load integrity callback function 'checkns'.
+ *	Enable or disable the post load 'checkns' callback.
  *	'checkns' will be called if the NS TARGET is not within the zone.
+ *	Also enables 'checkisservedby' for out-of-zone NS targets with glue.
  *
  * Require:
  *	'zone' to be a valid zone.
- */
-
-void
-dns_zone_setcheckisservedby(dns_zone_t		     *zone,
-			    dns_checkisservedbyfunc_t checkisserverby);
-/*%<
- *	Set the post load integrity callback function 'checkisserverby'.
- *	'checkisserverby' will be called if the NS TARGET is not within
- *	the zone and there are A or AAAA records in the zone.
- *
- * Require:
- *	'zone' to be a valid zone.
+ *	Enabling requires an operations table with the callback(s) set.
+ *	Call before publishing the zone, or with exclusive access to it.
  */
 
 void
@@ -1202,9 +1197,9 @@ dns_zone_setnotifydelay(dns_zone_t *zone, dns_rdatatype_t type, uint32_t delay);
  */
 
 void
-dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
+dns_zone_setisself(dns_zone_t *zone, bool enabled, void *arg);
 /*%<
- * Set the isself callback function and argument.
+ * Enable or disable the isself callback and set its argument.
  *
  * bool
  * isself(dns_view_t *myview, dns_tsigkey_t *mykey,
@@ -1214,6 +1209,9 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  * 'isself' returns true if a non-recursive query from 'srcaddr' to
  * 'destaddr' with optional key 'mykey' for class 'rdclass' would be
  * delivered to 'myview'.
+ *
+ * Enabling requires an operations table with 'isself' set.
+ * Call before publishing the zone, or with exclusive access to it.
  */
 
 void
@@ -1495,15 +1493,14 @@ dns_zone_gethooktable(dns_zone_t *zone);
  */
 
 void
-dns_zone_sethooktable(dns_zone_t *zone, void *hooktable,
-		      void (*hooktable_free)(isc_mem_t *, void **));
+dns_zone_sethooktable(dns_zone_t *zone, void *hooktable);
 /**<
- * Initialize zone hooktable and free callback
+ * Initialize zone hooktable
  *
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li  'hooktable' to be initialized.
- * \li  'hooktable_free' to be valid.
+ * \li  the operations table to provide 'hooktable_free'.
  */
 
 void

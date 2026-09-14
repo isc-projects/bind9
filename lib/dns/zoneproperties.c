@@ -1669,36 +1669,52 @@ dns_zone_getkeydirectory(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx) {
+dns_zone_setops(dns_zone_t *zone, const dns_zone_ops_t *ops) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	zone->checkmx = checkmx;
+	REQUIRE(ops != NULL);
+	REQUIRE(zone->ops == NULL || zone->ops == ops);
+
+	zone->ops = ops;
 }
 
 void
-dns_zone_setchecksrv(dns_zone_t *zone, dns_checksrvfunc_t checksrv) {
+dns_zone_setcheckmx(dns_zone_t *zone, bool enabled) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	zone->checksrv = checksrv;
-}
-
-void
-dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	zone->checkns = checkns;
-}
-
-void
-dns_zone_setcheckisservedby(dns_zone_t *zone,
-			    dns_checkisservedbyfunc_t checkisservedby) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	zone->checkisservedby = checkisservedby;
-}
-
-void
-dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg) {
-	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(!enabled || (zone->ops != NULL && zone->ops->checkmx != NULL));
 
 	LOCK_ZONE(zone);
-	zone->isself = isself;
+	zone->checkmx = enabled;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setchecksrv(dns_zone_t *zone, bool enabled) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(!enabled || (zone->ops != NULL && zone->ops->checksrv != NULL));
+
+	LOCK_ZONE(zone);
+	zone->checksrv = enabled;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setcheckns(dns_zone_t *zone, bool enabled) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(!enabled || (zone->ops != NULL && zone->ops->checkns != NULL &&
+			     zone->ops->checkisservedby != NULL));
+
+	LOCK_ZONE(zone);
+	zone->checkns = enabled;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setisself(dns_zone_t *zone, bool enabled, void *arg) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(!enabled || (zone->ops != NULL && zone->ops->isself != NULL));
+
+	LOCK_ZONE(zone);
+	zone->isself = enabled;
 	zone->isselfarg = arg;
 	UNLOCK_ZONE(zone);
 }
@@ -1709,7 +1725,7 @@ dns__zone_getisself(dns_zone_t *zone, dns_isselffunc_t *isself, void **arg) {
 	REQUIRE(isself != NULL);
 	REQUIRE(arg != NULL && *arg == NULL);
 
-	*isself = zone->isself;
+	*isself = zone->isself ? zone->ops->isself : NULL;
 	*arg = zone->isselfarg;
 }
 
@@ -2030,14 +2046,12 @@ dns_zone_gethooktable(dns_zone_t *zone) {
 }
 
 void
-dns_zone_sethooktable(dns_zone_t *zone, void *hooktable,
-		      void (*hooktable_free)(isc_mem_t *, void **)) {
+dns_zone_sethooktable(dns_zone_t *zone, void *hooktable) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->hooktable == NULL);
-	REQUIRE(zone->hooktable_free == NULL);
+	REQUIRE(zone->ops != NULL && zone->ops->hooktable_free != NULL);
 
 	zone->hooktable = hooktable;
-	zone->hooktable_free = hooktable_free;
 }
 
 void

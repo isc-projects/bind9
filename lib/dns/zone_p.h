@@ -479,10 +479,6 @@ struct dns_zone {
 	dns_kasp_t *kasp;
 	dns_kasp_t *defaultkasp;
 	dns_dnsseckeylist_t keyring;
-	dns_checkmxfunc_t checkmx;
-	dns_checksrvfunc_t checksrv;
-	dns_checknsfunc_t checkns;
-	dns_checkisservedbyfunc_t checkisservedby;
 	/*%
 	 * Zones in certain states such as "waiting for zone transfer"
 	 * or "zone transfer in progress" are kept on per-state linked lists
@@ -506,7 +502,11 @@ struct dns_zone {
 	isc_stats_t *requeststats;
 	isc_statsmulti_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
-	dns_isselffunc_t isself;
+	const dns_zone_ops_t *ops;
+	bool checkmx  : 1;
+	bool checksrv : 1;
+	bool checkns  : 1; /* Also enables checkisservedby. */
+	bool isself   : 1;
 	void *isselfarg;
 
 	/*%
@@ -612,9 +612,7 @@ struct dns_zone {
 	 * Plugin-related data structures
 	 */
 	void *plugins;
-	void (*plugins_free)(isc_mem_t *, void **);
 	void *hooktable;
-	void (*hooktable_free)(isc_mem_t *, void **);
 
 	/* Configuration object */
 	void *cfg;

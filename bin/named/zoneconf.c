@@ -824,6 +824,12 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 	return false;
 }
 
+static const dns_zone_ops_t named_zone_ops = {
+	.isself = isself,
+	.plugins_free = ns_plugins_free,
+	.hooktable_free = ns_hooktable_free,
+};
+
 /*%
  * For mirror zones, change "notify yes;" to "notify explicit;", informing the
  * user only if "notify" was explicitly configured rather than inherited from
@@ -1367,7 +1373,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYTOSOA,
 				   cfg_obj_asboolean(obj));
 
-		dns_zone_setisself(zone, isself, NULL);
+		dns_zone_setops(zone, &named_zone_ops);
+		dns_zone_setisself(zone, true, NULL);
 
 		CHECK(configure_zone_acl(
 			zconfig, vconfig, config, allow_transfer, aclctx, zone,
@@ -2202,6 +2209,7 @@ named_zone_loadplugins(dns_zone_t *zone, const cfg_obj_t *config,
 	 * that's now obsolete.
 	 */
 	dns_zone_unloadplugins(zone);
+	dns_zone_setops(zone, &named_zone_ops);
 
 	/*
 	 * Load zone-specific plugin instances.
@@ -2222,11 +2230,10 @@ named_zone_loadplugins(dns_zone_t *zone, const cfg_obj_t *config,
 		isc_mem_t *zmctx = dns_zone_getmctx(zone);
 
 		ns_hooktable_create(zmctx, &hookdata.hooktable);
-		dns_zone_sethooktable(zone, hookdata.hooktable,
-				      ns_hooktable_free);
+		dns_zone_sethooktable(zone, hookdata.hooktable);
 
 		ns_plugins_create(zmctx, &hookdata.plugins);
-		dns_zone_setplugins(zone, hookdata.plugins, ns_plugins_free);
+		dns_zone_setplugins(zone, hookdata.plugins);
 
 		RETERR(cfg_pluginlist_foreach(config, tpluginlist, aclctx,
 					      named_register_one_plugin,

@@ -1779,8 +1779,8 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkmx != NULL) {
-			return (zone->checkmx)(zone, name, owner);
+		if (zone->checkmx) {
+			return (zone->ops->checkmx)(zone, name, owner);
 		}
 		return true;
 	}
@@ -1851,8 +1851,8 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		return (level == ISC_LOG_WARNING) ? true : false;
 	}
 
-	if (zone->checkmx != NULL && result == DNS_R_DELEGATION) {
-		return (zone->checkmx)(zone, name, owner);
+	if (zone->checkmx && result == DNS_R_DELEGATION) {
+		return (zone->ops->checkmx)(zone, name, owner);
 	}
 
 	return true;
@@ -1880,8 +1880,8 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checksrv != NULL) {
-			return (zone->checksrv)(zone, name, owner);
+		if (zone->checksrv) {
+			return (zone->ops->checksrv)(zone, name, owner);
 		}
 		return true;
 	}
@@ -1950,8 +1950,8 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		return (level == ISC_LOG_WARNING) ? true : false;
 	}
 
-	if (zone->checksrv != NULL && result == DNS_R_DELEGATION) {
-		return (zone->checksrv)(zone, name, owner);
+	if (zone->checksrv && result == DNS_R_DELEGATION) {
+		return (zone->ops->checksrv)(zone, name, owner);
 	}
 
 	return true;
@@ -1975,8 +1975,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkns != NULL) {
-			return (zone->checkns)(zone, name, owner, NULL, NULL);
+		if (zone->checkns) {
+			return (zone->ops->checkns)(zone, name, owner, NULL,
+						    NULL);
 		}
 		return true;
 	}
@@ -2048,9 +2049,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 			/*
 			 * Check glue against child zone.
 			 */
-			if (zone->checkns != NULL) {
-				answer = (zone->checkns)(zone, name, owner, &a,
-							 &aaaa);
+			if (zone->checkns) {
+				answer = (zone->ops->checkns)(zone, name, owner,
+							      &a, &aaaa);
 			}
 			dns_rdataset_cleanup(&a);
 			dns_rdataset_cleanup(&aaaa);
@@ -2084,10 +2085,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 			/*
 			 * Log missing address record.
 			 */
-			if (result == DNS_R_DELEGATION && zone->checkns != NULL)
-			{
-				(void)(zone->checkns)(zone, name, owner, &a,
-						      &aaaa);
+			if (result == DNS_R_DELEGATION && zone->checkns) {
+				(void)(zone->ops->checkns)(zone, name, owner,
+							   &a, &aaaa);
 			}
 			/* XXX950 make fatal for 9.5.0. */
 			/* answer = false; */
@@ -2259,8 +2259,8 @@ zone_is_served_by(dns_zone_t *zone, dns_db_t *db, dns_rdatatype_t type,
 	 * Outside of zone, assume good when loading in named.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkisservedby != NULL) {
-			return zone->checkisservedby(zone, type, name);
+		if (zone->checkns) {
+			return zone->ops->checkisservedby(zone, type, name);
 		}
 		return true;
 	}
@@ -2271,8 +2271,8 @@ zone_is_served_by(dns_zone_t *zone, dns_db_t *db, dns_rdatatype_t type,
 	dns_rdataset_cleanup(&rdataset);
 	switch (result) {
 	case DNS_R_DELEGATION:
-		if (zone->checkisservedby != NULL) {
-			return zone->checkisservedby(zone, type, name);
+		if (zone->checkns) {
+			return zone->ops->checkisservedby(zone, type, name);
 		}
 		/*
 		 * Treat as success.
@@ -20860,30 +20860,26 @@ cleanup:
 }
 
 void
-dns_zone_setplugins(dns_zone_t *zone, void *plugins,
-		    void (*plugins_free)(isc_mem_t *, void **)) {
+dns_zone_setplugins(dns_zone_t *zone, void *plugins) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->plugins == NULL);
-	REQUIRE(zone->plugins_free == NULL);
+	REQUIRE(zone->ops != NULL && zone->ops->plugins_free != NULL);
 
 	zone->plugins = plugins;
-	zone->plugins_free = plugins_free;
 }
 
 void
 dns_zone_unloadplugins(dns_zone_t *zone) {
 	if (zone->hooktable != NULL) {
-		INSIST(zone->hooktable_free);
-		zone->hooktable_free(zone->mctx, &zone->hooktable);
+		INSIST(zone->ops->hooktable_free);
+		zone->ops->hooktable_free(zone->mctx, &zone->hooktable);
 		INSIST(zone->hooktable == NULL);
-		zone->hooktable_free = NULL;
 	}
 
 	if (zone->plugins != NULL) {
-		INSIST(zone->plugins_free);
-		zone->plugins_free(zone->mctx, &zone->plugins);
+		INSIST(zone->ops->plugins_free);
+		zone->ops->plugins_free(zone->mctx, &zone->plugins);
 		INSIST(zone->plugins == NULL);
-		zone->plugins_free = NULL;
 	}
 }
 

@@ -38,6 +38,29 @@
 #include <dns/xfrin.h>
 #include <dns/zt.h>
 
+/*
+ * Shared application callbacks.  Tables are immutable and must outlive every
+ * zone using them.  Callback arguments and plugin objects remain per-zone.
+ */
+typedef struct dns_zone_ops {
+	dns_checkmxfunc_t	  checkmx;
+	dns_checksrvfunc_t	  checksrv;
+	dns_checknsfunc_t	  checkns;
+	dns_checkisservedbyfunc_t checkisservedby;
+	dns_isselffunc_t	  isself;
+	void (*plugins_free)(isc_mem_t *, void **);
+	void (*hooktable_free)(isc_mem_t *, void **);
+} dns_zone_ops_t;
+
+void
+dns_zone_setops(dns_zone_t *zone, const dns_zone_ops_t *ops);
+/*%<
+ * Install a shared callback table before enabling callbacks or adding plugins.
+ * The table must remain immutable and alive until the zone is destroyed.
+ * Reinstalling the same table is allowed; replacing it is not.
+ * Call before publishing the zone, or with exclusive access to it.
+ */
+
 /* Add -DDNS_ZONE_TRACE=1 to CFLAGS for detailed reference tracing */
 
 typedef enum {
@@ -988,15 +1011,14 @@ dns_zonemgr_setkeystores(dns_zonemgr_t *zmgr, dns_keystorelist_t *keystores);
  */
 
 void
-dns_zone_setplugins(dns_zone_t *zone, void *plugins,
-		    void (*plugins_free)(isc_mem_t *, void **));
+dns_zone_setplugins(dns_zone_t *zone, void *plugins);
 /**<
- * Initialize zone plugins owning list and free callback
+ * Initialize zone plugins owning list
  *
  * Requires:
  * \li	'zone' to be a valid zone.
  * \li  'plugins' to be initialized.
- * \li  'plugins_free' to be valid.
+ * \li  the operations table to provide 'plugins_free'.
  */
 
 void

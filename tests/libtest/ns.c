@@ -136,7 +136,12 @@ static dns_zone_t *served_zone = NULL;
 
 void
 ns_test_serve_zone_sethooktab(ns_hooktable_t *hooktab) {
-	dns_zone_sethooktable(served_zone, hooktab, ns_hooktable_free);
+	static const dns_zone_ops_t ops = {
+		.hooktable_free = ns_hooktable_free,
+	};
+
+	dns_zone_setops(served_zone, &ops);
+	dns_zone_sethooktable(served_zone, hooktab);
 }
 
 isc_result_t

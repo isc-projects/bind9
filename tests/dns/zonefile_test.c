@@ -32,6 +32,8 @@
 #include <dns/view.h>
 #include <dns/zoneproperties.h>
 
+#include "zone_p.h"
+
 #include <tests/dns.h>
 
 typedef struct {
@@ -169,8 +171,140 @@ ISC_LOOP_TEST_IMPL(filename) {
 	isc_loopmgr_shutdown();
 }
 
+static unsigned int check_calls[4];
+
+static bool
+check_mx(dns_zone_t *zone ISC_ATTR_UNUSED,
+	 const dns_name_t *name ISC_ATTR_UNUSED,
+	 const dns_name_t *owner ISC_ATTR_UNUSED) {
+	check_calls[0]++;
+	return true;
+}
+
+static bool
+check_srv(dns_zone_t *zone ISC_ATTR_UNUSED,
+	  const dns_name_t *name ISC_ATTR_UNUSED,
+	  const dns_name_t *owner ISC_ATTR_UNUSED) {
+	check_calls[1]++;
+	return true;
+}
+
+static bool
+check_ns(dns_zone_t *zone ISC_ATTR_UNUSED,
+	 const dns_name_t *name ISC_ATTR_UNUSED,
+	 const dns_name_t *owner ISC_ATTR_UNUSED,
+	 dns_rdataset_t *a ISC_ATTR_UNUSED,
+	 dns_rdataset_t *aaaa ISC_ATTR_UNUSED) {
+	check_calls[2]++;
+	return true;
+}
+
+static bool
+check_servedby(dns_zone_t *zone ISC_ATTR_UNUSED,
+	       dns_rdatatype_t type ISC_ATTR_UNUSED,
+	       const dns_name_t *name ISC_ATTR_UNUSED) {
+	check_calls[3]++;
+	return true;
+}
+
+static bool
+check_self(dns_view_t *view ISC_ATTR_UNUSED, dns_tsigkey_t *key ISC_ATTR_UNUSED,
+	   const isc_sockaddr_t *src ISC_ATTR_UNUSED,
+	   const isc_sockaddr_t *dst ISC_ATTR_UNUSED,
+	   dns_rdataclass_t rdclass ISC_ATTR_UNUSED, void *arg) {
+	return *(bool *)arg;
+}
+
+static void
+free_object(isc_mem_t *mctx ISC_ATTR_UNUSED, void **object) {
+	(*(unsigned int *)*object)++;
+	*object = NULL;
+}
+
+ISC_LOOP_TEST_IMPL(callbacks) {
+	static const dns_zone_ops_t ops = {
+		.checkmx = check_mx,
+		.checksrv = check_srv,
+		.checkns = check_ns,
+		.checkisservedby = check_servedby,
+		.isself = check_self,
+		.plugins_free = free_object,
+		.hooktable_free = free_object,
+	};
+	static const char contents[] =
+		"$TTL 300\n"
+		"@ IN SOA ns.example.net. hostmaster 1 3600 600 86400 300\n"
+		"@ IN NS ns.example.net.\n"
+		"@ IN A 192.0.2.1\n"
+		"@ IN MX 10 mail.example.net.\n"
+		"_test._tcp IN SRV 0 0 443 srv.example.net.\n"
+		"child IN NS ns.example.net.\n";
+	UNUSED(arg);
+
+	/* All eight combinations share one table; toggles must be independent.
+	 */
+	for (unsigned int mask = 0; mask < 8; mask++) {
+		dns_zone_t *zone = NULL;
+		dns_isselffunc_t isself = NULL;
+		void *isselfarg = NULL;
+		bool self = true;
+		unsigned int freed = 0;
+		FILE *stream = tmpfile();
+		assert_non_null(stream);
+		assert_true(fputs(contents, stream) >= 0);
+		rewind(stream);
+		assert_int_equal(
+			dns_test_makezone("example", &zone, NULL, false),
+			ISC_R_SUCCESS);
+		dns__zone_getisself(zone, &isself, &isselfarg);
+		assert_null(isself);
+		dns_zone_setops(zone, &ops);
+		dns_zone_setcheckmx(zone, true);
+		dns_zone_setchecksrv(zone, true);
+		dns_zone_setcheckns(zone, true);
+		dns_zone_setcheckmx(zone, (mask & 1) != 0);
+		dns_zone_setchecksrv(zone, (mask & 2) != 0);
+		dns_zone_setcheckns(zone, (mask & 4) != 0);
+		dns_zone_setisself(zone, true, &self);
+		dns__zone_getisself(zone, &isself, &isselfarg);
+		assert_ptr_equal(isselfarg, &self);
+		assert_true(isself(NULL, NULL, NULL, NULL, dns_rdataclass_in,
+				   isselfarg));
+		dns_zone_setisself(zone, false, NULL);
+		isselfarg = NULL;
+		dns__zone_getisself(zone, &isself, &isselfarg);
+		assert_null(isself);
+		assert_null(isselfarg);
+
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKINTEGRITY, true);
+		dns_zone_setstream(zone, stream, dns_masterformat_text,
+				   &dns_master_style_default);
+		memset(check_calls, 0, sizeof(check_calls));
+		assert_int_equal(dns_zone_load(zone, false), ISC_R_SUCCESS);
+		assert_int_equal(check_calls[0] != 0, (mask & 1) != 0);
+		assert_int_equal(check_calls[1] != 0, (mask & 2) != 0);
+		assert_int_equal(check_calls[2] != 0, (mask & 4) != 0);
+		assert_int_equal(check_calls[3] != 0, (mask & 4) != 0);
+
+		dns_zone_sethooktable(zone, &freed);
+		dns_zone_setplugins(zone, &freed);
+		dns_zone_unloadplugins(zone);
+		assert_int_equal(freed, 2);
+		dns_zone_unloadplugins(zone);
+		assert_int_equal(freed, 2);
+		dns_zone_setops(zone, &ops);
+		dns_zone_sethooktable(zone, &freed);
+		dns_zone_setplugins(zone, &freed);
+		dns_zone_detach(&zone);
+		assert_int_equal(freed, 4);
+		fclose(stream);
+	}
+	isc_loopmgr_shutdown();
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(filename, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(callbacks, setup_test, teardown_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
