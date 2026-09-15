@@ -205,17 +205,19 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 
 		CHECK(dst_key_fromgssapi(name, gss_ctx, ring->mctx, &dstkey,
 					 &intoken));
-		/*
-		 * Limit keys to 1 hour or the context's lifetime whichever
-		 * is smaller.
-		 */
-		expire = now + 3600;
 #if HAVE_GSSAPI
 		gret = gss_context_time(&minor, gss_ctx, &lifetime);
-		if (gret == GSS_S_COMPLETE && now + lifetime < expire) {
+		if (gret == GSS_S_COMPLETE) {
 			expire = now + lifetime;
-		}
+		} else
 #endif /* HAVE_GSSAPI */
+		{
+			/*
+			 * Limit keys to 1 hour if the context's lifetime is not
+			 * available.
+			 */
+			expire = now + 3600;
+		}
 		CHECK(dns_tsigkey_createfromkey(
 			name, dns__tsig_algfromname(&tkeyin->algorithm), dstkey,
 			true, false, principal, now, expire, ring->mctx,
