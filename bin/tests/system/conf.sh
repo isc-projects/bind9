@@ -18,6 +18,12 @@ if [ -z "$TOP_SRCDIR" ]; then
   eval "$(PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH" /usr/bin/env python3 -m isctest)"
 fi
 
+# Make the isctest package importable from test scripts, notably for the
+# standalone helper tools ($PYTHON -m isctest.tools.<name>).  Append any
+# inherited PYTHONPATH only when it is non-empty: a trailing colon would
+# add an empty element, which Python turns into the current directory.
+export PYTHONPATH="$TOP_SRCDIR/bin/tests/system${PYTHONPATH:+:$PYTHONPATH}"
+
 testsock6() {
   if test -n "$PERL" && $PERL -e "use IO::Socket::IP;" 2>/dev/null; then
     $PERL "$TOP_SRCDIR/bin/tests/system/testsock6.pl" "$@"
