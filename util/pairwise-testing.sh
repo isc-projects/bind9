@@ -51,7 +51,7 @@ meson introspect build-pairwise-default --buildoptions | ./util/pairwise-constru
 
 pict pairwise-model.txt | tr "\t" " " | sed "1d" >pairwise-commands.txt
 
-rm -rf build-pairwire-default
+rm -rf build-pairwise-default
 
 runid=0
 while read -r -a configure_switches; do
@@ -60,10 +60,8 @@ while read -r -a configure_switches; do
   cd "pairwise-${runid}"
   echo "Configuration:" "${configure_switches[@]}" | tee "../pairwise-output.${runid}.txt"
   meson setup build .. "${configure_switches[@]}" >>"../pairwise-output.${runid}.txt" 2>&1
-  # ../configure --enable-option-checking=fatal "${configure_switches[@]}" >>"../pairwise-output.${runid}.txt" 2>&1
   echo "Building..."
   ninja -C build >>"../pairwise-output.${runid}.txt" 2>&1
-  # make "-j${BUILD_PARALLEL_JOBS:-1}" all >>"../pairwise-output.${runid}.txt" 2>&1
   echo "Running..."
   echo "${NAMED_CONF}" >named.conf
   echo "${ZONE_CONTENTS}" >zone.db
