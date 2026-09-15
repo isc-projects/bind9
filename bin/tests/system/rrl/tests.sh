@@ -61,7 +61,7 @@ sec_start() {
     if test "$START" != "$NOW"; then
       return
     fi
-    $PERL -e 'select(undef, undef, undef, 0.05)' || true
+    $PYTHON -c 'import time; time.sleep(0.05)' || true
   done
 }
 
@@ -83,7 +83,7 @@ burst() {
   CNT=$XCNT
 
   DOMS=""
-  CNTS=$($PERL -e 'for ( $i = 0; $i < '$BURST_LIMIT'; $i++) { printf "%03d\n", '$QNUM' + $i; }')
+  CNTS=$(awk -v n="$BURST_LIMIT" -v q="$QNUM" 'BEGIN { for (i = 0; i < n; i++) printf "%03d\n", q + i; }')
   for CNT in $CNTS; do
     eval BURST_DOM="$BURST_DOM_BASE"
     DOMS="$DOMS $BURST_DOM"
@@ -105,7 +105,8 @@ burst() {
 
 # compare integers $1 and $2; ensure the difference is no more than $3
 range() {
-  $PERL -e 'if (abs(int($ARGV[0]) - int($ARGV[1])) > int($ARGV[2])) { exit(1) }' $1 $2 $3
+  _diff=$(($1 - $2))
+  [ "${_diff#-}" -le "$3" ]
 }
 
 #   $1=domain  $2=IP address  $3=# of IP addresses  $4=TC  $5=drop

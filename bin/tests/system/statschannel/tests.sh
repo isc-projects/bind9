@@ -56,7 +56,7 @@ retry_quiet_fast() {
     __retries=$((__retries - 1))
     if [ "${__retries}" -gt 0 ]; then
       # sleep for 0.1 seconds
-      perl -e 'select(undef, undef, undef, .1)'
+      $PYTHON -c 'import time; time.sleep(0.1)'
     else
       return 1
     fi

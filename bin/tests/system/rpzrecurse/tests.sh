@@ -472,9 +472,9 @@ if [ "$MODE" = "native" ]; then
   echo_i "timing 'nsip-wait-recurse yes' (default)"
   produce_librpz_rules ns3 policy policy
   ret=0
-  t1=$($PERL -e 'print time()."\n";')
+  t1=$(date +%s)
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
-  t2=$($PERL -e 'print time()."\n";')
+  t2=$(date +%s)
   p1=$((t2 - t1))
   echo_i "elapsed time $p1 seconds"
 
@@ -486,9 +486,9 @@ if [ "$MODE" = "native" ]; then
 
   echo_i "timing 'nsip-wait-recurse no'"
   echo "update zone policy 0 no_nsip_wait_recurse" >$DNSRPS_TEST_UPDATE_FILE
-  t3=$($PERL -e 'print time()."\n";')
+  t3=$(date +%s)
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
-  t4=$($PERL -e 'print time()."\n";')
+  t4=$(date +%s)
   p2=$((t4 - t3))
   echo_i "elapsed time $p2 seconds"
 
@@ -508,9 +508,9 @@ if [ "$MODE" = "native" ]; then
   add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsdname-wait-recurse yes' (default)"
   ret=0
-  t1=$($PERL -e 'print time()."\n";')
+  t1=$(date +%s)
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.yes.$t
-  t2=$($PERL -e 'print time()."\n";')
+  t2=$(date +%s)
   p1=$((t2 - t1))
   echo_i "elapsed time $p1 seconds"
 
@@ -521,9 +521,9 @@ if [ "$MODE" = "native" ]; then
   wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
   echo_i "timing 'nsdname-wait-recurse no'"
-  t3=$($PERL -e 'print time()."\n";')
+  t3=$(date +%s)
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a >dig.out.no.$t
-  t4=$($PERL -e 'print time()."\n";')
+  t4=$(date +%s)
   p2=$((t4 - t3))
   echo_i "elapsed time $p2 seconds"
 
