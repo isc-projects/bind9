@@ -141,6 +141,10 @@ with_cpu_affinity = pytest.mark.skipif(
     reason="cpuset, numactl, or taskset is required",
 )
 
+with_curl = pytest.mark.skipif(
+    not shutil.which(os.getenv("CURL", "")), reason="curl is required"
+)
+
 softhsm2_environment = pytest.mark.skipif(
     not (
         os.getenv("SOFTHSM2_CONF")

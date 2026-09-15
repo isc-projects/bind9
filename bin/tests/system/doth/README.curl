@@ -11,28 +11,19 @@ See the COPYRIGHT file distributed with this work for additional
 information regarding copyright ownership.
 -->
 
-DoH query values that can be passed on the command line for testing
-with curl can be obtained by encoding binary DNS messages into
-base64url, with trailing '='s removed.
+DoH queries can be sent with curl for testing, passing the DNS message
+in the "dns" query parameter, base64url-encoded with the trailing '='
+padding removed (RFC 8484).  The message is easiest to build with
+dnspython; message id 0 keeps the URL stable and cache-friendly, as
+RFC 8484 recommends for GET requests.
 
 For example:
 
-$ perl bin/tests/system/fromhex.pl << EOF | base64url
-    # Transaction ID
-    0001
-    # Standard query
-    0000
-    # Questions: 1, Additional: 0
-    0001 0000 0000 0000
-    # QNAME: example
-    07 6578616d706c65 00
-    # Type: SOA
-    0006
-    Class: IN
-    0001
-EOF
+$ python3 -c 'import base64, dns.message
+query = dns.message.make_query("example.", "SOA", id=0)
+print(base64.urlsafe_b64encode(query.to_wire()).rstrip(b"=").decode())'
+AAABAAABAAAAAAAAB2V4YW1wbGUAAAYAAQ
 
-This produces the string "AAEAAAABAAAAAAAAB2V4YW1wbGUAAAbFrMonAAE=". With
-the trailing '=' removed, this can then be passed to curl:
+This string can then be passed to curl:
 
-curl "https://<server>/dns-query?dns=AAEAAAABAAAAAAAAB2V4YW1wbGUAAAbFrMonAAE"
+curl "https://<server>/dns-query?dns=AAABAAABAAAAAAAAB2V4YW1wbGUAAAYAAQ"
