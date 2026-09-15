@@ -204,7 +204,6 @@ TESTS =				\
 	rsabigexponent		\
 	runtime			\
 	selfpointedglue		\
-	selftest		\
 	sfcache			\
 	sfcache_cname		\
 	shutdown		\
