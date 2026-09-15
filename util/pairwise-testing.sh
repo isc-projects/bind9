@@ -53,8 +53,9 @@ pict pairwise-model.txt | tr "\t" " " | sed "1d" >pairwise-commands.txt
 
 rm -rf build-pairwire-default
 
+runid=0
 while read -r -a configure_switches; do
-  runid=${RANDOM}
+  runid=$((runid + 1))
   mkdir "pairwise-${runid}"
   cd "pairwise-${runid}"
   echo "Configuration:" "${configure_switches[@]}" | tee "../pairwise-output.${runid}.txt"
@@ -75,8 +76,8 @@ while read -r -a configure_switches; do
     echo "Unexpected exit code from the 'timeout' utility (${ret})"
     exit 1
   fi
-  rm -rf build
   # "timeout" is unable to report a crash on shutdown via its exit
   # code.
   cd ..
+  rm -rf "pairwise-${runid}"
 done <pairwise-commands.txt
