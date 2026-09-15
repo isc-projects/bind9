@@ -52,8 +52,9 @@ grep -v -F "pairwise: skip" configure.ac | sed -n -E "s|.*# \[pairwise: (.*)\]|\
 
 pict pairwise-model.txt | tr "\t" " " | sed "1d" >pairwise-commands.txt
 
+runid=0
 while read -r -a configure_switches; do
-  runid=${RANDOM}
+  runid=$((runid + 1))
   mkdir "pairwise-${runid}"
   cd "pairwise-${runid}"
   echo "Configuration:" "${configure_switches[@]}" | tee "../pairwise-output.${runid}.txt"
