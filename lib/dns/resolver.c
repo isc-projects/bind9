@@ -5922,14 +5922,23 @@ validated(void *arg) {
 		inc_stats(res, dns_resstatscounter_valfail);
 		fctx->valfail++;
 		result = fctx->vresult = val->result;
-		if (result != DNS_R_BROKENCHAIN) {
+		switch (result) {
+		case DNS_R_BROKENCHAIN:
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
+			if (!negative) {
+				/*
+				 * Cache the data as pending for later
+				 * validation.
+				 */
+				cache_rrset(fctx, now, val->name, val->rdataset,
+					    val->sigrdataset, NULL, NULL, NULL,
+					    false);
+			}
+			break;
+		default:
 			delete_rrset(fctx, val->name, val->type);
-		} else if (!negative) {
-			/*
-			 * Cache the data as pending for later validation.
-			 */
-			cache_rrset(fctx, now, val->name, val->rdataset,
-				    val->sigrdataset, NULL, NULL, NULL, false);
 		}
 
 		add_bad(fctx, message, addrinfo, result, badns_validation);
@@ -5940,10 +5949,20 @@ validated(void *arg) {
 			goto cleanup;
 		}
 
-		/* A broken trust chain isn't recoverable. */
-		if (result == DNS_R_BROKENCHAIN) {
+		/*
+		 * A broken trust chain isn't recoverable, and neither is an
+		 * exhausted DNSSEC validation budget: retrying would only do
+		 * more validation work against the same quota.
+		 */
+		switch (result) {
+		case DNS_R_BROKENCHAIN:
+		case ISC_R_CANCELED:
+		case ISC_R_SHUTTINGDOWN:
+		case ISC_R_QUOTA:
 			done = true;
 			goto cleanup;
+		default:
+			break;
 		}
 
 		/*
@@ -5989,8 +6008,8 @@ validated(void *arg) {
 
 	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		CHECK(dns_rdataset_addnoqname(
-			val->rdataset,
-			val->proofs[DNS_VALIDATOR_NOQNAMEPROOF]));
+			val->rdataset, val->proofs[DNS_VALIDATOR_NOQNAMEPROOF],
+			val->noqnametype));
 		INSIST(val->sigrdataset != NULL);
 		val->sigrdataset->ttl = val->rdataset->ttl;
 	} else if (gettrust(val->rdataset) == dns_trust_answer) {
@@ -6186,7 +6205,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	}
 
 	if (result == ISC_R_SUCCESS && noqname != NULL) {
-		(void)dns_rdataset_addnoqname(rdataset, noqname);
+		(void)dns_rdataset_addnoqname(rdataset, noqname, found);
 	}
 
 	return;

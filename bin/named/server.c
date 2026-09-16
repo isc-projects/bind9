@@ -8385,15 +8385,13 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	cachelist = tmpcachelist;
 
 	/* Load the TKEY information from the configuration. */
-	if (options != NULL) {
-		dns_tkeyctx_t *tkeyctx = NULL;
+	dns_tkeyctx_t *tkeyctx = NULL;
 
-		named_tkeyctx_fromconfig(options, isc_g_mctx, &tkeyctx);
-		if (server->sctx->tkeyctx != NULL) {
-			dns_tkeyctx_destroy(&server->sctx->tkeyctx);
-		}
-		server->sctx->tkeyctx = tkeyctx;
+	named_tkeyctx_fromconfig(options, isc_g_mctx, &tkeyctx);
+	if (server->sctx->tkeyctx != NULL) {
+		dns_tkeyctx_destroy(&server->sctx->tkeyctx);
 	}
+	server->sctx->tkeyctx = tkeyctx;
 
 	/*
 	 * We are using LMDB. This means we may have created newzones

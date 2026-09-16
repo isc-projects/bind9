@@ -27,16 +27,18 @@
 void
 named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 			 dns_tkeyctx_t **tctxp) {
-	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;
-	const cfg_obj_t *obj = NULL;
 
 	dns_tkeyctx_create(mctx, &tctx);
 
-	result = cfg_map_get(options, "tkey-gssapi-keytab", &obj);
-	if (result == ISC_R_SUCCESS) {
-		const char *s = cfg_obj_asstring(obj);
-		tctx->gssapi_keytab = isc_mem_strdup(mctx, s);
+	if (options != NULL) {
+		const cfg_obj_t *obj = NULL;
+		isc_result_t result = cfg_map_get(options, "tkey-gssapi-keytab",
+						  &obj);
+		if (result == ISC_R_SUCCESS) {
+			const char *s = cfg_obj_asstring(obj);
+			tctx->gssapi_keytab = isc_mem_strdup(mctx, s);
+		}
 	}
 
 	*tctxp = tctx;
