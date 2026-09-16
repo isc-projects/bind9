@@ -3,3 +3,5 @@ example.       300 IN NS    ns.example.
 ns.example.    300 IN A     10.53.0.1
 foo.example.   300 IN CNAME bar.example.
 bar.example.   300 IN A     192.0.2.2
+loop1.example. 300 IN CNAME loop2.example.
+loop2.example. 300 IN CNAME loop1.example.

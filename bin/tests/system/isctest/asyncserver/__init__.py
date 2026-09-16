@@ -977,6 +977,12 @@ class AsyncDnsServer(_AsyncServer):
         if not cname:
             return False
 
+        if qctx.current_qname in qctx.aliases:
+            # CNAME loop
+            qctx.response.set_rcode(dns.rcode.SERVFAIL)
+            return True
+        qctx.aliases.add(qctx.current_qname)
+
         qctx.response.set_rcode(dns.rcode.NOERROR)
         cname_rrset = dns.rrset.RRset(qctx.current_qname, qctx.qclass, cname.rdtype)
         cname_rrset.update(cname)
