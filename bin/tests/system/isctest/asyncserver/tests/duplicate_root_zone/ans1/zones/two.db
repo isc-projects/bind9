@@ -1,0 +1,4 @@
+$ORIGIN .
+$TTL 300
+@ SOA ns.example. hostmaster.example. 1 2 3 4 5
+@ NS ns.example.
