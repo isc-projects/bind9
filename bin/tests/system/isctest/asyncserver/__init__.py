@@ -106,6 +106,7 @@ class _AsyncServer:
 
     def __init__(
         self,
+        init_handler: Callable[[], None] | None,
         udp_handler: _UdpHandler | None,
         tcp_handler: _TcpHandler | None,
         pidfile: str | None = None,
@@ -132,6 +133,7 @@ class _AsyncServer:
 
         self._ip_addresses: tuple[str, str] = (ipv4_address, ipv6_address)
         self._port: int = port
+        self._init_handler: Callable[[], None] | None = init_handler
         self._udp_handler: _UdpHandler | None = udp_handler
         self._tcp_handler: _TcpHandler | None = tcp_handler
         self._pidfile: str | None = pidfile
@@ -158,6 +160,8 @@ class _AsyncServer:
         await self._listen_udp()
         await self._listen_tcp()
         self._write_pidfile()
+        if self._init_handler:
+            self._init_handler()
         await self._work_done
         self._cleanup_pidfile()
 
@@ -318,6 +322,8 @@ class _ZoneTree:
         Add a zone to the tree and rearrange sub-zones if necessary.
         """
         best_match = self._find_best_match(origin, self._root)
+        if best_match.zone is not None and best_match.zone.origin == origin:
+            raise ValueError(f'zone "{origin}" is defined by more than one zone file')
         added_node = _ZoneTreeNode(zone)
         self._move_children(best_match, added_node)
         best_match.children.append(added_node)
@@ -407,7 +413,9 @@ class AsyncDnsServer(_AsyncServer):
         keyring: dict[dns.name.Name, dns.tsig.Key] | Literal[False] | None = None,
         acknowledge_manual_dname_handling: bool = False,
     ) -> None:
-        super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
+        super().__init__(
+            self._handle_init, self._handle_udp, self._handle_tcp, "ans.pid"
+        )
 
         self._zone_tree: _ZoneTree = _ZoneTree()
         self._zones: dict[dns.name.Name, dns.zone.Zone] = {}
@@ -420,9 +428,6 @@ class AsyncDnsServer(_AsyncServer):
         self._default_aa = default_aa
         self._keyring = keyring
         self._acknowledge_manual_dname_handling = acknowledge_manual_dname_handling
-
-        self._load_zones()
-        self._load_keys()
 
     def install_response_handler(
         self, handler: ResponseHandler, prepend: bool = False
@@ -470,6 +475,10 @@ class AsyncDnsServer(_AsyncServer):
         if self._connection_handler:
             raise RuntimeError("Only one connection handler can be installed")
         self._connection_handler = handler
+
+    def _handle_init(self) -> None:
+        self._load_zones()
+        self._load_keys()
 
     def _scan_directory(self, directory: str) -> Iterator[os.DirEntry]:
         directory_path = pathlib.Path(directory)
