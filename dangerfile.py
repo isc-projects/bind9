@@ -576,7 +576,7 @@ for log_level in user_visible_log_levels:
 # SYSTEM TEST FILES
 ###############################################################################
 #
-# FAIL if newly added system test directory contains an underscore (invalid char)
+# FAIL if newly added system test directory contains a hyphen (invalid char)
 # FAIL if there are no pytest files in the system test directory
 # FAIL if the pytest glue file for tests.sh is missing
 
@@ -607,7 +607,7 @@ for testname in testnames:
             "`tests_*.py` pytest file."
         )
     tests_sh_exists = os.path.exists(f"{dirpath}/tests.sh")
-    glue_file_name = f"tests_sh_{testname.replace('-', '_')}.py"
+    glue_file_name = f"tests_sh_{testname}.py"
     tests_sh_py_exists = os.path.exists(f"{dirpath}/{glue_file_name}")
     if tests_sh_exists and not tests_sh_py_exists:
         fail(
