@@ -30,3 +30,13 @@ def test_cname_chain_is_followed():
         dns.rdatatype.A,
     ]
     assert res.answer[-1][0].to_text() == "192.0.2.2"
+
+
+def test_looping_cname_chain_is_cut_with_servfail():
+    res = query("loop1.example.", "A")
+    isctest.check.servfail(res)
+    assert [rrset.name.to_text() for rrset in res.answer] == [
+        "loop1.example.",
+        "loop2.example.",
+    ]
+    assert all(rrset.rdtype == dns.rdatatype.CNAME for rrset in res.answer)
