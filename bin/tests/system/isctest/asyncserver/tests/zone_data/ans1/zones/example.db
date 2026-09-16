@@ -1,0 +1,5 @@
+example.       300 IN SOA   ns.example. hostmaster.example. 1 3600 600 86400 300
+example.       300 IN NS    ns.example.
+ns.example.    300 IN A     10.53.0.1
+foo.example.   300 IN CNAME bar.example.
+bar.example.   300 IN A     192.0.2.2
