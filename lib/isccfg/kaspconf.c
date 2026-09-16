@@ -488,6 +488,13 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	if (cfg_obj_isuint32(obj)) {
 		saltlen = cfg_obj_asuint32(obj);
 	}
+	if (saltlen != DEFAULT_NSEC3PARAM_SALTLEN) {
+		if (log_errors) {
+			kaspcfg_log(obj, logctx, ISC_LOG_WARNING,
+				    "dnssec-policy: deprecated NSEC3 "
+				    "salt-length > 0");
+		}
+	}
 	if (saltlen > 0xff) {
 		if (log_errors) {
 			kaspcfg_log(
