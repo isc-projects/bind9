@@ -1089,6 +1089,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	dns_rdataset_t rdataset;
 	isc_region_t region;
 	unsigned int cnames = 0;
+	isc_result_t result;
 
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
@@ -1116,9 +1117,15 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	dns_rdataset_init(&rdataset);
 	fname = dns_fixedname_initname(&fixed);
 	do {
-		RETERR((add)(arg, &name, dns_rdatatype_cname, &rdataset));
+		result = (add)(arg, &name, dns_rdatatype_cname, &rdataset);
+		if (result != ISC_R_SUCCESS) {
+			if (dns_rdataset_isassociated(&rdataset)) {
+				dns_rdataset_disassociate(&rdataset);
+			}
+			return result;
+		}
+
 		if (dns_rdataset_isassociated(&rdataset)) {
-			isc_result_t result;
 			result = dns_rdataset_first(&rdataset);
 			if (result == ISC_R_SUCCESS) {
 				dns_rdata_t current = DNS_RDATA_INIT;
@@ -1150,10 +1157,22 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	 * Look up HTTPS/SVCB records when processing the alias form.
 	 */
 	if (alias) {
-		RETERR((add)(arg, &name, rdata->type, &rdataset));
+		result = (add)(arg, &name, rdata->type, &rdataset);
+		if (result != ISC_R_SUCCESS) {
+			if (dns_rdataset_isassociated(&rdataset)) {
+				dns_rdataset_disassociate(&rdataset);
+			}
+			return result;
+		}
+
 		/*
-		 * Don't return A or AAAA if this is not the last element
-		 * in the HTTP / SVCB chain.
+		 * If the target has an HTTPS/SVCB RRset, the callback has
+		 * already added and followed it, and the client will use it
+		 * next; the target's own A/AAAA would only be dead weight.
+		 *
+		 * If it has none, the alias chain ends here and the client
+		 * resolves the target's A/AAAA directly (RFC 9460 section
+		 * 3), so look those up.
 		 */
 		if (dns_rdataset_isassociated(&rdataset)) {
 			dns_rdataset_disassociate(&rdataset);

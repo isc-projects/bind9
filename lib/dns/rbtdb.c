@@ -2970,6 +2970,19 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	result = DNS_R_CONTINUE;
 	onode = search->rbtdb->origin_node;
 
+	/*
+	 * The database may contain nodes above its origin (out-of-zone
+	 * data loaded from a secondary zone file or a journal).  They are
+	 * not part of the zone and must not act as zone cuts or wildcard
+	 * parents for the names inside it.  The origin itself is the
+	 * usual callback node, so spare it the name comparison.
+	 */
+	if (node != onode &&
+	    !dns_name_issubdomain(name, &search->rbtdb->common.origin))
+	{
+		return result;
+	}
+
 	NODE_LOCK(&(search->rbtdb->node_locks[node->locknum].lock),
 		  isc_rwlocktype_read);
 
@@ -3657,11 +3670,12 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 			}
 		}
 
-		if (active) {
+		if (active || node == rbtdb->origin_node) {
 			/*
-			 * The level node is active.  Any wildcarding
-			 * present at higher levels has no
-			 * effect and we're done.
+			 * The level node is active, or it is the origin
+			 * of the zone.  Any wildcarding present at higher
+			 * levels has no effect (the nodes above the origin
+			 * are not part of the zone) and we're done.
 			 */
 			result = ISC_R_NOTFOUND;
 			break;
@@ -3733,6 +3747,22 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 	REQUIRE(type == dns_rdatatype_nsec3 || firstp != NULL);
 
 	if (type == dns_rdatatype_nsec3) {
+		dns_rbtnode_t *current = NULL;
+
+		/*
+		 * The NSEC3 nodes of the zone form the subtree of its
+		 * origin node in the NSEC3 tree, and in DNSSEC order the
+		 * origin node comes first: once it has been examined,
+		 * anything before it in the tree is outside the zone.
+		 */
+		result = dns_rbtnodechain_current(&search->chain, NULL, NULL,
+						  &current);
+		if (result == ISC_R_SUCCESS &&
+		    current == search->rbtdb->nsec3_origin_node)
+		{
+			return ISC_R_NOMORE;
+		}
+
 		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			return result;
@@ -3808,6 +3838,17 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			return result;
 		}
 
+		/*
+		 * The NSEC tree may contain nodes outside the zone; a
+		 * predecessor that is not below the origin means that the
+		 * walk has left the zone.
+		 */
+		if (!dns_name_issubdomain(target,
+					  &search->rbtdb->common.origin))
+		{
+			return ISC_R_NOMORE;
+		}
+
 		*nodep = NULL;
 		result = dns_rbt_findnode(search->rbtdb->tree, target, NULL,
 					  nodep, &search->chain,
@@ -3829,6 +3870,41 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			return DNS_R_BADDB;
 		}
 	}
+}
+
+/*
+ * Point the search chain at the last node of the zone in 'tree', skipping
+ * any nodes that sort after it (out-of-zone data loaded from a secondary
+ * zone file or a journal).
+ */
+static isc_result_t
+last_in_zone(rbtdb_search_t *search, dns_rbt_t *tree) {
+	dns_fixedname_t fname, forigin, ffull;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	dns_name_t *origin = dns_fixedname_initname(&forigin);
+	dns_name_t *fullname = dns_fixedname_initname(&ffull);
+	isc_result_t result;
+
+	result = dns_rbtnodechain_last(&search->chain, tree, NULL, NULL);
+	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+		result = dns_rbtnodechain_current(&search->chain, name, origin,
+						  NULL);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+		result = dns_name_concatenate(name, origin, fullname, NULL);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+		if (dns_name_issubdomain(fullname,
+					 &search->rbtdb->common.origin))
+		{
+			return ISC_R_SUCCESS;
+		}
+		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
+	}
+
+	return result;
 }
 
 /*
@@ -4008,9 +4084,12 @@ again:
 	}
 
 	if (result == ISC_R_NOMORE && wraps) {
-		result = dns_rbtnodechain_last(&search->chain, tree, NULL,
-					       NULL);
-		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+		/*
+		 * Start over from the last node of the zone in the NSEC3
+		 * tree, skipping any nodes that sort after it.
+		 */
+		result = last_in_zone(search, tree);
+		if (result == ISC_R_SUCCESS) {
 			wraps = false;
 			goto again;
 		}
@@ -4086,6 +4165,17 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	wild = false;
 
 	RWLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
+
+	/*
+	 * The database may contain nodes that are not below its origin
+	 * (out-of-zone data loaded from a secondary zone file or a
+	 * journal).  A name that is not below the origin is not in the
+	 * zone, whatever stray nodes exist for it.
+	 */
+	if (!dns_name_issubdomain(name, &search.rbtdb->common.origin)) {
+		result = ISC_R_NOTFOUND;
+		goto tree_exit;
+	}
 
 	/*
 	 * Search down from the root of the tree.  If, while going down, we
@@ -8630,12 +8720,19 @@ static void
 rdataset_disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
+	rdatasetheader_t *header;
 
 	if (rdataset->methods == &rdataset_methods) {
-		rdatasetheader_t *header = rdataset->private3;
+		header = rdataset->private3;
 		header--;
-		isc_refcount_decrement(&header->references);
+	} else {
+		/*
+		 * A noqname/closest proof view; 'private6' is the header
+		 * that owns the proof data.
+		 */
+		DE_CONST(rdataset->private6, header);
 	}
+	isc_refcount_decrement(&header->references);
 
 	detachnode(db, &node);
 }
@@ -8749,13 +8846,16 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_db_t *db = source->private1;
 	dns_dbnode_t *node = source->private2;
 	dns_dbnode_t *cloned_node = NULL;
+	rdatasetheader_t *header;
 
 	attachnode(db, node, &cloned_node);
 	if (source->methods == &rdataset_methods) {
-		rdatasetheader_t *header = source->private3;
+		header = source->private3;
 		header--;
-		isc_refcount_increment(&header->references);
+	} else {
+		DE_CONST(source->private6, header);
 	}
+	isc_refcount_increment(&header->references);
 	INSIST(!ISC_LINK_LINKED(target, link));
 	*target = *source;
 	ISC_LINK_INIT(target, link);
@@ -8783,10 +8883,18 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 	dns_dbnode_t *cloned_node;
+	rdatasetheader_t *header = rdataset->private3;
 	const struct noqname *noqname = rdataset->private6;
+
+	/*
+	 * The proof rdatasets are views into memory owned by the header
+	 * of 'rdataset', so they hold a reference to it (in private6).
+	 */
+	header--;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
+	isc_refcount_increment(&header->references);
 	nsec->methods = &slab_methods;
 	nsec->rdclass = db->rdclass;
 	nsec->type = noqname->type;
@@ -8798,10 +8906,11 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsec->private3 = noqname->neg;
 	nsec->privateuint4 = 0;
 	nsec->private5 = NULL;
-	nsec->private6 = NULL;
+	nsec->private6 = header;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
+	isc_refcount_increment(&header->references);
 	nsecsig->methods = &slab_methods;
 	nsecsig->rdclass = db->rdclass;
 	nsecsig->type = dns_rdatatype_rrsig;
@@ -8813,7 +8922,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsecsig->private3 = noqname->negsig;
 	nsecsig->privateuint4 = 0;
 	nsecsig->private5 = NULL;
-	nsec->private6 = NULL;
+	nsecsig->private6 = header;
 
 	dns_name_clone(&noqname->name, name);
 

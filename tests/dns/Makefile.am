@@ -26,7 +26,9 @@ check_PROGRAMS =		\
 	dns64_test		\
 	dst_test		\
 	keytable_test		\
+	message_test		\
 	name_test		\
+	ncache_test		\
 	nsec3_test		\
 	nsec3param_test		\
 	private_test		\
