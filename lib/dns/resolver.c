@@ -109,7 +109,7 @@
 		      fctx, fctx->info, isc_result_totext(res), (m1), (m2))
 #define FCTXTRACE5(m1, m2, v)                                           \
 	isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, \
-		      ISC_LOG_DEBUG(3), "fctx %p(%s): %s %s%u", fctx,   \
+		      ISC_LOG_DEBUG(3), "fctx %p(%s): %s %s%zu", fctx,  \
 		      fctx->info, (m1), (m2), (v))
 #define FCTXTRACEN(m1, name, res)                                    \
 	do {                                                         \
@@ -3852,7 +3852,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	size_t fetches_allowed = 0;
 	size_t ns_processed = 0;
 
-	FCTXTRACE5("getaddresses", "fctx->depth=", fctx->depth);
+	FCTXTRACE5("getaddresses", "fctx->depth=", (size_t)fctx->depth);
 
 	/*
 	 * Don't pound on remote servers.  (Failsafe!)
@@ -4313,7 +4313,7 @@ incr_query_counters(fetchctx_t *fctx) {
 		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
 			      ISC_LOG_DEBUG(3),
 			      "exceeded max queries resolving '%s' "
-			      "(max-recursion-queries, querycount=%u)",
+			      "(max-recursion-queries, querycount=%zu)",
 			      fctx->info, isc_counter_used(fctx->qc));
 	} else if (fctx->gqc != NULL) {
 		result = isc_counter_increment(fctx->gqc);
@@ -4325,7 +4325,7 @@ incr_query_counters(fetchctx_t *fctx) {
 			isc_log_write(DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
 				      "exceeded global max queries resolving "
-				      "'%s' (max-query-count, querycount=%u)",
+				      "'%s' (max-query-count, querycount=%zu)",
 				      fctx->info, isc_counter_used(fctx->gqc));
 		}
 	}
@@ -4346,13 +4346,13 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 
 	/* We've already exceeded maximum query count */
 	if (isc_counter_used(fctx->qc) > isc_counter_getlimit(fctx->qc)) {
-		isc_log_write(
-			DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			ISC_LOG_DEBUG(3),
-			"exceeded max queries resolving '%s' "
-			"(max-recursion-queries, querycount=%u, maxqueries=%u)",
-			fctx->info, isc_counter_used(fctx->qc),
-			isc_counter_getlimit(fctx->qc));
+		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			      ISC_LOG_DEBUG(3),
+			      "exceeded max queries resolving '%s' "
+			      "(max-recursion-queries, querycount=%zu, "
+			      "maxqueries=%zu)",
+			      fctx->info, isc_counter_used(fctx->qc),
+			      isc_counter_getlimit(fctx->qc));
 		result = DNS_R_SERVFAIL;
 		goto done;
 	}
@@ -4360,12 +4360,13 @@ fctx_try(fetchctx_t *fctx, bool retrying) {
 	if (fctx->gqc != NULL &&
 	    isc_counter_used(fctx->gqc) > isc_counter_getlimit(fctx->gqc))
 	{
-		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
-			      ISC_LOG_DEBUG(3),
-			      "exceeded global max queries resolving '%s' "
-			      "(max-query-count, querycount=%u, maxqueries=%u)",
-			      fctx->info, isc_counter_used(fctx->gqc),
-			      isc_counter_getlimit(fctx->gqc));
+		isc_log_write(
+			DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
+			ISC_LOG_DEBUG(3),
+			"exceeded global max queries resolving '%s' "
+			"(max-query-count, querycount=%zu, maxqueries=%zu)",
+			fctx->info, isc_counter_used(fctx->gqc),
+			isc_counter_getlimit(fctx->gqc));
 		result = DNS_R_SERVFAIL;
 		goto done;
 	}
@@ -5010,7 +5011,7 @@ fctx__create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		isc_counter_attach(qc, &fctx->qc);
 		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
 			      ISC_LOG_DEBUG(9),
-			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      "fctx %p(%s): attached to counter %p (%zu)", fctx,
 			      fctx->info, fctx->qc, isc_counter_used(fctx->qc));
 	} else {
 		isc_counter_create(fctx->mctx, res->maxqueries, &fctx->qc);
@@ -5024,7 +5025,7 @@ fctx__create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		isc_counter_attach(gqc, &fctx->gqc);
 		isc_log_write(DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER,
 			      ISC_LOG_DEBUG(9),
-			      "fctx %p(%s): attached to counter %p (%d)", fctx,
+			      "fctx %p(%s): attached to counter %p (%zu)", fctx,
 			      fctx->info, fctx->gqc,
 			      isc_counter_used(fctx->gqc));
 	}

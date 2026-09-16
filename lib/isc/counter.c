@@ -30,12 +30,12 @@ struct isc_counter {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_refcount_t references;
-	atomic_uint_fast32_t limit;
-	atomic_uint_fast32_t used;
+	size_t limit;
+	atomic_size_t used;
 };
 
 void
-isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
+isc_counter_create(isc_mem_t *mctx, size_t limit, isc_counter_t **counterp) {
 	REQUIRE(counterp != NULL && *counterp == NULL);
 
 	isc_counter_t *counter = isc_mem_get(mctx, sizeof(*counter));
@@ -52,35 +52,27 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 
 isc_result_t
 isc_counter_increment(isc_counter_t *counter) {
-	uint_fast32_t used = atomic_fetch_add_relaxed(&counter->used, 1) + 1;
-	uint_fast32_t limit = atomic_load_acquire(&counter->limit);
+	size_t used = atomic_fetch_add_relaxed(&counter->used, 1) + 1;
 
-	if (limit != 0 && used >= limit) {
+	if (counter->limit != 0 && used >= counter->limit) {
 		return ISC_R_QUOTA;
 	}
 
 	return ISC_R_SUCCESS;
 }
 
-unsigned int
+size_t
 isc_counter_used(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
 	return atomic_load_relaxed(&counter->used);
 }
 
-void
-isc_counter_setlimit(isc_counter_t *counter, int limit) {
-	REQUIRE(VALID_COUNTER(counter));
-
-	atomic_store_release(&counter->limit, limit);
-}
-
-unsigned int
+size_t
 isc_counter_getlimit(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	return atomic_load_acquire(&counter->limit);
+	return counter->limit;
 }
 
 static void
