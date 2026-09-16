@@ -12,7 +12,7 @@ with the `gitlab` CLI (anonymous access works for public issues):
 then run this over that directory.
 
 Usage:
-    scripts/summarize-issues.py <dir-of-issue-json>
+    scripts/summarize_issues.py <dir-of-issue-json>
 
 Flags any issue that is NOT closed (the close-status check) and prints the
 "Affects vX" labels (input to the substance review: does a released version
@@ -23,9 +23,6 @@ carry the bug?). A non-closed issue is usually one of:
   * ongoing   -> the MR only referenced the issue (no "Closes"); leave open.
 """
 
-# The hyphenated file name is intentional: these are CLI helpers, not
-# importable modules.
-# pylint: disable=invalid-name
 import glob
 import json
 import os
@@ -34,7 +31,7 @@ import sys
 
 def main():
     if len(sys.argv) != 2:
-        sys.exit("usage: summarize-issues.py <dir-of-issue-json>")
+        sys.exit("usage: summarize_issues.py <dir-of-issue-json>")
     d = sys.argv[1]
     files = sorted(glob.glob(os.path.join(d, "*.json")))
     rows = []

@@ -7,9 +7,9 @@ sorts 9.21.9 after 9.21.24) — grep them and mirror what they do.
 
 **No silent truncation.** When paging long output (`head`, `tail`), make
 sure the ranges join up to cover all of it, and reconcile against the
-scripts' printed counts: every merge `cycle-merges.py` lists gets a
-substance judgment, and the issue count `summarize-issues.py` parses must
-equal the set `issue-refs.py` derived.
+scripts' printed counts: every merge `cycle_merges.py` lists gets a
+substance judgment, and the issue count `summarize_issues.py` parses must
+equal the set `issue_refs.py` derived.
 
 ---
 
@@ -113,7 +113,7 @@ release — that is expected, not a defect to reconcile.
 ## 3. Issue close-status check
 
 Every issue "covered by" the release should be **closed**. Derive the set with
-`scripts/issue-refs.py <ver>` (union of `:gl:` refs in the generated
+`scripts/issue_refs.py <ver>` (union of `:gl:` refs in the generated
 changelog+notes and `Closes/Fixes #N` in cycle merge bodies; noise like
 `PKCS#11` / `port=53` is filtered). Fetch each into one directory with the
 `gitlab` CLI (anonymous, no token needed for public issues):
@@ -124,7 +124,7 @@ gitlab --server-url https://gitlab.isc.org --skip-login -o json \
     > <dir>/<N>.json
 ```
 
-then `scripts/summarize-issues.py <dir>`.
+then `scripts/summarize_issues.py <dir>`.
 
 For any issue not closed, reason and flag (don't fix silently):
 
@@ -281,11 +281,11 @@ before rewriting history.
 
 All pure-local except where noted; run from the repo root.
 
-- `scripts/cycle-merges.py [<boundary>] [<tip>]` — list cycle merges with
+- `scripts/cycle_merges.py [<boundary>] [<tip>]` — list cycle merges with
   parsed `action:audience` and what each generates; reconciliation counts.
-- `scripts/issue-refs.py <ver> [<boundary>]` — derive the complete covered-
+- `scripts/issue_refs.py <ver> [<boundary>]` — derive the complete covered-
   issue set (handles the changelog being reverted out of HEAD by the DROP
   commit); separates doc-referenced from body-only (test/ci) issues.
-- `scripts/summarize-issues.py <dir-of-issue-json>` — parse downloaded
+- `scripts/summarize_issues.py <dir-of-issue-json>` — parse downloaded
   issue JSON: close-status (flags non-closed) and `Affects vX` labels. Fetch
   the JSON first with the `gitlab` CLI (see §3 above).

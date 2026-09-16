@@ -12,16 +12,13 @@ close keyword directly before a "#N" ref for body refs (GitLab's default
 closing pattern, as in the dangerfile) and the :gl: role for doc refs.
 
 Usage:
-    scripts/issue-refs.py <version>            # e.g. 9.21.23
-    scripts/issue-refs.py <version> <boundary> # explicit cycle boundary ref
+    scripts/issue_refs.py <version>            # e.g. 9.21.23
+    scripts/issue_refs.py <version> <boundary> # explicit cycle boundary ref
 
 Prints the union, and notes which refs come only from merge bodies (i.e. not
 represented in the changelog/notes — usually test/ci issues).
 """
 
-# The hyphenated file name is intentional: these are CLI helpers, not
-# importable modules.
-# pylint: disable=invalid-name
 import re
 import subprocess
 import sys
@@ -73,7 +70,7 @@ def read_doc(path):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("usage: issue-refs.py <version> [<boundary-ref>]")
+        sys.exit("usage: issue_refs.py <version> [<boundary-ref>]")
     version = sys.argv[1]
     if len(sys.argv) > 2:
         boundary = sys.argv[2]

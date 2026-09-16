@@ -44,7 +44,7 @@ Edits that follow from flag decisions land afterwards as fixups.
 
 1. **Scope the cycle.** Range = the most recent `Set up version for BIND
    9.X.Y` commit `..HEAD`. List merges + their `action:audience` tags:
-   `scripts/cycle-merges.py`. (Action/audience taxonomy: REFERENCE.md.)
+   `scripts/cycle_merges.py`. (Action/audience taxonomy: REFERENCE.md.)
 
 2. **Audit audience→notes mapping (light checkmark).** This is script-
    generated and rarely wrong: confirm notes-entry count == usr/pkg merge
@@ -63,8 +63,8 @@ Edits that follow from flag decisions land afterwards as fixups.
    changelog simply differ for this release, which is expected.
 
 4. **Issue close-status check.** Derive the full covered-issue set
-   (`scripts/issue-refs.py <ver>`), fetch each via gitlab CLI,
-   then `scripts/summarize-issues.py <dir>`. Every covered issue should be
+   (`scripts/issue_refs.py <ver>`), fetch each via gitlab CLI,
+   then `scripts/summarize_issues.py <dir>`. Every covered issue should be
    **closed**. For any that isn't, reason: *omission* (closed via a non-main /
    private-fork branch so auto-close never fired → suggest the maintainer
    close it) vs *ongoing* (MR only referenced it, no `Closes` → leave open).
