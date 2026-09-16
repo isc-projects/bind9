@@ -1045,6 +1045,7 @@ cross-version-config-tests:
     # should not be run.
     - rm -r dlzexternal
     - rm -r dyndb
+    - rm -r allow_query_on
     # This script needs to: 1) fail if the tests fail, 2) fail if
     # the junit.xml file is broken, 3) produce the junit.xml file even if
     # the  tests fail.  Therefore, $RET is used to "cache" the
@@ -2345,7 +2346,6 @@ respdiff:recent-named:
   variables:
     EXTRA_SETUP_FILES: "--native-file ci/respdiff.ini"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.15"
-  allow_failure: true  # remove once B!12357 is part of a public release
 
 # Performance tests
 
