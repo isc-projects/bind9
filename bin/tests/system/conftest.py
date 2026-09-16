@@ -67,7 +67,6 @@ for _p in PRIORITY_TESTS:
 PRIORITY_TESTS_RE = Re("|".join(PRIORITY_TESTS))
 SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
 SYSTEM_TEST_NAME_RE = Re(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
-SYMLINK_REPLACEMENT_RE = Re(r"/tests_(.*)\.py")
 
 # ---------------------- Module initialization ---------------------------
 
@@ -374,12 +373,24 @@ def env(ports):
 
 
 @pytest.fixture(scope="module")
-def system_test_name(request):
+def system_test_source_dir(request):
     """
-    Name of the system test directory.
+    Directory holding the system test's files, as tracked in Git.
     """
-    path = Path(request.fspath)
-    return path.parent.name
+    return Path(request.fspath).parent.resolve()
+
+
+@pytest.fixture(scope="module")
+def system_test_name(system_test_source_dir):
+    """
+    Name of the system test.
+
+    For a test directory directly under bin/tests/system this is just its
+    name.  A test may also live deeper, next to the code it exercises
+    (isctest/asyncserver/tests); then the path components are joined with
+    underscores, which keeps the name usable as a directory and module name.
+    """
+    return "_".join(system_test_source_dir.relative_to(Path(FILE_DIR).resolve()).parts)
 
 
 @pytest.fixture(autouse=True)
@@ -445,7 +456,9 @@ def expected_artifacts(request):
 
 
 @pytest.fixture(scope="module")
-def system_test_dir(request, env, system_test_name, expected_artifacts):
+def system_test_dir(
+    request, env, system_test_name, system_test_source_dir, expected_artifacts
+):
     """
     Temporary directory for executing the test.
 
@@ -529,11 +542,11 @@ def system_test_dir(request, env, system_test_name, expected_artifacts):
         tempfile.mkdtemp(prefix=f"{system_test_name}-tmp-", dir=system_test_root)
     )
     shutil.rmtree(testdir)
-    shutil.copytree(system_test_root / system_test_name, testdir)
+    shutil.copytree(system_test_source_dir, testdir)
 
     # Create a convenience symlink with a stable and predictable name
-    module_name = SYMLINK_REPLACEMENT_RE.sub(r"-\1", str(request.node.path))
-    symlink_dst = system_test_root / module_name
+    module_name = request.node.path.stem.removeprefix("tests_")
+    symlink_dst = system_test_root / f"{system_test_name}-{module_name}"
     symlink_dst.unlink(missing_ok=True)
     symlink_dst.symlink_to(os.path.relpath(testdir, start=system_test_root))
 
@@ -552,7 +565,7 @@ def system_test_dir(request, env, system_test_name, expected_artifacts):
         result = get_test_result()
 
         if result == "passed":
-            check_artifacts(system_test_root / system_test_name, testdir)
+            check_artifacts(system_test_source_dir, testdir)
 
         # Clean temporary dir unless it should be kept
         keep = False
