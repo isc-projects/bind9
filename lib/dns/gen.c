@@ -815,6 +815,10 @@ main(int argc, char **argv) {
 		insert_into_typenames(101, "uid", RESERVEDNAME);
 		insert_into_typenames(102, "gid", RESERVEDNAME);
 		insert_into_typenames(103, "unspec", RESERVEDNAME);
+		/*
+		 * Add to 'type_enum' if block below as well.
+		 */
+		insert_into_typenames(128, "nxname", METANOTQUESTION);
 		insert_into_typenames(251, "ixfr", METAQUESTIONONLY);
 		insert_into_typenames(252, "axfr", METAQUESTIONONLY);
 		insert_into_typenames(253, "mailb", METAQUESTIONONLY);
@@ -922,6 +926,7 @@ main(int argc, char **argv) {
 			}
 		}
 
+		printf("\tdns_rdatatype_nxname = 128,\n");
 		printf("\tdns_rdatatype_ixfr = 251,\n");
 		printf("\tdns_rdatatype_axfr = 252,\n");
 		printf("\tdns_rdatatype_mailb = 253,\n");
