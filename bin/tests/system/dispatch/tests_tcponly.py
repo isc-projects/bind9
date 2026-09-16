@@ -10,15 +10,8 @@
 # information regarding copyright ownership.
 
 import dns.message
-import pytest
 
 import isctest
-
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-    ]
-)
 
 
 def test_tcponly_not_resolved():

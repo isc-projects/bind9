@@ -16,7 +16,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "dig.out.*",
         "named.run.*",
         "rndc.out.*",
-        "ans*/ans.run",
         "ans*/query.log",
         "ns1/named_dump.db*",
         "ns4/named.cookiealwaysvalid",
