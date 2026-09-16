@@ -16,15 +16,8 @@ import dns.message
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
-import pytest
 
 import isctest
-
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-    ]
-)
 
 
 def _count_received(ans, qname, protocol):

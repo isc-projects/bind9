@@ -22,7 +22,6 @@ pytestmark = [
     isctest.mark.with_json_c,
     pytest.mark.extra_artifacts(
         [
-            "ans5/ans.run",
             "ns2/*.jnl",
             "ns2/*.signed",
             "ns2/dsset-*",

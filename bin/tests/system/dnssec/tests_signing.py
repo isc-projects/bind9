@@ -38,7 +38,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "*/*.key",
         "*/*.signed",
         "*/settime.out.*",
-        "ans*/ans.run",
         "*/trusted.keys",
         "*/*.bad",
         "*/*.next",

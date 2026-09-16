@@ -37,7 +37,6 @@ NSEC3_MARK = pytest.mark.extra_artifacts(
         "ns*/*.signed",
         "ns*/keygen.out.*",
         "ns3/named-*.conf",
-        "ans*/ans.run",
     ]
 )
 

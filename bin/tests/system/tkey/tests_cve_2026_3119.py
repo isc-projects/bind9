@@ -19,11 +19,8 @@ import dns.rdatatype
 import dns.rdtypes.ANY.TKEY
 import dns.rrset
 import dns.tsigkeyring
-import pytest
 
 import isctest
-
-pytestmark = pytest.mark.extra_artifacts([])
 
 
 def create_tkey_msg(qname, mode, alg="hmac-sha256"):
