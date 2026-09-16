@@ -96,6 +96,10 @@ typedef struct dns_validatorevent {
 	 */
 	dns_name_t *			proofs[4];
 	/*
+	 * The denial type (NSEC or NSEC3) of the NOQNAME proof.
+	 */
+	dns_rdatatype_t noqnametype;
+	/*
 	 * Optout proof seen.
 	 */
 	bool			optout;
@@ -150,6 +154,7 @@ struct dns_validator {
 	dns_fixedname_t			fname;
 	dns_fixedname_t			wild;
 	dns_fixedname_t			nearest;
+	dns_fixedname_t			nseczone;
 	dns_fixedname_t			closest;
 	ISC_LINK(dns_validator_t)	link;
 	dns_rdataset_t 			dlv;
