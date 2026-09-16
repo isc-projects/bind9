@@ -26,7 +26,7 @@ parallel.mk
 
 # Ignore file names with a hyphen in their name except C files.
 # This is done to ignore the temporary directories and symlinks created by the
-# pytest runner, which contain underscore in their file names.
+# pytest runner, which contain a hyphen in their file names.
 /*-*
 !/*-*.c
 !/custom-test-driver
