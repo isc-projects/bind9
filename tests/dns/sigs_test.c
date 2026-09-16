@@ -149,7 +149,7 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 		/*
 		 * The signature must cover an RRset of type 'expected->type'.
 		 */
-		result = dns_rdata_tostruct(&found->rdata, &rrsig, NULL);
+		result = dns_rdata_tostruct(&found->rdata, &rrsig);
 		assert_int_equal(result, ISC_R_SUCCESS);
 		isc_buffer_init(&typebuf, found_covers, sizeof(found_covers));
 		result = dns_rdatatype_totext(rrsig.covered, &typebuf);

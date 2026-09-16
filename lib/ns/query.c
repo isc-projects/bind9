@@ -4053,7 +4053,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			dns_rdata_t nsrdata = DNS_RDATA_INIT;
 
 			dns_rdataset_current(st->r.ns_rdataset, &nsrdata);
-			result = dns_rdata_tostruct(&nsrdata, &ns, NULL);
+			result = dns_rdata_tostruct(&nsrdata, &ns);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdata_reset(&nsrdata);
 
@@ -4285,7 +4285,7 @@ again:
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		result = dns_rdata_tostruct(&rdata, &nsec3);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
 		optout = ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
@@ -4344,7 +4344,7 @@ dns64_ttl(dns_db_t *db, dns_dbversion_t *version) {
 	CHECK(dns_rdataset_first(&rdataset));
 
 	dns_rdataset_current(&rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	result = dns_rdata_tostruct(&rdata, &soa);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	ttl = ISC_MIN(rdataset.ttl, soa.minimum);
 
@@ -6861,7 +6861,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			result = dns_rdataset_first(qctx->rdataset);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdataset_current(qctx->rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &cname, NULL);
+			result = dns_rdata_tostruct(&rdata, &cname);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdata_reset(&rdata);
 
@@ -7009,7 +7009,7 @@ has_ta(query_ctx_t *qctx) {
 
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&dsset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &ds, NULL);
+			result = dns_rdata_tostruct(&rdata, &ds);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (ds.key_tag == sentinel) {
 				dns_keynode_detach(&keynode);
@@ -7598,7 +7598,7 @@ query_getexpire(query_ctx_t *qctx) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		dns_rdataset_current(qctx->rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, NULL);
+		result = dns_rdata_tostruct(&rdata, &soa);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		qctx->client->inner.expire = soa.expire;
@@ -8838,7 +8838,7 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 
 	dns_rdata_init(&sigrdata);
 	dns_rdataset_current(qctx->sigrdataset, &sigrdata);
-	result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+	result = dns_rdata_tostruct(&sigrdata, &sig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	labels = dns_name_countlabels(qctx->fname);
@@ -9068,7 +9068,7 @@ query_synthttl(dns_rdataset_t *soardataset, dns_rdataset_t *sigsoardataset,
 	result = dns_rdataset_first(soardataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_current(soardataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	result = dns_rdata_tostruct(&rdata, &soa);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	ttl = ISC_MIN(soa.minimum, soardataset->ttl);
@@ -9239,7 +9239,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	}
 
 	dns_rdataset_current(rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	result = dns_rdata_tostruct(&rdata, &cname);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
@@ -9366,7 +9366,7 @@ checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 		dns_rdata_rrsig_t rrsig;
 
 		dns_rdataset_current(sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		result = dns_rdata_tostruct(&rdata, &rrsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dns_name_empty(signer)) {
@@ -9858,7 +9858,7 @@ query_cname(query_ctx_t *qctx) {
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	result = dns_rdata_tostruct(&rdata, &cname);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
@@ -9957,7 +9957,7 @@ query_dname(query_ctx_t *qctx) {
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &dname, NULL);
+	result = dns_rdata_tostruct(&rdata, &dname);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
@@ -10223,7 +10223,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 		result = dns_rdataset_first(rdataset);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, NULL);
+		result = dns_rdata_tostruct(&rdata, &soa);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (override_ttl != UINT32_MAX && override_ttl < rdataset->ttl)
@@ -10764,7 +10764,7 @@ again:
 		}
 		if (result == ISC_R_SUCCESS) {
 			dns_rdataset_current(rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &nsec, NULL);
+			result = dns_rdata_tostruct(&rdata, &nsec);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			(void)dns_name_fullcompare(name, fname, &order,
 						   &olabels);

@@ -2902,7 +2902,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->sig0, &rdata);
 
-		RETERR(dns_rdata_tostruct(&rdata, &sig, NULL));
+		RETERR(dns_rdata_tostruct(&rdata, &sig));
 
 		if (msg->verified_sig && msg->sig0status == dns_rcode_noerror) {
 			result = ISC_R_SUCCESS;
@@ -2919,7 +2919,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->tsig, &rdata);
 
-		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+		result = dns_rdata_tostruct(&rdata, &tsig);
 		INSIST(result == ISC_R_SUCCESS);
 		if (msg->verified_sig && msg->tsigstatus == dns_rcode_noerror &&
 		    tsig.error == dns_rcode_noerror)
@@ -2983,7 +2983,7 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 		result = dns_rdataset_first(msg->tsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->tsig, &querytsigrdata);
-		result = dns_rdata_tostruct(&querytsigrdata, &querytsig, NULL);
+		result = dns_rdata_tostruct(&querytsigrdata, &querytsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		hexdump(txt1, "TSIG", querytsig.signature, querytsig.siglen);
 	}
@@ -2992,7 +2992,7 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 		result = dns_rdataset_first(msg->querytsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->querytsig, &querytsigrdata);
-		result = dns_rdata_tostruct(&querytsigrdata, &querytsig, NULL);
+		result = dns_rdata_tostruct(&querytsigrdata, &querytsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		hexdump(txt1, "QUERYTSIG", querytsig.signature,
 			querytsig.siglen);
@@ -3091,7 +3091,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			return ISC_R_UNEXPECTEDEND;
 		}
 
-		RETERR(dns_rdata_tostruct(&sigrdata, &sig, NULL));
+		RETERR(dns_rdata_tostruct(&sigrdata, &sig));
 
 		dns_rdataset_init(&keyset);
 		if (view == NULL) {
@@ -3138,7 +3138,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			isc_region_t r;
 
 			dns_rdataset_current(&keyset, &keyrdata);
-			dns_rdata_tostruct(&keyrdata, &ks, NULL);
+			dns_rdata_tostruct(&keyrdata, &ks);
 
 			if (sig.algorithm != ks.algorithm ||
 			    (ks.protocol != DNS_KEYPROTO_DNSSEC &&

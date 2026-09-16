@@ -138,7 +138,7 @@ printsoa(dns_rdata_t *rdata) {
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 
-	result = dns_rdata_tostruct(rdata, &soa, NULL);
+	result = dns_rdata_tostruct(rdata, &soa);
 	check_result(result, "dns_rdata_tostruct");
 
 	dns_name_format(&soa.origin, namebuf, sizeof(namebuf));
@@ -336,7 +336,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 		check_result(result, "dns_rdataset_first");
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &cname, NULL);
+		result = dns_rdata_tostruct(&rdata, &cname);
 		check_result(result, "dns_rdata_tostruct");
 		dns_name_copy(&cname.cname, qname);
 		dns_rdata_freestruct(&cname);

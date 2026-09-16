@@ -404,7 +404,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	REQUIRE(mctx != NULL);
 	REQUIRE(sigrdata != NULL && sigrdata->type == dns_rdatatype_rrsig);
 
-	RETERR(dns_rdata_tostruct(sigrdata, &sig, NULL));
+	RETERR(dns_rdata_tostruct(sigrdata, &sig));
 
 	if (set->type != sig.covered) {
 		return DNS_R_SIGINVALID;
@@ -492,7 +492,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (set->type == dns_rdatatype_nsec) {
 		RETERR(dns_rdataset_first(set));
 		dns_rdataset_current(set, &rdata);
-		RETERR(dns_rdata_tostruct(&rdata, &nsec, NULL));
+		RETERR(dns_rdata_tostruct(&rdata, &nsec));
 		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
 			return DNS_R_NOVALIDNSEC;
 		}
@@ -965,7 +965,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	CHECK(dns_rdataset_first(msg->sig0));
 	dns_rdataset_current(msg->sig0, &rdata);
 
-	CHECK(dns_rdata_tostruct(&rdata, &sig, NULL));
+	CHECK(dns_rdata_tostruct(&rdata, &sig));
 	signeedsfree = true;
 
 	if (sig.labels != 0) {
@@ -1107,14 +1107,14 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 	if (result != ISC_R_SUCCESS) {
 		return false;
 	}
-	result = dns_rdata_tostruct(rdata, &key, NULL);
+	result = dns_rdata_tostruct(rdata, &key);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	keytag = dst_key_id(dstkey);
 	DNS_RDATASET_FOREACH(sigrdataset) {
 		dns_rdata_t sigrdata = DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &sigrdata);
-		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+		result = dns_rdata_tostruct(&sigrdata, &sig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (sig.algorithm == key.algorithm && sig.keyid == keytag) {
@@ -1151,7 +1151,7 @@ dns_dnssec_haszonekey(dns_rdataset_t *keyset) {
 		dns_rdata_dnskey_t key;
 
 		dns_rdataset_current(keyset, &rdata);
-		dns_rdata_tostruct(&rdata, &key, NULL); /* can't fail */
+		dns_rdata_tostruct(&rdata, &key); /* can't fail */
 
 		if (dns_dnssec_iszonekey(&key)) {
 			return true;
@@ -1531,7 +1531,7 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&sigs, &rdata);
-			result = dns_rdata_tostruct(&rdata, &sig, NULL);
+			result = dns_rdata_tostruct(&rdata, &sig);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			sigalg = dst_algorithm_fromdata(
 				sig.algorithm, sig.signature, sig.siglen);
@@ -1605,7 +1605,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 			rdata.type == dns_rdatatype_dnskey);
 		REQUIRE(rdata.length > 3);
 
-		result = dns_rdata_tostruct(&rdata, &keystruct, NULL);
+		result = dns_rdata_tostruct(&rdata, &keystruct);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		algorithm = dst_algorithm_fromdata(
@@ -2473,7 +2473,7 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 	dns_rdata_ds_t ds;
 	isc_region_t r;
 
-	result = dns_rdata_tostruct(dsrdata, &ds, NULL);
+	result = dns_rdata_tostruct(dsrdata, &ds);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	DNS_RDATASET_FOREACH(keyset) {
@@ -2482,7 +2482,7 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
 		dns_rdata_reset(keyrdata);
 		dns_rdataset_current(keyset, keyrdata);
 
-		result = dns_rdata_tostruct(keyrdata, &key, NULL);
+		result = dns_rdata_tostruct(keyrdata, &key);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		dns_rdata_toregion(keyrdata, &r);

@@ -553,7 +553,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 
 			dns_rdataset_current(&sigset, &sigrdata);
 
-			result = dns_rdata_tostruct(&sigrdata, &rrsig, NULL);
+			result = dns_rdata_tostruct(&sigrdata, &rrsig);
 			check_result(result, "dns_rdata_tostruct");
 
 			future = isc_serial_lt(now, rrsig.timesigned);
@@ -2117,7 +2117,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node, unsigned int hashalg,
 		dns_rdata_t delrdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		result = dns_rdata_tostruct(&rdata, &nsec3);
 		check_result(result, "dns_rdata_tostruct");
 		if (exists && nsec3.hash == hashalg &&
 		    nsec3.iterations == iterations &&
@@ -2887,7 +2887,7 @@ warnifallksk(dns_db_t *db) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 
-		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
+		result = dns_rdata_tostruct(&rdata, &dnskey);
 		check_result(result, "dns_rdata_tostruct");
 		if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0) {
 			have_non_ksk = true;
@@ -2976,7 +2976,7 @@ set_nsec3params(bool update, bool set_salt, bool set_optout, bool set_iter) {
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first");
 	dns_rdataset_current(&rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+	result = dns_rdata_tostruct(&rdata, &nsec3);
 	check_result(result, "dns_rdata_tostruct");
 
 	if (!update && set_optout) {

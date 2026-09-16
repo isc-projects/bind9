@@ -268,7 +268,7 @@ delete_ds(dns_qp_t *qp, dns_keytable_t *keytable, dns_keynode_t *knode,
 	ISC_LIST_FOREACH(knode->dslist->rdata, rdata, link) {
 		if (dns_rdata_compare(rdata, &dsrdata) != 0) {
 			dns_rdata_ds_t ds0;
-			result = dns_rdata_tostruct(rdata, &ds0, NULL);
+			result = dns_rdata_tostruct(rdata, &ds0);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			add_ds(newnode, &ds0, keytable->mctx);
 		}
@@ -613,7 +613,7 @@ keynode_dslist_totext(dns_keynode_t *keynode, isc_buffer_t *text) {
 		dns_rdata_ds_t ds;
 
 		dns_rdataset_current(&dsset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &ds, NULL);
+		result = dns_rdata_tostruct(&rdata, &ds);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		dns_secalg_format(ds.algorithm, algbuf, sizeof(algbuf));

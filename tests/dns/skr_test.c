@@ -329,7 +329,7 @@ check_rrsig(dns_skrbundle_t *bundle, skr__testbundle_t *tb,
 
 		assert_int_equal(cmp, 0);
 
-		r = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+		r = dns_rdata_tostruct(&sigrdata, &sig);
 		assert_int_equal(r, ISC_R_SUCCESS);
 
 		assert_int_equal(sig.timesigned, tb->inception);

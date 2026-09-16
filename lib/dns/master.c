@@ -1938,8 +1938,7 @@ load_text(dns_loadctx_t *lctx) {
 
 		if (type == dns_rdatatype_rrsig && lctx->warn_sigexpired) {
 			dns_rdata_rrsig_t sig;
-			result = dns_rdata_tostruct(&rdata[rdcount], &sig,
-						    NULL);
+			result = dns_rdata_tostruct(&rdata[rdcount], &sig);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (isc_serial_lt(sig.timeexpire, lctx->now)) {
 				(*callbacks->warn)(callbacks,
@@ -2804,7 +2803,7 @@ resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 
 	rdata = ISC_LIST_HEAD(this->rdata);
 	INSIST(rdata != NULL);
-	(void)dns_rdata_tostruct(rdata, &sig, NULL);
+	(void)dns_rdata_tostruct(rdata, &sig);
 	if (isc_serial_gt(sig.timesigned, lctx->now)) {
 		when = lctx->now;
 	} else {
@@ -2813,7 +2812,7 @@ resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 
 	rdata = ISC_LIST_NEXT(rdata, link);
 	while (rdata != NULL) {
-		(void)dns_rdata_tostruct(rdata, &sig, NULL);
+		(void)dns_rdata_tostruct(rdata, &sig);
 		if (isc_serial_gt(sig.timesigned, lctx->now)) {
 			when = lctx->now;
 		} else if (sig.timeexpire - lctx->resign < when) {

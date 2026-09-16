@@ -1411,9 +1411,10 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+dns_rdata_tostruct(const dns_rdata_t *rdata, void *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	bool use_default = false;
+	isc_mem_t *mctx = NULL; /* Intentionally NULL */
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -2481,7 +2482,7 @@ dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
-	result = dns_rdata_tostruct(rdata, &svcb, NULL);
+	result = dns_rdata_tostruct(rdata, &svcb);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/*

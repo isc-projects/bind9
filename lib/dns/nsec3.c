@@ -188,7 +188,7 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 	REQUIRE(rdata->type == dns_rdatatype_nsec3);
 
 	/* This should never fail */
-	result = dns_rdata_tostruct(rdata, &nsec3, NULL);
+	result = dns_rdata_tostruct(rdata, &nsec3);
 	INSIST(result == ISC_R_SUCCESS);
 
 	present = false;
@@ -368,7 +368,7 @@ delnsec3(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	DNS_RDATASET_FOREACH(&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3));
 
 		if (!match_nsec3param(&nsec3, nsec3param)) {
 			continue;
@@ -440,7 +440,7 @@ find_nsec3(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *rdataset,
 	DNS_RDATASET_FOREACH(rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, nsec3, NULL);
+		dns_rdata_tostruct(&rdata, nsec3);
 
 		if (match_nsec3param(nsec3, nsec3param)) {
 			return ISC_R_SUCCESS;
@@ -872,7 +872,7 @@ dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 
 		if (nsec3param.flags != 0) {
 			continue;
@@ -1167,7 +1167,7 @@ dns_nsec3_addnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 
 		if (nsec3param.flags != 0) {
 			continue;
@@ -1202,7 +1202,7 @@ try_private:
 		{
 			continue;
 		}
-		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param));
 
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) {
 			continue;
@@ -1560,7 +1560,7 @@ dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 
 		if (nsec3param.flags != 0) {
 			continue;
@@ -1599,7 +1599,7 @@ try_private:
 		{
 			continue;
 		}
-		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param));
 
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) {
 			continue;
@@ -1662,7 +1662,7 @@ dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version, bool complete,
 	DNS_RDATASET_FOREACH(&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+		dns_rdata_tostruct(&rdata, &nsec3param);
 
 		if (nsec3param.flags == 0) {
 			found = true;
@@ -1702,7 +1702,7 @@ try_private:
 			continue;
 		}
 
-		dns_rdata_tostruct(&rdata2, &nsec3param, NULL);
+		dns_rdata_tostruct(&rdata2, &nsec3param);
 		if (!complete && CREATE(nsec3param.flags)) {
 			found = true;
 			break;
@@ -1763,7 +1763,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 
 	dns_rdataset_current(nsec3set, &rdata);
 
-	RETERR(dns_rdata_tostruct(&rdata, &nsec3, NULL));
+	RETERR(dns_rdata_tostruct(&rdata, &nsec3));
 
 	(*logit)(arg, ISC_LOG_DEBUG(3), "looking for relevant NSEC3");
 

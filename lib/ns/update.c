@@ -855,12 +855,12 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			if (rrset->type == dns_rdatatype_ptr) {
-				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+				result = dns_rdata_tostruct(&rdata, &ptr);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				target = &ptr.ptr;
 			}
 			if (rrset->type == dns_rdatatype_srv) {
-				result = dns_rdata_tostruct(&rdata, &srv, NULL);
+				result = dns_rdata_tostruct(&rdata, &srv);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				target = &srv.target;
 			}
@@ -910,14 +910,14 @@ ssu_checkrr(void *data, rr_t *rr) {
 	bool answer;
 
 	if (rr->rdata.type == dns_rdatatype_ptr) {
-		result = dns_rdata_tostruct(&rr->rdata, &ptr, NULL);
+		result = dns_rdata_tostruct(&rr->rdata, &ptr);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		target = &ptr.ptr;
 	}
 	if (rr->rdata.rdclass == dns_rdataclass_in &&
 	    rr->rdata.type == dns_rdatatype_srv)
 	{
-		result = dns_rdata_tostruct(&rr->rdata, &srv, NULL);
+		result = dns_rdata_tostruct(&rr->rdata, &srv);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		target = &srv.target;
 	}
@@ -1288,9 +1288,9 @@ replaces_p(dns_zone_t *zone ISC_ATTR_UNUSED, dns_rdata_t *update_rr,
 		 * Replace existing RRSIG with the same keyid,
 		 * covered and algorithm.
 		 */
-		result = dns_rdata_tostruct(db_rr, &dbsig, NULL);
+		result = dns_rdata_tostruct(db_rr, &dbsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		result = dns_rdata_tostruct(update_rr, &updatesig, NULL);
+		result = dns_rdata_tostruct(update_rr, &updatesig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (dbsig.keyid == updatesig.keyid &&
 		    dbsig.covered == updatesig.covered &&
@@ -1718,7 +1718,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 			     update_class == dns_rdataclass_none) &&
 			    rdata.type == dns_rdatatype_ptr)
 			{
-				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+				result = dns_rdata_tostruct(&rdata, &ptr);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				target = &ptr.ptr;
 			}
@@ -1727,7 +1727,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 			     update_class == dns_rdataclass_none) &&
 			    rdata.type == dns_rdatatype_srv)
 			{
-				result = dns_rdata_tostruct(&rdata, &srv, NULL);
+				result = dns_rdata_tostruct(&rdata, &srv);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				target = &srv.target;
 			}
@@ -2037,7 +2037,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			continue;
 		}
 
-		result = dns_rdata_tostruct(&t->rdata, &mx, NULL);
+		result = dns_rdata_tostruct(&t->rdata, &mx);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		/*
 		 * Check if we will error out if we attempt to reload the
@@ -2183,7 +2183,7 @@ get_iterations(dns_db_t *db, dns_dbversion_t *ver, dns_rdatatype_t privatetype,
 	DNS_RDATASET_FOREACH(&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) {
 			continue;
 		}
@@ -2217,7 +2217,7 @@ try_private:
 		{
 			continue;
 		}
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) {
 			continue;
 		}

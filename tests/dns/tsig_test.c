@@ -60,7 +60,7 @@ add_mac(dst_context_t *tsigctx, isc_buffer_t *buf) {
 	dns_rdata_fromregion(&rdata, dns_rdataclass_any, dns_rdatatype_tsig,
 			     &r);
 	isc_buffer_init(&databuf, tsigbuf, sizeof(tsigbuf));
-	CHECK(dns_rdata_tostruct(&rdata, &tsig, NULL));
+	CHECK(dns_rdata_tostruct(&rdata, &tsig));
 	isc_buffer_putuint16(&databuf, tsig.siglen);
 	isc_buffer_putmem(&databuf, tsig.signature, tsig.siglen);
 	isc_buffer_usedregion(&databuf, &r);
