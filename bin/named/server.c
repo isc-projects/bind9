@@ -9497,23 +9497,20 @@ load_configuration(const char *filename, named_server_t *server,
 	cachelist = tmpcachelist;
 
 	/* Load the TKEY information from the configuration. */
-	if (options != NULL) {
-		dns_tkeyctx_t *tkeyctx = NULL;
+	dns_tkeyctx_t *tkeyctx = NULL;
 
-		result = named_tkeyctx_fromconfig(options, named_g_mctx,
-						  &tkeyctx);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "configuring TKEY: %s",
-				      isc_result_totext(result));
-			goto cleanup_cachelist;
-		}
-		if (server->sctx->tkeyctx != NULL) {
-			dns_tkeyctx_destroy(&server->sctx->tkeyctx);
-		}
-		server->sctx->tkeyctx = tkeyctx;
+	result = named_tkeyctx_fromconfig(options, named_g_mctx, &tkeyctx);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "configuring TKEY: %s",
+			      isc_result_totext(result));
+		goto cleanup_cachelist;
 	}
+	if (server->sctx->tkeyctx != NULL) {
+		dns_tkeyctx_destroy(&server->sctx->tkeyctx);
+	}
+	server->sctx->tkeyctx = tkeyctx;
 
 #ifdef HAVE_LMDB
 	/*

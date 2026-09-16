@@ -2220,7 +2220,9 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 		return handle;
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
-		if (sock->h2 != NULL) {
+		if (sock->h2 != NULL &&
+		    isc__nm_httpsession_active(sock->h2->session))
+		{
 			return get_proxy_handle(
 				isc__nm_httpsession_handle(sock->h2->session));
 		}
