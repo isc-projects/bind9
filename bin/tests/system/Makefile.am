@@ -144,6 +144,7 @@ TESTS =				\
 	inline			\
 	integrity		\
 	isctest/asyncserver/tests/dnssec	\
+	isctest/asyncserver/tests/response_handling	\
 	isctest/asyncserver/tests/transport	\
 	isctest/asyncserver/tests/zone_data	\
 	ixfr			\
