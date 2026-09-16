@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_tkey {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_name_t algorithm;
 	uint32_t inception;
 	uint32_t expire;

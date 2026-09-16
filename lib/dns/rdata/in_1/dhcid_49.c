@@ -147,9 +147,8 @@ tostruct_in_dhcid(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	dhcid->dhcid = mem_maybedup(mctx, region.base, region.length);
+	dhcid->dhcid = region.base;
 	dhcid->length = region.length;
-	dhcid->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -160,15 +159,6 @@ freestruct_in_dhcid(ARGS_FREESTRUCT) {
 	REQUIRE(dhcid != NULL);
 	REQUIRE(dhcid->common.rdtype == dns_rdatatype_dhcid);
 	REQUIRE(dhcid->common.rdclass == dns_rdataclass_in);
-
-	if (dhcid->mctx == NULL) {
-		return;
-	}
-
-	if (dhcid->dhcid != NULL) {
-		isc_mem_free(dhcid->mctx, dhcid->dhcid);
-	}
-	dhcid->mctx = NULL;
 }
 
 static isc_result_t

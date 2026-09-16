@@ -2010,7 +2010,6 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_name_t *soaname = NULL;
 
 	debug("insert_soa()");
-	soa.mctx = isc_g_mctx;
 	soa.serial = lookup->ixfr_serial;
 	soa.refresh = 0;
 	soa.retry = 0;

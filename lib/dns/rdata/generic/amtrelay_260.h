@@ -15,7 +15,6 @@
 
 typedef struct dns_rdata_amtrelay {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint8_t precedence;
 	bool discovery;
 	uint8_t gateway_type;

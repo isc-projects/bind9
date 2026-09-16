@@ -34,10 +34,8 @@
 #include <dns/types.h>
 
 isc_result_t
-dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
-		     isc_mem_t *mctx);
+dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey);
 
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
-		       uint32_t refresh, uint32_t addhd, uint32_t removehd,
-		       isc_mem_t *mctx);
+		       uint32_t refresh, uint32_t addhd, uint32_t removehd);

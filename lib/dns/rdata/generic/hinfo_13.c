@@ -121,13 +121,12 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	hinfo->cpu_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
+	hinfo->cpu = region.base;
 	isc_region_consume(&region, hinfo->cpu_len);
 
 	hinfo->os_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	hinfo->os = mem_maybedup(mctx, region.base, hinfo->os_len);
-	hinfo->mctx = mctx;
+	hinfo->os = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -136,18 +135,6 @@ freestruct_hinfo(ARGS_FREESTRUCT) {
 	dns_rdata_hinfo_t *hinfo = source;
 
 	REQUIRE(hinfo != NULL);
-
-	if (hinfo->mctx == NULL) {
-		return;
-	}
-
-	if (hinfo->cpu != NULL) {
-		isc_mem_free(hinfo->mctx, hinfo->cpu);
-	}
-	if (hinfo->os != NULL) {
-		isc_mem_free(hinfo->mctx, hinfo->os);
-	}
-	hinfo->mctx = NULL;
 }
 
 static isc_result_t

@@ -1959,7 +1959,6 @@ addnsec3param(const unsigned char *salt, size_t salt_len,
 
 	nsec3param.common.rdclass = gclass;
 	nsec3param.common.rdtype = dns_rdatatype_nsec3param;
-	nsec3param.mctx = NULL;
 	nsec3param.flags = 0;
 	nsec3param.hash = unknownalg ? DNS_NSEC3_UNKNOWNALG : dns_hash_sha1;
 	nsec3param.iterations = iterations;

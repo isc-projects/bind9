@@ -234,7 +234,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		return DNS_R_INVALIDTIME;
 	}
 
-	sig.mctx = mctx;
 	sig.common.rdclass = set->rdclass;
 	sig.common.rdtype = dns_rdatatype_rrsig;
 
@@ -822,7 +821,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	memset(&sig, 0, sizeof(sig));
 
-	sig.mctx = mctx;
 	sig.common.rdclass = dns_rdataclass_any;
 	sig.common.rdtype = dns_rdatatype_sig; /* SIG(0) */
 

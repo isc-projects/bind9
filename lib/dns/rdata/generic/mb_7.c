@@ -149,8 +149,7 @@ tostruct_mb(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&mb->mb);
-	name_duporclone(&name, mctx, &mb->mb);
-	mb->mctx = mctx;
+	dns_name_clone(&name, &mb->mb);
 	return ISC_R_SUCCESS;
 }
 
@@ -159,13 +158,6 @@ freestruct_mb(ARGS_FREESTRUCT) {
 	dns_rdata_mb_t *mb = source;
 
 	REQUIRE(mb != NULL);
-
-	if (mb->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&mb->mb, mb->mctx);
-	mb->mctx = NULL;
 }
 
 static isc_result_t

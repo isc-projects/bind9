@@ -149,8 +149,6 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 	REQUIRE(eui64 != NULL);
 	REQUIRE(rdata->length == 8);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(eui64, rdata->type, rdata->rdclass);
 
 	memmove(eui64->eui64, rdata->data, rdata->length);

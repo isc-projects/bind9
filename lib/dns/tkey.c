@@ -232,14 +232,14 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	}
 
 	if (outtoken != NULL) {
-		tkeyout->key = isc_mem_get(tkeyout->mctx,
+		tkeyout->key = isc_mem_get(msg->mctx,
 					   isc_buffer_usedlength(outtoken));
 		tkeyout->keylen = isc_buffer_usedlength(outtoken);
 		memmove(tkeyout->key, isc_buffer_base(outtoken),
 			isc_buffer_usedlength(outtoken));
 		isc_buffer_free(&outtoken);
 	} else {
-		tkeyout->key = isc_mem_get(tkeyout->mctx, tkeyin->keylen);
+		tkeyout->key = isc_mem_get(msg->mctx, tkeyin->keylen);
 		tkeyout->keylen = tkeyin->keylen;
 		memmove(tkeyout->key, tkeyin->key, tkeyin->keylen);
 	}
@@ -390,7 +390,6 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	tkeyout = (dns_rdata_tkey_t){
 		.common.rdclass = tkeyin.common.rdclass,
 		.common.rdtype = tkeyin.common.rdtype,
-		.mctx = msg->mctx,
 		.algorithm = DNS_NAME_INITEMPTY,
 		.mode = tkeyin.mode,
 	};
@@ -473,7 +472,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 				      tkeyout.common.rdtype, &tkeyout,
 				      &tkeyoutbuf);
 	if (tkeyout.key != NULL) {
-		isc_mem_put(tkeyout.mctx, tkeyout.key, tkeyout.keylen);
+		isc_mem_put(msg->mctx, tkeyout.key, tkeyout.keylen);
 	}
 	CHECK(result);
 

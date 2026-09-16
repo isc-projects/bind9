@@ -143,7 +143,7 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 
 	isdn->isdn_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	isdn->isdn = mem_maybedup(mctx, r.base, isdn->isdn_len);
+	isdn->isdn = r.base;
 	isc_region_consume(&r, isdn->isdn_len);
 
 	if (r.length == 0) {
@@ -152,11 +152,9 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 	} else {
 		isdn->subaddress_len = uint8_fromregion(&r);
 		isc_region_consume(&r, 1);
-		isdn->subaddress = mem_maybedup(mctx, r.base,
-						isdn->subaddress_len);
+		isdn->subaddress = r.base;
 	}
 
-	isdn->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -165,18 +163,6 @@ freestruct_isdn(ARGS_FREESTRUCT) {
 	dns_rdata_isdn_t *isdn = source;
 
 	REQUIRE(isdn != NULL);
-
-	if (isdn->mctx == NULL) {
-		return;
-	}
-
-	if (isdn->isdn != NULL) {
-		isc_mem_free(isdn->mctx, isdn->isdn);
-	}
-	if (isdn->subaddress != NULL) {
-		isc_mem_free(isdn->mctx, isdn->subaddress);
-	}
-	isdn->mctx = NULL;
 }
 
 static isc_result_t

@@ -66,7 +66,7 @@
 #define FROMSTRUCTTYPE	"type"
 #define FROMSTRUCTDEF	"use_default = true"
 
-#define TOSTRUCTARGS  "rdata, target, mctx"
+#define TOSTRUCTARGS  "rdata, target"
 #define TOSTRUCTCLASS "rdata->rdclass"
 #define TOSTRUCTTYPE  "rdata->type"
 #define TOSTRUCTDEF   "use_default = true"

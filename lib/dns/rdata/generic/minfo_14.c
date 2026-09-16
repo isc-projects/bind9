@@ -213,13 +213,12 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&minfo->rmailbox);
-	name_duporclone(&name, mctx, &minfo->rmailbox);
+	dns_name_clone(&name, &minfo->rmailbox);
 	isc_region_consume(&region, name_length(&name));
 
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&minfo->emailbox);
-	name_duporclone(&name, mctx, &minfo->emailbox);
-	minfo->mctx = mctx;
+	dns_name_clone(&name, &minfo->emailbox);
 	return ISC_R_SUCCESS;
 }
 
@@ -229,14 +228,6 @@ freestruct_minfo(ARGS_FREESTRUCT) {
 
 	REQUIRE(minfo != NULL);
 	REQUIRE(minfo->common.rdtype == dns_rdatatype_minfo);
-
-	if (minfo->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&minfo->rmailbox, minfo->mctx);
-	dns_name_free(&minfo->emailbox, minfo->mctx);
-	minfo->mctx = NULL;
 }
 
 static isc_result_t

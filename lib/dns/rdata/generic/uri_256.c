@@ -228,8 +228,7 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	 * Target URI
 	 */
 	uri->tgt_len = sr.length;
-	uri->target = mem_maybedup(mctx, sr.base, sr.length);
-	uri->mctx = mctx;
+	uri->target = sr.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -239,15 +238,6 @@ freestruct_uri(ARGS_FREESTRUCT) {
 
 	REQUIRE(uri != NULL);
 	REQUIRE(uri->common.rdtype == dns_rdatatype_uri);
-
-	if (uri->mctx == NULL) {
-		return;
-	}
-
-	if (uri->target != NULL) {
-		isc_mem_free(uri->mctx, uri->target);
-	}
-	uri->mctx = NULL;
 }
 
 static isc_result_t

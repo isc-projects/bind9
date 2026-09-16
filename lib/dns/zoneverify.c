@@ -1581,7 +1581,6 @@ check_dnskey(vctx_t *vctx) {
 		} else {
 			check_dnskey_sigs(vctx, &dnskey, &rdata, is_ksk);
 		}
-		dns_rdata_freestruct(&dnskey);
 	}
 
 	return ISC_R_SUCCESS;

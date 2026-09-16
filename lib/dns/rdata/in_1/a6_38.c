@@ -374,9 +374,8 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 	if (a6->prefixlen != 0) {
 		dns_name_init(&name);
 		dns_name_fromregion(&name, &r);
-		name_duporclone(&name, mctx, &a6->prefix);
+		dns_name_clone(&name, &a6->prefix);
 	}
-	a6->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -387,15 +386,6 @@ freestruct_in_a6(ARGS_FREESTRUCT) {
 	REQUIRE(a6 != NULL);
 	REQUIRE(a6->common.rdclass == dns_rdataclass_in);
 	REQUIRE(a6->common.rdtype == dns_rdatatype_a6);
-
-	if (a6->mctx == NULL) {
-		return;
-	}
-
-	if (dns_name_dynamic(&a6->prefix)) {
-		dns_name_free(&a6->prefix, a6->mctx);
-	}
-	a6->mctx = NULL;
 }
 
 static isc_result_t

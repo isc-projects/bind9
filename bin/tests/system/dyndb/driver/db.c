@@ -440,7 +440,6 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 	dns_rdatalist_init(&rdatalist);
 	ns.common.rdtype = dns_rdatatype_ns;
 	ns.common.rdclass = dns_db_class(db);
-	ns.mctx = NULL;
 	dns_name_init(&ns.name);
 	dns_name_clone(nsname, &ns.name);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,

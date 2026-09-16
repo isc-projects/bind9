@@ -252,11 +252,10 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&nxt->next);
-	name_duporclone(&name, mctx, &nxt->next);
+	dns_name_clone(&name, &nxt->next);
 
 	nxt->len = region.length;
-	nxt->typebits = mem_maybedup(mctx, region.base, region.length);
-	nxt->mctx = mctx;
+	nxt->typebits = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -266,16 +265,6 @@ freestruct_nxt(ARGS_FREESTRUCT) {
 
 	REQUIRE(nxt != NULL);
 	REQUIRE(nxt->common.rdtype == dns_rdatatype_nxt);
-
-	if (nxt->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&nxt->next, nxt->mctx);
-	if (nxt->typebits != NULL) {
-		isc_mem_free(nxt->mctx, nxt->typebits);
-	}
-	nxt->mctx = NULL;
 }
 
 static isc_result_t

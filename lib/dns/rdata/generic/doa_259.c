@@ -242,7 +242,7 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	doa->mediatype_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	INSIST(doa->mediatype_len <= region.length);
-	doa->mediatype = mem_maybedup(mctx, region.base, doa->mediatype_len);
+	doa->mediatype = region.base;
 	isc_region_consume(&region, doa->mediatype_len);
 
 	/*
@@ -251,11 +251,9 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	doa->data_len = region.length;
 	doa->data = NULL;
 	if (doa->data_len > 0) {
-		doa->data = mem_maybedup(mctx, region.base, doa->data_len);
+		doa->data = region.base;
 		isc_region_consume(&region, doa->data_len);
 	}
-
-	doa->mctx = mctx;
 
 	return ISC_R_SUCCESS;
 }
@@ -266,19 +264,6 @@ freestruct_doa(ARGS_FREESTRUCT) {
 
 	REQUIRE(doa != NULL);
 	REQUIRE(doa->common.rdtype == dns_rdatatype_doa);
-
-	if (doa->mctx == NULL) {
-		return;
-	}
-
-	if (doa->mediatype != NULL) {
-		isc_mem_free(doa->mctx, doa->mediatype);
-	}
-	if (doa->data != NULL) {
-		isc_mem_free(doa->mctx, doa->data);
-	}
-
-	doa->mctx = NULL;
 }
 
 static isc_result_t

@@ -25,38 +25,29 @@
 #include <dns/rdatastruct.h>
 
 isc_result_t
-dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
-		     isc_mem_t *mctx) {
+dns_keydata_todnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey) {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 
 	dnskey->common.rdtype = dns_rdatatype_dnskey;
 	dnskey->common.rdclass = keydata->common.rdclass;
-	dnskey->mctx = mctx;
 	dnskey->flags = keydata->flags;
 	dnskey->protocol = keydata->protocol;
 	dnskey->algorithm = keydata->algorithm;
 
 	dnskey->datalen = keydata->datalen;
 
-	if (mctx == NULL) {
-		dnskey->data = keydata->data;
-	} else {
-		dnskey->data = isc_mem_allocate(mctx, dnskey->datalen);
-		memmove(dnskey->data, keydata->data, dnskey->datalen);
-	}
+	dnskey->data = keydata->data;
 
 	return ISC_R_SUCCESS;
 }
 
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
-		       uint32_t refresh, uint32_t addhd, uint32_t removehd,
-		       isc_mem_t *mctx) {
+		       uint32_t refresh, uint32_t addhd, uint32_t removehd) {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 
 	keydata->common.rdtype = dns_rdatatype_keydata;
 	keydata->common.rdclass = dnskey->common.rdclass;
-	keydata->mctx = mctx;
 	keydata->refresh = refresh;
 	keydata->addhd = addhd;
 	keydata->removehd = removehd;
@@ -65,12 +56,7 @@ dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata, dns_rdata_dnskey_t *dnskey,
 	keydata->algorithm = dnskey->algorithm;
 
 	keydata->datalen = dnskey->datalen;
-	if (mctx == NULL) {
-		keydata->data = dnskey->data;
-	} else {
-		keydata->data = isc_mem_allocate(mctx, keydata->datalen);
-		memmove(keydata->data, dnskey->data, keydata->datalen);
-	}
+	keydata->data = dnskey->data;
 
 	return ISC_R_SUCCESS;
 }

@@ -150,8 +150,6 @@ tostruct_l32(ARGS_TOSTRUCT) {
 	REQUIRE(l32 != NULL);
 	REQUIRE(rdata->length == 6);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(l32, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &region);

@@ -179,8 +179,7 @@ tostruct_csync(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 
 	csync->len = region.length;
-	csync->typebits = mem_maybedup(mctx, region.base, region.length);
-	csync->mctx = mctx;
+	csync->typebits = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -190,15 +189,6 @@ freestruct_csync(ARGS_FREESTRUCT) {
 
 	REQUIRE(csync != NULL);
 	REQUIRE(csync->common.rdtype == dns_rdatatype_csync);
-
-	if (csync->mctx == NULL) {
-		return;
-	}
-
-	if (csync->typebits != NULL) {
-		isc_mem_free(csync->mctx, csync->typebits);
-	}
-	csync->mctx = NULL;
 }
 
 static isc_result_t

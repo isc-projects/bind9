@@ -383,20 +383,18 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	case 3:
 		dns_name_init(&ipseckey->gateway);
 		dns_name_fromregion(&name, &region);
-		name_duporclone(&name, mctx, &ipseckey->gateway);
+		dns_name_clone(&name, &ipseckey->gateway);
 		isc_region_consume(&region, name_length(&name));
 		break;
 	}
 
 	ipseckey->keylength = region.length;
 	if (ipseckey->keylength != 0U) {
-		ipseckey->key = mem_maybedup(mctx, region.base,
-					     ipseckey->keylength);
+		ipseckey->key = region.base;
 	} else {
 		ipseckey->key = NULL;
 	}
 
-	ipseckey->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -406,20 +404,6 @@ freestruct_ipseckey(ARGS_FREESTRUCT) {
 
 	REQUIRE(ipseckey != NULL);
 	REQUIRE(ipseckey->common.rdtype == dns_rdatatype_ipseckey);
-
-	if (ipseckey->mctx == NULL) {
-		return;
-	}
-
-	if (ipseckey->gateway_type == 3) {
-		dns_name_free(&ipseckey->gateway, ipseckey->mctx);
-	}
-
-	if (ipseckey->key != NULL) {
-		isc_mem_free(ipseckey->mctx, ipseckey->key);
-	}
-
-	ipseckey->mctx = NULL;
 }
 
 static isc_result_t

@@ -4061,7 +4061,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			 * Do nothing about "NS ."
 			 */
 			if (dns_name_isroot(&ns.name)) {
-				dns_rdata_freestruct(&ns);
 				result = dns_rdataset_next(st->r.ns_rdataset);
 				continue;
 			}
@@ -4070,26 +4069,18 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			 * during a previous recursion.
 			 */
 			if ((st->state & DNS_RPZ_DONE_NSDNAME) == 0) {
-				result = rpz_rewrite_name(
-					client, &ns.name, qtype,
-					DNS_RPZ_TYPE_NSDNAME, DNS_RPZ_ALL_ZBITS,
-					&rdataset);
-				if (result != ISC_R_SUCCESS) {
-					dns_rdata_freestruct(&ns);
-					goto cleanup;
-				}
+				CHECK(rpz_rewrite_name(client, &ns.name, qtype,
+						       DNS_RPZ_TYPE_NSDNAME,
+						       DNS_RPZ_ALL_ZBITS,
+						       &rdataset));
 				st->state |= DNS_RPZ_DONE_NSDNAME;
 			}
 			/*
 			 * Check all IP addresses for this NS name.
 			 */
-			result = rpz_rewrite_ip_rrsets(client, &ns.name, qtype,
-						       DNS_RPZ_TYPE_NSIP,
-						       &rdataset, resuming);
-			dns_rdata_freestruct(&ns);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
+			CHECK(rpz_rewrite_ip_rrsets(client, &ns.name, qtype,
+						    DNS_RPZ_TYPE_NSIP,
+						    &rdataset, resuming));
 			st->state &= ~(DNS_RPZ_DONE_NSDNAME |
 				       DNS_RPZ_DONE_IPv4);
 			result = dns_rdataset_next(st->r.ns_rdataset);
@@ -9245,13 +9236,11 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 
 	if (dns_name_equal(qctx->client->query.qname, &cname.cname)) {
 		dns_message_puttempname(qctx->client->message, &tname);
-		dns_rdata_freestruct(&cname);
 		return ISC_R_SUCCESS;
 	}
 
 	dns_name_copy(&cname.cname, tname);
 
-	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
 	qctx->want_restart = true;
 	if (!qctx->client->query.wantrecursion) {
@@ -9864,8 +9853,6 @@ query_cname(query_ctx_t *qctx) {
 
 	dns_name_copy(&cname.cname, tname);
 
-	dns_rdata_freestruct(&cname);
-
 	ns_client_qnamereplace(qctx->client, tname);
 	qctx->want_restart = true;
 	if (!qctx->client->query.wantrecursion) {
@@ -9962,7 +9949,6 @@ query_dname(query_ctx_t *qctx) {
 	dns_rdata_reset(&rdata);
 
 	dns_name_copy(&dname.dname, tname);
-	dns_rdata_freestruct(&dname);
 
 	/*
 	 * Construct the new qname consisting of
@@ -10788,7 +10774,6 @@ again:
 			if (result == ISC_R_SUCCESS) {
 				have_wname = true;
 			}
-			dns_rdata_freestruct(&nsec);
 		}
 		query_addrrset(qctx, &fname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_AUTHORITY);

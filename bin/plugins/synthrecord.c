@@ -373,7 +373,7 @@ synthrecord_reverse(synthrecord_t *inst, query_ctx_t *qctx,
 	}
 
 	synthptrdata = (dns_rdata_ptr_t){
-		.mctx = qctx->client->inner.view->mctx, .ptr = aname
+		.ptr = aname,
 	};
 	DNS_RDATACOMMON_INIT(&synthptrdata, dns_rdatatype_ptr,
 			     dns_rdataclass_in);

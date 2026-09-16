@@ -290,8 +290,7 @@ generic_tostruct_ds(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	ds->length = region.length;
 
-	ds->digest = mem_maybedup(mctx, region.base, region.length);
-	ds->mctx = mctx;
+	ds->digest = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -313,15 +312,6 @@ freestruct_ds(ARGS_FREESTRUCT) {
 
 	REQUIRE(ds != NULL);
 	REQUIRE(ds->common.rdtype == dns_rdatatype_ds);
-
-	if (ds->mctx == NULL) {
-		return;
-	}
-
-	if (ds->digest != NULL) {
-		isc_mem_free(ds->mctx, ds->digest);
-	}
-	ds->mctx = NULL;
 }
 
 static isc_result_t

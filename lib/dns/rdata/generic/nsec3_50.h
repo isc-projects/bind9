@@ -21,7 +21,6 @@
 
 typedef struct dns_rdata_nsec3 {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_hash_t hash;
 	unsigned char flags;
 	dns_iterations_t iterations;

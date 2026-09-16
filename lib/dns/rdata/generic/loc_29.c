@@ -745,8 +745,6 @@ tostruct_loc(ARGS_TOSTRUCT) {
 	REQUIRE(loc != NULL);
 	REQUIRE(rdata->length != 0);
 
-	UNUSED(mctx);
-
 	dns_rdata_toregion(rdata, &r);
 	version = uint8_fromregion(&r);
 	if (version != 0) {

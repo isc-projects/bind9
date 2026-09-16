@@ -145,8 +145,6 @@ tostruct_nid(ARGS_TOSTRUCT) {
 	REQUIRE(nid != NULL);
 	REQUIRE(rdata->length == 10);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(nid, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &region);

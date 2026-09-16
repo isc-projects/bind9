@@ -292,9 +292,8 @@ tostruct_in_apl(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	apl->apl_len = r.length;
-	apl->apl = mem_maybedup(mctx, r.base, r.length);
+	apl->apl = r.base;
 	apl->offset = 0;
-	apl->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -305,14 +304,6 @@ freestruct_in_apl(ARGS_FREESTRUCT) {
 	REQUIRE(apl != NULL);
 	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);
 	REQUIRE(apl->common.rdclass == dns_rdataclass_in);
-
-	if (apl->mctx == NULL) {
-		return;
-	}
-	if (apl->apl != NULL) {
-		isc_mem_free(apl->mctx, apl->apl);
-	}
-	apl->mctx = NULL;
 }
 
 isc_result_t

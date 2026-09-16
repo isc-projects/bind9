@@ -156,8 +156,6 @@ tostruct_hs_a(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->length == 4);
 	REQUIRE(a != NULL);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(a, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &region);

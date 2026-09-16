@@ -145,8 +145,6 @@ tostruct_eui48(ARGS_TOSTRUCT) {
 	REQUIRE(eui48 != NULL);
 	REQUIRE(rdata->length == 6);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(eui48, rdata->type, rdata->rdclass);
 
 	memmove(eui48->eui48, rdata->data, rdata->length);

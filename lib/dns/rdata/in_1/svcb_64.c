@@ -1054,12 +1054,11 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 
-	name_duporclone(&name, mctx, &svcb->svcdomain);
+	dns_name_clone(&name, &svcb->svcdomain);
 	svcb->svclen = region.length;
-	svcb->svc = mem_maybedup(mctx, region.base, region.length);
+	svcb->svc = region.base;
 
 	svcb->offset = 0;
-	svcb->mctx = mctx;
 
 	return ISC_R_SUCCESS;
 }
@@ -1081,14 +1080,6 @@ generic_freestruct_in_svcb(ARGS_FREESTRUCT) {
 	dns_rdata_in_svcb_t *svcb = source;
 
 	REQUIRE(svcb != NULL);
-
-	if (svcb->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&svcb->svcdomain, svcb->mctx);
-	isc_mem_free(svcb->mctx, svcb->svc);
-	svcb->mctx = NULL;
 }
 
 static void

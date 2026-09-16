@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_in_atma {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char format;
 	unsigned char *atma;
 	uint16_t atma_len;

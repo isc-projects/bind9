@@ -104,9 +104,9 @@
 
 #define CALL_FROMSTRUCT rdclass, type, source, target
 
-#define ARGS_TOSTRUCT const dns_rdata_t *rdata, void *target, isc_mem_t *mctx
+#define ARGS_TOSTRUCT const dns_rdata_t *rdata, void *target
 
-#define CALL_TOSTRUCT rdata, target, mctx
+#define CALL_TOSTRUCT rdata, target
 
 #define ARGS_FREESTRUCT void *source
 
@@ -387,31 +387,6 @@ locator_pton(const char *src, unsigned char *dst) {
 	}
 	memmove(dst, tmp, NS_LOCATORSZ);
 	return 1;
-}
-
-static void
-name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
-	if (mctx != NULL) {
-		dns_name_dup(source, mctx, target);
-	} else {
-		dns_name_clone(source, target);
-	}
-}
-
-static void *
-mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
-	void *copy = NULL;
-
-	REQUIRE(source != NULL);
-
-	if (mctx == NULL) {
-		return source;
-	}
-
-	copy = isc_mem_allocate(mctx, length);
-	memmove(copy, source, length);
-
-	return copy;
 }
 
 static isc_result_t
@@ -1414,7 +1389,6 @@ isc_result_t
 dns_rdata_tostruct(const dns_rdata_t *rdata, void *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	bool use_default = false;
-	isc_mem_t *mctx = NULL; /* Intentionally NULL */
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));

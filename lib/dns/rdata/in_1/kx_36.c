@@ -196,8 +196,7 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&kx->exchange);
-	name_duporclone(&name, mctx, &kx->exchange);
-	kx->mctx = mctx;
+	dns_name_clone(&name, &kx->exchange);
 	return ISC_R_SUCCESS;
 }
 
@@ -208,13 +207,6 @@ freestruct_in_kx(ARGS_FREESTRUCT) {
 	REQUIRE(kx != NULL);
 	REQUIRE(kx->common.rdclass == dns_rdataclass_in);
 	REQUIRE(kx->common.rdtype == dns_rdatatype_kx);
-
-	if (kx->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&kx->exchange, kx->mctx);
-	kx->mctx = NULL;
 }
 
 static isc_result_t

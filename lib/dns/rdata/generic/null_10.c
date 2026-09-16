@@ -104,8 +104,7 @@ tostruct_null(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	null->length = r.length;
-	null->data = mem_maybedup(mctx, r.base, r.length);
-	null->mctx = mctx;
+	null->data = r.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -115,15 +114,6 @@ freestruct_null(ARGS_FREESTRUCT) {
 
 	REQUIRE(null != NULL);
 	REQUIRE(null->common.rdtype == dns_rdatatype_null);
-
-	if (null->mctx == NULL) {
-		return;
-	}
-
-	if (null->data != NULL) {
-		isc_mem_free(null->mctx, null->data);
-	}
-	null->mctx = NULL;
 }
 
 static isc_result_t

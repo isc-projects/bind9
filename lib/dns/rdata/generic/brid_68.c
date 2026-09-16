@@ -136,8 +136,7 @@ tostruct_brid(ARGS_TOSTRUCT) {
 
 	/* Data */
 	brid->datalen = sr.length;
-	brid->data = mem_maybedup(mctx, sr.base, brid->datalen);
-	brid->mctx = mctx;
+	brid->data = sr.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -147,15 +146,6 @@ freestruct_brid(ARGS_FREESTRUCT) {
 
 	REQUIRE(brid != NULL);
 	REQUIRE(brid->common.rdtype == dns_rdatatype_brid);
-
-	if (brid->mctx == NULL) {
-		return;
-	}
-
-	if (brid->data != NULL) {
-		isc_mem_free(brid->mctx, brid->data);
-	}
-	brid->mctx = NULL;
 }
 
 static isc_result_t

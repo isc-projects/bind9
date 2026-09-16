@@ -632,7 +632,6 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	now = msg->fuzzing ? msg->fuzztime : isc_stdtime_now();
 	tsig = (dns_rdata_any_tsig_t){
-		.mctx = mctx,
 		.common.rdclass = dns_rdataclass_any,
 		.common.rdtype = dns_rdatatype_tsig,
 		.timesigned = now + msg->timeadjust,

@@ -239,8 +239,7 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&mx->mx);
-	name_duporclone(&name, mctx, &mx->mx);
-	mx->mctx = mctx;
+	dns_name_clone(&name, &mx->mx);
 	return ISC_R_SUCCESS;
 }
 
@@ -250,13 +249,6 @@ freestruct_mx(ARGS_FREESTRUCT) {
 
 	REQUIRE(mx != NULL);
 	REQUIRE(mx->common.rdtype == dns_rdatatype_mx);
-
-	if (mx->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&mx->mx, mx->mctx);
-	mx->mctx = NULL;
 }
 
 static unsigned char port25_ndata[] = "\003_25\004_tcp";

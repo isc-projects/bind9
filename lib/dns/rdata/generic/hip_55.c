@@ -318,21 +318,20 @@ tostruct_hip(ARGS_TOSTRUCT) {
 
 	hip->hit = hip->key = hip->servers = NULL;
 
-	hip->hit = mem_maybedup(mctx, region.base, hip->hit_len);
+	hip->hit = region.base;
 	isc_region_consume(&region, hip->hit_len);
 
 	INSIST(hip->key_len <= region.length);
 
-	hip->key = mem_maybedup(mctx, region.base, hip->key_len);
+	hip->key = region.base;
 	isc_region_consume(&region, hip->key_len);
 
 	hip->servers_len = region.length;
 	if (hip->servers_len != 0) {
-		hip->servers = mem_maybedup(mctx, region.base, region.length);
+		hip->servers = region.base;
 	}
 
 	hip->offset = hip->servers_len;
-	hip->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -341,17 +340,6 @@ freestruct_hip(ARGS_FREESTRUCT) {
 	dns_rdata_hip_t *hip = source;
 
 	REQUIRE(hip != NULL);
-
-	if (hip->mctx == NULL) {
-		return;
-	}
-
-	isc_mem_free(hip->mctx, hip->hit);
-	isc_mem_free(hip->mctx, hip->key);
-	if (hip->servers != NULL) {
-		isc_mem_free(hip->mctx, hip->servers);
-	}
-	hip->mctx = NULL;
 }
 
 static isc_result_t

@@ -96,15 +96,6 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 
 	REQUIRE(dlv != NULL);
 	REQUIRE(dlv->common.rdtype == dns_rdatatype_dlv);
-
-	if (dlv->mctx == NULL) {
-		return;
-	}
-
-	if (dlv->digest != NULL) {
-		isc_mem_free(dlv->mctx, dlv->digest);
-	}
-	dlv->mctx = NULL;
 }
 
 static isc_result_t

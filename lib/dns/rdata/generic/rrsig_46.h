@@ -17,7 +17,6 @@
  *  \brief Per RFC2535 */
 typedef struct dns_rdata_rrsig {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_rdatatype_t covered;
 	dns_secalg_t algorithm;
 	uint8_t labels;

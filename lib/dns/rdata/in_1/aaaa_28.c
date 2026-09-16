@@ -169,8 +169,6 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	REQUIRE(aaaa != NULL);
 	REQUIRE(rdata->length == 16);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(aaaa, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &r);

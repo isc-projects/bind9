@@ -268,8 +268,7 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	zonemd->length = region.length;
 
-	zonemd->digest = mem_maybedup(mctx, region.base, region.length);
-	zonemd->mctx = mctx;
+	zonemd->digest = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -279,15 +278,6 @@ freestruct_zonemd(ARGS_FREESTRUCT) {
 
 	REQUIRE(zonemd != NULL);
 	REQUIRE(zonemd->common.rdtype == dns_rdatatype_zonemd);
-
-	if (zonemd->mctx == NULL) {
-		return;
-	}
-
-	if (zonemd->digest != NULL) {
-		isc_mem_free(zonemd->mctx, zonemd->digest);
-	}
-	zonemd->mctx = NULL;
 }
 
 static isc_result_t

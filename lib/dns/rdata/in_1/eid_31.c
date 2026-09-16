@@ -137,8 +137,7 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	eid->eid_len = r.length;
-	eid->eid = mem_maybedup(mctx, r.base, r.length);
-	eid->mctx = mctx;
+	eid->eid = r.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -149,15 +148,6 @@ freestruct_in_eid(ARGS_FREESTRUCT) {
 	REQUIRE(eid != NULL);
 	REQUIRE(eid->common.rdclass == dns_rdataclass_in);
 	REQUIRE(eid->common.rdtype == dns_rdatatype_eid);
-
-	if (eid->mctx == NULL) {
-		return;
-	}
-
-	if (eid->eid != NULL) {
-		isc_mem_free(eid->mctx, eid->eid);
-	}
-	eid->mctx = NULL;
 }
 
 static isc_result_t

@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_in_kx {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t preference;
 	dns_name_t exchange;
 } dns_rdata_in_kx_t;

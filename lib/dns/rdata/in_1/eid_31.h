@@ -19,7 +19,6 @@
 
 typedef struct dns_rdata_in_eid {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *eid;
 	uint16_t eid_len;
 } dns_rdata_in_eid_t;

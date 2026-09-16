@@ -96,15 +96,6 @@ freestruct_ta(ARGS_FREESTRUCT) {
 
 	REQUIRE(ds != NULL);
 	REQUIRE(ds->common.rdtype == dns_rdatatype_ta);
-
-	if (ds->mctx == NULL) {
-		return;
-	}
-
-	if (ds->digest != NULL) {
-		isc_mem_free(ds->mctx, ds->digest);
-	}
-	ds->mctx = NULL;
 }
 
 static isc_result_t

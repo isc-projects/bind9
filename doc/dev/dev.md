@@ -1228,17 +1228,15 @@ wrapper around `memcmp()`.
 `tostruct()`, below) and turns it into a record in wire format.
 
         static isc_result_t
-        tostruct[_<class>]_<type>(dns_rdata_t *rdata, void *target,
-                                  isc_mem_t *mctx);
+        tostruct[_<class>]_<type>(const dns_rdata_t *rdata, void *target);
 
 "tostruct" take a record in wire format and breaks it down into
 a type-specific C structure defined in the header file.  The name of this
 structure is `dns_rdata_<type>[_<class>]_t`; the first element of
 the structure must be `"dns_rdatacommon_t common;"`.
-If no memory context is passed in, then the caller will preserve the
-contents of the record in wire form until the structure is freed or no
-longer in use.  If a memory context is passed, in then memory should
-be allocated for anything not directly part of the structure.
+The structure does not own any memory: its pointers refer directly
+into the wire-format record, so the caller must preserve the record
+for as long as the structure is in use.
 
         static void
         freestruct[_<class>]_<type>(void *source);

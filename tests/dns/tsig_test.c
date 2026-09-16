@@ -65,7 +65,6 @@ add_mac(dst_context_t *tsigctx, isc_buffer_t *buf) {
 	isc_buffer_putmem(&databuf, tsig.signature, tsig.siglen);
 	isc_buffer_usedregion(&databuf, &r);
 	result = dst_context_adddata(tsigctx, &r);
-	dns_rdata_freestruct(&tsig);
 cleanup:
 	return result;
 }

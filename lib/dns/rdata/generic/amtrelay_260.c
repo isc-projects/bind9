@@ -344,18 +344,16 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 
 	case 3:
 		dns_name_fromregion(&name, &region);
-		name_duporclone(&name, mctx, &amtrelay->gateway);
+		dns_name_clone(&name, &amtrelay->gateway);
 		isc_region_consume(&region, name_length(&name));
 		break;
 
 	default:
 		if (region.length != 0) {
-			amtrelay->data = mem_maybedup(mctx, region.base,
-						      region.length);
+			amtrelay->data = region.base;
 		}
 		amtrelay->length = region.length;
 	}
-	amtrelay->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -365,20 +363,6 @@ freestruct_amtrelay(ARGS_FREESTRUCT) {
 
 	REQUIRE(amtrelay != NULL);
 	REQUIRE(amtrelay->common.rdtype == dns_rdatatype_amtrelay);
-
-	if (amtrelay->mctx == NULL) {
-		return;
-	}
-
-	if (amtrelay->gateway_type == 3) {
-		dns_name_free(&amtrelay->gateway, amtrelay->mctx);
-	}
-
-	if (amtrelay->data != NULL) {
-		isc_mem_free(amtrelay->mctx, amtrelay->data);
-	}
-
-	amtrelay->mctx = NULL;
 }
 
 static isc_result_t

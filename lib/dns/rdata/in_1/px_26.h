@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_in_px {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t preference;
 	dns_name_t map822;
 	dns_name_t mapx400;

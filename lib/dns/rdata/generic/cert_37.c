@@ -203,8 +203,7 @@ tostruct_cert(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	cert->length = region.length;
 
-	cert->certificate = mem_maybedup(mctx, region.base, region.length);
-	cert->mctx = mctx;
+	cert->certificate = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -214,15 +213,6 @@ freestruct_cert(ARGS_FREESTRUCT) {
 
 	REQUIRE(cert != NULL);
 	REQUIRE(cert->common.rdtype == dns_rdatatype_cert);
-
-	if (cert->mctx == NULL) {
-		return;
-	}
-
-	if (cert->certificate != NULL) {
-		isc_mem_free(cert->mctx, cert->certificate);
-	}
-	cert->mctx = NULL;
 }
 
 static isc_result_t

@@ -269,13 +269,12 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 
 	dns_name_init(&px->map822);
-	name_duporclone(&name, mctx, &px->map822);
+	dns_name_clone(&name, &px->map822);
 	isc_region_consume(&region, name_length(&px->map822));
 
 	dns_name_init(&px->mapx400);
-	name_duporclone(&name, mctx, &px->mapx400);
+	dns_name_clone(&name, &px->mapx400);
 
-	px->mctx = mctx;
 	return ISC_R_SUCCESS;
 }
 
@@ -286,14 +285,6 @@ freestruct_in_px(ARGS_FREESTRUCT) {
 	REQUIRE(px != NULL);
 	REQUIRE(px->common.rdclass == dns_rdataclass_in);
 	REQUIRE(px->common.rdtype == dns_rdatatype_px);
-
-	if (px->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&px->map822, px->mctx);
-	dns_name_free(&px->mapx400, px->mctx);
-	px->mctx = NULL;
 }
 
 static isc_result_t

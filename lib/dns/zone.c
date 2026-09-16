@@ -3565,7 +3565,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 		}
 
 		/* Convert keydata to dnskey. */
-		dns_keydata_todnskey(&keydata, &dnskey, NULL);
+		dns_keydata_todnskey(&keydata, &dnskey);
 
 		/* Add to keytables. */
 		trusted++;
@@ -8696,7 +8696,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target, unsigned char *data,
 			return result;
 		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		dns_keydata_todnskey(&keydata, &dnskey, NULL);
+		dns_keydata_todnskey(&keydata, &dnskey);
 		result = dns_rdata_fromstruct(target, rr->rdclass,
 					      dns_rdatatype_dnskey, &dnskey,
 					      &buf);
@@ -8908,7 +8908,7 @@ revocable(dns_zonefetch_t *fetch, dns_rdata_keydata_t *keydata) {
 
 	/* Generate a key from keydata */
 	isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-	dns_keydata_todnskey(keydata, &dnskey, NULL);
+	dns_keydata_todnskey(keydata, &dnskey);
 
 	result = dns_rdata_fromstruct(&rr, keydata->common.rdclass,
 				      dns_rdatatype_dnskey, &dnskey, &keyb);
@@ -9214,7 +9214,7 @@ anchors_done:
 		result = dns_rdata_tostruct(&keydatarr, &keydata);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		dns_keydata_todnskey(&keydata, &dnskey, NULL);
+		dns_keydata_todnskey(&keydata, &dnskey);
 		result = compute_tag(&dnskey, &keytag);
 		if (result != ISC_R_SUCCESS) {
 			/*
@@ -9560,8 +9560,7 @@ anchors_done:
 			/* Convert DNSKEY to KEYDATA */
 			result = dns_rdata_tostruct(&dnskeyrr, &dnskey);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			dns_keydata_fromdnskey(&keydata, &dnskey, 0, 0, 0,
-					       NULL);
+			dns_keydata_fromdnskey(&keydata, &dnskey, 0, 0, 0);
 			keydata.addhd = initializing
 						? now
 						: now + dns_zone_mkey_month;
@@ -20484,7 +20483,6 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	} else {
 		param.common.rdclass = zone->rdclass;
 		param.common.rdtype = dns_rdatatype_nsec3param;
-		param.mctx = NULL;
 		/*
 		 * nsec3 specific param set in
 		 * dns__zone_lookup_nsec3param()

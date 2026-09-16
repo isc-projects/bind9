@@ -16,7 +16,6 @@
 /*% RFC2538 */
 typedef struct dns_rdata_cert {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t type;
 	uint16_t key_tag;
 	uint8_t algorithm;

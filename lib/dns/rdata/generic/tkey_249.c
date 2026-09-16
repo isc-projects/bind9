@@ -433,7 +433,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	dns_name_init(&alg);
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tkey->algorithm);
-	name_duporclone(&alg, mctx, &tkey->algorithm);
+	dns_name_clone(&alg, &tkey->algorithm);
 	isc_region_consume(&sr, name_length(&tkey->algorithm));
 
 	/*
@@ -470,7 +470,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	 * Key.
 	 */
 	INSIST(tkey->keylen + 2U <= sr.length);
-	tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
+	tkey->key = sr.base;
 	isc_region_consume(&sr, tkey->keylen);
 
 	/*
@@ -483,8 +483,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	 * Other.
 	 */
 	INSIST(tkey->otherlen <= sr.length);
-	tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
-	tkey->mctx = mctx;
+	tkey->other = sr.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -493,19 +492,6 @@ freestruct_tkey(ARGS_FREESTRUCT) {
 	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *)source;
 
 	REQUIRE(tkey != NULL);
-
-	if (tkey->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&tkey->algorithm, tkey->mctx);
-	if (tkey->key != NULL) {
-		isc_mem_free(tkey->mctx, tkey->key);
-	}
-	if (tkey->other != NULL) {
-		isc_mem_free(tkey->mctx, tkey->other);
-	}
-	tkey->mctx = NULL;
 }
 
 static isc_result_t

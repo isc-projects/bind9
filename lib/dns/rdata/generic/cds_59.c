@@ -100,15 +100,6 @@ freestruct_cds(ARGS_FREESTRUCT) {
 
 	REQUIRE(cds != NULL);
 	REQUIRE(cds->common.rdtype == dns_rdatatype_cds);
-
-	if (cds->mctx == NULL) {
-		return;
-	}
-
-	if (cds->digest != NULL) {
-		isc_mem_free(cds->mctx, cds->digest);
-	}
-	cds->mctx = NULL;
 }
 
 static isc_result_t

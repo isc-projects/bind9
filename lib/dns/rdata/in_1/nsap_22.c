@@ -172,8 +172,7 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	nsap->nsap_len = r.length;
-	nsap->nsap = mem_maybedup(mctx, r.base, r.length);
-	nsap->mctx = mctx;
+	nsap->nsap = r.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -184,15 +183,6 @@ freestruct_in_nsap(ARGS_FREESTRUCT) {
 	REQUIRE(nsap != NULL);
 	REQUIRE(nsap->common.rdclass == dns_rdataclass_in);
 	REQUIRE(nsap->common.rdtype == dns_rdatatype_nsap);
-
-	if (nsap->mctx == NULL) {
-		return;
-	}
-
-	if (nsap->nsap != NULL) {
-		isc_mem_free(nsap->mctx, nsap->nsap);
-	}
-	nsap->mctx = NULL;
 }
 
 static isc_result_t

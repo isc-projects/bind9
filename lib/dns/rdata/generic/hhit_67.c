@@ -136,8 +136,7 @@ tostruct_hhit(ARGS_TOSTRUCT) {
 
 	/* Data */
 	hhit->datalen = sr.length;
-	hhit->data = mem_maybedup(mctx, sr.base, hhit->datalen);
-	hhit->mctx = mctx;
+	hhit->data = sr.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -147,15 +146,6 @@ freestruct_hhit(ARGS_FREESTRUCT) {
 
 	REQUIRE(hhit != NULL);
 	REQUIRE(hhit->common.rdtype == dns_rdatatype_hhit);
-
-	if (hhit->mctx == NULL) {
-		return;
-	}
-
-	if (hhit->data != NULL) {
-		isc_mem_free(hhit->mctx, hhit->data);
-	}
-	hhit->mctx = NULL;
 }
 
 static isc_result_t

@@ -16,7 +16,6 @@
 /*% RFC2845 */
 typedef struct dns_rdata_any_tsig {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_name_t algorithm;
 	uint64_t timesigned;
 	uint16_t fudge;

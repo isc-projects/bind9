@@ -24,7 +24,6 @@ typedef struct dns_rdata_opt_opcode {
 
 typedef struct dns_rdata_opt {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *options;
 	uint16_t length;
 	/* private */

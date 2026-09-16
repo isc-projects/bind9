@@ -214,8 +214,7 @@ tostruct_sshfp(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	sshfp->length = region.length;
 
-	sshfp->digest = mem_maybedup(mctx, region.base, region.length);
-	sshfp->mctx = mctx;
+	sshfp->digest = region.base;
 	return ISC_R_SUCCESS;
 }
 
@@ -225,15 +224,6 @@ freestruct_sshfp(ARGS_FREESTRUCT) {
 
 	REQUIRE(sshfp != NULL);
 	REQUIRE(sshfp->common.rdtype == dns_rdatatype_sshfp);
-
-	if (sshfp->mctx == NULL) {
-		return;
-	}
-
-	if (sshfp->digest != NULL) {
-		isc_mem_free(sshfp->mctx, sshfp->digest);
-	}
-	sshfp->mctx = NULL;
 }
 
 static isc_result_t
