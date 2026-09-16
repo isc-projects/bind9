@@ -40,7 +40,7 @@ ignore-paths = [
   ".git",
   # Temporary directories created by the system test runner
   # (see bin/tests/system/conftest.py:system_test_dir)
-  "bin/tests/system/.*_tmp_.*/",
+  "bin/tests/system/.*-tmp-.*/",
   "bin/tests/system/vulture_ignore_list.py",
   "contrib",
   "dangerfile.py",
