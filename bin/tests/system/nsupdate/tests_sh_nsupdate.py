@@ -24,7 +24,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "typelist.out.*",
         "update.in.*",
         "verylarge",
-        "ans*/ans.run",
         "ns*/*.jnl",
         "ns*/*.jnl",
         "ns1/ddns.key",

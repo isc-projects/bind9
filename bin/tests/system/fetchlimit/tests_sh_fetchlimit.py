@@ -15,7 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "wait_for_message.*",
-        "ans*/ans.run",
         "ns3/named_dump.db",
         "ns3/named.recursing",
         "ns3/named.stats",

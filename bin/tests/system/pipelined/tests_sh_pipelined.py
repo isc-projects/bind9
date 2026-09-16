@@ -15,7 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "output*",
         "raw*",
-        "ans*/ans.run",
     ]
 )
 

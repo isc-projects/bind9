@@ -15,7 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out*",
         "query.list",
-        "ans*/ans.run",
         "ns2/example.db",
         "ns4/example.bk",
     ]

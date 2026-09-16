@@ -17,7 +17,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "dig.out.*",
         "stats.*",
         "wait_for_message.*",
-        "ans*/ans.run",
         "ns1/dot-fallback.db",
         "ns1/edns-expire.db",
         "ns1/ixfr-too-big.db",
