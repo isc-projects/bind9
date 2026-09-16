@@ -213,7 +213,7 @@ def pytest_ignore_collect(collection_path):
     # from previous runs could mess with the runner. Also ignore the
     # convenience symlinks to those test directories. In both of those
     # cases, the system test name (directory) contains a hyphen, which
-    # is otherwise and invalid character for a system test name.
+    # is otherwise an invalid character for a system test name.
     match = SYSTEM_TEST_NAME_RE.search(str(collection_path))
     if match is None:
         isctest.log.warning("unexpected test path: %s (ignored)", collection_path)
