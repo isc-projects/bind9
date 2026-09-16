@@ -68,6 +68,7 @@ class QueryContext:
     node: dns.node.Node | None = field(default=None, init=False)
     answer: dns.rdataset.Rdataset | None = field(default=None, init=False)
     alias: dns.name.Name | None = field(default=None, init=False)
+    aliases: set[dns.name.Name] = field(default_factory=set, init=False)
     _initialized_response: dns.message.Message | None = field(default=None, init=False)
     _initialized_response_with_zone_data: dns.message.Message | None = field(
         default=None, init=False
