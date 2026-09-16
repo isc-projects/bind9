@@ -232,13 +232,6 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-generic_freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
-
-	REQUIRE(tlsa != NULL);
-}
-
 static isc_result_t
 fromstruct_tlsa(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_tlsa);
@@ -256,16 +249,6 @@ tostruct_tlsa(ARGS_TOSTRUCT) {
 	DNS_RDATACOMMON_INIT(tlsa, rdata->type, rdata->rdclass);
 
 	return generic_tostruct_tlsa(CALL_TOSTRUCT);
-}
-
-static void
-freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
-
-	REQUIRE(tlsa != NULL);
-	REQUIRE(tlsa->common.rdtype == dns_rdatatype_tlsa);
-
-	generic_freestruct_tlsa(source);
 }
 
 static isc_result_t

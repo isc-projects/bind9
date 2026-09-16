@@ -234,15 +234,6 @@ tostruct_in_atma(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_atma(ARGS_FREESTRUCT) {
-	dns_rdata_in_atma_t *atma = source;
-
-	REQUIRE(atma != NULL);
-	REQUIRE(atma->common.rdclass == dns_rdataclass_in);
-	REQUIRE(atma->common.rdtype == dns_rdatatype_atma);
-}
-
 static isc_result_t
 additionaldata_in_atma(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_atma);

@@ -93,14 +93,6 @@ static isc_result_t tostruct_ #(ARGS_TOSTRUCT) {
 	return ISC_R_NOTIMPLEMENTED;
 }
 
-static void freestruct_ #(ARGS_FREESTRUCT) {
-	dns_rdata_ #_t *# = source;
-
-	REQUIRE(# != NULL);
-	REQUIRE(#->common.rdtype == dns_rdatatype_proforma.c #);
-	REQUIRE(#->common.rdclass == #);
-}
-
 static isc_result_t additionaldata_ #(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_proforma.c #);
 	REQUIRE(rdata->rdclass == #);

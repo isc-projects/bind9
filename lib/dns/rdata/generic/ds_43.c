@@ -306,14 +306,6 @@ tostruct_ds(ARGS_TOSTRUCT) {
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_ds(ARGS_FREESTRUCT) {
-	dns_rdata_ds_t *ds = source;
-
-	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == dns_rdatatype_ds);
-}
-
 static isc_result_t
 additionaldata_ds(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ds);

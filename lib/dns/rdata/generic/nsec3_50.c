@@ -306,8 +306,6 @@ fromstruct_nsec3(ARGS_FROMSTRUCT) {
 			    nsec3->typebits.length);
 }
 
-static void freestruct_nsec3(ARGS_FREESTRUCT);
-
 static isc_result_t
 tostruct_nsec3(ARGS_TOSTRUCT) {
 	isc_region_t region;
@@ -339,14 +337,6 @@ tostruct_nsec3(ARGS_TOSTRUCT) {
 	nsec3->typebits.base = region.base;
 
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_nsec3(ARGS_FREESTRUCT) {
-	dns_rdata_nsec3_t *nsec3 = source;
-
-	REQUIRE(nsec3 != NULL);
-	REQUIRE(nsec3->common.rdtype == dns_rdatatype_nsec3);
 }
 
 static isc_result_t

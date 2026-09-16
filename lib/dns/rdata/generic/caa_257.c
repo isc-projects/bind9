@@ -530,14 +530,6 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_caa(ARGS_FREESTRUCT) {
-	dns_rdata_caa_t *caa = (dns_rdata_caa_t *)source;
-
-	REQUIRE(caa != NULL);
-	REQUIRE(caa->common.rdtype == dns_rdatatype_caa);
-}
-
 static isc_result_t
 additionaldata_caa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_caa);

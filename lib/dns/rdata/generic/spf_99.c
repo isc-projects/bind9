@@ -81,16 +81,6 @@ tostruct_spf(ARGS_TOSTRUCT) {
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_spf(ARGS_FREESTRUCT) {
-	dns_rdata_spf_t *spf = source;
-
-	REQUIRE(spf != NULL);
-	REQUIRE(spf->common.rdtype == dns_rdatatype_spf);
-
-	generic_freestruct_txt(source);
-}
-
 static isc_result_t
 additionaldata_spf(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_spf);

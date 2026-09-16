@@ -141,15 +141,6 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_eid(ARGS_FREESTRUCT) {
-	dns_rdata_in_eid_t *eid = source;
-
-	REQUIRE(eid != NULL);
-	REQUIRE(eid->common.rdclass == dns_rdataclass_in);
-	REQUIRE(eid->common.rdtype == dns_rdatatype_eid);
-}
-
 static isc_result_t
 additionaldata_in_eid(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_eid);

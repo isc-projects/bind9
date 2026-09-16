@@ -140,14 +140,6 @@ tostruct_brid(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_brid(ARGS_FREESTRUCT) {
-	dns_rdata_brid_t *brid = (dns_rdata_brid_t *)source;
-
-	REQUIRE(brid != NULL);
-	REQUIRE(brid->common.rdtype == dns_rdatatype_brid);
-}
-
 static isc_result_t
 additionaldata_brid(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_brid);

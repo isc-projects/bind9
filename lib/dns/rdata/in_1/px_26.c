@@ -278,15 +278,6 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_px(ARGS_FREESTRUCT) {
-	dns_rdata_in_px_t *px = source;
-
-	REQUIRE(px != NULL);
-	REQUIRE(px->common.rdclass == dns_rdataclass_in);
-	REQUIRE(px->common.rdtype == dns_rdatatype_px);
-}
-
 static isc_result_t
 additionaldata_in_px(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_px);

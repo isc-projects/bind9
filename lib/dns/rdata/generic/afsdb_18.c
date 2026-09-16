@@ -227,14 +227,6 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_afsdb(ARGS_FREESTRUCT) {
-	dns_rdata_afsdb_t *afsdb = source;
-
-	REQUIRE(afsdb != NULL);
-	REQUIRE(afsdb->common.rdtype == dns_rdatatype_afsdb);
-}
-
 static isc_result_t
 additionaldata_afsdb(ARGS_ADDLDATA) {
 	dns_name_t name;

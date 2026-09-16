@@ -108,14 +108,6 @@ tostruct_null(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_null(ARGS_FREESTRUCT) {
-	dns_rdata_null_t *null = source;
-
-	REQUIRE(null != NULL);
-	REQUIRE(null->common.rdtype == dns_rdatatype_null);
-}
-
 static isc_result_t
 additionaldata_null(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_null);

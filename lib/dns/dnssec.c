@@ -498,11 +498,8 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 again:
-	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
-				    &ctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_struct;
-	}
+	CHECK(dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false,
+				 &ctx));
 
 	/*
 	 * Digest the SIG rdata (not including the signature).
@@ -613,9 +610,7 @@ cleanup_context:
 		downcase = true;
 		goto again;
 	}
-cleanup_struct:
-	dns_rdata_freestruct(&sig);
-
+cleanup:
 	if (result == DST_R_VERIFYFAILURE) {
 		result = DNS_R_SIGINVALID;
 	}
@@ -940,7 +935,6 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	isc_mem_t *mctx;
 	isc_result_t result;
 	uint16_t addcount, addcount_n;
-	bool signeedsfree = false;
 
 	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
@@ -964,7 +958,6 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_rdataset_current(msg->sig0, &rdata);
 
 	CHECK(dns_rdata_tostruct(&rdata, &sig));
-	signeedsfree = true;
 
 	if (sig.labels != 0) {
 		CLEANUP(DNS_R_SIGINVALID);
@@ -1050,14 +1043,10 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	msg->sig0status = dns_rcode_noerror;
 
 	dst_context_destroy(&ctx);
-	dns_rdata_freestruct(&sig);
 
 	return ISC_R_SUCCESS;
 
 cleanup:
-	if (signeedsfree) {
-		dns_rdata_freestruct(&sig);
-	}
 	if (ctx != NULL) {
 		dst_context_destroy(&ctx);
 	}

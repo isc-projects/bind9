@@ -155,16 +155,6 @@ tostruct_eui64(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_eui64(ARGS_FREESTRUCT) {
-	dns_rdata_eui64_t *eui64 = source;
-
-	REQUIRE(eui64 != NULL);
-	REQUIRE(eui64->common.rdtype == dns_rdatatype_eui64);
-
-	return;
-}
-
 static isc_result_t
 additionaldata_eui64(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_eui64);

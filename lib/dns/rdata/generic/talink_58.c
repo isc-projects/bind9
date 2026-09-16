@@ -184,14 +184,6 @@ tostruct_talink(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_talink(ARGS_FREESTRUCT) {
-	dns_rdata_talink_t *talink = source;
-
-	REQUIRE(talink != NULL);
-	REQUIRE(talink->common.rdtype == dns_rdatatype_talink);
-}
-
 static isc_result_t
 additionaldata_talink(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_talink);

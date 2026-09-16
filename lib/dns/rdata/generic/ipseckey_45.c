@@ -398,14 +398,6 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_ipseckey(ARGS_FREESTRUCT) {
-	dns_rdata_ipseckey_t *ipseckey = source;
-
-	REQUIRE(ipseckey != NULL);
-	REQUIRE(ipseckey->common.rdtype == dns_rdatatype_ipseckey);
-}
-
 static isc_result_t
 additionaldata_ipseckey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);

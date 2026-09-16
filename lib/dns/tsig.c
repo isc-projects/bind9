@@ -1514,8 +1514,6 @@ cleanup_context:
 	}
 
 cleanup_querystruct:
-	dns_rdata_freestruct(&querytsig);
-
 	return result;
 }
 

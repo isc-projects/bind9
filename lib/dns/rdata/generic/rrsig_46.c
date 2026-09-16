@@ -580,14 +580,6 @@ tostruct_rrsig(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_rrsig(ARGS_FREESTRUCT) {
-	dns_rdata_rrsig_t *sig = (dns_rdata_rrsig_t *)source;
-
-	REQUIRE(sig != NULL);
-	REQUIRE(sig->common.rdtype == dns_rdatatype_rrsig);
-}
-
 static isc_result_t
 additionaldata_rrsig(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_rrsig);

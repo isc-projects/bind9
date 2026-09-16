@@ -155,16 +155,6 @@ tostruct_l64(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_l64(ARGS_FREESTRUCT) {
-	dns_rdata_l64_t *l64 = source;
-
-	REQUIRE(l64 != NULL);
-	REQUIRE(l64->common.rdtype == dns_rdatatype_l64);
-
-	return;
-}
-
 static isc_result_t
 additionaldata_l64(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_l64);

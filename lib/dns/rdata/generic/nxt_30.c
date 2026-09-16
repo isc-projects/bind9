@@ -259,14 +259,6 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_nxt(ARGS_FREESTRUCT) {
-	dns_rdata_nxt_t *nxt = source;
-
-	REQUIRE(nxt != NULL);
-	REQUIRE(nxt->common.rdtype == dns_rdatatype_nxt);
-}
-
 static isc_result_t
 additionaldata_nxt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nxt);

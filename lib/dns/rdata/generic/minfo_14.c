@@ -222,14 +222,6 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_minfo(ARGS_FREESTRUCT) {
-	dns_rdata_minfo_t *minfo = source;
-
-	REQUIRE(minfo != NULL);
-	REQUIRE(minfo->common.rdtype == dns_rdatatype_minfo);
-}
-
 static isc_result_t
 additionaldata_minfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_minfo);

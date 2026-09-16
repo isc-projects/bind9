@@ -2976,7 +2976,6 @@ valid_nsec_signer(dns_validator_t *val, dns_name_t *name,
 		CHECK(dns_rdata_tostruct(&rdata, &sig));
 
 		bool equal = dns_name_equal(zonename, &sig.signer);
-		dns_rdata_freestruct(&sig);
 		if (!equal) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "ignoring NSEC wildcard proof from a "

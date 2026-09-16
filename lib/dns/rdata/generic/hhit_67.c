@@ -140,14 +140,6 @@ tostruct_hhit(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_hhit(ARGS_FREESTRUCT) {
-	dns_rdata_hhit_t *hhit = (dns_rdata_hhit_t *)source;
-
-	REQUIRE(hhit != NULL);
-	REQUIRE(hhit->common.rdtype == dns_rdatatype_hhit);
-}
-
 static isc_result_t
 additionaldata_hhit(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_hhit);

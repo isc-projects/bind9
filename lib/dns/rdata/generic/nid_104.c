@@ -155,16 +155,6 @@ tostruct_nid(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_nid(ARGS_FREESTRUCT) {
-	dns_rdata_nid_t *nid = source;
-
-	REQUIRE(nid != NULL);
-	REQUIRE(nid->common.rdtype == dns_rdatatype_nid);
-
-	return;
-}
-
 static isc_result_t
 additionaldata_nid(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nid);

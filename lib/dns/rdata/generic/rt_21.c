@@ -223,14 +223,6 @@ tostruct_rt(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_rt(ARGS_FREESTRUCT) {
-	dns_rdata_rt_t *rt = source;
-
-	REQUIRE(rt != NULL);
-	REQUIRE(rt->common.rdtype == dns_rdatatype_rt);
-}
-
 static isc_result_t
 additionaldata_rt(ARGS_ADDLDATA) {
 	dns_name_t name;

@@ -388,14 +388,6 @@ tostruct_keydata(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_keydata(ARGS_FREESTRUCT) {
-	dns_rdata_keydata_t *keydata = (dns_rdata_keydata_t *)source;
-
-	REQUIRE(keydata != NULL);
-	REQUIRE(keydata->common.rdtype == dns_rdatatype_keydata);
-}
-
 static isc_result_t
 additionaldata_keydata(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_keydata);

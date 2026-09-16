@@ -171,14 +171,6 @@ tostruct_ptr(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_ptr(ARGS_FREESTRUCT) {
-	dns_rdata_ptr_t *ptr = source;
-
-	REQUIRE(ptr != NULL);
-	REQUIRE(ptr->common.rdtype == dns_rdatatype_ptr);
-}
-
 static isc_result_t
 additionaldata_ptr(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ptr);

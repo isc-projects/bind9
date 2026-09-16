@@ -542,14 +542,6 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_naptr(ARGS_FREESTRUCT) {
-	dns_rdata_naptr_t *naptr = source;
-
-	REQUIRE(naptr != NULL);
-	REQUIRE(naptr->common.rdtype == dns_rdatatype_naptr);
-}
-
 static isc_result_t
 additionaldata_naptr(ARGS_ADDLDATA) {
 	dns_name_t name;

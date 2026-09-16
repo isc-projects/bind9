@@ -550,17 +550,6 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target);
  *\li	Not Implemented
  */
 
-void
-dns_rdata_freestruct(void *source);
-/*%<
- * Free dynamic memory attached to 'source' (if any).
- *
- * Requires:
- *
- *\li	'source' to point to the structure previously filled in by
- *	dns_rdata_tostruct().
- */
-
 unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 /*%<

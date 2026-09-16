@@ -522,15 +522,6 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_any_tsig(ARGS_FREESTRUCT) {
-	dns_rdata_any_tsig_t *tsig = (dns_rdata_any_tsig_t *)source;
-
-	REQUIRE(tsig != NULL);
-	REQUIRE(tsig->common.rdtype == dns_rdatatype_tsig);
-	REQUIRE(tsig->common.rdclass == dns_rdataclass_any);
-}
-
 static isc_result_t
 additionaldata_any_tsig(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_tsig);

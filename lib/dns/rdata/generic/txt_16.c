@@ -170,13 +170,6 @@ generic_tostruct_txt(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-generic_freestruct_txt(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
-
-	REQUIRE(txt != NULL);
-}
-
 static isc_result_t
 fromstruct_txt(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_txt);
@@ -194,16 +187,6 @@ tostruct_txt(ARGS_TOSTRUCT) {
 	DNS_RDATACOMMON_INIT(txt, rdata->type, rdata->rdclass);
 
 	return generic_tostruct_txt(CALL_TOSTRUCT);
-}
-
-static void
-freestruct_txt(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
-
-	REQUIRE(txt != NULL);
-	REQUIRE(txt->common.rdtype == dns_rdatatype_txt);
-
-	generic_freestruct_txt(source);
 }
 
 static isc_result_t

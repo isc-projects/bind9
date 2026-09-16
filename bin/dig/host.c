@@ -341,7 +341,6 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 		result = dns_rdata_tostruct(&rdata, &cname);
 		check_result(result, "dns_rdata_tostruct");
 		dns_name_copy(&cname.cname, qname);
-		dns_rdata_freestruct(&cname);
 	}
 }
 

@@ -205,14 +205,6 @@ tostruct_sink(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_sink(ARGS_FREESTRUCT) {
-	dns_rdata_sink_t *sink = (dns_rdata_sink_t *)source;
-
-	REQUIRE(sink != NULL);
-	REQUIRE(sink->common.rdtype == dns_rdatatype_sink);
-}
-
 static isc_result_t
 additionaldata_sink(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_sink);

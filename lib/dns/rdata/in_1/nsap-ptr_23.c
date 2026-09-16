@@ -161,15 +161,6 @@ tostruct_in_nsap_ptr(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_nsap_ptr(ARGS_FREESTRUCT) {
-	dns_rdata_in_nsap_ptr_t *nsap_ptr = source;
-
-	REQUIRE(nsap_ptr != NULL);
-	REQUIRE(nsap_ptr->common.rdclass == dns_rdataclass_in);
-	REQUIRE(nsap_ptr->common.rdtype == dns_rdatatype_nsap_ptr);
-}
-
 static isc_result_t
 additionaldata_in_nsap_ptr(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nsap_ptr);

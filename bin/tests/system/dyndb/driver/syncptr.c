@@ -185,12 +185,6 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 	}
 
 cleanup:
-	if (rdata->type == dns_rdatatype_a) {
-		dns_rdata_freestruct(&ipv4);
-	} else {
-		dns_rdata_freestruct(&ipv6);
-	}
-
 	return result;
 }
 

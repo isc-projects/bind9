@@ -270,14 +270,6 @@ tostruct_dsync(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_dsync(ARGS_FREESTRUCT) {
-	dns_rdata_dsync_t *dsync = source;
-
-	REQUIRE(dsync != NULL);
-	REQUIRE(dsync->common.rdtype == dns_rdatatype_dsync);
-}
-
 static isc_result_t
 additionaldata_dsync(ARGS_ADDLDATA) {
 	dns_name_t name;

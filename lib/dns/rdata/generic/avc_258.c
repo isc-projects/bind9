@@ -80,16 +80,6 @@ tostruct_avc(ARGS_TOSTRUCT) {
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_avc(ARGS_FREESTRUCT) {
-	dns_rdata_avc_t *avc = source;
-
-	REQUIRE(avc != NULL);
-	REQUIRE(avc->common.rdtype == dns_rdatatype_avc);
-
-	generic_freestruct_txt(source);
-}
-
 static isc_result_t
 additionaldata_avc(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_avc);

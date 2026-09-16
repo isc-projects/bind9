@@ -1238,11 +1238,6 @@ The structure does not own any memory: its pointers refer directly
 into the wire-format record, so the caller must preserve the record
 for as long as the structure is in use.
 
-        static void
-        freestruct[_<class>]_<type>(void *source);
-
-"freestruct" frees any memory allocated by `tostruct()`.
-
         static isc_result_t
         additional[_<class>]_<type>(dns_rdata_t *rdata,
                                     dns_additionaldatafunc_t add,

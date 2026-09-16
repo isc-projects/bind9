@@ -243,14 +243,6 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_mx(ARGS_FREESTRUCT) {
-	dns_rdata_mx_t *mx = source;
-
-	REQUIRE(mx != NULL);
-	REQUIRE(mx->common.rdtype == dns_rdatatype_mx);
-}
-
 static unsigned char port25_ndata[] = "\003_25\004_tcp";
 static dns_name_t port25 = DNS_NAME_INITNONABSOLUTE(port25_ndata);
 

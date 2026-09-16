@@ -1075,24 +1075,6 @@ tostruct_in_svcb(ARGS_TOSTRUCT) {
 	return generic_tostruct_in_svcb(CALL_TOSTRUCT);
 }
 
-static void
-generic_freestruct_in_svcb(ARGS_FREESTRUCT) {
-	dns_rdata_in_svcb_t *svcb = source;
-
-	REQUIRE(svcb != NULL);
-}
-
-static void
-freestruct_in_svcb(ARGS_FREESTRUCT) {
-	dns_rdata_in_svcb_t *svcb = source;
-
-	REQUIRE(svcb != NULL);
-	REQUIRE(svcb->common.rdclass == dns_rdataclass_in);
-	REQUIRE(svcb->common.rdtype == dns_rdatatype_svcb);
-
-	generic_freestruct_in_svcb(CALL_FREESTRUCT);
-}
-
 static isc_result_t
 generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	bool alias, done = false;

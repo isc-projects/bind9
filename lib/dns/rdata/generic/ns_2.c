@@ -167,13 +167,6 @@ tostruct_ns(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_ns(ARGS_FREESTRUCT) {
-	dns_rdata_ns_t *ns = source;
-
-	REQUIRE(ns != NULL);
-}
-
 static isc_result_t
 additionaldata_ns(ARGS_ADDLDATA) {
 	dns_name_t name;

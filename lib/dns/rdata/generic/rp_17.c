@@ -228,14 +228,6 @@ tostruct_rp(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_rp(ARGS_FREESTRUCT) {
-	dns_rdata_rp_t *rp = source;
-
-	REQUIRE(rp != NULL);
-	REQUIRE(rp->common.rdtype == dns_rdatatype_rp);
-}
-
 static isc_result_t
 additionaldata_rp(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_rp);

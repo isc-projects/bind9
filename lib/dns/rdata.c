@@ -108,10 +108,6 @@
 
 #define CALL_TOSTRUCT rdata, target
 
-#define ARGS_FREESTRUCT void *source
-
-#define CALL_FREESTRUCT source
-
 #define ARGS_ADDLDATA                                \
 	dns_rdata_t *rdata, const dns_name_t *owner, \
 		dns_additionaldatafunc_t add, void *arg
@@ -259,8 +255,6 @@ static isc_result_t generic_fromstruct_key(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_key(ARGS_TOSTRUCT);
 
-static void generic_freestruct_key(ARGS_FREESTRUCT);
-
 static isc_result_t generic_fromtext_txt(ARGS_FROMTEXT);
 
 static isc_result_t generic_totext_txt(ARGS_TOTEXT);
@@ -270,8 +264,6 @@ static isc_result_t generic_fromwire_txt(ARGS_FROMWIRE);
 static isc_result_t generic_fromstruct_txt(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT);
-
-static void generic_freestruct_txt(ARGS_FREESTRUCT);
 
 static isc_result_t
 generic_txt_first(dns_rdata_txt_t *txt);
@@ -302,15 +294,12 @@ static isc_result_t generic_fromstruct_tlsa(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_tlsa(ARGS_TOSTRUCT);
 
-static void generic_freestruct_tlsa(ARGS_FREESTRUCT);
-
 static isc_result_t generic_fromtext_in_svcb(ARGS_FROMTEXT);
 static isc_result_t generic_totext_in_svcb(ARGS_TOTEXT);
 static isc_result_t generic_fromwire_in_svcb(ARGS_FROMWIRE);
 static isc_result_t generic_towire_in_svcb(ARGS_TOWIRE);
 static isc_result_t generic_fromstruct_in_svcb(ARGS_FROMSTRUCT);
 static isc_result_t generic_tostruct_in_svcb(ARGS_TOSTRUCT);
-static void generic_freestruct_in_svcb(ARGS_FREESTRUCT);
 static isc_result_t generic_additionaldata_in_svcb(ARGS_ADDLDATA);
 static bool generic_checknames_in_svcb(ARGS_CHECKNAMES);
 static isc_result_t
@@ -1401,14 +1390,6 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target) {
 	}
 
 	return result;
-}
-
-void
-dns_rdata_freestruct(void *source) {
-	dns_rdatacommon_t *common = source;
-	REQUIRE(common != NULL);
-
-	FREESTRUCTSWITCH
 }
 
 isc_result_t

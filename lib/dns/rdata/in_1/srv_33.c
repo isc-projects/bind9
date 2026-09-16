@@ -290,15 +290,6 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_srv(ARGS_FREESTRUCT) {
-	dns_rdata_in_srv_t *srv = source;
-
-	REQUIRE(srv != NULL);
-	REQUIRE(srv->common.rdclass == dns_rdataclass_in);
-	REQUIRE(srv->common.rdtype == dns_rdatatype_srv);
-}
-
 static isc_result_t
 additionaldata_in_srv(ARGS_ADDLDATA) {
 	char buf[sizeof("_65000._tcp")];

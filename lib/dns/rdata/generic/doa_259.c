@@ -258,14 +258,6 @@ tostruct_doa(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_doa(ARGS_FREESTRUCT) {
-	dns_rdata_doa_t *doa = source;
-
-	REQUIRE(doa != NULL);
-	REQUIRE(doa->common.rdtype == dns_rdatatype_doa);
-}
-
 static isc_result_t
 additionaldata_doa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_doa);

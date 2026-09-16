@@ -232,14 +232,6 @@ tostruct_uri(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_uri(ARGS_FREESTRUCT) {
-	dns_rdata_uri_t *uri = (dns_rdata_uri_t *)source;
-
-	REQUIRE(uri != NULL);
-	REQUIRE(uri->common.rdtype == dns_rdatatype_uri);
-}
-
 static isc_result_t
 additionaldata_uri(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_uri);

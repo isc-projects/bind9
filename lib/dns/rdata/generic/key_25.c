@@ -345,13 +345,6 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-generic_freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *)source;
-
-	REQUIRE(key != NULL);
-}
-
 static isc_result_t
 fromstruct_key(ARGS_FROMSTRUCT) {
 	REQUIRE(type == dns_rdatatype_key);
@@ -370,16 +363,6 @@ tostruct_key(ARGS_TOSTRUCT) {
 	DNS_RDATACOMMON_INIT(key, rdata->type, rdata->rdclass);
 
 	return generic_tostruct_key(CALL_TOSTRUCT);
-}
-
-static void
-freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *)source;
-
-	REQUIRE(key != NULL);
-	REQUIRE(key->common.rdtype == dns_rdatatype_key);
-
-	generic_freestruct_key(source);
 }
 
 static isc_result_t

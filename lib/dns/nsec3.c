@@ -211,7 +211,6 @@ dns_nsec3_typepresent(dns_rdata_t *rdata, dns_rdatatype_t type) {
 		}
 		break;
 	}
-	dns_rdata_freestruct(&nsec3);
 	return present;
 }
 

@@ -335,13 +335,6 @@ tostruct_hip(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_hip(ARGS_FREESTRUCT) {
-	dns_rdata_hip_t *hip = source;
-
-	REQUIRE(hip != NULL);
-}
-
 static isc_result_t
 additionaldata_hip(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_hip);

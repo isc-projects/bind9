@@ -245,14 +245,6 @@ tostruct_nsec3param(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_nsec3param(ARGS_FREESTRUCT) {
-	dns_rdata_nsec3param_t *nsec3param = source;
-
-	REQUIRE(nsec3param != NULL);
-	REQUIRE(nsec3param->common.rdtype == dns_rdatatype_nsec3param);
-}
-
 static isc_result_t
 additionaldata_nsec3param(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nsec3param);

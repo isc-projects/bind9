@@ -176,14 +176,6 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_nsec(ARGS_FREESTRUCT) {
-	dns_rdata_nsec_t *nsec = source;
-
-	REQUIRE(nsec != NULL);
-	REQUIRE(nsec->common.rdtype == dns_rdatatype_nsec);
-}
-
 static isc_result_t
 additionaldata_nsec(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nsec);

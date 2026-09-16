@@ -297,15 +297,6 @@ tostruct_in_apl(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_apl(ARGS_FREESTRUCT) {
-	dns_rdata_in_apl_t *apl = source;
-
-	REQUIRE(apl != NULL);
-	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);
-	REQUIRE(apl->common.rdclass == dns_rdataclass_in);
-}
-
 isc_result_t
 dns_rdata_apl_first(dns_rdata_in_apl_t *apl) {
 	uint32_t length;

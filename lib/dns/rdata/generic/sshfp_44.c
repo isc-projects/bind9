@@ -218,14 +218,6 @@ tostruct_sshfp(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_sshfp(ARGS_FREESTRUCT) {
-	dns_rdata_sshfp_t *sshfp = source;
-
-	REQUIRE(sshfp != NULL);
-	REQUIRE(sshfp->common.rdtype == dns_rdatatype_sshfp);
-}
-
 static isc_result_t
 additionaldata_sshfp(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_sshfp);

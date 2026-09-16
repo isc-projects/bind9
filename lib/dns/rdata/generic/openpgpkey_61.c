@@ -156,14 +156,6 @@ tostruct_openpgpkey(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_openpgpkey(ARGS_FREESTRUCT) {
-	dns_rdata_openpgpkey_t *sig = (dns_rdata_openpgpkey_t *)source;
-
-	REQUIRE(sig != NULL);
-	REQUIRE(sig->common.rdtype == dns_rdatatype_openpgpkey);
-}
-
 static isc_result_t
 additionaldata_openpgpkey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);

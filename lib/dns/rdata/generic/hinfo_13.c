@@ -130,13 +130,6 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_hinfo(ARGS_FREESTRUCT) {
-	dns_rdata_hinfo_t *hinfo = source;
-
-	REQUIRE(hinfo != NULL);
-}
-
 static isc_result_t
 additionaldata_hinfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);

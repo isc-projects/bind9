@@ -357,14 +357,6 @@ tostruct_amtrelay(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_amtrelay(ARGS_FREESTRUCT) {
-	dns_rdata_amtrelay_t *amtrelay = source;
-
-	REQUIRE(amtrelay != NULL);
-	REQUIRE(amtrelay->common.rdtype == dns_rdatatype_amtrelay);
-}
-
 static isc_result_t
 additionaldata_amtrelay(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);

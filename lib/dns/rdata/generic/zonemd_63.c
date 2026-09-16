@@ -272,14 +272,6 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_zonemd(ARGS_FREESTRUCT) {
-	dns_rdata_zonemd_t *zonemd = source;
-
-	REQUIRE(zonemd != NULL);
-	REQUIRE(zonemd->common.rdtype == dns_rdatatype_zonemd);
-}
-
 static isc_result_t
 additionaldata_zonemd(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);

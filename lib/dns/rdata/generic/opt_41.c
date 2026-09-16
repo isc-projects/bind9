@@ -374,14 +374,6 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_opt(ARGS_FREESTRUCT) {
-	dns_rdata_opt_t *opt = source;
-
-	REQUIRE(opt != NULL);
-	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
-}
-
 static isc_result_t
 additionaldata_opt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_opt);

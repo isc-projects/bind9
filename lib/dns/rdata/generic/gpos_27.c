@@ -156,14 +156,6 @@ tostruct_gpos(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_gpos(ARGS_FREESTRUCT) {
-	dns_rdata_gpos_t *gpos = source;
-
-	REQUIRE(gpos != NULL);
-	REQUIRE(gpos->common.rdtype == dns_rdatatype_gpos);
-}
-
 static isc_result_t
 additionaldata_gpos(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_gpos);

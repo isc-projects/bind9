@@ -80,16 +80,6 @@ tostruct_ninfo(ARGS_TOSTRUCT) {
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_ninfo(ARGS_FREESTRUCT) {
-	dns_rdata_ninfo_t *ninfo = source;
-
-	REQUIRE(ninfo != NULL);
-	REQUIRE(ninfo->common.rdtype == dns_rdatatype_ninfo);
-
-	generic_freestruct_txt(source);
-}
-
 static isc_result_t
 additionaldata_ninfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);

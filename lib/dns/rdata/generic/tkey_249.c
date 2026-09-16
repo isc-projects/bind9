@@ -487,13 +487,6 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_tkey(ARGS_FREESTRUCT) {
-	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *)source;
-
-	REQUIRE(tkey != NULL);
-}
-
 static isc_result_t
 additionaldata_tkey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_tkey);

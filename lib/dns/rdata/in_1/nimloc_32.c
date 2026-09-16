@@ -141,15 +141,6 @@ tostruct_in_nimloc(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_nimloc(ARGS_FREESTRUCT) {
-	dns_rdata_in_nimloc_t *nimloc = source;
-
-	REQUIRE(nimloc != NULL);
-	REQUIRE(nimloc->common.rdclass == dns_rdataclass_in);
-	REQUIRE(nimloc->common.rdtype == dns_rdatatype_nimloc);
-}
-
 static isc_result_t
 additionaldata_in_nimloc(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nimloc);

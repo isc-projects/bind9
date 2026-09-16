@@ -183,14 +183,6 @@ tostruct_csync(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_csync(ARGS_FREESTRUCT) {
-	dns_rdata_csync_t *csync = source;
-
-	REQUIRE(csync != NULL);
-	REQUIRE(csync->common.rdtype == dns_rdatatype_csync);
-}
-
 static isc_result_t
 additionaldata_csync(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_csync);

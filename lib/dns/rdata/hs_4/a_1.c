@@ -165,13 +165,6 @@ tostruct_hs_a(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_hs_a(ARGS_FREESTRUCT) {
-	UNUSED(source);
-
-	REQUIRE(source != NULL);
-}
-
 static isc_result_t
 additionaldata_hs_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_a);

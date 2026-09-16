@@ -705,7 +705,6 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			}
 
 			dns_rdata_reset(&sigrdata);
-			dns_rdata_freestruct(&rrsig);
 		}
 	}
 
@@ -2892,7 +2891,6 @@ warnifallksk(dns_db_t *db) {
 			have_non_ksk = true;
 			break;
 		}
-		dns_rdata_freestruct(&dnskey);
 	}
 	dns_rdataset_disassociate(&rdataset);
 	dns_db_detachnode(&node);
@@ -2989,8 +2987,6 @@ set_nsec3params(bool update, bool set_salt, bool set_optout, bool set_iter) {
 	} else if (!set_optout) {
 		nsec3flags = nsec3.flags;
 	}
-
-	dns_rdata_freestruct(&nsec3);
 
 cleanup:
 	dns_rdataset_cleanup(&rdataset);

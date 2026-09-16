@@ -344,14 +344,6 @@ tostruct_soa(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_soa(ARGS_FREESTRUCT) {
-	dns_rdata_soa_t *soa = source;
-
-	REQUIRE(soa != NULL);
-	REQUIRE(soa->common.rdtype == dns_rdatatype_soa);
-}
-
 static isc_result_t
 additionaldata_soa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_soa);

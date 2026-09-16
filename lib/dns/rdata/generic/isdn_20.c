@@ -158,13 +158,6 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_isdn(ARGS_FREESTRUCT) {
-	dns_rdata_isdn_t *isdn = source;
-
-	REQUIRE(isdn != NULL);
-}
-
 static isc_result_t
 additionaldata_isdn(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_isdn);

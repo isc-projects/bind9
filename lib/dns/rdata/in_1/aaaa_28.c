@@ -178,17 +178,6 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_in_aaaa(ARGS_FREESTRUCT) {
-	dns_rdata_in_aaaa_t *aaaa = source;
-
-	REQUIRE(aaaa != NULL);
-	REQUIRE(aaaa->common.rdclass == dns_rdataclass_in);
-	REQUIRE(aaaa->common.rdtype == dns_rdatatype_aaaa);
-
-	UNUSED(aaaa);
-}
-
 static isc_result_t
 additionaldata_in_aaaa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_aaaa);

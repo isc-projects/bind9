@@ -154,13 +154,6 @@ tostruct_cname(ARGS_TOSTRUCT) {
 	return ISC_R_SUCCESS;
 }
 
-static void
-freestruct_cname(ARGS_FREESTRUCT) {
-	dns_rdata_cname_t *cname = source;
-
-	REQUIRE(cname != NULL);
-}
-
 static isc_result_t
 additionaldata_cname(ARGS_ADDLDATA) {
 	UNUSED(rdata);
