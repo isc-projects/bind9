@@ -112,7 +112,7 @@ class ZoneAnalyzer:
             if name in reachable_delegations:
                 reachable_delegations.remove(name)
 
-        # sanity check, should be impossible with dnspython 2.7.0 zone reader
+        # sanity check, should be impossible with the dnspython zone reader
         for name in reachable:
             relation, _, _ = name.fullcompare(self.zone.origin)
             if relation in (
