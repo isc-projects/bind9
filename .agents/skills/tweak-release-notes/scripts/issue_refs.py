@@ -25,8 +25,8 @@ close keyword directly before a "#N" ref for body refs (GitLab's default
 closing pattern, as in the dangerfile) and the :gl: role for doc refs.
 
 Usage:
-    scripts/issue_refs.py <version>            # e.g. 9.21.23
-    scripts/issue_refs.py <version> <boundary> # explicit cycle boundary ref
+    python3 scripts/issue_refs.py <version>            # e.g. 9.21.23
+    python3 scripts/issue_refs.py <version> <boundary> # explicit cycle boundary ref
 
 Prints the union, and notes which refs come only from merge bodies (i.e. not
 represented in the changelog/notes — usually test/ci issues).

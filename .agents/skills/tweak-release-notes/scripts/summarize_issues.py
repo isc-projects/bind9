@@ -25,7 +25,7 @@ with the `gitlab` CLI (anonymous access works for public issues):
 then run this over that directory.
 
 Usage:
-    scripts/summarize_issues.py <dir-of-issue-json>
+    python3 scripts/summarize_issues.py <dir-of-issue-json>
 
 Flags any issue that is NOT closed (the close-status check) and prints the
 "Affects vX" labels (input to the substance review: does a released version
