@@ -143,6 +143,7 @@ TESTS =				\
 	include_multiplecfg	\
 	inline			\
 	integrity		\
+	isctest/asyncserver/tests/dnssec	\
 	ixfr			\
 	ixfr_nonminimal		\
 	journal			\
@@ -204,7 +205,6 @@ TESTS =				\
 	runtime			\
 	selfpointedglue		\
 	selftest		\
-	selftest_asyncdnsserver	\
 	sfcache			\
 	sfcache_cname		\
 	shutdown		\
