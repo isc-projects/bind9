@@ -50,7 +50,6 @@ from .matchers import Always, Matcher
 
 __all__ = [
     "AsyncDnsServer",
-    "AsyncServer",
     "ConnectionHandler",
     "ControlCommand",
     "ControllableAsyncDnsServer",
@@ -97,7 +96,7 @@ class _AsyncUdpHandler(asyncio.DatagramProtocol):
         asyncio.create_task(handler_coroutine)
 
 
-class AsyncServer:
+class _AsyncServer:
     """
     A generic asynchronous server which may handle UDP and/or TCP traffic.
 
@@ -383,7 +382,7 @@ def _is_asyncserver_response(message: dns.message.Message) -> bool:
     return getattr(message, _ASYNCSERVER_RESPONSE_MARKER, False)
 
 
-class AsyncDnsServer(AsyncServer):
+class AsyncDnsServer(_AsyncServer):
     """
     DNS server which responds to queries based on zone data and/or custom
     handlers.
