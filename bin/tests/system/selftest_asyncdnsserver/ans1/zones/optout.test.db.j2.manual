@@ -1,0 +1,24 @@
+; RFC 5155 1.3 separates the closest encloser from the closest *provable*
+; encloser, and 7.1 gives every empty non-terminal an NSEC3 unless it is
+; derived only from an insecure delegation covered by an Opt-Out NSEC3.  One
+; empty non-terminal of each kind:
+;
+;   ent.optout.test.  exists through deep.ent.optout.test., an authoritative
+;                     A record, so it is matched by an NSEC3 and is the
+;                     closest encloser of y.ent.optout.test.
+;   ent2.optout.test. exists only through deep.ent2.optout.test., an insecure
+;                     delegation the Opt-Out chain skips, so it is matched by
+;                     no NSEC3 and the closest provable encloser of
+;                     x.ent2.optout.test. is the apex.
+;
+; shim1 and shim2 keep the three NSEC3 records RFC 5155 7.2.2 asks for
+; distinct in both cases: shim2 hashes between ent.optout.test. and
+; *.ent.optout.test., shim1 between the apex and *.optout.test.
+optout.test.			300	IN SOA	ns.optout.test. hostmaster.optout.test. 1 3600 600 86400 300
+optout.test.			300	IN NS	ns.optout.test.
+ns.optout.test.			300	IN A	@ns.ip@
+deep.ent.optout.test.		300	IN A	192.0.2.1
+deep.ent2.optout.test.		300	IN NS	ns.deep.ent2.optout.test.
+ns.deep.ent2.optout.test.	300	IN A	192.0.2.70
+shim1.optout.test.		300	IN A	192.0.2.11
+shim2.optout.test.		300	IN A	192.0.2.12

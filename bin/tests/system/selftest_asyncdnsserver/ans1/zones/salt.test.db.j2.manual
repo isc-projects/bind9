@@ -1,0 +1,8 @@
+; The shape of nsec3.test. -- ent.salt.test. exists only through
+; deep.ent.salt.test. -- signed with a salt; a prover that hashes with
+; hardcoded parameters rather than the zone's NSEC3PARAM finds none of the
+; three records RFC 5155 7.2.2 asks for.
+salt.test.		300	IN SOA	ns.salt.test. hostmaster.salt.test. 1 3600 600 86400 300
+salt.test.		300	IN NS	ns.salt.test.
+ns.salt.test.		300	IN A	@ns.ip@
+deep.ent.salt.test.	300	IN A	192.0.2.1
