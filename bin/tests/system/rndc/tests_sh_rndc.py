@@ -15,6 +15,7 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "nsupdate.out.*",
+        "rndc.err.*",
         "rndc.out.*",
         "ns2/*.jnl",
         "ns2/named.stats",
