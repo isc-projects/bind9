@@ -1,11 +1,9 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -56,7 +54,9 @@ def wait_until_ready(named_proc, port):
 
 
 def test_tkey_query_without_options():
-    """A TKEY query must not crash named when global options are omitted."""
+    """
+    A TKEY query must not crash named when global options are omitted.
+    """
     port = int(os.environ["EXTRAPORT1"])
     named_cmdline = isctest.run.get_named_cmdline("nooptions")
     named_cmdline.extend(["-p", str(port), "-T", "maxcachesize=2097152"])

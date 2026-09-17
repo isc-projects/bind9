@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -17,7 +17,8 @@ import re
 def transfer_message(
     zone: str, source_ns: str | None, msg: str | Pattern, port: int | None = None
 ) -> Pattern:
-    """Return the expected log message for an incoming zone transfer.
+    """
+    Return the expected log message for an incoming zone transfer.
 
     Mirrors the format produced by xfrin_log() in lib/dns/xfrin.c:
 

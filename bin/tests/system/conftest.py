@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -133,7 +133,9 @@ def pytest_ignore_collect(collection_path):
 
 
 def pytest_collection_modifyitems(items):
-    """Schedule long-running tests first to get more benefit from parallelism."""
+    """
+    Schedule long-running tests first to get more benefit from parallelism.
+    """
     priority = []
     other = []
     for item in items:
@@ -169,7 +171,9 @@ class NodeResult:
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item):
-    """Hook that is used to expose test results to session (for use in fixtures)."""
+    """
+    Hook that is used to expose test results to session (for use in fixtures).
+    """
     # execute all other hooks to obtain the report object
     outcome = yield
     report = outcome.get_result()
@@ -245,7 +249,9 @@ def module_base_ports(modules):
 
 @pytest.fixture(autouse=True, scope="module")
 def base_port(request, module_base_ports):
-    """Start of the port range assigned to a particular test module."""
+    """
+    Start of the port range assigned to a particular test module.
+    """
     port = module_base_ports[request.fspath]
     isctest.vars.ports.set_base_port(port)
     return port
@@ -278,14 +284,18 @@ def default_algorithm():
 
 @pytest.fixture(scope="module")
 def system_test_name(request):
-    """Name of the system test directory."""
+    """
+    Name of the system test directory.
+    """
     path = Path(request.fspath)
     return path.parent.name
 
 
 @pytest.fixture(autouse=True)
 def wait_for_zones_loaded(request, servers):
-    """Wait for all zones to be loaded by specified named instances."""
+    """
+    Wait for all zones to be loaded by specified named instances.
+    """
     instances = request.node.get_closest_marker("requires_zones_loaded")
     if not instances:
         return
@@ -297,7 +307,9 @@ def wait_for_zones_loaded(request, servers):
 
 @pytest.fixture(autouse=True)
 def named_log_test_markers(request, servers):
-    """Send `rndc null` message with a test ID to each named instance."""
+    """
+    Send `rndc null` message with a test ID to each named instance.
+    """
 
     def mark(event):
         for server in servers.values():
@@ -322,7 +334,9 @@ def named_log_test_markers(request, servers):
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_algorithm_set(request):
-    """Configure the algorithm set to use in tests."""
+    """
+    Configure the algorithm set to use in tests.
+    """
     mark = request.node.get_closest_marker("algorithm_set")
     if not mark:
         name = None
@@ -333,7 +347,9 @@ def configure_algorithm_set(request):
 
 @pytest.fixture(autouse=True)
 def logger(request, system_test_name):
-    """Sets up logging facility specific to a particular test."""
+    """
+    Sets up logging facility specific to a particular test.
+    """
     isctest.log.init_test_logger(system_test_name, request.node.name)
     yield
     isctest.log.deinit_test_logger()
@@ -386,8 +402,10 @@ def system_test_dir(request, system_test_name, expected_artifacts):
     """
 
     def get_test_result():
-        """Aggregate test results from all individual tests from this module
-        into a single result: failed > skipped > passed."""
+        """
+        Aggregate test results from all individual tests from this module
+        into a single result: failed > skipped > passed.
+        """
         try:
             all_test_results = request.session.test_results
         except AttributeError:
@@ -528,7 +546,9 @@ def templates(system_test_dir: Path):
 
 @pytest.fixture(scope="module")
 def run_tests_sh(system_test_dir):
-    """Utility function to execute tests.sh as a python test."""
+    """
+    Utility function to execute tests.sh as a python test.
+    """
 
     def run_tests():
         isctest.run.shell(f"{system_test_dir}/tests.sh")

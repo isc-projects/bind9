@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -55,7 +55,8 @@ def after_servers_start(ns3: NamedInstance) -> None:
 
 
 def test_no_stale_data_times_out():
-    """Verify the resolver does not answer until the query timeout.
+    """
+    Verify the resolver does not answer until the query timeout.
 
     With the authoritative server unresponsive and the queried name
     absent from the cache, the client must not receive a fast SERVFAIL
@@ -73,7 +74,8 @@ def test_no_stale_data_times_out():
 
 
 def test_servfail_with_ede22():
-    """Verify SERVFAIL carries EDE 22 (and not EDE 3) when auth is unreachable.
+    """
+    Verify SERVFAIL carries EDE 22 (and not EDE 3) when auth is unreachable.
 
     With the authoritative server unresponsive and no cached data to
     serve stale, the resolver must return SERVFAIL with EDE 22 (No
@@ -95,7 +97,8 @@ def test_servfail_with_ede22():
 
 
 def test_authoritative_answer_after_reenable():
-    """Verify the resolver waits for auth to recover instead of failing fast.
+    """
+    Verify the resolver waits for auth to recover instead of failing fast.
 
     Prime the cache, let the TTL expire, disable the authoritative
     server, issue a query, and re-enable the authoritative server

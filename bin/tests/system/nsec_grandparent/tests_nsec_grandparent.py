@@ -1,8 +1,13 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
 
 from pathlib import Path
 
@@ -158,20 +163,26 @@ def _check_signed_rrset(response, section, owner, rdtype, signer):
 
 
 def _rrsig_signers(response, section, owner, covered):
-    """(signer, algorithm) of every RRSIG covering owner/covered, in wire order."""
+    """
+    (signer, algorithm) of every RRSIG covering owner/covered, in wire order.
+    """
     rrsig = _rrset(response, section, owner, dns.rdatatype.RRSIG, covers=covered)
     assert rrsig is not None, response.to_text()
     return [(rdata.signer.to_text(), int(rdata.algorithm)) for rdata in rrsig]
 
 
 def _auth_query_count(qname, qtype):
-    """Number of times the mock auth server received qname/qtype."""
+    """
+    Number of times the mock auth server received qname/qtype.
+    """
     log = Path("ans1/ans.run").read_text(encoding="utf-8")
     return log.count(f"Received {qname.rstrip('.')}/IN/{qtype} (ID=")
 
 
 def _check_no_downgrade(response, qname):
-    """The forged proof must not downgrade the signed namespace."""
+    """
+    The forged proof must not downgrade the signed namespace.
+    """
     isctest.check.servfail(response)
     isctest.check.noadflag(response)
     assert not _has_a(response, response.answer, qname, FORGED_A), response.to_text()

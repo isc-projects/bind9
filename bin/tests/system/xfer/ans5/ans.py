@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -84,7 +84,9 @@ class SignResponses(ResponseHandlerWrapper):
 
 
 class SignFirstAndLastResponses(ResponseHandlerWrapper):
-    """Sign the first and last of the three responses yielded by AxfrHandler."""
+    """
+    Sign the first and last of the three responses yielded by AxfrHandler.
+    """
 
     def __init__(self, inner: ResponseHandler, key: dns.tsig.Key = DEFAULT_KEY) -> None:
         super().__init__(inner)

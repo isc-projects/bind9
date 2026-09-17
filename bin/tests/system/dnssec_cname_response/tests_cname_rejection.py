@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -28,8 +28,10 @@ import isctest
 
 
 def _sign_zone(db_in, signed_out, origin):
-    """Sign 'db_in' with a fresh KSK; write 'signed_out'; return the KSK
-    public key (base64) for use as a static trust anchor."""
+    """
+    Sign 'db_in' with a fresh KSK; write 'signed_out'; return the KSK
+    public key (base64) for use as a static trust anchor.
+    """
     ksk_private_key = ec.generate_private_key(ec.SECP384R1())
     ksk_dnskey = dns.dnssec.make_dnskey(
         public_key=ksk_private_key.public_key(),
@@ -53,8 +55,10 @@ def _sign_zone(db_in, signed_out, origin):
 
 
 def _sign_nsec3_zone(db_in, signed_out, origin) -> isctest.template.TrustAnchor:
-    """Sign 'db_in' with NSEC3 using dnssec-signzone; write 'signed_out';
-    return the KSK as a static-key trust anchor."""
+    """
+    Sign 'db_in' with NSEC3 using dnssec-signzone; write 'signed_out';
+    return the KSK as a static-key trust anchor.
+    """
     zone = isctest.zone.Zone(
         origin,
         ANS2,
@@ -86,7 +90,9 @@ def bootstrap():
 
 
 def _assert_ns3_alive():
-    """Fail if ns3 is no longer answering (e.g. it hit an assertion)."""
+    """
+    Fail if ns3 is no longer answering (e.g. it hit an assertion).
+    """
     liveness = isctest.query.create("version.bind.", "TXT", dns.rdataclass.CH, rd=False)
     res = isctest.query.tcp(liveness, "10.53.0.3", timeout=5)
     assert res is not None, "ns3 did not answer a liveness query -- it may have crashed"

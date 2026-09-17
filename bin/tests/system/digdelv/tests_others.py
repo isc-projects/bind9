@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -26,7 +26,9 @@ pytestmark = pytest.mark.extra_artifacts(ARTIFACTS)
 
 
 def test_nslookup_update_response(named_port, ans6):
-    """Check that nslookup rejects a response with the UPDATE opcode."""
+    """
+    Check that nslookup rejects a response with the UPDATE opcode.
+    """
     nslookup = isctest.run.EnvCmd("NSLOOKUP")
     result = nslookup(
         f"-port={named_port} -q=CNAME -timeout=1 foo.bar {ans6.ip}",
@@ -37,7 +39,9 @@ def test_nslookup_update_response(named_port, ans6):
 
 
 def test_host_update_response(named_port, ans6):
-    """Check that host rejects a response with the UPDATE opcode."""
+    """
+    Check that host rejects a response with the UPDATE opcode.
+    """
     host = isctest.run.EnvCmd("HOST")
     result = host(
         f"-p {named_port} -W 1 -t CNAME foo.bar {ans6.ip}", raise_on_exception=False
@@ -47,7 +51,9 @@ def test_host_update_response(named_port, ans6):
 
 
 def test_nsupdate_update_response(named_port, ans6):
-    """Check that nsupdate rejects an UPDATE response to its SOA query."""
+    """
+    Check that nsupdate rejects an UPDATE response to its SOA query.
+    """
     nsupdate = isctest.run.EnvCmd("NSUPDATE")
     commands = dedent(f"""\
         server {ans6.ip} {named_port}

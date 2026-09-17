@@ -1,5 +1,16 @@
-#!/usr/bin/env python3
-"""Derive the complete set of issues "covered by" the release.
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
+"""
+Derive the complete set of issues "covered by" the release.
 
 Sources:
   1. Every :gl:`#NNNN` in the generated changelog and notes files for this
@@ -12,16 +23,13 @@ close keyword directly before a "#N" ref for body refs (GitLab's default
 closing pattern, as in the dangerfile) and the :gl: role for doc refs.
 
 Usage:
-    scripts/issue-refs.py <version>            # e.g. 9.21.23
-    scripts/issue-refs.py <version> <boundary> # explicit cycle boundary ref
+    python3 scripts/issue_refs.py <version>            # e.g. 9.21.23
+    python3 scripts/issue_refs.py <version> <boundary> # explicit cycle boundary ref
 
 Prints the union, and notes which refs come only from merge bodies (i.e. not
 represented in the changelog/notes — usually test/ci issues).
 """
 
-# The hyphenated file name is intentional: these are CLI helpers, not
-# importable modules.
-# pylint: disable=invalid-name
 import re
 import subprocess
 import sys
@@ -50,9 +58,11 @@ def git(*args):
 
 
 def read_doc(path):
-    """Read a doc file's content even if it has been reverted out of HEAD by
+    """
+    Read a doc file's content even if it has been reverted out of HEAD by
     the DROP changelog-revert: try HEAD, then the worktree, then the most
-    recent commit that still has the blob."""
+    recent commit that still has the blob.
+    """
     try:
         return git("show", f"HEAD:{path}")
     except subprocess.CalledProcessError:
@@ -73,7 +83,7 @@ def read_doc(path):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("usage: issue-refs.py <version> [<boundary-ref>]")
+        sys.exit("usage: issue_refs.py <version> [<boundary-ref>]")
     version = sys.argv[1]
     if len(sys.argv) > 2:
         boundary = sys.argv[2]

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -21,7 +21,9 @@ NAMED_ROOT_URL = "https://www.internic.net/zones/named.root"
 
 
 def normalize_text(text):
-    """Omit lines we don't want to compare"""
+    """
+    Omit lines we don't want to compare
+    """
     skip_starts_with = (
         ";       last update:",
         ";       related version of root zone:",

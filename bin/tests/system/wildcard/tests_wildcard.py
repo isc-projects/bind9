@@ -1,11 +1,9 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -79,7 +77,9 @@ TIMEOUT = 5  # seconds, just a sanity check
 def test_wildcard_rdtype_mismatch(
     name: dns.name.Name, rdtype: dns.rdatatype.RdataType, named_port: int
 ) -> None:
-    """Any label non-matching rdtype must result in NODATA."""
+    """
+    Any label non-matching rdtype must result in NODATA.
+    """
     assume(rdtype != WILDCARD_RDTYPE)
 
     # NS and SOA are present in the zone and DS gets answered from parent.
@@ -105,7 +105,9 @@ def test_wildcard_rdtype_mismatch(
 @settings(deadline=None)
 @given(name=dns_names(suffix=SUFFIX, min_labels=len(SUFFIX) + 1))
 def test_wildcard_match(name: dns.name.Name, named_port: int) -> None:
-    """Any label with maching rdtype must result in wildcard data in answer."""
+    """
+    Any label with maching rdtype must result in wildcard data in answer.
+    """
 
     # Subdomains of *.allwild.test. are not to be synthesized.
     # See RFC 4592 section 2.2.1.
@@ -139,7 +141,9 @@ def test_wildcard_match(name: dns.name.Name, named_port: int) -> None:
 def test_wildcard_with_star_not_synthesized(
     name: dns.name.Name, named_port: int
 ) -> None:
-    """RFC 4592 section 2.2.1 ghost.*.example."""
+    """
+    RFC 4592 section 2.2.1 ghost.*.example.
+    """
     query_msg = isctest.query.create(name, WILDCARD_RDTYPE)
     response_msg = isctest.query.tcp(query_msg, IP_ADDR, named_port, timeout=TIMEOUT)
 
@@ -156,7 +160,8 @@ NESTED_SUFFIX = dns.name.from_text("*.*.nestedwild.test.")
 @example(name=isctest.name.prepend_label("*", NESTED_SUFFIX))
 @given(name=dns_names(suffix=NESTED_SUFFIX, min_labels=len(NESTED_SUFFIX) + 1))
 def test_name_in_between_wildcards(name: dns.name.Name, named_port: int) -> None:
-    """Check nested wildcard cases.
+    """
+    Check nested wildcard cases.
 
     There are `*.nestedwild.test. A` and `*.*.*.nestedwild.test. A` records present in their zone.
     This means that `foo.*.nestedwild.test. A` must not be synthetized (see test above)
@@ -197,7 +202,8 @@ def test_name_in_between_wildcards(name: dns.name.Name, named_port: int) -> None
 def test_name_nested_wildcard_subdomains_not_synthesized(
     name: dns.name.Name, named_port: int
 ):
-    """Check nested wildcard cases.
+    """
+    Check nested wildcard cases.
 
     `foo.*.*.*.nestedwild.test. A` must not be synthesized.
     """
