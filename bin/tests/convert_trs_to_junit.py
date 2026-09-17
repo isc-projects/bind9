@@ -1,9 +1,14 @@
-#!/usr/bin/env python3
-#
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
 #
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
 # Convert automake .trs files into JUnit format suitable for Gitlab
 
 from xml.etree import ElementTree
@@ -39,7 +44,9 @@ def read_trs_result(filename):
 
 
 def find_test_relative_path(source_dir, in_path):
-    """Return {in_path}.c if it exists, with fallback to {in_path}"""
+    """
+    Return {in_path}.c if it exists, with fallback to {in_path}
+    """
     candidates_relative = [in_path + ".c", in_path]
     for relative in candidates_relative:
         absolute = os.path.join(source_dir, relative)

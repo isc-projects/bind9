@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -149,7 +149,9 @@ def create(
     ad: bool = True,
     message_id: int | None = None,
 ) -> dns.message.Message:
-    """Create DNS query with defaults suitable for our tests."""
+    """
+    Create DNS query with defaults suitable for our tests.
+    """
     msg = dns.message.make_query(
         qname,
         qtype,

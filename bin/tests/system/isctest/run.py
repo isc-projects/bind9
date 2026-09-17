@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -45,7 +45,9 @@ def cmd(
     raise_on_exception=True,
     env: dict | None = None,
 ) -> CmdResult:
-    """Execute a command with given args as subprocess."""
+    """
+    Execute a command with given args as subprocess.
+    """
     isctest.log.debug(f"isctest.run.cmd(): {' '.join(args)}")
 
     def print_debug_logs(procdata):
@@ -84,14 +86,18 @@ def cmd(
 
 
 class EnvCmd:
-    """Helper for executing binaries from env with optional base parameters."""
+    """
+    Helper for executing binaries from env with optional base parameters.
+    """
 
     def __init__(self, name: str, base_params: str = ""):
         self.bin_path = os.environ[name]
         self.base_params = base_params.split()
 
     def __call__(self, params: str, **kwargs) -> CmdResult:
-        """Call the command. Keyword arguments from isctest.run.cmd() are supported."""
+        """
+        Call the command. Keyword arguments from isctest.run.cmd() are supported.
+        """
         args = self.base_params + params.split()
         return cmd([self.bin_path] + args, **kwargs)
 
@@ -132,12 +138,16 @@ def _run_script(
 
 
 def shell(script: str, args: list[str] | None = None) -> None:
-    """Run a given script with system's shell interpreter."""
+    """
+    Run a given script with system's shell interpreter.
+    """
     _run_script(os.environ["SHELL"], script, args)
 
 
 def perl(script: str, args: list[str] | None = None) -> None:
-    """Run a given script with system's perl interpreter."""
+    """
+    Run a given script with system's perl interpreter.
+    """
     _run_script(os.environ["PERL"], script, args)
 
 

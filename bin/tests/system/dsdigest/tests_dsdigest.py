@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -29,7 +29,9 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def test_dsdigest_good():
-    """Check that validation with enabled digest types works"""
+    """
+    Check that validation with enabled digest types works
+    """
     msg = isctest.query.create("a.good.", "A")
     res = isctest.query.tcp(
         msg,
@@ -40,8 +42,10 @@ def test_dsdigest_good():
 
 
 def test_dsdigest_bad():
-    """Check that validation with not supported digest types
-    and "dnssec-must-be-secure yes;" results in SERVFAIL"""
+    """
+    Check that validation with not supported digest types
+    and "dnssec-must-be-secure yes;" results in SERVFAIL
+    """
     msg = dns.message.make_query("a.bad.", "A", want_dnssec=True)
     res = isctest.query.tcp(
         msg,
@@ -51,7 +55,9 @@ def test_dsdigest_bad():
 
 
 def test_dsdigest_insecure():
-    """Check that validation with not supported digest algorithms is insecure"""
+    """
+    Check that validation with not supported digest algorithms is insecure
+    """
     msg_ds = isctest.query.create("bad.", "DS")
     res_ds = isctest.query.tcp(
         msg_ds,

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -88,7 +88,9 @@ def test_xferquota(named_port, ns1, ns2):
 
 
 def _flood_unauthorized_axfrs(port, duration):
-    """Child process: send unauthorized AXFR requests for `duration` seconds."""
+    """
+    Child process: send unauthorized AXFR requests for `duration` seconds.
+    """
     deadline = time.monotonic() + duration
     while time.monotonic() < deadline:
         try:
@@ -99,7 +101,8 @@ def _flood_unauthorized_axfrs(port, duration):
 
 
 def test_xfrquota_unauthorized_no_starve(named_port):
-    """Unauthorized AXFR clients must not consume XFR-out quota (GL #3859).
+    """
+    Unauthorized AXFR clients must not consume XFR-out quota (GL #3859).
 
     ns3 is configured with transfers-out 1 and allow-transfer { 10.53.0.2; }.
     We flood AXFR requests from unauthorized source processes (10.53.0.1) and

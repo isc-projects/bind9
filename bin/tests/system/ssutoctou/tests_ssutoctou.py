@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -40,7 +40,9 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def send_updates(ip, port, stop_event):
-    """Send DNS UPDATEs in a tight loop until stopped."""
+    """
+    Send DNS UPDATEs in a tight loop until stopped.
+    """
     n = 0
     while not stop_event.is_set():
         n += 1
@@ -58,7 +60,9 @@ def send_updates(ip, port, stop_event):
 
 
 def toggle_config(ns1, templates, stop_event):
-    """Toggle zone config between allow-update and update-policy."""
+    """
+    Toggle zone config between allow-update and update-policy.
+    """
     use_ssu = False
     while not stop_event.is_set():
         use_ssu = not use_ssu
@@ -71,7 +75,9 @@ def toggle_config(ns1, templates, stop_event):
 
 
 def test_ssu_toctou_race(ns1, templates):
-    """Race rndc reconfig against DNS UPDATEs -- named must not crash."""
+    """
+    Race rndc reconfig against DNS UPDATEs -- named must not crash.
+    """
     port = int(isctest.vars.ALL["PORT"])
     stop = threading.Event()
 

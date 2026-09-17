@@ -23,8 +23,10 @@ import struct
 
 
 def version(path: str) -> int | None:
-    """Return the raw-format version of the zone file, or None if the
-    file is not in raw format."""
+    """
+    Return the raw-format version of the zone file, or None if the
+    file is not in raw format.
+    """
     with open(path, "rb") as f:
         header = f.read(8)
     if len(header) < 8:
@@ -36,8 +38,10 @@ def version(path: str) -> int | None:
 
 
 def source_serial(path: str) -> int | None:
-    """Return the source serial recorded in the raw zone file, or None
-    if there is none (not raw, version 0, or the serial is not set)."""
+    """
+    Return the source serial recorded in the raw zone file, or None
+    if there is none (not raw, version 0, or the serial is not set).
+    """
     with open(path, "rb") as f:
         header = f.read(20)
     if len(header) < 20:
