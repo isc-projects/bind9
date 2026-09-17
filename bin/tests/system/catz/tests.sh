@@ -3090,5 +3090,293 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 ##########################################################################
+# GL#6305, sub-case 1
+echo_i "Testing of changing the member zone while leaving the unique label the same"
+
+n=$((n + 1))
+echo_i "Adding a domain dom23.example. to primary ns1 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns1/dom23.example.db
+echo "@ IN NS invalid." >>ns1/dom23.example.db
+echo "@ IN A 192.0.2.1" >>ns1/dom23.example.db
+rndccmd 10.53.0.1 addzone dom23.example. in default '{type primary; file "dom23.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom23.example. is served by primary ns1 ($n)"
+ret=0
+wait_for_soa @10.53.0.1 dom23.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "Adding a domain dom24.example. to primary ns1 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns1/dom24.example.db
+echo "@ IN NS invalid." >>ns1/dom24.example.db
+echo "@ IN A 192.0.2.1" >>ns1/dom24.example.db
+rndccmd 10.53.0.1 addzone dom24.example. in default '{type primary; file "dom24.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom24.example. is served by primary ns1 ($n)"
+ret=0
+wait_for_soa @10.53.0.1 dom24.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Adding domain dom23.example. to catalog1 zone with ns1 as primary ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add dom23-label.zones.catalog1.example. 3600 IN PTR dom23.example.
+    update add primaries.dom23-label.zones.catalog1.example. 3600 IN A 10.53.0.1
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom23.example' from catalog 'catalog1.example'" \
+  && wait_for_message ns2/named.run "transfer of 'dom23.example/IN/default' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "checking that dom23.example. is served by secondary ($n)"
+ret=0
+wait_for_a @10.53.0.2 dom23.example. dig.out.test$n || ret=1
+grep "192.0.2.1" dig.out.test$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Changing the member zone from dom23.example. to dom24.example. while leaving the same label in the primary ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update delete dom23-label.zones.catalog1.example. 3600 IN PTR dom23.example.
+    update add dom23-label.zones.catalog1.example. 3600 IN PTR dom24.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom24.example' from catalog 'catalog1.example'" \
+  && wait_for_message ns2/named.run "transfer of 'dom24.example/IN/default' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom24.example. is served by secondary ($n)"
+ret=0
+wait_for_a @10.53.0.2 dom24.example. dig.out.test$n || ret=1
+grep "192.0.2.1" dig.out.test$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom23.example. is no longer served by secondary ($n)"
+ret=0
+wait_for_no_soa @10.53.0.2 dom23.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Deleting domain dom24.example. from catalog1 ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update delete dom23-label.zones.catalog1.example. 3600 IN PTR dom24.example.
+    update delete primaries.dom23-label.zones.catalog1.example. 3600 IN A 10.53.0.1
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: update_from_db: new zone merged" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom24.example. is no longer served by secondary ($n)"
+ret=0
+wait_for_no_soa @10.53.0.2 dom24.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+##########################################################################
+# GL#6305, sub-case 2
+echo_i "Testing of changing the member zone to a pre-existing zone while leaving the unique label the same"
+
+n=$((n + 1))
+echo_i "Adding a domain dom25.example. to primary ns1 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns1/dom25.example.db
+echo "@ IN NS invalid." >>ns1/dom25.example.db
+echo "@ IN A 192.0.2.1" >>ns1/dom25.example.db
+rndccmd 10.53.0.1 addzone dom25.example. in default '{type primary; file "dom25.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom25.example. is served by primary ns1 ($n)"
+ret=0
+wait_for_soa @10.53.0.1 dom25.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "Adding a domain dom26.example. to primary ns1 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns1/dom26.example.db
+echo "@ IN NS invalid." >>ns1/dom26.example.db
+echo "@ IN A 192.0.2.1" >>ns1/dom26.example.db
+rndccmd 10.53.0.1 addzone dom26.example. in default '{type primary; file "dom26.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom26.example. is served by primary ns1 ($n)"
+ret=0
+wait_for_soa @10.53.0.1 dom26.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "Adding a domain dom26.example. to secondary ns2 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" >ns2/dom26.example.db
+echo "@ IN NS invalid." >>ns2/dom26.example.db
+echo "@ IN A 192.0.2.2" >>ns2/dom26.example.db
+rndccmd 10.53.0.2 addzone dom26.example. in default '{type primary; file "dom26.example.db";};' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom26.example. is served by secondary ns2 ($n)"
+ret=0
+wait_for_soa @10.53.0.2 dom26.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Adding domain dom25.example. to catalog1 zone with ns1 as primary ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add dom25-label.zones.catalog1.example. 3600 IN PTR dom25.example.
+    update add primaries.dom25-label.zones.catalog1.example. 3600 IN A 10.53.0.1
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom25.example' from catalog 'catalog1.example'" \
+  && wait_for_message ns2/named.run "transfer of 'dom25.example/IN/default' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "checking that dom25.example. is served by secondary ($n)"
+ret=0
+wait_for_a @10.53.0.2 dom25.example. dig.out.test$n || ret=1
+grep "192.0.2.1" dig.out.test$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Changing the member zone from dom25.example. to dom26.example. while leaving the same label in the primary ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update delete dom25-label.zones.catalog1.example. 3600 IN PTR dom25.example.
+    update add dom25-label.zones.catalog1.example. 3600 IN PTR dom26.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom26.example' from catalog 'catalog1.example'" \
+  && wait_for_message ns2/named.run "catz_addmodzone_cb: zone 'dom26.example' will not be added because it is an explicitly configured zone" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom26.example. is served by secondary and is the pre-existing zone ($n)"
+ret=0
+wait_for_a @10.53.0.2 dom26.example. dig.out.test$n || ret=1
+grep "192.0.2.2" dig.out.test$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom25.example. is no longer served by secondary ($n)"
+ret=0
+wait_for_no_soa @10.53.0.2 dom25.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "Deleting domain dom26.example. from catalog1 ($n)"
+ret=0
+$NSUPDATE -d <<END >>nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update delete dom25-label.zones.catalog1.example. 3600 IN PTR dom26.example.
+    update delete primaries.dom25-label.zones.catalog1.example. 3600 IN A 10.53.0.1
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: update_from_db: new zone merged" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking that dom26.example. is still served by secondary ($n)"
+ret=0
+wait_for_a @10.53.0.2 dom26.example. dig.out.test$n || ret=1
+grep "192.0.2.2" dig.out.test$n >/dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+##########################################################################
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

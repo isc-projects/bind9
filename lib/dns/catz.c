@@ -684,8 +684,8 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 
 		/* Try to find the zone in the view */
 		find_result = dns_view_findzone(catz->catzs->view,
-						dns_catz_entry_getname(nentry),
-						DNS_ZTFIND_EXACT, &zone);
+						&nentry->name, DNS_ZTFIND_EXACT,
+						&zone);
 		if (find_result == ISC_R_SUCCESS) {
 			char pczname[DNS_NAME_FORMATSIZE];
 			bool coo_match = false;
@@ -749,6 +749,20 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 					      zname);
 			}
 
+			catz_entry_add_or_mod(catz, toadd, key, keysize, nentry,
+					      NULL, "adding", zname, czname);
+			continue;
+		}
+
+		/*
+		 * If member name in the old entry is not equal to the member
+		 * name in the new entry, it means the unique label is the same
+		 * but the member name has been changed. We should add the
+		 * member from the new entry while making sure to pass 'oentry'
+		 * as NULL below, so it remains in the hash table and the member
+		 * zone is properly deleted.
+		 */
+		if (!dns_name_equal(&oentry->name, &nentry->name)) {
 			catz_entry_add_or_mod(catz, toadd, key, keysize, nentry,
 					      NULL, "adding", zname, czname);
 			continue;
