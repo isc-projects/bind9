@@ -40,3 +40,15 @@ a464171243a8216a3bc8278e145406489b210aa3
 be2ee6bfa0a0d9611996dc9618eb82db870a7d02
 # Use clang-format-23 to update formatting
 a460254d6073758c4b56962b5284ead885ad4b5a
+# Apply black formatting changes
+17832331b859124590e9b43c6620185796fd8504
+# Auto-format Python files with black
+e4bb3c3637f98e952d506851a61edc1f3f07ecd7
+# Adapt to Python scripts to black 23.1.0
+d89f1056df20a839951728289592c8f6a7c36551
+# Put docstring quotes on lines of their own
+1ed42b26fcdea077958dd8c997f4a7f32f42ed76
+# Unify the license header of Python files
+fcf4566749f8051b34bd8215d9d0508a4410e332
+# Drop the shebangs from Python files
+028767f3f3becc3934476a1d5d494e473ea531b8
