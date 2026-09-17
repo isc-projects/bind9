@@ -355,6 +355,7 @@ def logger(request, system_test_name):
 def expected_artifacts(request):
     common_artifacts = [
         ".libs/*",  # possible build artifacts, see GL #5055
+        "ans*/keys",
         "ns*/named.conf",
         "ns*/named.lock",
         "ns*/named.memstats",
