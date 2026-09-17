@@ -83,7 +83,7 @@ confidential!
 
 ### At T-1
 
-  - [ ] [:grey_question:][step_packager_emails]   **(First IM)** Send notifications to OS packagers
+  - [ ] [:grey_question:][step_packager_emails]   **(QA)** Send notifications to OS packagers
 
 ### On the Day of Public Disclosure
 
@@ -92,9 +92,9 @@ confidential!
   - [ ] [:grey_question:][step_publish_advisory]  **(Support)** Knowledge Base: Publish the Security Advisory as a new article
   - [ ] [:grey_question:][step_matrix]            **(Support)** Knowledge Base: Add the CVE to the full list and (for BIND) the matrix
   - [ ] [:grey_question:][step_publish]           **(QA/Marketing)** Publish the releases (as outlined in the release checklist)
-  - [ ] [:grey_question:][step_notifications]     **(First IM)** Send notification emails to third parties
-  - [ ] [:grey_question:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
-  - [ ] [:grey_question:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
+  - [ ] [:grey_question:][step_notifications]     **(QA)** Send notification emails to third parties
+  - [ ] [:grey_question:][step_mitre]             **(QA)** Advise MITRE about the disclosed CVEs
+  - [ ] [:grey_question:][step_merge_advisory]    **(QA)** Merge the Security Advisory merge request
   - [ ] [:grey_question:][step_embargo_end]       **(SwEng)** Inform original reporter (if external) that the security disclosure process is complete
   - [ ] [:grey_question:][step_evn_clear]         **(Support)** Update the tickets in the EVN queues in RT that the embargo is lifted
   - [ ] [:grey_question:][step_customers]         **(Marketing)** Ensure that a ticket has been sent in the appropriate announce queue in RT to notify customers that the release is published (as outlined in the release checklist)
