@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Handler for the attack.delegationtrap. zone (DelegationTrap reproducer).
+"""
+Handler for the attack.delegationtrap. zone (DelegationTrap reproducer).
 
 This is a Python port of the DelegationTrap vector from the ReTrap PoC
 (gitlab.isc.org/bind-team/nankai-cve-reproducers).  It reproduces the
@@ -67,7 +68,9 @@ PEM_PATH = Path("attack_delegationtrap.pem")
 
 
 class DelegationTrapHandler(DomainHandler):
-    """Serve every label under attack.delegationtrap. as a secure zone cut."""
+    """
+    Serve every label under attack.delegationtrap. as a secure zone cut.
+    """
 
     domains = [ZONE_NAME]
 
@@ -89,7 +92,9 @@ class DelegationTrapHandler(DomainHandler):
         self._expiration = now + 14 * 86400
 
     def _sign(self, rrset: dns.rrset.RRset, signer: dns.name.Name) -> dns.rrset.RRset:
-        """Return an RRSIG RRset covering `rrset`, signed as zone `signer`."""
+        """
+        Return an RRSIG RRset covering `rrset`, signed as zone `signer`.
+        """
         rrsig = dns.dnssec.sign(
             rrset,
             self._priv,

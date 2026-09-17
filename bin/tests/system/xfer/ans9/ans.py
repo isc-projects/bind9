@@ -131,7 +131,9 @@ class ReconfigAxfrHandler(ZoneAxfrHandler):
 
 
 class OverrunAxfrHandler(ZoneAxfrHandler):
-    """Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY."""
+    """
+    Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
+    """
 
     zone = OVERRUN_ZONE
 

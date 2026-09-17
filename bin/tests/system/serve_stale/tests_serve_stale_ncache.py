@@ -39,7 +39,9 @@ NXDOMAIN_NAME = "longttl-nxdomain.example."
 
 
 def upstream_queries(ans2: AnsInstance, qname: str) -> int:
-    """Number of TXT queries for `qname` which reached the authoritative server."""
+    """
+    Number of TXT queries for `qname` which reached the authoritative server.
+    """
     return len(ans2.log.grep(f"Received {qname.rstrip('.')}/IN/TXT "))
 
 

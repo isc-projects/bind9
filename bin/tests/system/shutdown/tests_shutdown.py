@@ -34,7 +34,8 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries):
-    """Creates a number of A queries to run in parallel
+    """
+    Creates a number of A queries to run in parallel
     in order simulate a slightly more realistic test scenario.
 
     The main idea of this function is to create and send a bunch

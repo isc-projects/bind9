@@ -64,7 +64,9 @@ ENT_NAME = "2048._domainkey.entwild.test."
 
 
 def test_empty_nonterminal_under_wildcard_is_nodata(named_port):
-    """Querying the empty non-terminal must yield NODATA, not crash named."""
+    """
+    Querying the empty non-terminal must yield NODATA, not crash named.
+    """
     query = isctest.query.create(ENT_NAME, "A")
     response = isctest.query.tcp(query, IP_ADDR, named_port)
 
@@ -79,7 +81,9 @@ def test_empty_nonterminal_under_wildcard_is_nodata(named_port):
 
 
 def test_wildcard_still_expands_without_blocking_ent(named_port):
-    """A name with no blocking empty non-terminal is still synthesized."""
+    """
+    A name with no blocking empty non-terminal is still synthesized.
+    """
     query = isctest.query.create("nonexistent.entwild.test.", "A")
     response = isctest.query.tcp(query, IP_ADDR, named_port)
 

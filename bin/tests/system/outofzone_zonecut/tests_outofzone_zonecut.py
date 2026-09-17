@@ -32,7 +32,9 @@ ZONES = {
 
 
 def check_in_zone(response, zone):
-    """Nothing in the response may be owned by a name outside the zone."""
+    """
+    Nothing in the response may be owned by a name outside the zone.
+    """
     origin = dns.name.from_text(zone)
     for section in (response.answer, response.authority, response.additional):
         for rrset in section:

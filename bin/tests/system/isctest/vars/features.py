@@ -53,7 +53,9 @@ def feature_test(feature):
 
 
 def init_features():
-    """Initialize the environment variables indicating feature support."""
+    """
+    Initialize the environment variables indicating feature support.
+    """
     for name, arg in FEATURES.items():
         supported = feature_test(arg)
         envvar = f"FEATURE_{name}"

@@ -29,7 +29,9 @@ __all__ = [
 
 
 def init_vars():
-    """Initializes the environment variables."""
+    """
+    Initializes the environment variables.
+    """
     features.init_features()
     algorithms.init_crypto_supported()
     algorithms.set_algorithm_set(os.getenv("ALGORITHM_SET"))

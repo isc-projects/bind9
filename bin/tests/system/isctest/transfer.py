@@ -17,7 +17,8 @@ import re
 def transfer_message(
     zone: str, source_ns: str | None, msg: str | Pattern, port: int | None = None
 ) -> Pattern:
-    """Return the expected log message for an incoming zone transfer.
+    """
+    Return the expected log message for an incoming zone transfer.
 
     Mirrors the format produced by xfrin_log() in lib/dns/xfrin.c:
 

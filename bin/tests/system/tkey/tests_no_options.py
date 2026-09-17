@@ -56,7 +56,9 @@ def wait_until_ready(named_proc, port):
 
 
 def test_tkey_query_without_options():
-    """A TKEY query must not crash named when global options are omitted."""
+    """
+    A TKEY query must not crash named when global options are omitted.
+    """
     port = int(os.environ["EXTRAPORT1"])
     named_cmdline = isctest.run.get_named_cmdline("nooptions")
     named_cmdline.extend(["-p", str(port), "-T", "maxcachesize=2097152"])

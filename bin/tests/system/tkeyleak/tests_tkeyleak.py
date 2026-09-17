@@ -63,7 +63,9 @@ SPNEGO_OID = b"\x06\x06\x2b\x06\x01\x05\x05\x02"
 
 
 def der_encode(tag, data):
-    """Encode data in ASN.1 DER TLV format."""
+    """
+    Encode data in ASN.1 DER TLV format.
+    """
     length = len(data)
     if length < 128:
         return tag + bytes([length]) + data
@@ -73,7 +75,8 @@ def der_encode(tag, data):
 
 
 def spnego_negtokeninit():
-    """Build a SPNEGO NegTokenInit proposing krb5 without a mechToken.
+    """
+    Build a SPNEGO NegTokenInit proposing krb5 without a mechToken.
 
     This forces gss_accept_sec_context() to return GSS_S_CONTINUE_NEEDED
     because the acceptor recognizes the krb5 mechanism but has not
@@ -92,7 +95,9 @@ def spnego_negtokeninit():
 
 
 def make_tkey_query(token):
-    """Build a TKEY query with a GSS-API token in the additional section."""
+    """
+    Build a TKEY query with a GSS-API token in the additional section.
+    """
     now = int(time.time())
     tkey_rdata = dns.rdtypes.ANY.TKEY.TKEY(
         rdclass=dns.rdataclass.ANY,
@@ -119,7 +124,8 @@ def make_tkey_query(token):
 
 
 def test_tkey_gssapi_no_continuation(ns1):
-    """TKEY with a SPNEGO NegTokenInit must be rejected, not continued.
+    """
+    TKEY with a SPNEGO NegTokenInit must be rejected, not continued.
 
     On unfixed code, gss_accept_sec_context() returns CONTINUE_NEEDED
     and the response has error=0 with an output token (the leaked path).
@@ -143,7 +149,9 @@ def test_tkey_gssapi_no_continuation(ns1):
 
 
 def get_tkey_answer(response):
-    """Extract TKEY rdata from a DNS response, or None."""
+    """
+    Extract TKEY rdata from a DNS response, or None.
+    """
     for rrset in response.answer:
         if rrset.rdtype == dns.rdatatype.TKEY:
             for rdata in rrset:

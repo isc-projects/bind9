@@ -17,7 +17,9 @@ import pytest
 def zone_contains(
     zone: dns.zone.Zone, rrset: dns.rrset.RRset, compare_ttl=False
 ) -> bool:
-    """Check if a zone contains RRset"""
+    """
+    Check if a zone contains RRset
+    """
 
     def compare_rrs(rr1, rrset):
         rr2 = next((other_rr for other_rr in rrset if rr1 == other_rr), None)

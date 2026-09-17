@@ -30,15 +30,19 @@ ARTIFACTS = [
 
 
 def parse_yaml(text):
-    """Parse the tools' +yaml output."""
+    """
+    Parse the tools' +yaml output.
+    """
     return yaml.safe_load(text)
 
 
 def check_ttl_range(text, rrtype, max_ttl):
-    """Check that a record of the given RR type and class IN (or its
+    """
+    Check that a record of the given RR type and class IN (or its
     unknown-format spelling CLASS1) is present with a TTL not exceeding
     max_ttl.  A leading ";" token is ignored so that delv's commented
-    records ("; name ttl class type ...") are checked too."""
+    records ("; name ttl class type ...") are checked too.
+    """
     for line in text.splitlines():
         fields = line.split()
         if fields and fields[0] == ";":

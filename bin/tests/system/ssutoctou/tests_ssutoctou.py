@@ -40,7 +40,9 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def send_updates(ip, port, stop_event):
-    """Send DNS UPDATEs in a tight loop until stopped."""
+    """
+    Send DNS UPDATEs in a tight loop until stopped.
+    """
     n = 0
     while not stop_event.is_set():
         n += 1
@@ -58,7 +60,9 @@ def send_updates(ip, port, stop_event):
 
 
 def toggle_config(ns1, templates, stop_event):
-    """Toggle zone config between allow-update and update-policy."""
+    """
+    Toggle zone config between allow-update and update-policy.
+    """
     use_ssu = False
     while not stop_event.is_set():
         use_ssu = not use_ssu
@@ -71,7 +75,9 @@ def toggle_config(ns1, templates, stop_event):
 
 
 def test_ssu_toctou_race(ns1, templates):
-    """Race rndc reconfig against DNS UPDATEs -- named must not crash."""
+    """
+    Race rndc reconfig against DNS UPDATEs -- named must not crash.
+    """
     port = int(isctest.vars.ALL["PORT"])
     stop = threading.Event()
 

@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-"""Handler for the sibling-ds. zone.
+"""
+Handler for the sibling-ds. zone.
 
 When returning a referral for child.sibling-ds, this server injects a DS
 record for sibling.sibling-ds into the authority section.  The resolver
@@ -31,7 +32,9 @@ from isctest.asyncserver import (
 
 
 class SiblingDsInjectionHandler(DomainHandler):
-    """Inject a DS record for sibling.sibling-ds into child.sibling-ds referrals."""
+    """
+    Inject a DS record for sibling.sibling-ds into child.sibling-ds referrals.
+    """
 
     domains = ["child.sibling-ds."]
 

@@ -29,7 +29,9 @@ class Zsk:
 
 @pytest.fixture(name="zsk")
 def zsk_fixture():
-    """Key id and rdata of the ZSK generated for the example zone."""
+    """
+    Key id and rdata of the ZSK generated for the example zone.
+    """
     with open("ns2/keyid", encoding="utf-8") as keyid_file:
         keyid = keyid_file.read().strip()
     with open("ns2/keydata", encoding="utf-8") as keydata_file:

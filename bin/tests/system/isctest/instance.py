@@ -64,12 +64,16 @@ class ServerInstance(abc.ABC):
     @property
     @abc.abstractmethod
     def log_filename(self) -> str:
-        """Name of the log file in the instance's directory."""
+        """
+        Name of the log file in the instance's directory.
+        """
 
     @property
     @abc.abstractmethod
     def identifier_prefix(self) -> str:
-        """Directory name prefix used to derive the numeric identifier."""
+        """
+        Directory name prefix used to derive the numeric identifier.
+        """
 
     def __init__(self, identifier: str, num: int | None = None) -> None:
         """
@@ -91,7 +95,9 @@ class ServerInstance(abc.ABC):
 
     @property
     def ip(self) -> str:
-        """IPv4 address of the instance."""
+        """
+        IPv4 address of the instance.
+        """
         return f"10.53.0.{self.num}"
 
     @classmethod
@@ -126,7 +132,9 @@ class ServerInstance(abc.ABC):
         return WatchLogFromHere(self.log.path, timeout)
 
     def stop(self, args: list[str] | None = None) -> None:
-        """Stop the instance."""
+        """
+        Stop the instance.
+        """
         args = args or []
         perl(
             f"{os.environ['srcdir']}/stop.pl",
@@ -134,7 +142,9 @@ class ServerInstance(abc.ABC):
         )
 
     def start(self, args: list[str] | None = None) -> None:
-        """Start the instance."""
+        """
+        Start the instance.
+        """
         args = args or []
         perl(
             f"{os.environ['srcdir']}/start.pl",
@@ -180,7 +190,9 @@ class NamedInstance(ServerInstance):
 
     @property
     def rndc_args(self) -> str:
-        """Base arguments for calling RNDC to control the instance."""
+        """
+        Base arguments for calling RNDC to control the instance.
+        """
         return f"-c {self._rndc_conf} -s {self.ip} -p {self.ports.rndc}"
 
     def rndc(self, command: str, timeout=10, **kwargs) -> CmdResult:
