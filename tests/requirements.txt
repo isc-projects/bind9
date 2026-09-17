@@ -1,0 +1,8 @@
+### Unit test requirements
+
+# Python packages needed by the Python-driven unit tests run through
+# "meson test".  System test requirements are tracked separately in
+# bin/tests/system/requirements.txt.
+
+hypothesis>=4.41.2
+protobuf

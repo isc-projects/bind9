@@ -181,6 +181,7 @@ path = [
 	"doc/misc/rndc.grammar",
 	"sonar-project.properties",
 	"tests/bench/names.csv",
+	"tests/requirements.txt",
 	"dtrace/*"
 ]
 precedence = "aggregate"
