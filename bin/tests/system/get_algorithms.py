@@ -207,6 +207,10 @@ def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
     def set_alg_env(alg: Algorithm, prefix):
         algs_env[f"{prefix}_ALGORITHM"] = alg.name
         algs_env[f"{prefix}_ALGORITHM_NUMBER"] = str(alg.number)
+        # For all algorithms selectable here, the DST algorithm identifier is
+        # the same as the on-wire number; they only differ for the private-OID
+        # algorithms, which are not supported by this branch.
+        algs_env[f"{prefix}_ALGORITHM_DST_NUMBER"] = str(alg.number)
         algs_env[f"{prefix}_BITS"] = str(alg.bits)
 
     assert isinstance(algs.default, Algorithm)

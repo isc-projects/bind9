@@ -1,0 +1,12 @@
+; ent.nsec.test. exists only through deep.ent.nsec.test., so for
+; y.ent.nsec.test. the closest encloser is ent.nsec.test. and the source of
+; synthesis RFC 4592 3.3.1 asks about is *.ent.nsec.test.
+;
+; a.nsec.test. puts the two denials NXDOMAIN needs in different NSEC gaps:
+; *.ent.nsec.test. sorts between a. and deep.ent., y.ent.nsec.test. between
+; deep.ent. and ns.
+nsec.test.		300	IN SOA	ns.nsec.test. hostmaster.nsec.test. 1 3600 600 86400 300
+nsec.test.		300	IN NS	ns.nsec.test.
+ns.nsec.test.		300	IN A	@ns.ip@
+a.nsec.test.		300	IN A	192.0.2.2
+deep.ent.nsec.test.	300	IN A	192.0.2.1

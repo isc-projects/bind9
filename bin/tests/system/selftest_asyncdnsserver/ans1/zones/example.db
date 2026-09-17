@@ -1,0 +1,18 @@
+; ent.example. is an empty non-terminal (only deep.ent.example. exists), and
+; *.example. must not apply below it.
+;
+; No RRSIG(SOA) and no NSEC/NSEC3 chain on purpose: a signed SOA makes the
+; non-existence provers run, and they reject a zone without a chain.  The
+; RRSIG(DS) only has to be present; it is never verified.
+example.           300 IN SOA   ns.example. hostmaster.example. 1 3600 600 86400 300
+example.           300 IN NS    ns.example.
+ns.example.        300 IN A     10.53.0.1
+deep.ent.example.  300 IN A     192.0.2.1
+*.example.         300 IN A     198.51.100.45
+child.example.     300 IN NS    ns.child.example.
+child.example.     300 IN DS    10437 13 2 1C4E708E9DAF795A6CE11798210987899FD04AEDFB71D2093334C5E53DDB4FD8
+ns.child.example.  300 IN A     192.0.2.60
+foo.example.       300 IN CNAME bar.example.
+bar.example.       300 IN A     192.0.2.2
+
+child.example.     300 IN RRSIG DS 13 2 300 20940101000000 20200101000000 10437 example. AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
