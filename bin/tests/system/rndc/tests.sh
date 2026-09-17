@@ -838,5 +838,13 @@ lines=$(cat rndc.out.test$n | wc -l)
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check rndc -d sexpr printing ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 -d status >rndc.out.test$n 2>rndc.err.test$n || ret=1
+grep '("\*alist\*" ("_auth" "\*alist\*" ("hsha" . 0x[0-9a-f]*)) ("_ctrl" "\*alist\*" ("_ser" . '"'"'[0-9]*'"'"') ("_tim" . '"'"'[0-9]*'"'"') ("_exp" . '"'"'[0-9]*'"'"') ("_rpl" . '"'"'1'"'"') ("_nonce" . '"'"'[0-9]*'"'"')) ("_data" "\*alist\*" ("type" . '"'"'status'"'"') ("result" . '"'"'0'"'"') ("text" . 0x[0-9a-f]*)))' rndc.err.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
