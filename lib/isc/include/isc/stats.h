@@ -213,3 +213,5 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter);
  *\li	counter is less than the maximum available ID for the stats specified
  *	on creation.
  */
+
+ISC_LANG_ENDDECLS
