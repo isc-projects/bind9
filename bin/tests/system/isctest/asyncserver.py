@@ -22,13 +22,12 @@ from collections.abc import (
     Sequence,
 )
 from dataclasses import dataclass, field
-from typing import Any, cast, final
+from typing import Any, Literal, cast, final
 
 import abc
 import asyncio
 import bisect
 import collections
-import contextlib
 import copy
 import datetime
 import enum
@@ -91,13 +90,7 @@ class _AsyncUdpHandler(asyncio.DatagramProtocol):
         """
         assert self._transport
         handler_coroutine = self._handler(data, addr, self._transport)
-        try:
-            # Python >= 3.7
-            asyncio.create_task(handler_coroutine)
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-            loop.create_task(handler_coroutine)
+        asyncio.create_task(handler_coroutine)
 
 
 class AsyncServer:
@@ -153,14 +146,7 @@ class AsyncServer:
         """
         Start the server in an asynchronous coroutine.
         """
-        coroutine = self._run
-        try:
-            # Python >= 3.7
-            asyncio.run(coroutine())
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(coroutine())
+        asyncio.run(self._run())
 
     async def _run(self) -> None:
         self._setup_exception_handler()
@@ -172,17 +158,8 @@ class AsyncServer:
         await self._work_done
         self._cleanup_pidfile()
 
-    def _get_asyncio_loop(self) -> asyncio.AbstractEventLoop:
-        try:
-            # Python >= 3.7
-            loop = asyncio.get_running_loop()
-        except AttributeError:
-            # Python < 3.7
-            loop = asyncio.get_event_loop()
-        return loop
-
     def _setup_exception_handler(self) -> None:
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         self._work_done = loop.create_future()
         loop.set_exception_handler(self._handle_exception)
 
@@ -197,7 +174,7 @@ class AsyncServer:
             pass
 
     def _setup_signals(self) -> None:
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGINT, functools.partial(self._signal_done))
         loop.add_signal_handler(signal.SIGTERM, functools.partial(self._signal_done))
 
@@ -211,7 +188,7 @@ class AsyncServer:
     async def _listen_udp(self) -> None:
         if not self._udp_handler:
             return
-        loop = self._get_asyncio_loop()
+        loop = asyncio.get_running_loop()
         for ip_address in self._ip_addresses:
             await loop.create_datagram_endpoint(
                 lambda: _AsyncUdpHandler(cast(_UdpHandler, self._udp_handler)),
@@ -793,12 +770,7 @@ def block_reading(peer: Peer, writer_not_the_reader: asyncio.StreamWriter) -> No
     Yes, pass the writer, not the reader. See the comments below for details.
     """
 
-    try:
-        # Python >= 3.7
-        loop = asyncio.get_running_loop()
-    except AttributeError:
-        # Python < 3.7
-        loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     logging.info("Blocking reads from %s", peer)
 
@@ -1262,7 +1234,7 @@ class ForwarderHandler(ResponseHandler):
         )
 
         try:
-            message = _DnsMessageWithTsigDisabled.from_wire(response.result())
+            message = dns.message.from_wire(response.result(), keyring=False)
             yield DnsResponseSend(message, acknowledge_hand_rolled_response=True)
         except dns.exception.DNSException:
             logging.warning(
@@ -1407,71 +1379,6 @@ class _ZoneTree:
         return self._find_best_zone_for_name(name)
 
 
-class _DnsMessageWithTsigDisabled(dns.message.Message):
-    """
-    A wrapper for `dns.message.Message` that works around a dnspython bug
-    causing exceptions to be raised when `make_response()` or `to_wire()` are
-    called for a message created using `dns.message.from_wire(keyring=False)`.
-
-    See https://github.com/rthalley/dnspython/issues/1205 for more details.
-    """
-
-    class _DisableTsigHandling(contextlib.ContextDecorator):
-        def __init__(self, message: dns.message.Message | None = None) -> None:
-            self.original_tsig_sign = dns.tsig.sign
-            self.original_tsig_validate = dns.tsig.validate
-            if message:
-                self.tsig = message.tsig
-
-        def __enter__(self) -> None:
-            """
-            Override the `dns.tsig.sign` and `dns.tsig.validate` functions to prevent them
-            from failing on messages initialized with `dns.message.from_wire(keyring=False)`.
-            """
-
-            def sign(*_: Any, **__: Any) -> tuple[dns.rdata.Rdata, None]:
-                assert self.tsig
-                return self.tsig[0], None
-
-            def validate(*_: Any, **__: Any) -> None:
-                return None
-
-            dns.tsig.sign = sign
-            dns.tsig.validate = validate
-
-        def __exit__(self, *_: Any, **__: Any) -> None:
-            dns.tsig.sign = self.original_tsig_sign
-            dns.tsig.validate = self.original_tsig_validate
-
-    @classmethod
-    def from_wire(cls, wire: bytes) -> "_DnsMessageWithTsigDisabled":
-        with cls._DisableTsigHandling():
-            message = dns.message.from_wire(wire, keyring=False)
-            message.__class__ = _DnsMessageWithTsigDisabled
-
-        return cast(_DnsMessageWithTsigDisabled, message)
-
-    @property
-    def had_tsig(self) -> bool:
-        """
-        Override the `had_tsig()` method to always return False, to prevent
-        `make_response()` from crashing.
-        """
-        return False
-
-    def to_wire(self, *args: Any, **kwargs: Any) -> bytes:
-        """
-        Override the `to_wire()` method to prevent it from trying to sign
-        the message with TSIG.
-        """
-        with self._DisableTsigHandling(self):
-            return super().to_wire(*args, **kwargs)
-
-
-class _NoKeyringType:
-    pass
-
-
 _ASYNCSERVER_RESPONSE_MARKER = "__is_asyncserver_response__"
 
 
@@ -1507,9 +1414,7 @@ class AsyncDnsServer(AsyncServer):
         /,
         default_rcode: dns.rcode.Rcode = dns.rcode.REFUSED,
         default_aa: bool = False,
-        keyring: (
-            dict[dns.name.Name, dns.tsig.Key] | None | _NoKeyringType
-        ) = _NoKeyringType(),
+        keyring: dict[dns.name.Name, dns.tsig.Key] | Literal[False] | None = None,
         acknowledge_manual_dname_handling: bool = False,
     ) -> None:
         super().__init__(self._handle_udp, self._handle_tcp, "ans.pid")
@@ -1695,12 +1600,7 @@ class AsyncDnsServer(AsyncServer):
 
         logging.debug("Closing TCP connection from %s", peer)
         writer.close()
-        try:
-            # Python >= 3.7
-            await writer.wait_closed()
-        except AttributeError:
-            # Python < 3.7
-            pass
+        await writer.wait_closed()
 
     async def _read_tcp_query(
         self, reader: asyncio.StreamReader, peer: Peer
@@ -1899,23 +1799,15 @@ class AsyncDnsServer(AsyncServer):
 
     def _parse_message(self, wire: bytes) -> dns.message.Message:
         try:
-            if isinstance(self._keyring, _NoKeyringType):
-                keyring = None
-            else:
-                keyring = self._keyring
-            return dns.message.from_wire(wire, keyring=keyring)
+            return dns.message.from_wire(wire, keyring=self._keyring)
         except dns.message.UnknownTSIGKey as exc:
-            if isinstance(self._keyring, _NoKeyringType):
-                error = "TSIG-signed query received but no `keyring` was provided; "
-                error += "either provide a keyring (in which case the server will "
-                error += "ignore any TSIG-invalid queries), or set `keyring=None` "
-                error += "explicitly to disable TSIG validation altogether. "
-                error += "This requires some hacking around a dnspython bug, "
-                error += "so there may be unexpected side effects."
-                raise ValueError(error) from exc
-            if self._keyring is None:
-                return _DnsMessageWithTsigDisabled.from_wire(wire)
-            raise
+            if self._keyring is not None:
+                raise
+            error = "TSIG-signed query received but no `keyring` was provided; "
+            error += "either provide a keyring (in which case the server will "
+            error += "ignore any TSIG-invalid queries), or set `keyring=False` "
+            error += "to disable TSIG validation altogether."
+            raise ValueError(error) from exc
 
     async def _prepare_responses(
         self, qctx: QueryContext
