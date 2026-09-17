@@ -1495,10 +1495,11 @@ class AsyncDnsServer(AsyncServer):
     sorts of scenarios, including delaying responses, synthesizing them based
     on query contents etc.
 
-    The server also loads any zone files (*.db) found in its directory and
-    serves them. Responses prepared using zone data can then be modified,
-    replaced, or suppressed by query handlers. Query handlers can also generate
-    response from scratch, without using zone data at all.
+    The server also loads any zone files (*.db) found in the zones/
+    subdirectory and serves them. Responses prepared using zone data can
+    then be modified, replaced, or suppressed by query handlers. Query
+    handlers can also generate response from scratch, without using zone
+    data at all.
     """
 
     def __init__(
@@ -1581,7 +1582,7 @@ class AsyncDnsServer(AsyncServer):
             yield from os.scandir(directory_path)
 
     def _load_zones(self) -> None:
-        for entry in os.scandir():
+        for entry in self._scan_directory("zones/"):
             entry_path = pathlib.Path(entry.path)
             if entry_path.suffix != ".db":
                 continue
