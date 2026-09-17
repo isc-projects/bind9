@@ -121,7 +121,9 @@ def create(
     cd: bool = False,
     ad: bool = True,
 ) -> dns.message.Message:
-    """Create DNS query with defaults suitable for our tests."""
+    """
+    Create DNS query with defaults suitable for our tests.
+    """
     msg = dns.message.make_query(
         qname, qtype, qclass, use_edns=True, want_dnssec=dnssec
     )
@@ -136,7 +138,8 @@ def create(
 
 
 def wait_for_serial(server_ip, zone, expected_serial, timeout=30):
-    """Wait until the server has the expected SOA serial for the zone.
+    """
+    Wait until the server has the expected SOA serial for the zone.
 
     Queries the server repeatedly until the SOA serial matches or the
     timeout expires.

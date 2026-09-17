@@ -317,7 +317,9 @@ class PythonZoneKey(ZoneKey):
             f.write(text)
 
     def write_private_key_pem(self, path: Path | str) -> None:
-        """Write the private key to path in PKCS8 PEM format (no encryption)."""
+        """
+        Write the private key to path in PKCS8 PEM format (no encryption).
+        """
         Path(path).write_bytes(
             self.private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -431,18 +433,24 @@ class Zone:
 
     @property
     def filepath(self) -> Path:
-        """Actual zone file — filepath_signed if signed, filepath_unsigned otherwise."""
+        """
+        Actual zone file — filepath_signed if signed, filepath_unsigned otherwise.
+        """
         return self.filepath_signed if self.signed else self.filepath_unsigned
 
     def add_keys(self, ksk: bool = True, zsk: bool = True) -> None:
-        """Generate KSK and/or ZSK via dnssec-keygen and append to self.keys."""
+        """
+        Generate KSK and/or ZSK via dnssec-keygen and append to self.keys.
+        """
         if ksk:
             self.keys.append(FileZoneKey.generate(self, "-f KSK"))
         if zsk:
             self.keys.append(FileZoneKey.generate(self))
 
     def copy_dssets(self) -> None:
-        """Write dsset-* files for each signed delegation into self.ns dir."""
+        """
+        Write dsset-* files for each signed delegation into self.ns dir.
+        """
         for zone in self.delegations:
             ksks = [k for k in zone.keys if k.is_ksk()]
             has_file = any(isinstance(k, FileZoneKey) for k in ksks)
@@ -460,7 +468,9 @@ class Zone:
                 debug(f"{zone.name}: delegation is insecure (no KSK)")
 
     def render(self, template: str | None = None) -> None:
-        """Render the unsigned zone file from a jinja2 template."""
+        """
+        Render the unsigned zone file from a jinja2 template.
+        """
         debug(f"{self.name}: rendering zone file")
         templates = TemplateEngine(".")
         output = Path(self.ns.name) / self.filepath_unsigned
@@ -534,7 +544,9 @@ class Zone:
             self.sign(sign_params)
 
     def trust_anchors(self, ta_type: str = "static-ds") -> list[TrustAnchor]:
-        """Return a trust-anchor stanza for every KSK in zone.keys."""
+        """
+        Return a trust-anchor stanza for every KSK in zone.keys.
+        """
         ksks = [k for k in self.keys if k.is_ksk()]
         assert ksks, f"{self.name}: no KSK in zone.keys"
         return [k.into_ta(ta_type) for k in ksks]

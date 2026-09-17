@@ -18,7 +18,9 @@ import isctest
 
 
 def test_masterfile_include_semantics():
-    """Test master file $INCLUDE semantics"""
+    """
+    Test master file $INCLUDE semantics
+    """
     msg_axfr = isctest.query.create("include.", "AXFR")
     res_axfr = isctest.query.tcp(msg_axfr, "10.53.0.1")
     axfr_include_semantics = """;ANSWER
@@ -39,7 +41,9 @@ ns.include.			300	IN	A	127.0.0.1
 
 
 def test_masterfile_bind_8_compat_semantics():
-    """Test master file BIND 8 TTL and $TTL semantics compatibility"""
+    """
+    Test master file BIND 8 TTL and $TTL semantics compatibility
+    """
     msg_axfr = isctest.query.create("ttl1.", "AXFR")
     res_axfr = isctest.query.tcp(msg_axfr, "10.53.0.1")
     axfr_ttl_semantics = """;ANSWER
@@ -58,7 +62,9 @@ ns.ttl1.	3	IN	A	10.53.0.1
 
 
 def test_masterfile_rfc_1035_semantics():
-    """Test master file RFC1035 TTL and $TTL semantics"""
+    """
+    Test master file RFC1035 TTL and $TTL semantics
+    """
     msg_axfr = isctest.query.create("ttl2.", "AXFR")
     res_axfr = isctest.query.tcp(msg_axfr, "10.53.0.1")
     axfr_ttl_semantics = """;ANSWER
@@ -77,7 +83,9 @@ ns.ttl2.	1	IN	A	10.53.0.1
 
 
 def test_masterfile_missing_master_file():
-    """Test nameserver running with a missing master file"""
+    """
+    Test nameserver running with a missing master file
+    """
     msg_soa = isctest.query.create("example.", "SOA")
     res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
     expected_soa_rr = """;ANSWER
@@ -88,14 +96,18 @@ example.	300	IN	SOA	mname1. . 2010042407 20 20 1814400 3600
 
 
 def test_masterfile_missing_master_file_servfail():
-    """Test nameserver returning SERVFAIL for a missing master file"""
+    """
+    Test nameserver returning SERVFAIL for a missing master file
+    """
     msg_soa = isctest.query.create("missing.", "SOA")
     res_soa = isctest.query.tcp(msg_soa, "10.53.0.2")
     isctest.check.servfail(res_soa)
 
 
 def test_masterfile_owner_inheritance():
-    """Test owner inheritance after $INCLUDE"""
+    """
+    Test owner inheritance after $INCLUDE
+    """
     cmd = isctest.run.cmd(
         [
             os.environ["CHECKZONE"],

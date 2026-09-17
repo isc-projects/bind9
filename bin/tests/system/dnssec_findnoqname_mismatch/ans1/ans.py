@@ -137,7 +137,9 @@ def garbage_rrsig(
 
 
 def owner_labels(owner: str) -> int:
-    """The RRSIG labels field of a non-wildcard record at 'owner'."""
+    """
+    The RRSIG labels field of a non-wildcard record at 'owner'.
+    """
     return len(name(owner).labels) - 1
 
 
@@ -233,7 +235,9 @@ def add_both_attack_answer(response: dns.message.Message) -> None:
 
 
 class RuntimeCheckHandler(ResponseHandler):
-    """Serve f217.test. and the forged wildcard answers below evil.f217.test."""
+    """
+    Serve f217.test. and the forged wildcard answers below evil.f217.test.
+    """
 
     def __init__(self, key: Key) -> None:
         self.key = key

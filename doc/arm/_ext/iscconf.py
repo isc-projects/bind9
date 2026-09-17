@@ -61,7 +61,8 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
     """
 
     class StatementListDirective(Directive):
-        """A custom directive to generate list of statements.
+        """
+        A custom directive to generate list of statements.
         It only installs placeholder which is later replaced by
         process_statementlist_nodes() callback.
         """
@@ -133,7 +134,9 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
             @property
             def isc_short_node(self):
-                """Short description parsed from rst to docutils node"""
+                """
+                Short description parsed from rst to docutils node
+                """
                 return self.parse_nested_str(self.isc_short)
 
             def format_path(self, path):
@@ -165,7 +168,9 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 return list(self.format_path(path) for path in condensed_paths)
 
             def format_blocks(self, grammar_blocks):
-                """Generate node with list of all allowed blocks"""
+                """
+                Generate node with list of all allowed blocks
+                """
                 blocks = nodes.paragraph()
                 blocks += nodes.strong(text="Blocks: ")
                 blocks += nodes.Text(", ".join(self.format_paths(grammar_blocks)))
@@ -201,8 +206,10 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 return grammarnode
 
             def format_warnings(self, flags):
-                """Return node with a warning box about deprecated and
-                experimental options"""
+                """
+                Return node with a warning box about deprecated and
+                experimental options
+                """
                 warn = nodes.warning()
                 if "deprecated" in flags:
                     warn += nodes.paragraph(
@@ -218,14 +225,18 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                 return warn
 
             def parse_nested_str(self, instr):
-                """Parse string as nested rst syntax and produce a node"""
+                """
+                Parse string as nested rst syntax and produce a node
+                """
                 raw = nodes.paragraph(text=instr)
                 parsed = nodes.paragraph()
                 self.state.nested_parse(raw, self.content_offset, parsed)
                 return parsed
 
             def transform_content(self, content_node: addnodes.desc_content) -> None:
-                """autogenerate content from structured data"""
+                """
+                autogenerate content from structured data
+                """
                 self.workaround_transform_content = True
                 if self.isc_short:
                     content_node.insert(0, self.isc_short_node)
@@ -262,12 +273,16 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                     content_node.insert(0, warn)
 
             def __init__(self, *args, **kwargs):
-                """Compability with Sphinx < 3.0.0"""
+                """
+                Compability with Sphinx < 3.0.0
+                """
                 self.workaround_transform_content = False
                 super().__init__(*args, **kwargs)
 
             def run(self):
-                """Compability with Sphinx < 3.0.0"""
+                """
+                Compability with Sphinx < 3.0.0
+                """
                 nodelist = super().run()
                 if not self.workaround_transform_content:
                     # get access to "contentnode" created inside super.run()
@@ -399,7 +414,8 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             )
 
         def merge_domaindata(self, docnames, otherdata):
-            """Sphinx API: Merge in data regarding *docnames* from a different
+            """
+            Sphinx API: Merge in data regarding *docnames* from a different
             domaindata inventory (coming from a subprocess in parallel builds).
 
             @param otherdata is self.data equivalent from another process
@@ -411,7 +427,9 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
             old.update(new)
 
         def check_consistency(self):
-            """Sphinx API"""
+            """
+            Sphinx API
+            """
             defined_statements = set(
                 obj["signature"] for obj in self.data["statements"].values()
             )
@@ -531,10 +549,14 @@ TableColumn = namedtuple("TableColumn", ["dictkey", "description"])
 
 
 class DictToDocutilsTableBuilder:
-    """generate docutils table"""
+    """
+    generate docutils table
+    """
 
     def __init__(self, header):
-        """@param header: [ordered list of TableColumn]s"""
+        """
+        @param header: [ordered list of TableColumn]s
+        """
         self.header = header
         self.table = nodes.table()
         self.table["classes"] += ["colwidths-auto"]
@@ -564,8 +586,10 @@ class DictToDocutilsTableBuilder:
         self.tgroup += thead
 
     def append_iterable(self, objects):
-        """Append rows for each object (dict), ir order.
-        Extract column values from keys listed in self.header."""
+        """
+        Append rows for each object (dict), ir order.
+        Extract column values from keys listed in self.header.
+        """
         for obj in objects:
             row = nodes.row()
             for column in self.header:

@@ -35,5 +35,7 @@ def test_include_multiplecfg(qname):
 
 
 def test_include_multiplecfg_checkconf():
-    """Test that named-checkconf correctly parses glob includes"""
+    """
+    Test that named-checkconf correctly parses glob includes
+    """
     isctest.run.cmd([os.environ["CHECKCONF"], "named.conf"], cwd="ns2")

@@ -66,7 +66,8 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def _make_sig_rdata(text):
-    """Create a SIG rdata from text.
+    """
+    Create a SIG rdata from text.
 
     dnspython has no native text parser for the legacy SIG type (24),
     but the wire format is identical to RRSIG (46).  Parse as RRSIG,
@@ -78,7 +79,8 @@ def _make_sig_rdata(text):
 
 
 def _make_nxt_rdata():
-    """Create a minimal NXT rdata.
+    """
+    Create a minimal NXT rdata.
 
     NXT wire format (RFC 2535) is: next-name + type-bitmap.  The exact
     content does not matter for the refusal test; we just need a
@@ -90,7 +92,8 @@ def _make_nxt_rdata():
 
 
 def test_tcp_self_sig_record(ns6):
-    """SIG (type 24) updates must be refused at the front door.
+    """
+    SIG (type 24) updates must be refused at the front door.
 
     Prior to the fix in dns__db_findrdataset(), a SIG update here
     crashed named.  Prior to the fix in diff.c rdata_covers(), the
@@ -132,7 +135,8 @@ def test_tcp_self_sig_record(ns6):
 
 
 def test_tcp_self_nxt_record(ns6):
-    """NXT (type 30) updates must be refused at the front door.
+    """
+    NXT (type 30) updates must be refused at the front door.
 
     NXT is the legacy DNSSEC denial-of-existence type, obsolete since
     RFC 3755 replaced it with NSEC.  Accepting it via dynamic update
@@ -167,7 +171,8 @@ def test_tcp_self_nxt_record(ns6):
 
 
 def test_sig_covers_preserved_via_axfr(ns6):
-    """Regression test for GL#5818 Finding 1, reached via AXFR.
+    """
+    Regression test for GL#5818 Finding 1, reached via AXFR.
 
     ans11 serves an AXFR for sigaxfr.nil. containing two SIG rdatas at
     the same owner with different covered types (A, MX) and different

@@ -41,7 +41,9 @@ def read_trs_result(filename):
 
 
 def find_test_relative_path(source_dir, in_path):
-    """Return {in_path}.c if it exists, with fallback to {in_path}"""
+    """
+    Return {in_path}.c if it exists, with fallback to {in_path}
+    """
     candidates_relative = [in_path + ".c", in_path]
     for relative in candidates_relative:
         absolute = os.path.join(source_dir, relative)

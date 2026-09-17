@@ -45,14 +45,18 @@ SOA_TEXT = "ns.sigaxfr.nil. hostmaster.sigaxfr.nil. 1 3600 1200 604800 3600"
 
 
 def _make_sig_rdata(covered_text):
-    """Produce a legacy SIG (24) rdata via RRSIG (46) round-trip."""
+    """
+    Produce a legacy SIG (24) rdata via RRSIG (46) round-trip.
+    """
     rrsig = dns.rdata.from_text(dns.rdataclass.IN, dns.rdatatype.RRSIG, covered_text)
     wire = rrsig.to_digestable()
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.SIG, wire, 0, len(wire))
 
 
 class SigAxfrServer(DomainHandler):
-    """Serve SOA and AXFR for sigaxfr.nil.; other qtypes get NOERROR/NODATA."""
+    """
+    Serve SOA and AXFR for sigaxfr.nil.; other qtypes get NOERROR/NODATA.
+    """
 
     domains = ["sigaxfr.nil."]
 

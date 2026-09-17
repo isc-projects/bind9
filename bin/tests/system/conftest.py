@@ -74,7 +74,9 @@ SYMLINK_REPLACEMENT_RE = Re(r"/tests_(.*)\.py")
 
 
 def parse_env(env_bytes):
-    """Parse the POSIX env format into Python dictionary."""
+    """
+    Parse the POSIX env format into Python dictionary.
+    """
     out = {}
     for line in env_bytes.splitlines():
         match = ENV_RE.match(line)
@@ -158,7 +160,9 @@ def pytest_ignore_collect(collection_path):
 
 
 def pytest_collection_modifyitems(items):
-    """Schedule long-running tests first to get more benefit from parallelism."""
+    """
+    Schedule long-running tests first to get more benefit from parallelism.
+    """
     priority = []
     other = []
     for item in items:
@@ -194,7 +198,9 @@ class NodeResult:
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item):
-    """Hook that is used to expose test results to session (for use in fixtures)."""
+    """
+    Hook that is used to expose test results to session (for use in fixtures).
+    """
     # execute all other hooks to obtain the report object
     outcome = yield
     report = outcome.get_result()
@@ -265,14 +271,18 @@ def module_base_ports(modules):
 
 @pytest.fixture(scope="module")
 def base_port(request, module_base_ports):
-    """Start of the port range assigned to a particular test module."""
+    """
+    Start of the port range assigned to a particular test module.
+    """
     port = module_base_ports[request.fspath]
     return port
 
 
 @pytest.fixture(scope="module")
 def ports(base_port):
-    """Dictionary containing port names and their assigned values."""
+    """
+    Dictionary containing port names and their assigned values.
+    """
     return {
         "PORT": base_port,
         "TLSPORT": base_port + 1,
@@ -312,7 +322,9 @@ def control_port(ports):
 
 @pytest.fixture(scope="module")
 def env(ports):
-    """Dictionary containing environment variables for the test."""
+    """
+    Dictionary containing environment variables for the test.
+    """
     env = os.environ.copy()
     for portname, portnum in ports.items():
         env[portname] = str(portnum)
@@ -326,14 +338,18 @@ def env(ports):
 
 @pytest.fixture(scope="module")
 def system_test_name(request):
-    """Name of the system test directory."""
+    """
+    Name of the system test directory.
+    """
     path = Path(request.fspath)
     return path.parent.name
 
 
 @pytest.fixture(autouse=True)
 def wait_for_zones_loaded(request, servers):
-    """Wait for all zones to be loaded by specified named instances."""
+    """
+    Wait for all zones to be loaded by specified named instances.
+    """
     instances = request.node.get_closest_marker("requires_zones_loaded")
     if not instances:
         return
@@ -345,7 +361,9 @@ def wait_for_zones_loaded(request, servers):
 
 @pytest.fixture(autouse=True)
 def logger(request, system_test_name):
-    """Sets up logging facility specific to a particular test."""
+    """
+    Sets up logging facility specific to a particular test.
+    """
     isctest.log.init_test_logger(system_test_name, request.node.name)
     yield
     isctest.log.deinit_test_logger()
@@ -397,8 +415,10 @@ def system_test_dir(request, env, system_test_name, expected_artifacts):
     """
 
     def get_test_result():
-        """Aggregate test results from all individual tests from this module
-        into a single result: failed > skipped > passed."""
+        """
+        Aggregate test results from all individual tests from this module
+        into a single result: failed > skipped > passed.
+        """
         try:
             all_test_results = request.session.test_results
         except AttributeError:
@@ -538,7 +558,9 @@ def _run_script(
     script: str,
     args: Optional[List[str]] = None,
 ):
-    """Helper function for the shell / perl script invocations (through fixtures below)."""
+    """
+    Helper function for the shell / perl script invocations (through fixtures below).
+    """
     if args is None:
         args = []
     path = Path(script)
@@ -575,19 +597,25 @@ def _run_script(
 
 @pytest.fixture(scope="module")
 def shell(env, system_test_dir):
-    """Function to call a shell script with arguments."""
+    """
+    Function to call a shell script with arguments.
+    """
     return partial(_run_script, env, system_test_dir, env["SHELL"])
 
 
 @pytest.fixture(scope="module")
 def perl(env, system_test_dir):
-    """Function to call a perl script with arguments."""
+    """
+    Function to call a perl script with arguments.
+    """
     return partial(_run_script, env, system_test_dir, env["PERL"])
 
 
 @pytest.fixture(scope="module")
 def run_tests_sh(system_test_dir, shell):
-    """Utility function to execute tests.sh as a python test."""
+    """
+    Utility function to execute tests.sh as a python test.
+    """
 
     def run_tests():
         shell(f"{system_test_dir}/tests.sh")

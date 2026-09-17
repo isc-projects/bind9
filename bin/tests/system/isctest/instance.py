@@ -61,7 +61,9 @@ class NamedInstance:
 
     @property
     def rndc_args(self) -> str:
-        """Base arguments for calling RNDC to control the instance."""
+        """
+        Base arguments for calling RNDC to control the instance.
+        """
         return f"-c {self._rndc_conf} -s {self.ip} -p {self.ports.rndc}"
 
     @staticmethod
