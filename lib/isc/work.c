@@ -110,14 +110,22 @@ workthread_slumber(isc__workthread_t *thread) {
 	while (futex_noasync(&thread->state, FUTEX_WAIT, THREAD_WAITING, NULL,
 			     NULL, 0) != 0)
 	{
-		if (errno == EWOULDBLOCK) {
+		switch (errno) {
+		case EWOULDBLOCK:
+			goto out;
+		case EINTR:
+		case ECANCELED:
+			/*
+			 * Retry if interrupted by a signal.  OpenBSD returns
+			 * ECANCELED instead of EINTR when SA_RESTART is set.
+			 */
 			break;
-		} else if (errno != EINTR) {
+		default:
 			FATAL_ERROR("futex_noasync(FUTEX_WAIT): %s",
 				    strerror(errno));
 		}
-		/* Or retry if interrupted by signal. */
 	}
+out:
 	rcu_thread_online();
 }
 
