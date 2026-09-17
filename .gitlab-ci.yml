@@ -679,7 +679,7 @@ vulture:
   <<: *quick_checks_job
   <<: *python_triggering_rules
   script:
-    - vulture --exclude "*ans.py,conftest.py,get_algorithms.py,re_compile_checker.py,isctest" --ignore-names "after_servers_start,bootstrap,pytestmark,autouse_*" bin/tests/system/
+    - vulture --exclude "*ans.py,conftest.py,get_algorithms.py,re_compile_checker.py,docstring_format_checker.py,file_header_checker.py,isctest" --ignore-names "after_servers_start,bootstrap,pytestmark,autouse_*" bin/tests/system/
 
 ci-variables:
   <<: *quick_checks_job
@@ -766,9 +766,9 @@ pylint:
   variables:
     PYTHONPATH: "${CI_PROJECT_DIR}/bin/tests/system"
   script:
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --load-plugins docstring_format_checker,file_header_checker $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --load-plugins re_compile_checker --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE '(ans\.py|vulture_ignore_list\.py)')
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --load-plugins re_compile_checker,docstring_format_checker,file_header_checker --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE '(ans\.py|vulture_ignore_list\.py)')
 
 reuse:
   <<: *quick_checks_job

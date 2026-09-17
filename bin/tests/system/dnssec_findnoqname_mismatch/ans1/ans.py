@@ -1,8 +1,13 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
 
 """
 Forged wildcard answers whose NOQNAME proof owner carries both denial types
@@ -137,7 +142,9 @@ def garbage_rrsig(
 
 
 def owner_labels(owner: str) -> int:
-    """The RRSIG labels field of a non-wildcard record at 'owner'."""
+    """
+    The RRSIG labels field of a non-wildcard record at 'owner'.
+    """
     return len(name(owner).labels) - 1
 
 
@@ -233,7 +240,9 @@ def add_both_attack_answer(response: dns.message.Message) -> None:
 
 
 class RuntimeCheckHandler(ResponseHandler):
-    """Serve f217.test. and the forged wildcard answers below evil.f217.test."""
+    """
+    Serve f217.test. and the forged wildcard answers below evil.f217.test.
+    """
 
     def __init__(self, key: Key) -> None:
         self.key = key

@@ -3,12 +3,11 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
-
 
 import dns.flags
 import dns.message
@@ -17,7 +16,9 @@ import isctest
 
 
 def test_glue_full_glue_set():
-    """test that a ccTLD referral gets a full glue set from the root zone"""
+    """
+    test that a ccTLD referral gets a full glue set from the root zone
+    """
     msg = isctest.query.create("foo.bar.fi", "A")
     msg.flags &= ~dns.flags.RD
     res = isctest.query.udp(msg, "10.53.0.1")
@@ -48,7 +49,9 @@ NS.UU.NET. 172800 IN A 137.39.1.3
 
 
 def test_glue_no_glue_set():
-    """test that out-of-zone glue is not found"""
+    """
+    test that out-of-zone glue is not found
+    """
     msg = isctest.query.create("example.net.", "A")
     msg.flags &= ~dns.flags.RD
     res = isctest.query.udp(msg, "10.53.0.1")

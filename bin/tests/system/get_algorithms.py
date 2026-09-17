@@ -1,11 +1,9 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -39,7 +37,9 @@ class Algorithm(NamedTuple):
 
 
 class AlgorithmSet(NamedTuple):
-    """Collection of DEFAULT, ALTERNATIVE and DISABLED algorithms"""
+    """
+    Collection of DEFAULT, ALTERNATIVE and DISABLED algorithms
+    """
 
     default: Union[Algorithm, List[Algorithm]]
     """DEFAULT is the algorithm for testing."""
@@ -105,7 +105,9 @@ logging.debug('choosing from ALGORITHM_SET "%s"', ALGORITHM_SET)
 
 
 def is_supported(alg: Algorithm) -> bool:
-    """Test whether a given algorithm is supported on the current platform."""
+    """
+    Test whether a given algorithm is supported on the current platform.
+    """
     try:
         subprocess.run(
             f"{TESTCRYPTO} -q {alg.name}",
@@ -125,7 +127,9 @@ def is_supported(alg: Algorithm) -> bool:
 
 
 def filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
-    """Select supported algorithms from the set."""
+    """
+    Select supported algorithms from the set.
+    """
     filtered = {}
     for alg_type in algs._fields:
         candidates = getattr(algs, alg_type)
@@ -144,7 +148,8 @@ def filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
 
 
 def select_random(algs: AlgorithmSet, stable_period=STABLE_PERIOD) -> AlgorithmSet:
-    """Select random DEFAULT, ALTERNATIVE and DISABLED algorithms from the set.
+    """
+    Select random DEFAULT, ALTERNATIVE and DISABLED algorithms from the set.
 
     The algorithm selection is deterministic for a given time period and
     platform. This should make potential issues more reproducible.
@@ -201,7 +206,9 @@ def select_random(algs: AlgorithmSet, stable_period=STABLE_PERIOD) -> AlgorithmS
 
 
 def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
-    """Return environment variables with selected algorithms as a dict."""
+    """
+    Return environment variables with selected algorithms as a dict.
+    """
     algs_env: Dict[str, str] = {}
 
     def set_alg_env(alg: Algorithm, prefix):

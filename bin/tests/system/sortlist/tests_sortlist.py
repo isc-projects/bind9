@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -17,7 +17,9 @@ import isctest
 
 
 def test_sortlist():
-    """Test two-element sortlist statement"""
+    """
+    Test two-element sortlist statement
+    """
     msg = dns.message.make_query("a.example.", "A")
     resp = isctest.query.tcp(msg, "10.53.0.1", source="10.53.0.1")
     sortlist = [
@@ -45,7 +47,9 @@ def test_sortlist():
     ],
 )
 def test_sortlist_compat(possible_results, source_ip):
-    """Test one-element sortlist statement and undocumented BIND 8 features"""
+    """
+    Test one-element sortlist statement and undocumented BIND 8 features
+    """
     msg = dns.message.make_query("b.example.", "A")
     resp = isctest.query.tcp(msg, "10.53.0.1", source=source_ip)
     assert (

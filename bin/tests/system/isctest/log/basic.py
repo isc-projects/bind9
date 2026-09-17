@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -87,7 +87,9 @@ def indent_message(msg):
 
 
 def log(lvl: int, msg: str, *args, **kwargs):
-    """Log message with the most-specific logger currently available."""
+    """
+    Log message with the most-specific logger currently available.
+    """
     logger = LOGGERS["test"]
     if logger is None:
         logger = LOGGERS["module"]

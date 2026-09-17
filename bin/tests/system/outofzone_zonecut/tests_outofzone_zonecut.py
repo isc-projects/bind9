@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -37,7 +37,9 @@ def check_aaflag(response):
 
 
 def check_in_zone(response, zone):
-    """Nothing in the response may be owned by a name outside the zone."""
+    """
+    Nothing in the response may be owned by a name outside the zone.
+    """
     origin = dns.name.from_text(zone)
     for section in (response.answer, response.authority, response.additional):
         for rrset in section:
