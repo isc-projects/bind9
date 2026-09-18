@@ -247,6 +247,14 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking that raw zone issue described in GL#6141 is handled ($n)"
+ret=0
+$CHECKZONE -f raw example.net zones/bad-outofspace-GL6141.raw >test.out.$n 2>&1 && ret=1
+grep "dns_master_load: ran out of space" test.out.$n >/dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "checking that expirations that loop using serial arithmetic are handled ($n)"
 ret=0
 q=-q
