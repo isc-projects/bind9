@@ -261,11 +261,6 @@ view \"_bind\" chaos {\n\
 		database \"_builtin hostname\";\n\
 	};\n\
 \n\
-	zone \"authors.bind\" chaos {\n\
-		type primary;\n\
-		database \"_builtin authors\";\n\
-	};\n\
-\n\
 	zone \"id.server\" chaos {\n\
 		type primary;\n\
 		database \"_builtin id\";\n\
