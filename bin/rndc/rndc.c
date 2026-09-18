@@ -79,6 +79,7 @@ static uint32_t serial;
 static bool quiet = false;
 static bool showresult = false;
 static int32_t timeout = RNDC_TIMEOUT;
+static bool debug_response = false;
 
 static void
 rndc_startconnect(isc_sockaddr_t *addr);
@@ -239,7 +240,7 @@ Version: %s\n",
 	exit(status);
 }
 
-#define CMDLINE_FLAGS "46b:c:hk:Mmp:qrs:t:Vy:"
+#define CMDLINE_FLAGS "46b:c:dhk:Mmp:qrs:t:Vy:"
 
 static void
 preparse_args(int argc, char **argv) {
@@ -325,6 +326,11 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	DO("parse message",
 	   isccc_cc_fromwire(&source, &response, algorithm, &secret));
+
+	if (debug_response) {
+		isccc_sexpr_print(response, stderr);
+		fprintf(stderr, "\n");
+	}
 
 	data = isccc_alist_lookup(response, "_data");
 	if (!isccc_alist_alistp(data)) {
@@ -864,6 +870,10 @@ main(int argc, char **argv) {
 		case 'c':
 			admin_conffile = isc_commandline_argument;
 			c_flag = true;
+			break;
+
+		case 'd': /* undocumented */
+			debug_response = true;
 			break;
 
 		case 'k':

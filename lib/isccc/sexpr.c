@@ -41,8 +41,16 @@
 
 static isccc_sexpr_t sexpr_t = { ISCCC_SEXPRTYPE_T, { NULL } };
 
-#define CAR(s) (s)->value.as_dottedpair.car
-#define CDR(s) (s)->value.as_dottedpair.cdr
+#define CAR(s)	  (s)->value.as_dottedpair.car
+#define CDR(s)	  (s)->value.as_dottedpair.cdr
+#define PARENT(s) (s)->value.as_dottedpair.parent
+
+static void
+set_parent(isccc_sexpr_t *child, isccc_sexpr_t *parent) {
+	if (child != NULL && child->type == ISCCC_SEXPRTYPE_DOTTEDPAIR) {
+		PARENT(child) = parent;
+	}
+}
 
 isccc_sexpr_t *
 isccc_sexpr_cons(isccc_sexpr_t *car, isccc_sexpr_t *cdr) {
@@ -55,6 +63,9 @@ isccc_sexpr_cons(isccc_sexpr_t *car, isccc_sexpr_t *cdr) {
 	sexpr->type = ISCCC_SEXPRTYPE_DOTTEDPAIR;
 	CAR(sexpr) = car;
 	CDR(sexpr) = cdr;
+	PARENT(sexpr) = NULL;
+	set_parent(car, sexpr);
+	set_parent(cdr, sexpr);
 
 	return sexpr;
 }
@@ -122,8 +133,8 @@ isccc_sexpr_frombinary(const isccc_region_t *region) {
 
 void
 isccc_sexpr_free(isccc_sexpr_t **sexprp) {
-	isccc_sexpr_t *sexpr;
-	isccc_sexpr_t *item;
+	isccc_sexpr_t *root = NULL;
+	isccc_sexpr_t *child, *sexpr, *parent;
 
 	REQUIRE(sexprp != NULL);
 
@@ -132,18 +143,44 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 	if (sexpr == NULL) {
 		return;
 	}
+
 	switch (sexpr->type) {
 	case ISCCC_SEXPRTYPE_STRING:
 		free(sexpr->value.as_string);
 		break;
 	case ISCCC_SEXPRTYPE_DOTTEDPAIR:
-		item = CAR(sexpr);
-		if (item != NULL) {
-			isccc_sexpr_free(&item);
-		}
-		item = CDR(sexpr);
-		if (item != NULL) {
-			isccc_sexpr_free(&item);
+		root = sexpr;
+		/* Iterative post-order depth-first traversal. */
+		for (;;) {
+			child = CAR(sexpr) != NULL ? CAR(sexpr) : CDR(sexpr);
+			/* Descend into pair, free leaf. */
+			if (child != NULL) {
+				if (child->type == ISCCC_SEXPRTYPE_DOTTEDPAIR) {
+					INSIST(PARENT(child) == sexpr);
+					sexpr = child;
+				} else if (CAR(sexpr) == child) {
+					isccc_sexpr_free(&CAR(sexpr));
+				} else {
+					isccc_sexpr_free(&CDR(sexpr));
+				}
+				continue;
+			}
+
+			/* No children left. */
+			if (sexpr == root) {
+				break;
+			}
+
+			/* Free empty node, go up. */
+			parent = PARENT(sexpr);
+			if (CAR(parent) == sexpr) {
+				CAR(parent) = NULL;
+			} else {
+				INSIST(CDR(parent) == sexpr);
+				CDR(parent) = NULL;
+			}
+			free(sexpr);
+			sexpr = parent;
 		}
 		break;
 	case ISCCC_SEXPRTYPE_BINARY:
@@ -154,7 +191,7 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 }
 
 static bool
-printable(isccc_region_t *r) {
+printable(const isccc_region_t *r) {
 	unsigned char *curr;
 
 	curr = r->rstart;
@@ -169,8 +206,8 @@ printable(isccc_region_t *r) {
 }
 
 void
-isccc_sexpr_print(isccc_sexpr_t *sexpr, FILE *stream) {
-	isccc_sexpr_t *cdr;
+isccc_sexpr_print(const isccc_sexpr_t *sexpr, FILE *stream) {
+	const isccc_sexpr_t *root, *car, *cdr;
 	unsigned int size, i;
 	unsigned char *curr;
 
@@ -189,21 +226,49 @@ isccc_sexpr_print(isccc_sexpr_t *sexpr, FILE *stream) {
 		fprintf(stream, "\"%s\"", sexpr->value.as_string);
 		break;
 	case ISCCC_SEXPRTYPE_DOTTEDPAIR:
+		root = sexpr;
 		fprintf(stream, "(");
-		do {
-			isccc_sexpr_print(CAR(sexpr), stream);
-			cdr = CDR(sexpr);
-			if (cdr != NULL) {
-				fprintf(stream, " ");
-				if (cdr->type != ISCCC_SEXPRTYPE_DOTTEDPAIR) {
-					fprintf(stream, ". ");
-					isccc_sexpr_print(cdr, stream);
-					cdr = NULL;
+		while (sexpr != NULL) {
+			car = CAR(sexpr);
+			if (car != NULL &&
+			    car->type == ISCCC_SEXPRTYPE_DOTTEDPAIR)
+			{
+				fprintf(stream, "(");
+				sexpr = car;
+				continue;
+			}
+			isccc_sexpr_print(car, stream);
+
+			/*
+			 * Print cdr; at list end, close it and ascend to
+			 * enclosing cell.
+			 */
+			for (;;) {
+				cdr = CDR(sexpr);
+				if (cdr != NULL &&
+				    cdr->type == ISCCC_SEXPRTYPE_DOTTEDPAIR)
+				{
+					fprintf(stream, " ");
+					break;
 				}
+				if (cdr != NULL) {
+					fprintf(stream, " . ");
+					isccc_sexpr_print(cdr, stream);
+				}
+				fprintf(stream, ")");
+				while (sexpr != root &&
+				       CDR(PARENT(sexpr)) == sexpr)
+				{
+					sexpr = PARENT(sexpr);
+				}
+				if (sexpr == root) {
+					cdr = NULL;
+					break;
+				}
+				sexpr = PARENT(sexpr);
 			}
 			sexpr = cdr;
-		} while (sexpr != NULL);
-		fprintf(stream, ")");
+		}
 		break;
 	case ISCCC_SEXPRTYPE_BINARY:
 		size = REGION_SIZE(sexpr->value.as_region);
@@ -241,6 +306,7 @@ isccc_sexpr_setcar(isccc_sexpr_t *pair, isccc_sexpr_t *car) {
 	REQUIRE(pair != NULL && pair->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
 
 	CAR(pair) = car;
+	set_parent(car, pair);
 }
 
 void
@@ -248,6 +314,7 @@ isccc_sexpr_setcdr(isccc_sexpr_t *pair, isccc_sexpr_t *cdr) {
 	REQUIRE(pair != NULL && pair->type == ISCCC_SEXPRTYPE_DOTTEDPAIR);
 
 	CDR(pair) = cdr;
+	set_parent(cdr, pair);
 }
 
 isccc_sexpr_t *
@@ -270,6 +337,7 @@ isccc_sexpr_addtolist(isccc_sexpr_t **l1p, isccc_sexpr_t *l2) {
 		/* Nothing */
 	}
 	CDR(last) = elt;
+	PARENT(elt) = last;
 
 	return elt;
 }
