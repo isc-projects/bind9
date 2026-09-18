@@ -551,7 +551,7 @@ fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK generates a warning ($n)"
+echo_i "check that the 2010 ICANN ROOT KSK without the 2026 ICANN ROOT KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2010.conf >checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
@@ -563,10 +563,11 @@ fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not generate a warning ($n)"
+echo_i "check that the 2017 ICANN ROOT KSK without the 2026 ICANN ROOT KSK generates a warning ($n)"
 ret=0
-$CHECKCONF check-root-ksk-both.conf >checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] && ret=1
+$CHECKCONF check-root-ksk-2017.conf >checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] || ret=1
+grep "key without the updated" <checkconf.out$n >/dev/null || ret=1
 if [ $ret -ne 0 ]; then
   echo_i "failed"
   ret=1
@@ -574,15 +575,42 @@ fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "check that the 2017 ICANN ROOT KSK alone does not generate a warning ($n)"
+echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK generates a warning ($n)"
 ret=0
-$CHECKCONF check-root-ksk-2017.conf >checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] && ret=1
+$CHECKCONF check-root-ksk-both.conf >checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] || ret=1
 if [ $ret -ne 0 ]; then
   echo_i "failed"
   ret=1
 fi
 status=$((status + ret))
+
+# By 23:59 11 October 2026 the IANA root zone should be being signed with the
+# 2026 trust anchor.  Prior to that check that we are warning that we are
+# missing the 2017 trust anchor.
+if test $($PERL -e 'print time()."\n";') -lt 1791676800; then
+  n=$((n + 1))
+  echo_i "check that the 2026 ICANN ROOT KSK alone generates a warning ($n)"
+  ret=0
+  $CHECKCONF check-root-ksk-2026.conf >checkconf.out$n 2>/dev/null || ret=1
+  [ -s checkconf.out$n ] || ret=1
+  if [ $ret -ne 0 ]; then
+    echo_i "failed"
+    ret=1
+  fi
+  status=$((status + ret))
+else
+  n=$((n + 1))
+  echo_i "check that the 2026 ICANN ROOT KSK alone does not generate a warning ($n)"
+  ret=0
+  $CHECKCONF check-root-ksk-2026.conf >checkconf.out$n 2>/dev/null || ret=1
+  [ -s checkconf.out$n ] && ret=1
+  if [ $ret -ne 0 ]; then
+    echo_i "failed"
+    ret=1
+  fi
+  status=$((status + ret))
+fi
 
 n=$((n + 1))
 echo_i "check that a static root key generates a warning ($n)"
