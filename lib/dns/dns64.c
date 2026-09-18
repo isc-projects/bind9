@@ -421,7 +421,8 @@ dns_dns64_findprefix(dns_rdataset_t *rdataset, isc_netprefix_t *prefix,
 	isc_result_t result;
 
 	REQUIRE(prefix != NULL && len != NULL && *len != 0U);
-	REQUIRE(rdataset != NULL && rdataset->type == dns_rdatatype_aaaa);
+	REQUIRE(rdataset != NULL && rdataset->type == dns_rdatatype_aaaa &&
+		rdataset->rdclass == dns_rdataclass_in);
 
 	dns_rdataset_init(&outer);
 	dns_rdataset_init(&inner);

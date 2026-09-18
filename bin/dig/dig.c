@@ -557,6 +557,8 @@ dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
 		return ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
 		return result;
+	} else if (rdataset->rdclass != dns_rdataclass_in) {
+		return ISC_R_SUCCESS;
 	}
 
 	result = dns_dns64_findprefix(rdataset, prefix, &count);
@@ -1737,6 +1739,9 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 						lookup->rdtype =
 							dns_rdatatype_aaaa;
 						lookup->rdtypeset = true;
+						lookup->rdclass =
+							dns_rdataclass_in;
+						lookup->rdclassset = true;
 						ISC_LIST_APPEND(lookup_list,
 								lookup, link);
 					}

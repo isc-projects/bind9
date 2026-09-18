@@ -1430,6 +1430,14 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "checking 'dig ch +dns64prefix' forces class 'in' ($n)"
+$DIG $DIGOPTS ch +dns64prefix @10.53.0.1 >dig.out.ns1.test$n || ret=1
+grep '^2001:bbbb::/96$' dig.out.ns1.test$n >/dev/null || ret=1
+test $(wc -l <dig.out.ns1.test$n) -eq 1 || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 cp ns1/named2.conf ns1/named.conf
 rndc_reload ns1 10.53.0.1
 
