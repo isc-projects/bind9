@@ -183,6 +183,18 @@ status=$((status + ret))
 n=$((n + 1))
 
 ret=0
+echo_i "checking truncated xml path is rejected ($n)"
+if $FEATURETEST --have-libxml2 && "${CURL}" --http1.1 http://10.53.0.3:${EXTRAPORT1} >/dev/null 2>&1; then
+  ${CURL} --http1.1 -o curl.out.${n}.xsl http://10.53.0.3:${EXTRAPORT1}/bind9 2>/dev/null || ret=1
+  grep "No such URL." curl.out.${n}.xsl >/dev/null || ret=1
+else
+  echo_i "skipping test as libxml2 and/or curl with HTTP/1.1 support was not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+ret=0
 echo_i "checking bind9.xsl vs xml ($n)"
 if $FEATURETEST --have-libxml2 && "${CURL}" --http1.1 http://10.53.0.3:${EXTRAPORT1} >/dev/null 2>&1 && [ -x "${XSLTPROC}" ]; then
   $DIGCMD +notcp +recurse @10.53.0.3 soa . >dig.out.test$n.1 2>&1
