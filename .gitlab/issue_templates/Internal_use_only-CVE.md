@@ -64,7 +64,7 @@ confidential!
   - [ ] [:grey_question:][step_backports]         **(SwEng)** Prepare backports of the merge request addressing the problem for all affected (and still maintained) branches of a given product
   - [ ] [:grey_question:][step_merge_fixes]       **(SwEng)** Merge the CVE fixes and reproducer when they get approved
   - [ ] [:grey_question:][step_finish_advisory]   **(Support)** Finish preparing the Security Advisory in printing-press
-  - [ ] [:grey_question:][step_meta_issue]        **(QA)** Create (or update) the private issue containing links to fixes & reproducers for all CVEs fixed in a given release cycle
+  - [ ] [:grey_question:][step_issue_milestone]   **(QA)** Move this issue to its release milestone
   - [ ] [:grey_question:][step_coordinate_check]  **(SwEng)** Make sure other vendors are able to release on the date that was previously agreed upon
 
 ### Earlier Than T-5
@@ -83,7 +83,7 @@ confidential!
 
 ### At T-1
 
-  - [ ] [:grey_question:][step_packager_emails]   **(First IM)** Send notifications to OS packagers
+  - [ ] [:grey_question:][step_packager_emails]   **(QA)** Send notifications to OS packagers
 
 ### On the Day of Public Disclosure
 
@@ -92,9 +92,9 @@ confidential!
   - [ ] [:grey_question:][step_publish_advisory]  **(Support)** Knowledge Base: Publish the Security Advisory as a new article
   - [ ] [:grey_question:][step_matrix]            **(Support)** Knowledge Base: Add the CVE to the full list and (for BIND) the matrix
   - [ ] [:grey_question:][step_publish]           **(QA/Marketing)** Publish the releases (as outlined in the release checklist)
-  - [ ] [:grey_question:][step_notifications]     **(First IM)** Send notification emails to third parties
-  - [ ] [:grey_question:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
-  - [ ] [:grey_question:][step_merge_advisory]    **(First IM)** Merge the Security Advisory merge request
+  - [ ] [:grey_question:][step_notifications]     **(QA)** Send notification emails to third parties
+  - [ ] [:grey_question:][step_mitre]             **(QA)** Advise MITRE about the disclosed CVEs
+  - [ ] [:grey_question:][step_merge_advisory]    **(QA)** Merge the Security Advisory merge request
   - [ ] [:grey_question:][step_embargo_end]       **(SwEng)** Inform original reporter (if external) that the security disclosure process is complete
   - [ ] [:grey_question:][step_evn_clear]         **(Support)** Update the tickets in the EVN queues in RT that the embargo is lifted
   - [ ] [:grey_question:][step_customers]         **(Marketing)** Ensure that a ticket has been sent in the appropriate announce queue in RT to notify customers that the release is published (as outlined in the release checklist)
@@ -121,7 +121,7 @@ confidential!
 [step_review_docs]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#review-the-documentation-changes-introduced-by-the-merge-request-with-the-fix
 [step_backports]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#prepare-backports-of-the-merge-request-addressing-the-problem-for-all-affected-and-still-maintained-branches-of-a-given-product
 [step_finish_advisory]:   https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#finish-preparing-the-security-advisory
-[step_meta_issue]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#create-or-update-the-private-issue-containing-links-to-fixes--reproducers-for-all-cves-fixed-in-a-given-release-cycle
+[step_issue_milestone]:   https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#move-this-issue-to-its-release-milestone
 [step_coordinate_check]:  https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#make-sure-other-vendors-are-able-to-release-on-the-date-that-was-previously-agreed-upon
 [step_merge_fixes]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#merge-the-cve-fixes-in-cve-identifier-order
 [step_evn_releases]:      https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#prepare-evn-releases-as-outlined-in-the-release-checklist
