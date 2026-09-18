@@ -679,7 +679,7 @@ vulture:
   <<: *quick_checks_job
   <<: *python_triggering_rules
   script:
-    - vulture --exclude "*ans.py,conftest.py,get_algorithms.py,re_compile_checker.py,docstring_format_checker.py,file_header_checker.py,isctest" --ignore-names "after_servers_start,bootstrap,pytestmark,autouse_*" bin/tests/system/
+    - vulture --exclude "*ans.py,*/ans[0-9]*/*,conftest.py,get_algorithms.py,re_compile_checker.py,docstring_format_checker.py,file_header_checker.py,isctest" --ignore-names "after_servers_start,bootstrap,pytestmark,autouse_*" bin/tests/system/
 
 ci-variables:
   <<: *quick_checks_job
