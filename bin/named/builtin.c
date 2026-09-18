@@ -21,6 +21,7 @@
 
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
@@ -217,16 +218,19 @@ putsoa(bdbnode_t *node, const char *mname, const char *rname, uint32_t serial) {
 }
 
 static isc_result_t
-puttxt(bdbnode_t *node, const char *text) {
+puttxt(bdbnode_t *node, isc_region_t *r) {
 	unsigned char buf[256];
-	unsigned int len = strlen(text);
 
-	if (len > 255) {
-		len = 255; /* Silently truncate */
+	if (r == NULL || r->length == 0) {
+		return ISC_R_SUCCESS;
 	}
-	buf[0] = len;
-	memmove(&buf[1], text, len);
-	return putrdata(node, dns_rdatatype_txt, 0, buf, len + 1);
+
+	INSIST(r->base != NULL);
+
+	buf[0] = r->length > 255 ? 255 : r->length; /* Silently truncate */
+	memmove(&buf[1], r->base, buf[0]);
+
+	return putrdata(node, dns_rdatatype_txt, 0, buf, buf[0] + 1);
 }
 
 /*
@@ -500,47 +504,17 @@ builtin_authority(bdb_t *bdb, bdbnode_t *node) {
 
 static isc_result_t
 version_lookup(bdbnode_t *node) {
-	if (named_g_server->version_set) {
-		if (named_g_server->version == NULL) {
-			return ISC_R_SUCCESS;
-		} else {
-			return puttxt(node, named_g_server->version);
-		}
-	} else {
-		return puttxt(node, PACKAGE_VERSION);
-	}
+	return puttxt(node, &named_g_server->version);
 }
 
 static isc_result_t
 hostname_lookup(bdbnode_t *node) {
-	if (named_g_server->hostname_set) {
-		if (named_g_server->hostname == NULL) {
-			return ISC_R_SUCCESS;
-		} else {
-			return puttxt(node, named_g_server->hostname);
-		}
-	} else {
-		char buf[256];
-		if (gethostname(buf, sizeof(buf)) != 0) {
-			return ISC_R_FAILURE;
-		}
-		return puttxt(node, buf);
-	}
+	return puttxt(node, &named_g_server->hostname);
 }
 
 static isc_result_t
 id_lookup(bdbnode_t *node) {
-	if (named_g_server->sctx->usehostname) {
-		char buf[256];
-		if (gethostname(buf, sizeof(buf)) != 0) {
-			return ISC_R_FAILURE;
-		}
-		return puttxt(node, buf);
-	} else if (named_g_server->sctx->server_id != NULL) {
-		return puttxt(node, named_g_server->sctx->server_id);
-	} else {
-		return ISC_R_SUCCESS;
-	}
+	return puttxt(node, &named_g_server->sctx->server_id);
 }
 
 static isc_result_t

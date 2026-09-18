@@ -1066,25 +1066,15 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message) {
 	dns_message_ednsinit(message, 0, udpsize, flags, 0);
 
 	/* Set EDNS options if applicable */
-	if (client->inner.wantnsid) {
-		char nsid[_POSIX_HOST_NAME_MAX + 1];
-		char *nsidp = NULL;
-
-		if (client->manager->sctx->server_id != NULL) {
-			nsidp = client->manager->sctx->server_id;
-		} else if (client->manager->sctx->usehostname &&
-			   gethostname(nsid, sizeof(nsid)) == 0)
-		{
-			nsidp = nsid;
-		}
-		if (nsidp != NULL) {
-			dns_ednsopt_t option = {
-				.code = DNS_OPT_NSID,
-				.value = (unsigned char *)nsidp,
-				.length = (uint16_t)strlen(nsidp),
-			};
-			RETERR(dns_message_ednsaddopt(message, &option));
-		}
+	if (client->inner.wantnsid &&
+	    client->manager->sctx->server_id.base != NULL)
+	{
+		dns_ednsopt_t option = {
+			.code = DNS_OPT_NSID,
+			.length = client->manager->sctx->server_id.length,
+			.value = client->manager->sctx->server_id.base,
+		};
+		RETERR(dns_message_ednsaddopt(message, &option));
 	}
 
 	if (client->inner.wantcookie) {

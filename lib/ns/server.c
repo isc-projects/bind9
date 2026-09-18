@@ -150,9 +150,7 @@ ns_server_detach(ns_server_t **sctxp) {
 		}
 		isc_mutex_destroy(&sctx->http_quotas_lock);
 
-		if (sctx->server_id != NULL) {
-			isc_mem_free(sctx->mctx, sctx->server_id);
-		}
+		ns_server_clearserverid(sctx);
 
 		if (sctx->blackholeacl != NULL) {
 			dns_acl_detach(&sctx->blackholeacl);
@@ -211,19 +209,27 @@ ns_server_detach(ns_server_t **sctxp) {
 	}
 }
 
-isc_result_t
+void
+ns_server_clearserverid(ns_server_t *sctx) {
+	REQUIRE(SCTX_VALID(sctx));
+
+	if (sctx->server_id.base != NULL) {
+		isc_mem_free(sctx->mctx, sctx->server_id.base);
+		sctx->server_id.length = 0;
+	}
+}
+
+void
 ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 	REQUIRE(SCTX_VALID(sctx));
 
-	if (sctx->server_id != NULL) {
-		isc_mem_free(sctx->mctx, sctx->server_id);
-	}
+	ns_server_clearserverid(sctx);
 
 	if (serverid != NULL) {
-		sctx->server_id = isc_mem_strdup(sctx->mctx, serverid);
+		sctx->server_id.length = strlen(serverid);
+		sctx->server_id.base =
+			(unsigned char *)isc_mem_strdup(sctx->mctx, serverid);
 	}
-
-	return ISC_R_SUCCESS;
 }
 
 void
