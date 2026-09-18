@@ -133,7 +133,7 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 			INSIST(r2.length >= 5);
 			isc_region_consume(&r2, 4);
 			privatelen = r2.base[0] + 1;
-			if (r2.base[0] > len) {
+			if (privatelen > len) {
 				result = ISC_R_NOSPACE;
 				goto end;
 			}
