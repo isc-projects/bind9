@@ -191,7 +191,7 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 }
 
 static bool
-printable(isccc_region_t *r) {
+printable(const isccc_region_t *r) {
 	unsigned char *curr;
 
 	curr = r->rstart;
@@ -206,8 +206,8 @@ printable(isccc_region_t *r) {
 }
 
 void
-isccc_sexpr_print(isccc_sexpr_t *sexpr, FILE *stream) {
-	isccc_sexpr_t *root, *car, *cdr;
+isccc_sexpr_print(const isccc_sexpr_t *sexpr, FILE *stream) {
+	const isccc_sexpr_t *root, *car, *cdr;
 	unsigned int size, i;
 	unsigned char *curr;
 
