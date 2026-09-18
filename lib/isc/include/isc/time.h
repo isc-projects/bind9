@@ -31,20 +31,30 @@ constexpr unsigned int US_PER_SEC = 1000 * 1000;
 constexpr unsigned int NS_PER_MS = 1000 * 1000;
 constexpr unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
 
-#define ISC_FORMATTIMESTAMP_SIZE      sizeof("99-Bad-9999 99:99:99.999")
-#define ISC_FORMATISO8601L_SIZE	      sizeof("9999-99-99T99:99:99")
-#define ISC_FORMATISO8601LMS_SIZE     sizeof("9999-99-99T99:99:99.999")
-#define ISC_FORMATISO8601_SIZE	      sizeof("9999-99-99T99:99:99Z")
-#define ISC_FORMATISO8601MS_SIZE      sizeof("9999-99-99T99:99:99.999Z")
-#define ISC_FORMATISO8601US_SIZE      sizeof("9999-99-99T99:99:99.999999Z")
-#define ISC_FORMATISO8601TZMS_SIZE    sizeof("9999-99-99T99:99:99.999+99:99")
-#define ISC_FORMATSHORTTIMESTAMP_SIZE sizeof("99999999999999999")
+#define ISC_FORMATTIMESTAMP_ERR	     "99-Bad-9999 99:99:99.999"
+#define ISC_FORMATISO8601L_ERR	     "9999-99-99T99:99:99"
+#define ISC_FORMATISO8601LMS_ERR     "9999-99-99T99:99:99.999"
+#define ISC_FORMATISO8601_ERR	     "9999-99-99T99:99:99Z"
+#define ISC_FORMATISO8601MS_ERR	     "9999-99-99T99:99:99.999Z"
+#define ISC_FORMATISO8601US_ERR	     "9999-99-99T99:99:99.999999Z"
+#define ISC_FORMATISO8601TZMS_ERR    "9999-99-99T99:99:99.999+99:99"
+#define ISC_FORMATSHORTTIMESTAMP_ERR "99999999999999999"
+
+#define ISC_FORMATTIMESTAMP_SIZE      sizeof(ISC_FORMATTIMESTAMP_ERR)
+#define ISC_FORMATISO8601L_SIZE	      sizeof(ISC_FORMATISO8601L_ERR)
+#define ISC_FORMATISO8601LMS_SIZE     sizeof(ISC_FORMATISO8601LMS_ERR)
+#define ISC_FORMATISO8601_SIZE	      sizeof(ISC_FORMATISO8601_ERR)
+#define ISC_FORMATISO8601MS_SIZE      sizeof(ISC_FORMATISO8601MS_ERR)
+#define ISC_FORMATISO8601US_SIZE      sizeof(ISC_FORMATISO8601US_ERR)
+#define ISC_FORMATISO8601TZMS_SIZE    sizeof(ISC_FORMATISO8601TZMS_ERR)
+#define ISC_FORMATSHORTTIMESTAMP_SIZE sizeof(ISC_FORMATSHORTTIMESTAMP_ERR)
 
 /*
  * ISC_FORMATHTTPTIMESTAMP_SIZE needs to be 30 in C locale and potentially
  * more for other locales to handle longer national abbreviations when
  * expanding strftime's %a and %b.
  */
+#define ISC_FORMATHTTPTIMESTAMP_ERR  "99-Bad-9999 99:99:99.999"
 #define ISC_FORMATHTTPTIMESTAMP_SIZE 50
 
 /*
@@ -375,7 +385,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -389,7 +399,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATHTTPTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -413,7 +423,7 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -422,12 +432,12 @@ void
 isc_time_formatISO8601TZms(const isc_time_t *t, char *buf, unsigned int len);
 /*%<
  * Format the time 't' into the buffer 'buf' of length 'len',
- * using the ISO8601 format: "yyyy-mm-ddThh:mm:ss.sss+hhmm"
+ * using the ISO8601 format: "yyyy-mm-ddThh:mm:ss.sss+hh:mm"
  * If the text does not fit in the buffer, the result is indeterminate,
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601TZMS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -441,7 +451,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -455,7 +465,7 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601MS_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -469,7 +479,7 @@ isc_time_formatISO8601us(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATISO8601US_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */
@@ -483,7 +493,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  * but is always guaranteed to be null terminated.
  *
  *  Requires:
- *\li      'len' > 0
+ *\li      'len' > ISC_FORMATSHORTTIMESTAMP_SIZE
  *\li      'buf' points to an array of at least len chars
  *
  */

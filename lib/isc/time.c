@@ -332,7 +332,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%d-%b-%Y %X", localtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "99-Bad-9999 99:99:99.999", len);
+		strlcpy(buf, ISC_FORMATTIMESTAMP_ERR, len);
 	} else {
 		snprintf(buf + flen, len - flen, ".%03u",
 			 t->nanoseconds / NS_PER_MS);
@@ -357,7 +357,7 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	flen = strftime(buf, len, "%a, %d %b %Y %H:%M:%S GMT",
 			gmtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "Bad, 99 Bad 9999 99:99:99 GMT", len);
+		strlcpy(buf, ISC_FORMATHTTPTIMESTAMP_ERR, len);
 	}
 }
 
@@ -395,7 +395,7 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "9999-99-99T99:99:99.999", len);
+		strlcpy(buf, ISC_FORMATISO8601LMS_ERR, len);
 	} else {
 		snprintf(buf + flen, len - flen, ".%03u",
 			 t->nanoseconds / NS_PER_MS);
@@ -415,20 +415,34 @@ isc_time_formatISO8601TZms(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len >= ISC_FORMATISO8601TZMS_SIZE);
 
 	now = (time_t)t->seconds;
-	flen = strftime(strftime_buf, len, "%Y-%m-%dT%H:%M:%S.xxx%z",
-			localtime_r(&now, &tm));
+	flen = strftime(strftime_buf, len,
+			"%Y-%m-%dT%H:%M:%S.xxx%z:", localtime_r(&now, &tm));
 	snprintf(ms_buf, sizeof(ms_buf), ".%03u", t->nanoseconds / NS_PER_MS);
 
-	INSIST(flen < len);
-	size_t local_date_len = sizeof("yyyy-mm-ddThh:mm:ss") - 1ul;
-	size_t ms_date_len = local_date_len + 4;
+	if (flen == 0) {
+		strlcpy(buf, ISC_FORMATISO8601TZMS_ERR, len);
+	} else {
+		size_t local_date_len = sizeof("yyyy-mm-ddThh:mm:ss") - 1ul;
+		size_t ms_date_len = local_date_len + 4;
 
-	memmove(buf, strftime_buf, local_date_len);
-	memmove(buf + local_date_len, ms_buf, 4);
-	memmove(buf + ms_date_len, strftime_buf + ms_date_len, 3);
-	buf[ms_date_len + 3] = ':';
-	memmove(buf + ms_date_len + 4, strftime_buf + ms_date_len + 3, 3);
+		INSIST(ms_date_len + 6 < ISC_FORMATISO8601TZMS_SIZE);
+
+		/* Copy local time to the second. */
+		memmove(buf, strftime_buf, local_date_len);
+		/* Add milliseconds. */
+		memmove(buf + local_date_len, ms_buf, 4);
+		/* Add TZ hour offset. */
+		memmove(buf + ms_date_len, strftime_buf + ms_date_len, 3);
+		/* Add TZ hour / minute seperator. */
+		buf[ms_date_len + 3] = ':';
+		/* Add TZ minutes offset. */
+		memmove(buf + ms_date_len + 4, strftime_buf + ms_date_len + 3,
+			2);
+		/* Add terminating NUL */
+		buf[ms_date_len + 6] = 0;
+	}
 }
+
 void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
@@ -442,7 +456,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "9999-99-99T99:99:99Z", len);
+		strlcpy(buf, ISC_FORMATISO8601_ERR, len);
 	}
 }
 
@@ -459,7 +473,7 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", gmtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "9999-99-99T99:99:99.999Z", len);
+		strlcpy(buf, ISC_FORMATISO8601MS_ERR, len);
 	} else {
 		snprintf(buf + flen, len - flen, ".%03uZ",
 			 t->nanoseconds / NS_PER_MS);
@@ -479,7 +493,7 @@ isc_time_formatISO8601us(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", gmtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "9999-99-99T99:99:99.999999Z", len);
+		strlcpy(buf, ISC_FORMATISO8601US_ERR, len);
 	} else {
 		snprintf(buf + flen, len - flen, ".%06uZ",
 			 t->nanoseconds / NS_PER_US);
@@ -500,7 +514,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf,
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y%m%d%H%M%S", gmtime_r(&now, &tm));
 	if (flen == 0) {
-		strlcpy(buf, "99999999999999999", len);
+		strlcpy(buf, ISC_FORMATSHORTTIMESTAMP_ERR, len);
 	} else {
 		snprintf(buf + flen, len - flen, "%03u",
 			 t->nanoseconds / NS_PER_MS);
