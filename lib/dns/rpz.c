@@ -1979,7 +1979,6 @@ update_nodes(dns_rpz_zone_t *rpz, dns_db_t *db, dns_dbversion_t *dbversion,
 	}
 
 done:
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(rpz->rpzs->table, &qp);
 	UNLOCK(&rpz->rpzs->data_lock);
 
@@ -2028,7 +2027,8 @@ cleanup_nodes(dns_rpz_zone_t *rpz) {
 		result = ISC_R_SUCCESS;
 	}
 
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
+	/* There may be no later writes to finish incremental compaction. */
+	dns_qp_compact(qp, DNS_QPGC_NOW);
 	dns_qpmulti_commit(rpz->rpzs->table, &qp);
 
 	isc_ht_iter_destroy(&iter);
