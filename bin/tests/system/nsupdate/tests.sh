@@ -2151,7 +2151,7 @@ wait_for_log 10 "too many DNS UPDATEs queued" ns1/named.run || ret=1
 n=$((n + 1))
 ret=0
 echo_i "check that grant external pass client address properly ($n)" {
-($PERL "${TOP_SRCDIR}/bin/tests/system/authsock.pl" --type=CNAME --path=ns1/auth.sock --pidfile=authsock.pid --timeout=120 >authsock.out.test$n 2>&1 &) &
+($PYTHON -m isctest.tools.authsock --type=CNAME --path=ns1/auth.sock --pidfile=authsock.pid --timeout=120 >authsock.out.test$n 2>&1 &) &
 sleep 1
 nextpart authsock.out.test$n >/dev/null
 $NSUPDATE -k ns1/ddns.key -d <<EOF >nsupdate.udp.test$n 2>&1 || ret=1
