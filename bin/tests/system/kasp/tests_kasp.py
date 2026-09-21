@@ -352,6 +352,31 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
     isctest.kasp.check_dnssec_verify(servers["ns3"], zone)
 
 
+def cb_log_error_reading(roles, params, ksks=None, zsks=None):
+    servers = params["servers"]
+
+    isctest.log.info("check that it is logged if key files cannot be read")
+
+    messages = []
+
+    if "ksk" in roles:
+        for k in ksks:
+            messages.append(
+                f"dns_zone_findkeys: error reading {k.name}.private: file not found"
+            )
+
+    if "zsk" in roles:
+        for k in zsks:
+            messages.append(
+                f"dns_zone_findkeys: error reading {k.name}.private: file not found"
+            )
+
+    isctest.log.info(f"check messages: {messages}")
+
+    with servers["ns3"].watch_log_from_start() as watcher:
+        watcher.wait_for_sequence(messages)
+
+
 @pytest.mark.parametrize(
     "params",
     [
@@ -459,6 +484,12 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
                     f"ksk 63072000 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep missing",
                     f"zsk 31536000 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
                 ],
+                "additional-tests": [
+                    {
+                        "callback": cb_log_error_reading,
+                        "arguments": ["ksk"],
+                    },
+                ],
             },
             id="ksk-missing.autosign",
         ),
@@ -471,6 +502,12 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
                 "key-properties": [
                     f"ksk 63072000 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                     f"zsk 31536000 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent missing",
+                ],
+                "additional-tests": [
+                    {
+                        "callback": cb_log_error_reading,
+                        "arguments": ["zsk"],
+                    },
                 ],
             },
             id="zsk-missing.autosign",
