@@ -30,6 +30,7 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -136,7 +137,6 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t message;
 	gss_buffer_desc gmessage, gsig;
 	OM_uint32 minor, gret;
-	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
 	char buf[1024];
 
 	/*
@@ -149,7 +149,10 @@ gssapi_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	/*
 	 * Generate the signature.
 	 */
-	gret = gss_get_mic(&minor, gssctx, GSS_C_QOP_DEFAULT, &gmessage, &gsig);
+	LOCK(&dctx->key->mdlock);
+	gret = gss_get_mic(&minor, dctx->key->keydata.gssctx, GSS_C_QOP_DEFAULT,
+			   &gmessage, &gsig);
+	UNLOCK(&dctx->key->mdlock);
 
 	/*
 	 * If it did not complete, we log the result and return a generic
@@ -191,7 +194,6 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_region_t message;
 	gss_buffer_desc gmessage, gsig;
 	OM_uint32 minor, gret;
-	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
 	char err[1024];
 
 	/*
@@ -205,7 +207,10 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	/*
 	 * Verify the data.
 	 */
-	gret = gss_verify_mic(&minor, gssctx, &gmessage, &gsig, NULL);
+	LOCK(&dctx->key->mdlock);
+	gret = gss_verify_mic(&minor, dctx->key->keydata.gssctx, &gmessage,
+			      &gsig, NULL);
+	UNLOCK(&dctx->key->mdlock);
 
 	/*
 	 * Convert return codes into something useful to us.
@@ -307,14 +312,18 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	isc_region_t r;
 	isc_result_t result;
 
+	/*
+	 * Export invalidates the context.
+	 */
+	LOCK(&key->mdlock);
 	major = gss_export_sec_context(
 		&minor, (gss_ctx_id_t *)&key->keydata.gssctx, &gssbuffer);
+	UNLOCK(&key->mdlock);
 	if (major != GSS_S_COMPLETE) {
-		fprintf(stderr, "gss_export_sec_context -> %u, %u\n", major,
-			minor);
 		return ISC_R_FAILURE;
 	}
 	if (gssbuffer.length == 0U) {
+		gss_release_buffer(&minor, &gssbuffer);
 		return ISC_R_FAILURE;
 	}
 	len = ((gssbuffer.length + 2) / 3) * 4;
