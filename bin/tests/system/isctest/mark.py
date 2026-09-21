@@ -61,16 +61,6 @@ requires_net_dns = pytest.mark.skipif(
     reason="Perl Net::DNS module is required",
 )
 
-requires_net_dns_nameserver = pytest.mark.skipif(
-    not _perl_module_available("Net::DNS::Nameserver"),
-    reason="Perl Net::DNS::Nameserver module is required",
-)
-
-requires_time_hires = pytest.mark.skipif(
-    not _perl_module_available("Time::HiRes"),
-    reason="Perl Time::HiRes module is required",
-)
-
 
 def is_host_freebsd(*_):
     return platform.system() == "FreeBSD"
