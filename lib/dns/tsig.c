@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/file.h>
 #include <isc/hashmap.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -243,7 +244,7 @@ dns__tsigkey_deletelru(dns_tsigkeyring_t *ring, dns_tsigkey_t *tkey) {
 }
 
 static void
-destroyring(dns_tsigkeyring_t *ring) {
+dns_tsigkeyring__destroy(dns_tsigkeyring_t *ring) {
 	isc_result_t result;
 	isc_hashmap_iter_t *it = NULL;
 
@@ -269,9 +270,9 @@ destroyring(dns_tsigkeyring_t *ring) {
 }
 
 #if DNS_TSIG_TRACE
-ISC_REFCOUNT_TRACE_IMPL(dns_tsigkeyring, destroyring);
+ISC_REFCOUNT_TRACE_IMPL(dns_tsigkeyring, dns_tsigkeyring__destroy);
 #else
-ISC_REFCOUNT_IMPL(dns_tsigkeyring, destroyring);
+ISC_REFCOUNT_IMPL(dns_tsigkeyring, dns_tsigkeyring__destroy);
 #endif
 
 /*
@@ -353,43 +354,47 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	return result;
 }
 
-static void
+static isc_result_t
 dump_key(dns_tsigkey_t *tkey, FILE *fp) {
 	char *buffer = NULL;
 	int length = 0;
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 	char algorithmstr[DNS_NAME_FORMATSIZE];
-	isc_result_t result;
 
 	REQUIRE(tkey != NULL);
+	REQUIRE(tkey->key != NULL);
+	REQUIRE(tkey->creator != NULL);
 	REQUIRE(fp != NULL);
 
 	dns_name_format(tkey->name, namestr, sizeof(namestr));
 	dns_name_format(tkey->creator, creatorstr, sizeof(creatorstr));
 	dns_name_format(dns_tsigkey_algorithm(tkey), algorithmstr,
 			sizeof(algorithmstr));
-	result = dst_key_dump(tkey->key, tkey->mctx, &buffer, &length);
-	if (result == ISC_R_SUCCESS) {
-		fprintf(fp, "%s %s %u %u %s %.*s\n", namestr, creatorstr,
+	RETERR(dst_key_dump(tkey->key, tkey->mctx, &buffer, &length));
+
+	int n = fprintf(fp, "%s %s %u %u %s %.*s\n", namestr, creatorstr,
 			tkey->inception, tkey->expire, algorithmstr, length,
 			buffer);
+	isc_mem_put(tkey->mctx, buffer, length);
+
+	if (n < 0) {
+		return ISC_R_IOERROR;
 	}
-	if (buffer != NULL) {
-		isc_mem_put(tkey->mctx, buffer, length);
-	}
+
+	return ISC_R_SUCCESS;
 }
 
-isc_result_t
-dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp) {
+static isc_result_t
+dns_tsigkeyring__dumptofile(dns_tsigkeyring_t *ring, FILE *fp) {
+	REQUIRE(VALID_TSIGKEYRING(ring));
+	REQUIRE(fp != NULL);
+
 	isc_result_t result;
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_hashmap_iter_t *it = NULL;
 	bool found = false;
 
-	REQUIRE(VALID_TSIGKEYRING(ring));
-
-	RWLOCK(&ring->lock, isc_rwlocktype_read);
 	isc_hashmap_iter_create(ring->keys, &it);
 	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(it))
@@ -398,14 +403,73 @@ dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp) {
 		isc_hashmap_iter_current(it, (void **)&tkey);
 
 		if (tkey->generated && tkey->expire >= now) {
-			dump_key(tkey, fp);
+			result = dump_key(tkey, fp);
+			if (result != ISC_R_SUCCESS) {
+				tsig_log(tkey, ISC_LOG_WARNING,
+					 "could not dump key: %s",
+					 isc_result_totext(result));
+				if (result == ISC_R_IOERROR) {
+					break;
+				}
+				continue;
+			}
 			found = true;
+			if (ferror(fp)) {
+				result = ISC_R_IOERROR;
+				break;
+			}
 		}
 	}
+	if (result == ISC_R_NOMORE) {
+		result = found ? ISC_R_SUCCESS : ISC_R_NOTFOUND;
+	}
 	isc_hashmap_iter_destroy(&it);
+
+	return result;
+}
+
+static isc_result_t
+dns_tsigkeyring__dump(dns_tsigkeyring_t *ring, const char *keyfile) {
+	REQUIRE(VALID_TSIGKEYRING(ring));
+	REQUIRE(keyfile != NULL);
+
+	FILE *fp = NULL;
+	char template[PATH_MAX];
+	bool created = false;
+	isc_result_t result;
+
+	RWLOCK(&ring->lock, isc_rwlocktype_read);
+
+	if (isc_hashmap_count(ring->keys) == 0) {
+		CLEANUP(ISC_R_NOTFOUND);
+	}
+
+	CHECK(isc_file_mktemplate(keyfile, template, sizeof(template)));
+	CHECK(isc_file_openuniqueprivate(template, &fp));
+	created = true;
+
+	result = dns_tsigkeyring__dumptofile(ring, fp);
+
+	if (fclose(fp) != 0 && result == ISC_R_SUCCESS) {
+		result = ISC_R_IOERROR;
+	}
+	fp = NULL;
+	CHECK(result);
+
+	CHECK(isc_file_rename(template, keyfile));
+	created = false;
+
+cleanup:
+	if (fp != NULL) {
+		(void)fclose(fp);
+	}
+	if (created) {
+		(void)isc_file_remove(template);
+	}
+
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 
-	return found ? ISC_R_SUCCESS : ISC_R_NOTFOUND;
+	return result;
 }
 
 const dns_name_t *
@@ -420,6 +484,38 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
 	} else {
 		return tsigkey->name;
 	}
+}
+
+#if DNS_TSIG_TRACE
+isc_result_t
+dns_tsigkeyring__dumpanddetach(dns_tsigkeyring_t **ringp, const char *keyfile,
+			       const char *func, const char *file,
+			       const unsigned int line) {
+#else
+isc_result_t
+dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, const char *keyfile) {
+#endif
+	REQUIRE(ringp != NULL && VALID_TSIGKEYRING(*ringp));
+	REQUIRE(keyfile != NULL);
+
+	dns_tsigkeyring_t *ring = MOVE_OWNERSHIP(*ringp);
+	isc_result_t result = DNS_R_CONTINUE;
+	uint_fast32_t refs = isc_refcount_decrement(&ring->references) - 1;
+
+	if (refs == 0) {
+		isc_refcount_destroy(&ring->references);
+
+		result = dns_tsigkeyring__dump(ring, keyfile);
+		dns_tsigkeyring__destroy(ring);
+	}
+
+#if DNS_TSIG_TRACE
+	fprintf(stderr,
+		"%s:%s:%s:%u:t%" PRItid ":%p->references = %" PRIuFAST32 "\n",
+		__func__, func, file, line, isc_tid(), ring, refs);
+#endif
+
+	return result;
 }
 
 isc_result_t

@@ -20,13 +20,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/* Include OpenSSL before cmocka redefines the allocator names. */
+#include <openssl/err.h>
+
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/atomic.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/result.h>
+#include <isc/stdtime.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dns/lib.h>
@@ -34,6 +40,7 @@
 #include <dns/rdataset.h>
 #include <dns/tsig.h>
 
+#include "dst_internal.h"
 #include "tsig_p.h"
 
 #include <tests/dns.h>
@@ -561,6 +568,327 @@ ISC_RUN_TEST_IMPL(tsig_maxkeys) {
 	dns_tsigkeyring_detach(&ring);
 }
 
+/*
+ * dns_tsigkeyring_dump() can only write a key whose DST provider
+ * implements dump(), which in practice means GSS-TSIG.  Stand in for the
+ * provider with a copy of the HMAC function table so that the dump paths
+ * can be exercised without a Kerberos session.
+ */
+#define MOCK_KEYDATA   "dGVzdA=="
+#define TEST_INCEPTION 4242
+#define TEST_CREATOR   "creator.example"
+
+static dst_func_t dump_funcs;
+static isc_result_t dump_result;
+
+static isc_result_t
+mock_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
+	UNUSED(key);
+
+	if (dump_result != ISC_R_SUCCESS) {
+		return dump_result;
+	}
+
+	*length = sizeof(MOCK_KEYDATA) - 1;
+	*buffer = isc_mem_get(mctx, *length);
+	memmove(*buffer, MOCK_KEYDATA, *length);
+
+	return ISC_R_SUCCESS;
+}
+
+/*
+ * Add a key to 'ring'.  Only a generated, unexpired key with a working
+ * provider dump() is eligible to be written out.
+ */
+static void
+add_key(dns_tsigkeyring_t *ring, const char *namestr, bool generated,
+	isc_stdtime_t expire, bool dumpable) {
+	unsigned char secret[] = "a test secret";
+	dns_fixedname_t fname, fcreator;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	dns_name_t *creator = dns_fixedname_initname(&fcreator);
+	dns_tsigkey_t *tkey = NULL, *tmp = NULL;
+	isc_result_t result;
+
+	result = dns_name_fromstring(name, namestr, dns_rootname, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_name_fromstring(creator, TEST_CREATOR, dns_rootname, 0,
+				     NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/* dns_tsigkey_create() derives the DST key from the secret. */
+	result = dns_tsigkey_create(name, DST_ALG_HMACSHA256, secret,
+				    sizeof(secret), isc_g_mctx, &tmp);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	if (dumpable) {
+		dump_funcs = *tmp->key->func;
+		dump_funcs.dump = mock_dump;
+		tmp->key->func = &dump_funcs;
+	}
+
+	result = dns_tsigkey_createfromkey(
+		name, DST_ALG_HMACSHA256, tmp->key, generated, false, creator,
+		TEST_INCEPTION, expire, isc_g_mctx, &tkey);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_tsigkey_detach(&tmp);
+
+	result = dns_tsigkeyring_add(ring, tkey);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_tsigkey_detach(&tkey);
+}
+
+#define TEST_KEYFILE BUILDDIR "/tsigkeys.test"
+
+static void
+remove_keyfile(void) {
+	(void)unlink(TEST_KEYFILE);
+}
+
+static bool
+keyfile_exists(void) {
+	return access(TEST_KEYFILE, F_OK) == 0;
+}
+
+/*
+ * Parse the dumped key file, returning the number of keys it holds.  The
+ * out parameters describe the last key read.
+ */
+static unsigned int
+read_keyfile(char *namestr, char *creatorstr, char *algstr, char *keystr,
+	     isc_stdtime_t *inception, isc_stdtime_t *expire) {
+	char line[4096] = { 0 };
+	unsigned int keys = 0;
+	FILE *fp = fopen(TEST_KEYFILE, "r");
+	assert_non_null(fp);
+
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		/* Each field buffer holds DNS_NAME_FORMATSIZE (1024). */
+		assert_int_equal(sscanf(line,
+					"%1023s %1023s %u %u %1023s %1023s",
+					namestr, creatorstr, inception, expire,
+					algstr, keystr),
+				 6);
+		keys++;
+	}
+	int ret = fclose(fp);
+	assert_int_equal(ret, 0);
+
+	return keys;
+}
+
+/*
+ * A reload shares the dynamic keyring between the old and the new view.
+ * Exporting a GSS context consumes it, so only the final owner may dump.
+ */
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_shared) {
+	char namestr[DNS_NAME_FORMATSIZE], creatorstr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE], keystr[4096];
+	isc_stdtime_t inception, expire, now = isc_stdtime_now();
+	dns_fixedname_t fname;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	dns_tsigkeyring_t *ring = NULL, *shared = NULL;
+	dns_tsigkey_t *found = NULL;
+	isc_result_t result;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "session.example", true, now + 3600, true);
+	dns_tsigkeyring_attach(ring, &shared);
+
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, DNS_R_CONTINUE);
+	assert_null(ring);
+	assert_false(keyfile_exists());
+
+	/* The surviving owner still resolves the key. */
+	result = dns_name_fromstring(name, "session.example", dns_rootname, 0,
+				     NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_tsigkey_find(&found, name, NULL, shared);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_tsigkey_detach(&found);
+
+	result = dns_tsigkeyring_dumpanddetach(&shared, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_null(shared);
+	assert_int_equal(read_keyfile(namestr, creatorstr, algstr, keystr,
+				      &inception, &expire),
+			 1);
+	assert_string_equal(namestr, "session.example");
+	remove_keyfile();
+}
+
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_nothing) {
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_tsigkeyring_t *ring = NULL;
+	isc_result_t result;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+
+	/* An empty ring. */
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_null(ring);
+
+	/* A statically configured key is not written out. */
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "static.example", false, now + 3600, true);
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	/* An expired generated key is not written out. */
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "expired.example", true, now - 1, true);
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	/* A provider without dump() support, i.e. every non-GSS key. */
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "hmac.example", true, now + 3600, false);
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	/* A provider whose dump() fails. */
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "broken.example", true, now + 3600, true);
+	dump_result = ISC_R_FAILURE;
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	/* Nothing above may have published a key file. */
+	assert_false(keyfile_exists());
+}
+
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_key) {
+	char namestr[DNS_NAME_FORMATSIZE], creatorstr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE], keystr[4096];
+	isc_stdtime_t inception, expire, now = isc_stdtime_now();
+	dns_tsigkeyring_t *ring = NULL;
+	isc_result_t result;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "session.example", true, now + 3600, true);
+
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_null(ring);
+
+	assert_int_equal(read_keyfile(namestr, creatorstr, algstr, keystr,
+				      &inception, &expire),
+			 1);
+	assert_string_equal(namestr, "session.example");
+	assert_string_equal(creatorstr, TEST_CREATOR);
+	assert_int_equal(inception, TEST_INCEPTION);
+	assert_int_equal(expire, now + 3600);
+	assert_string_equal(algstr, "hmac-sha256");
+	assert_string_equal(keystr, MOCK_KEYDATA);
+	remove_keyfile();
+}
+
+/* An undumpable key must not suppress the keys that can be dumped. */
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_skips_undumpable) {
+	char namestr[DNS_NAME_FORMATSIZE], creatorstr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE], keystr[4096];
+	isc_stdtime_t inception, expire, now = isc_stdtime_now();
+	dns_tsigkeyring_t *ring = NULL;
+	isc_result_t result;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "hmac.example", true, now + 3600, false);
+	add_key(ring, "session.example", true, now + 3600, true);
+
+	result = dns_tsigkeyring_dumpanddetach(&ring, TEST_KEYFILE);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(read_keyfile(namestr, creatorstr, algstr, keystr,
+				      &inception, &expire),
+			 1);
+	assert_string_equal(namestr, "session.example");
+	remove_keyfile();
+}
+
+/* A key file that cannot be published must not be left half written. */
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_unwritable) {
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_tsigkeyring_t *ring = NULL;
+	isc_result_t result;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "session.example", true, now + 3600, true);
+
+	result = dns_tsigkeyring_dumpanddetach(&ring,
+					       TEST_KEYFILE "/nonexistent/x");
+	assert_int_not_equal(result, ISC_R_SUCCESS);
+	assert_int_not_equal(result, DNS_R_CONTINUE);
+	assert_null(ring);
+	assert_false(keyfile_exists());
+}
+
+typedef struct {
+	dns_tsigkeyring_t *ring;
+	atomic_bool *start;
+	isc_result_t result;
+} dump_thread_t;
+
+static void *
+dump_thread(void *arg) {
+	dump_thread_t *ctx = arg;
+
+	while (!atomic_load_acquire(ctx->start)) {
+		isc_thread_yield();
+	}
+	ctx->result = dns_tsigkeyring_dumpanddetach(&ctx->ring, TEST_KEYFILE);
+
+	return NULL;
+}
+
+/* Exactly one owner may dump, however the detaches interleave. */
+ISC_RUN_TEST_IMPL(tsig_dumpanddetach_concurrent) {
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_tsigkeyring_t *ring = NULL;
+	isc_thread_t threads[8];
+	dump_thread_t contexts[8] = { 0 };
+	atomic_bool start = false;
+	unsigned int dumped = 0, continued = 0;
+
+	remove_keyfile();
+	dump_result = ISC_R_SUCCESS;
+	dns_tsigkeyring_create(isc_g_mctx, &ring);
+	add_key(ring, "session.example", true, now + 3600, true);
+
+	for (size_t i = 0; i < ARRAY_SIZE(threads); i++) {
+		dns_tsigkeyring_attach(ring, &contexts[i].ring);
+		contexts[i].start = &start;
+		isc_thread_create(dump_thread, &contexts[i], &threads[i]);
+	}
+	dns_tsigkeyring_detach(&ring);
+	atomic_store_release(&start, true);
+
+	for (size_t i = 0; i < ARRAY_SIZE(threads); i++) {
+		isc_thread_join(threads[i], NULL);
+		assert_null(contexts[i].ring);
+		if (contexts[i].result == ISC_R_SUCCESS) {
+			dumped++;
+		} else {
+			assert_int_equal(contexts[i].result, DNS_R_CONTINUE);
+			continued++;
+		}
+	}
+	assert_int_equal(dumped, 1);
+	assert_int_equal(continued, ARRAY_SIZE(threads) - 1);
+	assert_true(keyfile_exists());
+	remove_keyfile();
+}
+
 /* Tests the dns__tsig_algvalid function */
 ISC_RUN_TEST_IMPL(algvalid) {
 	UNUSED(state);
@@ -583,6 +911,12 @@ ISC_TEST_ENTRY(tsig_badtime)
 ISC_TEST_ENTRY(tsig_delete)
 ISC_TEST_ENTRY(tsig_tcp)
 ISC_TEST_ENTRY(tsig_maxkeys)
+ISC_TEST_ENTRY(tsig_dumpanddetach_shared)
+ISC_TEST_ENTRY(tsig_dumpanddetach_nothing)
+ISC_TEST_ENTRY(tsig_dumpanddetach_key)
+ISC_TEST_ENTRY(tsig_dumpanddetach_skips_undumpable)
+ISC_TEST_ENTRY(tsig_dumpanddetach_unwritable)
+ISC_TEST_ENTRY(tsig_dumpanddetach_concurrent)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
