@@ -2601,7 +2601,7 @@ burst() {
     num=$((num - 1))
     echo "fetch${num}.example A" >>burst.input.$$
   done
-  $PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 -b ${EXTRAPORT8} burst.input.$$
+  $PYTHON -m isctest.tools.ditch -p ${PORT} -s 10.53.0.3 -b ${EXTRAPORT8} burst.input.$$
   rm -f burst.input.$$
 }
 
