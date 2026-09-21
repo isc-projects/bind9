@@ -3,6 +3,7 @@
 dnspython>=2.8.0
 
 cryptography
+gssapi
 h2
 hypothesis>=4.41.2
 jinja2
