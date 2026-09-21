@@ -98,7 +98,9 @@ def _serve(ns2, system_test_dir, variant):
         st2 = os.stat(dst)
         if int(st2.st_mtime) <= int(st.st_mtime):
             os.utime(dst, (st2.st_atime, st.st_mtime + 1))
-    ns2.reload()
+    with ns2.watch_log_from_here() as watcher:
+        ns2.rndc("reload")
+        watcher.wait_for_line("zone example/IN: loaded serial")
 
 
 def _prime_secure_a(ns1):
