@@ -277,13 +277,34 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, dns_tsigkey_t *tkey);
  *\li		Any other value indicates failure.
  */
 
+#if DNS_TSIG_TRACE
+#define dns_tsigkeyring_dumpanddetach(ringp, keyfile)                      \
+	dns_tsigkeyring__dumpanddetach(ringp, keyfile, __func__, __FILE__, \
+				       __LINE__)
 isc_result_t
-dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp);
+dns_tsigkeyring__dumpanddetach(dns_tsigkeyring_t **ringp, const char *keyfile,
+			       const char *func, const char *file,
+			       const unsigned int line);
+#else
+isc_result_t
+dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, const char *keyfile);
+#endif
 /*%<
- *	Dump a TSIG key ring to 'fp'.
+ *	Dump a TSIG key ring to file named 'keyfile'.
+ *
+ *	The caller's reference is always released and '*ringp' is set to
+ *	NULL, whatever the result.  Only the final owner writes 'keyfile';
+ *	any other caller gets #DNS_R_CONTINUE and writes nothing, because
+ *	dumping a GSS key consumes its security context.
  *
  *	Requires:
- *\li		'ring' is a valid keyring.
+ *\li		'*ringp' is a valid keyring.
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS if at least one key was written.
+ *\li		#ISC_R_NOTFOUND if no keys could be written.
+ *\li		#ISC_R_IOERROR on a write error.
+ *\li		#DNS_R_CONTINUE if we continue to use the keyring.
  */
 
 void
