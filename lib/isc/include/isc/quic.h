@@ -51,6 +51,14 @@
 
 /**
  * \brief
+ * Maximum size of UDP packet currently supported for use in QUIC connections.
+ *
+ * Specified in RFC9000, Section 14.2.
+ */
+#define ISC_QUIC_PACKET_MAX_LENGTH 1200
+
+/**
+ * \brief
  * Infinite timeout or an invalid timestamp.
  */
 constexpr isc_nanosecs_t isc_quic_timestamp_invalid = UINT64_MAX;

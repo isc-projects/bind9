@@ -528,6 +528,9 @@ static const uint8_t salt_v2[] = {
 	0x81, 0xBE, 0x6E, 0x26, 0x9D, 0xCB, 0xF9, 0xBD, 0x2E, 0xD9,
 };
 
+STATIC_ASSERT(ISC_QUIC_PACKET_MAX_LENGTH <= NGTCP2_MAX_UDP_PAYLOAD_SIZE,
+	      "QUIC maximum packet size greater than ngtcp2's own limit");
+
 static void
 destroy(isc_quic_conn_t *conn) {
 	isc_mem_t *mctx;
