@@ -477,11 +477,11 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	switch (key->key_alg) {
 	case DST_ALG_ECDSA256:
 		result = isc_ossl_wrap_p256_secret_region(
-			pkey, (isc_region_t){ buf, keylen });
+			pkey, (isc_region_t){ .base = buf, .length = keylen });
 		break;
 	case DST_ALG_ECDSA384:
 		result = isc_ossl_wrap_p384_secret_region(
-			pkey, (isc_region_t){ buf, keylen });
+			pkey, (isc_region_t){ .base = buf, .length = keylen });
 		break;
 	default:
 		UNREACHABLE();

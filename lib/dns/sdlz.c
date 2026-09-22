@@ -1632,7 +1632,7 @@ dns_sdlzssumatch(const dns_name_t *signer, const dns_name_t *name,
 	char b_type[DNS_RDATATYPE_FORMATSIZE];
 	char b_key[DST_KEY_FORMATSIZE];
 	isc_buffer_t *tkey_token = NULL;
-	isc_region_t token_region = { NULL, 0 };
+	isc_region_t token_region = { 0 };
 	uint32_t token_len = 0;
 	bool ret;
 

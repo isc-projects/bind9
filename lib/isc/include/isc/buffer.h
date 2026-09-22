@@ -170,10 +170,11 @@
 
 struct isc_buffer {
 	unsigned int magic;
+	/*! The size of the data region. */
+	unsigned int length;
 	void	    *base ISC_ATTR_SIZED_BY_PTR(length);
 	/*@{*/
 	/*! The following integers are byte offsets from 'base'. */
-	unsigned int length;
 	unsigned int used;
 	unsigned int current;
 	unsigned int active;

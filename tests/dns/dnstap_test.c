@@ -384,7 +384,7 @@ correct_dnstap_parse(const char *path) {
 	assert_uint_in_range(len, 1, sizeof(buf) - 1);
 	fclose(f);
 
-	src = (isc_region_t){ buf, len };
+	src = (isc_region_t){ .base = buf, .length = len };
 	result = dns_dt_parse(isc_g_mctx, &src, &dt);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dtdata_free(&dt);
@@ -405,7 +405,7 @@ invalid_dnstap_parse(const char *path) {
 	assert_uint_in_range(len, 1, sizeof(buf) - 1);
 	fclose(f);
 
-	src = (isc_region_t){ buf, len };
+	src = (isc_region_t){ .base = buf, .length = len };
 	result = dns_dt_parse(isc_g_mctx, &src, &dt);
 	assert_int_equal(result, DNS_R_BADDNSTAP);
 }
