@@ -1,0 +1,32 @@
+// NS1
+
+options {
+	{% include_indented "_common/options.conf.j2" %}
+	recursion no;
+	dnssec-validation no;
+};
+
+{% include "_common/controls.conf.j2" %}
+
+key "update.key" {
+	algorithm hmac-sha256;
+	secret "1234abcd8765";
+};
+
+// Nobody may query these zones; only "update.key" may update them.
+zone "inline" {
+	type primary;
+	file "zones/inline.db";
+	inline-signing yes;
+	dnssec-policy default;
+	checkds no;
+	allow-query { none; };
+	update-policy { grant update.key zonesub any; };
+};
+
+zone "plain" {
+	type primary;
+	file "zones/plain.db";
+	allow-query { none; };
+	update-policy { grant update.key zonesub any; };
+};
