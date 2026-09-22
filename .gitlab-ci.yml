@@ -879,6 +879,9 @@ shfmt:
 
 danger:
   <<: *quick_checks_job
+  environment:
+    name: api-danger
+    action: access
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
@@ -2074,6 +2077,9 @@ sign:
 
 staging:
   <<: *signer_ssh_job
+  environment:
+    name: staging
+    action: access
   variables:
     RELEASE_TARBALL: bind-${CI_COMMIT_TAG}-release.tar.gz
     SSH_SCRIPT_RUNNER_PRE: |-
@@ -2097,6 +2103,9 @@ staging:
 
 publish-private:
   <<: *signer_ssh_job
+  environment:
+    name: staging
+    action: access
   variables:
     SSH_SCRIPT_CLIENT: |-
       ssh "${STAGING_USER_ACTIONS}@${STAGING_HOST}" "publish-private ${CI_COMMIT_TAG}"
@@ -2117,6 +2126,9 @@ publish-private:
 
 publish:
   <<: *signer_ssh_job
+  environment:
+    name: staging
+    action: access
   before_script:
     - TODAY="$(date +%Y-%m-%d)"
     - SCHEDULED_PUBLICATION="$(curl -m 5 -s "https://gitlab.isc.org/isc-projects/bind9-qa/-/raw/main/releng/metadata.json" | jq -r ".schedule.public")"
@@ -2136,6 +2148,9 @@ publish:
 
 publish-cleanup:
   <<: *base_image
+  environment:
+    name: distros-zulip
+    action: access
   stage: release
   script:
     - *git_clone_bind9-qa
@@ -2164,6 +2179,9 @@ publish-cleanup:
 
 assign-milestones:
   <<: *manual_release_job_qa
+  environment:
+    name: write
+    action: access
   needs:
     - job: sign
       artifacts: false
@@ -2213,6 +2231,9 @@ assign-milestones:
 
 rpms-cloudsmith-build:
   <<: *rpm_build_job
+  environment:
+    name: write
+    action: access
   variables:
     SERVICE: cloudsmith
   rules:
@@ -2224,6 +2245,9 @@ rpms-cloudsmith-build:
 
 rpms-cloudsmith-build-private:
   <<: *rpm_build_job_private
+  environment:
+    name: write
+    action: access
   variables:
     SERVICE: cloudsmith
   rules:
@@ -2237,6 +2261,9 @@ rpms-cloudsmith-build-private:
 
 rpms-cloudsmith-publish:
   <<: *rpm_publish_job
+  environment:
+    name: write
+    action: access
   variables:
     SERVICE: cloudsmith
   needs:
@@ -2247,6 +2274,9 @@ rpms-cloudsmith-publish:
 
 rpms-cloudsmith-publish-private:
   <<: *rpm_publish_job
+  environment:
+    name: write
+    action: access
   variables:
     SERVICE: cloudsmith
   needs:
@@ -2259,6 +2289,9 @@ rpms-cloudsmith-publish-private:
 
 rpms-copr:
   <<: *rpm_build_job
+  environment:
+    name: write
+    action: access
   variables:
     SERVICE: copr
   rules:
@@ -2285,6 +2318,9 @@ rpms-copr:
 update-docker-image:
   <<: *base_image
   <<: *manual_release_job
+  environment:
+    name: write-zulip
+    action: access
   variables:
     RELEASE_DIRECTORY: "bind-${CI_COMMIT_TAG}-release"
   script:
@@ -2318,6 +2354,9 @@ update-docker-image:
 
 prepare-release-announcement:
   <<: *printing_press_job
+  environment:
+    name: write-zulip
+    action: access
   variables:
     DOCUMENT: release-announcement
   rules:
@@ -2329,6 +2368,9 @@ prepare-release-announcement:
 
 prepare-evn:
   <<: *printing_press_job
+  environment:
+    name: write
+    action: access
   variables:
     DOCUMENT: evn
   rules:
@@ -2338,6 +2380,9 @@ prepare-evn:
 
 prepare-preannouncement:
   <<: *printing_press_job
+  environment:
+    name: write
+    action: access
   variables:
     DOCUMENT: security-preannouncement
   rules:
@@ -2347,6 +2392,9 @@ prepare-preannouncement:
 
 prepare-packager-notification:
   <<: *printing_press_job
+  environment:
+    name: distros-write-zulip
+    action: access
   before_script:
     - *git_clone_bind9-qa
     # produce distros_git_url.txt to be immediately read by printing_press_mr.py
@@ -2361,6 +2409,9 @@ prepare-packager-notification:
 
 prepare-post-disclosure-notification:
   <<: *printing_press_job
+  environment:
+    name: write
+    action: access
   variables:
     DOCUMENT: post-disclosure-notification
   rules:
@@ -2370,6 +2421,9 @@ prepare-post-disclosure-notification:
 
 merge-tag:
   <<: *manual_release_job_qa
+  environment:
+    name: write
+    action: access
   variables:
     GIT_DEPTH: 100
   needs:
@@ -2388,6 +2442,9 @@ merge-tag:
 
 cherry-pick-tag:
   <<: *manual_release_job_qa
+  environment:
+    name: write
+    action: access
   variables:
     GIT_DEPTH: 100
   needs:
@@ -2401,6 +2458,9 @@ cherry-pick-tag:
 
 update-stable-tag:
   <<: *manual_release_job_qa
+  environment:
+    name: write
+    action: access
   needs:
     # TODO: if necessary, update job name after pushing tags from within CI is implemented
     - job: publish
@@ -2433,6 +2493,9 @@ update-stable-tag:
 # set it to the name of the target customer.
 customer-git:branch:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -2451,6 +2514,9 @@ customer-git:branch:
 
 customer-git:tag:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs:
     - job: release
       artifacts: false
@@ -2543,24 +2609,36 @@ respdiff:recent-named:
 
 shotgun:udp:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: udp
     SHOTGUN_TRAFFIC_MULTIPLIER: 15
 
 shotgun:tcp:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: tcp
     SHOTGUN_TRAFFIC_MULTIPLIER: 12
 
 shotgun:dot:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: dot
     SHOTGUN_TRAFFIC_MULTIPLIER: 5
 
 shotgun:doh-get:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: doh-get
     SHOTGUN_TRAFFIC_MULTIPLIER: 2
@@ -2676,6 +2754,9 @@ pairwise:
 
 backports:
   <<: *post_merge
+  environment:
+    name: write
+    action: access
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
@@ -2686,6 +2767,9 @@ backports:
 
 merged-metadata:
   <<: *post_merge
+  environment:
+    name: write
+    action: access
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9\.[0-9]+\.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
@@ -2784,6 +2868,9 @@ autorebase-trigger-security:
 
 autorebase-security:
   <<: *autorebase
+  environment:
+    name: api-write-zulip
+    action: access
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
 
@@ -2800,5 +2887,8 @@ autorebase-trigger-sub:
 
 autorebase-sub:
   <<: *autorebase
+  environment:
+    name: api-write-zulip
+    action: access
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+-sub$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
