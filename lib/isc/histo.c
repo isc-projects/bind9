@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <isc/atomic.h>
+#include <isc/attributes.h>
 #include <isc/bit.h>
 #include <isc/histo.h>
 #include <isc/magic.h>
@@ -75,7 +76,7 @@ struct isc_histomulti {
 	unsigned int magic;
 	unsigned int size;
 	isc_refcount_t references;
-	isc_histo_t *hg[];
+	isc_histo_t *hg[] ISC_ATTR_COUNTED_BY(size);
 };
 
 /**********************************************************************/

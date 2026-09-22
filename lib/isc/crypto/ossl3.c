@@ -23,6 +23,7 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/crypto.h>
 #include <isc/hmac.h>
@@ -46,7 +47,7 @@ struct isc_hmac_key {
 	uint32_t len;
 	isc_mem_t *mctx;
 	const OSSL_PARAM *params;
-	uint8_t secret[];
+	uint8_t secret[] ISC_ATTR_COUNTED_BY(len);
 };
 
 struct isc_crypto_quic_hp_protect {
