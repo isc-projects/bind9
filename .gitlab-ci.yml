@@ -2524,6 +2524,7 @@ merged-metadata:
       REASON_DETAILS=""
       if git rebase --abort; then
           # Rebase failed; try applying recent commits from the base branch on top of the branch being rebased to determine which one introduces conflicts
+          REASON="merge conflict introduced by a change in the base branch"
           git rebase --rebase-merges "${CI_COMMIT_SHA}" "${BASE_COMMIT}" || true
           CONFLICT_COMMIT="$(git rev-parse REBASE_HEAD)"
           CONFLICT_COMMIT_AUTHOR_LOGIN="$(git log --max-count=1 --pretty="%al" "${CONFLICT_COMMIT}")"
@@ -2534,10 +2535,11 @@ merged-metadata:
             CONFLICT_COMMIT_AUTHOR="\`${CONFLICT_COMMIT_AUTHOR_LOGIN}\`"
           fi
           CONFLICT_COMMIT_MERGE="$(git log --reverse --merges --pretty="%H" "${CONFLICT_COMMIT}..${BASE_COMMIT}" | head -1)"
-          read -r CONFLICT_COMMIT_MERGE_REQUEST_PROJECT CONFLICT_COMMIT_MERGE_REQUEST_ID < <(git log --max-count=1 "${CONFLICT_COMMIT_MERGE}" | sed -n -E 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
-          REASON="merge conflict introduced by a change in the base branch"
-          REASON_DETAILS="${REASON_DETAILS}\n**First bad commit**: [${CONFLICT_COMMIT}](https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/commit/${CONFLICT_COMMIT}) (authored by ${CONFLICT_COMMIT_AUTHOR})"
-          REASON_DETAILS="${REASON_DETAILS}\n**First bad merge request**: https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/merge_requests/${CONFLICT_COMMIT_MERGE_REQUEST_ID}"
+          if [ -n "${CONFLICT_COMMIT_MERGE}" ]; then
+            read -r CONFLICT_COMMIT_MERGE_REQUEST_PROJECT CONFLICT_COMMIT_MERGE_REQUEST_ID < <(git log --max-count=1 "${CONFLICT_COMMIT_MERGE}" | sed -n -E 's|^\s*See merge request ([a-z-]+/bind9)!([0-9]+).*|\1 \2|p' | head -1)
+            REASON_DETAILS="${REASON_DETAILS}\n**First bad commit**: [${CONFLICT_COMMIT}](https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/commit/${CONFLICT_COMMIT}) (authored by ${CONFLICT_COMMIT_AUTHOR})"
+            REASON_DETAILS="${REASON_DETAILS}\n**First bad merge request**: https://gitlab.isc.org/${CONFLICT_COMMIT_MERGE_REQUEST_PROJECT}/-/merge_requests/${CONFLICT_COMMIT_MERGE_REQUEST_ID}"
+          fi
       else
           # Rebase did not fail; most likely, this is a build failure, or the job was canceled
           if [ "${CI_JOB_STATUS}" = "failed" ]; then
