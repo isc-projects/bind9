@@ -7284,6 +7284,15 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 
 	query_addrrset(qctx, &fname, &neg, &negsig, dbuf,
 		       DNS_SECTION_AUTHORITY);
+
+	/*
+	 * For an ANY response this is called once per answer RRset, and
+	 * they all share one proof, so only the first call adds it.  Give
+	 * back what the others allocated; query_addrrset() has already
+	 * dealt with 'fname' either way.
+	 */
+	ns_client_putrdataset(client, &neg);
+	ns_client_putrdataset(client, &negsig);
 }
 
 static dns_name_t *
