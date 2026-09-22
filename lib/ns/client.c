@@ -2634,7 +2634,7 @@ clientmgr_destroy_cb(void *arg) {
 
 	ns_server_detach(&manager->sctx);
 
-	dns_message_destroypools(&manager->rdspool, &manager->namepool);
+	dns_message_destroypools(&manager->namepool, &manager->rdspool);
 
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 }
