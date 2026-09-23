@@ -11,9 +11,7 @@
 
 import pytest
 
-import isctest.mark
-
-EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
+pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "wait_for_message.*",
@@ -23,11 +21,6 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
         "ns5/named.stats",
     ]
 )
-
-pytestmark = [
-    isctest.mark.requires_net_dns,
-    EXTRA_ARTIFACTS,
-]
 
 
 def test_fetchlimit(run_tests_sh):

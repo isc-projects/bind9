@@ -588,7 +588,7 @@ status=$((status + ret))
 # By 23:59 11 October 2026 the IANA root zone should be being signed with the
 # 2026 trust anchor.  Prior to that check that we are warning that we are
 # missing the 2017 trust anchor.
-if test $($PERL -e 'print time()."\n";') -lt 1791676800; then
+if test $(date +%s) -lt 1791676800; then
   n=$((n + 1))
   echo_i "check that the 2026 ICANN ROOT KSK alone generates a warning ($n)"
   ret=0
