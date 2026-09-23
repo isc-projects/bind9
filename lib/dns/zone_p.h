@@ -446,8 +446,9 @@ struct dns_zone {
 	const FILE *stream;		  /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes; /* Include files */
 
-	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t dblock;
+	/* Keep db before the aligned lock so they cannot share a cache line. */
 	dns_db_t *db; /* Locked by dblock */
+	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t dblock;
 
 	isc_tid_t tid;
 	/* Locked */
