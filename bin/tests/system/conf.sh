@@ -25,11 +25,7 @@ fi
 export PYTHONPATH="$TOP_BUILDDIR/bin/tests/system${PYTHONPATH:+:$PYTHONPATH}"
 
 testsock6() {
-  if test -n "$PERL" && $PERL -e "use IO::Socket::IP;" 2>/dev/null; then
-    $PERL "$TOP_SRCDIR/bin/tests/system/testsock6.pl" "$@"
-  else
-    false
-  fi
+  $PYTHON -m isctest.tools.testsock "$@"
 }
 
 echofail() {

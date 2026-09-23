@@ -1479,7 +1479,7 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if $PERL ../testsock6.pl fd92:7065:b8e:fffe::10.53.0.4 2>/dev/null; then
+if testsock6 fd92:7065:b8e:fffe::10.53.0.4 2>/dev/null; then
   echo_i "checking resolver-use-dns64 ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 no-aaaa aaaa >dig.out.ns3.test$n || ret=1
