@@ -390,6 +390,17 @@ ISC_RUN_TEST_IMPL(setownercase) {
 ISC_RUN_TEST_IMPL(resign_sooner_values) {
 	dns_typepair_t soa = DNS_SIGTYPEPAIR(dns_rdatatype_soa);
 	dns_typepair_t other = DNS_SIGTYPEPAIR(dns_rdatatype_a);
+	dns_vecheader_t scheduled = {
+		.attributes = DNS_VECHEADERATTR_RESIGN,
+		.typepair = other,
+		.resign = 20,
+	};
+	dns_vecheader_t unscheduled = {
+		.typepair = other,
+		.resign = 0,
+	};
+	qpz_resign_t scheduled_elem = { .header = &scheduled };
+	qpz_resign_t unscheduled_elem = { .header = &unscheduled };
 
 	UNUSED(state);
 
@@ -401,6 +412,95 @@ ISC_RUN_TEST_IMPL(resign_sooner_values) {
 
 	assert_false(resign_sooner_values(10, soa, 10, soa));
 	assert_false(resign_sooner_values(10, other, 10, other));
+
+	assert_true(resign_sooner(&scheduled_elem, &unscheduled_elem));
+	assert_false(resign_sooner(&unscheduled_elem, &scheduled_elem));
+}
+
+ISC_RUN_TEST_IMPL(unscheduled_resign) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixed;
+	dns_rdataset_t rdataset;
+	dns_typepair_t typepair;
+	isc_stdtime_t resign;
+
+	result = dns__qpzone_create(isc_g_mctx, &example_org_name,
+				    dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+				    NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	WITH_NEWVERSION(db, version, true) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[0], 16,
+					  DNS_DIFFOP_ADD);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	WITH_NEWVERSION(db, version, true) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[1], 16,
+					  DNS_DIFFOP_ADD);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Deliberately insert an ordinary header into the resigning heap to
+	 * verify that the defensive checks do not expose it as scheduled.
+	 */
+	result = dns_db_findnode(db, &example_org_name, false, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_aaaa, 0, 0,
+				     &rdataset, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
+	dns_vecheader_t *header = dns_vecheader_getheader(&rdataset);
+	LOCK(&qpdb->heap->lock);
+	resign_register(qpdb->heap, (qpznode_t *)node, header);
+	UNLOCK(&qpdb->heap->lock);
+
+	dns_fixedname_init(&fixed);
+	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+				       &typepair);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	LOCK(&qpdb->heap->lock);
+	result = resign_unregister(qpdb->heap, (qpznode_t *)node, header);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = resign_unregister(qpdb->heap, (qpznode_t *)node, header);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	UNLOCK(&qpdb->heap->lock);
+
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detachnode(&node);
+
+	/*
+	 * A rolled-back subtraction must not register an ordinary header that
+	 * was not in the resigning heap before the transaction.
+	 */
+	WITH_NEWVERSION(db, version, false) {
+		result = apply_dns_update(db, version, &example_org_name,
+					  dns_rdatatype_aaaa, dns_rdataclass_in,
+					  300, aaaa_test_data[0], 16,
+					  DNS_DIFFOP_DEL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	LOCK(&qpdb->heap->lock);
+	assert_null(isc_heap_element(qpdb->heap->heap, 1));
+	UNLOCK(&qpdb->heap->lock);
+
+	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+				       &typepair);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+
+	dns_db_detach(&db);
 }
 
 ISC_RUN_TEST_IMPL(diffop_add_sub) {
@@ -806,6 +906,7 @@ ISC_TEST_LIST_START
 ISC_TEST_ENTRY(ownercase)
 ISC_TEST_ENTRY(setownercase)
 ISC_TEST_ENTRY(resign_sooner_values)
+ISC_TEST_ENTRY(unscheduled_resign)
 ISC_TEST_ENTRY(diffop_add_sub)
 ISC_TEST_ENTRY(wildcard_foundname)
 ISC_TEST_ENTRY(wildcard_delegation_foundname)

@@ -211,6 +211,33 @@ def test_update_signing(default_algorithm):
     assert any("1 0 0 -" in a for a in nsec3)
 
 
+def test_update_rollback_preserves_resign_heap(ns3):
+    # Exercise a rollback after an ordinary header has already been removed.
+    # The fourth A record exceeds max-records-per-type and rejects the whole
+    # transaction.  The restored ordinary header must not be inserted into the
+    # DNSSEC re-signing heap with a resign time of zero.
+    up = update.UpdateMessage("dynamic.example.")
+    up.delete("d.dynamic.example.", "A")
+    for address in ("192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4"):
+        up.add("overflow.dynamic.example.", 300, "A", address)
+    res = isctest.query.tcp(up, "10.53.0.3")
+    isctest.check.servfail(res)
+
+    # Confirm that the failed update was rolled back.
+    msg = isctest.query.create("d.dynamic.example.", "A")
+    res = isctest.query.tcp(msg, "10.53.0.3")
+    isctest.check.noerror(res)
+    assert res.answer[0][0].address == "10.0.0.4"
+
+    msg = isctest.query.create("overflow.dynamic.example.", "A")
+    res = isctest.query.tcp(msg, "10.53.0.3")
+    isctest.check.nxdomain(res)
+
+    # A malformed heap entry makes zone.c wrap the next timer into 2106.
+    # The next resign time must still belong to the selected RRset's RRSIG.
+    check_zonestatus_next_resign(ns3, "dynamic.example")
+
+
 def test_cds_signing():
     # check that CDS records are signed using KSK+ZSK by dnssec-signzone
     msg = isctest.query.create("cds.secure.", "CDS")
@@ -390,16 +417,16 @@ def test_rndc_signing_output(ns3):
     assert "No signing records found" in response.out
 
 
-def test_zonestatus_signing(ns3):
+def check_zonestatus_next_resign(ns3, zone):
     # check that the correct resigning time is reported in zonestatus.
     # zonestatus reports a name/type and expecting resigning time;
     # we convert the time to seconds since epoch, look up the RRSIG
     # for the name and type, and check that the resigning time is
     # after the inception and before the expiration.
 
-    response = ns3.rndc("zonestatus secure.example")
+    response = ns3.rndc(f"zonestatus {zone}")
 
-    # next resign node: secure.example/DNSKEY
+    # next resign node: example/DNSKEY
     nrn = [r for r in response.out.splitlines() if "next resign node" in r][0]
     rdname, rdtype = nrn.split()[3].split("/")
 
@@ -414,6 +441,10 @@ def test_zonestatus_signing(ns3):
     _, sigs = res.answer
     assert sigs[0].inception < when
     assert when < sigs[0].expiration
+
+
+def test_zonestatus_signing(ns3):
+    check_zonestatus_next_resign(ns3, "secure.example")
 
 
 def test_offline_ksk_signing(ns2, default_algorithm):
