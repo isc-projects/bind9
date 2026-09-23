@@ -12,6 +12,7 @@
 from typing import cast
 
 import difflib
+import os
 import shutil
 
 from dns.edns import EDECode, EDEOption
@@ -239,6 +240,26 @@ def empty_answer(message: dns.message.Message) -> None:
     assert not message.answer, str(message)
 
 
+def empty_authority(message: dns.message.Message) -> None:
+    assert not message.authority, str(message)
+
+
+def empty_additional(message: dns.message.Message) -> None:
+    assert not message.additional, str(message)
+
+
+def has_answer(message: dns.message.Message) -> None:
+    assert message.answer, str(message)
+
+
+def has_authority(message: dns.message.Message) -> None:
+    assert message.authority, str(message)
+
+
+def has_additional(message: dns.message.Message) -> None:
+    assert message.additional, str(message)
+
+
 def rr_count_eq(section: list, expected: int):
     # NOTE: OPT and TSIG records aren't included in the count for ADDITIONAL section
     count = sum(len(rrset) for rrset in section)
@@ -270,3 +291,7 @@ def file_contents_equal(file1, file2):
         assert not line.startswith("+ ") and not line.startswith(
             "- "
         ), f'file contents of "{file1}" and "{file2}" differ'
+
+
+def file_empty(file):
+    assert os.path.getsize(file) == 0

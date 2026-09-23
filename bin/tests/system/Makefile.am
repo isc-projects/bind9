@@ -82,19 +82,27 @@ TESTS =				\
 	additional		\
 	addzone			\
 	allow_query		\
+	allow_query_on		\
 	auth			\
 	autosign		\
+	bailiwick		\
 	builtin			\
 	cacheclean		\
 	camp			\
+	cap_glues		\
 	case			\
 	catz			\
+	cdnxdomain		\
 	cds			\
 	chain			\
 	checkconf		\
+	checkconf_keys		\
 	checkds			\
 	checknames		\
 	checkzone		\
+	cipher_suites		\
+	class			\
+	cname_dname_negcache	\
 	cname_recursion		\
 	cookie			\
 	cpu			\
@@ -104,7 +112,14 @@ TESTS =				\
 	dispatch		\
 	dlzexternal		\
 	dns64			\
+	dns64_dname		\
 	dnssec			\
+	dnssec_bypass		\
+	dnssec_cname_response	\
+	dnssec_nsec3		\
+	dnssec_parent_rrsig	\
+	dnssec_py		\
+	dnssec_wildcard		\
 	dnstap			\
 	doth			\
 	dsdigest		\
@@ -114,19 +129,22 @@ TESTS =				\
 	ednscompliance		\
 	emptyzones		\
 	enginepkcs11		\
-	filters			\
+	expiredglue		\
 	fetchlimit		\
+	filters			\
 	formerr			\
 	forward			\
+	fwdfirst		\
 	geoip2			\
 	glue			\
+	hooks			\
+	host			\
 	idna			\
 	include_multiplecfg	\
 	inline			\
 	integrity		\
 	ixfr			\
-	hooks			\
-	host			\
+	ixfr_nonminimal		\
 	journal			\
 	kasp			\
 	keepalive		\
@@ -138,26 +156,44 @@ TESTS =				\
 	masterfile		\
 	masterformat		\
 	metadata		\
+	migrate2kasp		\
 	mirror			\
+	mirror_root_zone	\
+	mismatchtcp		\
 	mkeys			\
 	multisigner		\
 	names			\
 	notify			\
+	nsec			\
 	nsec3			\
-	nsec_wildcard_wrong_zone \
+	nsec3_impersonation	\
+	nsec_grandparent	\
+	nsec_ixfr		\
+	nsec_piggyback		\
+	nsec_synthesis		\
+	nsec_wildcard_wrong_zone	\
 	nslookup		\
+	nsprocessinglimit	\
 	nsupdate		\
+	nta			\
 	nzd2nzf			\
+	optout			\
+	outofzone_zonecut	\
 	padding			\
 	pending			\
-	proxy			\
 	pipelined		\
+	proxy			\
 	qmin			\
+	qpcache_rrsig_any	\
 	query_source		\
+	randomizens		\
 	reclimit		\
 	redirect		\
+	resend_loop		\
 	resolver		\
+	rfc5011			\
 	rndc			\
+	rndc_confgen		\
 	rollover		\
 	rootkeysentinel		\
 	rpzextra		\
@@ -166,20 +202,33 @@ TESTS =				\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
+	selfpointedglue		\
+	selftest		\
+	selftest_asyncdnsserver	\
 	sfcache			\
+	sfcache_cname		\
 	shutdown		\
+	sig0			\
+	sig0_https		\
 	smartsign		\
 	sortlist		\
 	spf			\
+	srtt			\
+	ssumaxtype		\
+	ssutoctou		\
 	staticstub		\
 	statistics		\
 	statschannel		\
 	stress			\
 	stub			\
+	svcb_alias		\
 	synthfromdnssec		\
 	tcp			\
+	tkey			\
+	tkeyleak		\
 	tools			\
 	transport_acl		\
+	transport_change	\
 	tsig			\
 	tsiggss			\
 	ttl			\
@@ -188,6 +237,7 @@ TESTS =				\
 	views			\
 	wildcard		\
 	xfer			\
+	xfer_servers_list	\
 	xferquota		\
 	zero			\
 	zonechecks
