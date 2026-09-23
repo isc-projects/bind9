@@ -427,10 +427,9 @@ Bug Fixes
 
   Don't accept signatures which length isn't equal to the expected
   calculated HMAC length unless it is explicitly requested by the
-  caller, e.g. for truncated TSIG [1] support.
+  caller, e.g. for truncated TSIG [1] support. :gl:`!12629`
 
-  [1] https://datatracker.ietf.org/doc/html/rfc8945#name-tsig-truncation
-  -policy :gl:`!12629`
+  [1] https://datatracker.ietf.org/doc/html/rfc8945#name-tsig-truncation-policy
 
 - Prevent resolver crashes while processing DNS over TCP. ``81b3b6d89f``
 
