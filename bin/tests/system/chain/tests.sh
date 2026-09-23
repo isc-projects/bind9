@@ -511,7 +511,7 @@ grep 'status: NOERROR' dig.out.1.$n >/dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.1.$n >/dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.7 null --- start test$n - step 2 --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
-sendcmd 10.53.0.4 setup-chain "cname.cname.cname._.1.1.2.2.3.4.s4.s3.s1"
+sendcmd 10.53.0.4 setup-chain "cname.cname.cname._.1.2.3.4.s4.s3.s1"
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil >dig.out.2.$n 2>&1
 grep 'status: NOERROR' dig.out.2.$n >/dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.2.$n >/dev/null 2>&1 || ret=1
@@ -535,7 +535,7 @@ grep 'status: NOERROR' dig.out.5.$n >/dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.5.$n >/dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.7 null --- start test$n - step 6 --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
-sendcmd 10.53.0.4 setup-chain "cname.cname.cname._.4.3.3.3.s1.s1.1.3.4"
+sendcmd 10.53.0.4 setup-chain "cname.cname.cname._.4.3.s1.s1.1"
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil >dig.out.6.$n 2>&1
 grep 'status: NOERROR' dig.out.6.$n >/dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.6.$n >/dev/null 2>&1 || ret=1
