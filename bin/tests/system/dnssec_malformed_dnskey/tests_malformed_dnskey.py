@@ -114,6 +114,23 @@ def after_servers_start():
     isctest.query.tcp(msg, "10.53.0.3")
 
 
+def uses_openssl3_api(ns3):
+    """
+    Check the configure arguments named logs at startup for an
+    OPENSSL_API_COMPAT below 3.0.  Such a build imports ECDSA keys via the
+    legacy EC_KEY API, which does not log "EVP_PKEY_fromdata failed".
+    """
+    log_api_compat = Re(r"built with .*OPENSSL_API_COMPAT=(0x[0-9a-fA-F]+|[0-9]+)")
+
+    matches = ns3.log.grep(log_api_compat)
+    if not matches:
+        return True
+    value = int(matches[-1].group(1), 0)
+    if value >= 0x900000:  # old-style version number, see openssl/macros.h
+        return value >= 0x30000000
+    return value >= 30000
+
+
 def test_malformed_ecdsa(ns3):
     log_validation_failed = Re(r"malformed-dnskey\.example/A\): validation failed")
     log_openssl_failure = Re("EVP_PKEY_fromdata.*failed")
@@ -125,6 +142,7 @@ def test_malformed_ecdsa(ns3):
     if (
         openssl_vers
         and int(openssl_vers[0].group(1)) >= 3
+        and uses_openssl3_api(ns3)
         and os.getenv("FEATURE_QUERYTRACE") == "1"
     ):
         # extra check for OpenSSL 3.0.0+
@@ -174,6 +192,7 @@ def test_multiple_rrsigs(ns3):
     if (
         openssl_vers
         and int(openssl_vers[0].group(1)) >= 3
+        and uses_openssl3_api(ns3)
         and os.getenv("FEATURE_QUERYTRACE") == "1"
     ):
         # extra check for OpenSSL 3.0.0+
