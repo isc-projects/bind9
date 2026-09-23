@@ -1,0 +1,34 @@
+// NS11 — validating resolver, using either nxdomain-redirect or
+// a redirect zone, and configured for strict qname-minimization.
+
+{% set redirect_zone = redirect_zone | default(False) %}
+
+options {
+	{% include_indented "_common/options.conf.j2" %}
+{% if not redirect_zone %}
+	nxdomain-redirect redirect;
+{% endif %}
+	dnssec-validation yes;
+	qname-minimization strict;
+};
+
+{% include "_common/controls.conf.j2" %}
+
+include "trusted.conf";
+
+zone "." {
+	type hint;
+	file "root.hints";
+};
+
+{% if redirect_zone %}
+zone "." {
+	type redirect;
+	file "redirect.db";
+};
+{% else %}
+zone "redirect" {
+	type primary;
+	file "redirect.db";
+};
+{% endif %}
