@@ -217,9 +217,7 @@ system test directories may contain the following standard files:
 - `ans<N>`: Like ns<N>, but these are mock name servers implemented in python
   (`ans.py`), usually with the `isctest.asyncserver` module.  They are
   generally programmed to misbehave in ways named would not, so as to exercise
-  named's ability to interoperate with badly behaved name servers.  A few
-  legacy mock servers are still implemented in perl (`ans.pl`); don't write
-  new ones.
+  named's ability to interoperate with badly behaved name servers.
 
 The following files appear in test directories that have not yet been fully
 ported to python; do not add them to new tests:
