@@ -1,0 +1,12 @@
+$TTL 300
+@			IN SOA	. a.root.servers.nil. (
+				2000042100	; serial
+				600		; refresh
+				600		; retry
+				1200		; expire
+				600		; minimum
+)
+
+@			NS	a.root-servers.nil.
+dlz			CNAME	example.nil.
+denied			CNAME	www.denied.nil.

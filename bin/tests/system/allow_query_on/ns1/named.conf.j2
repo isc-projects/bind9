@@ -21,6 +21,21 @@ view "vredirect" {
 	};
 };
 
+view "vredirect2" {
+	match-clients { 10.53.0.5; };
+	zone "." {
+		type primary;
+		file "root.db";
+	};
+
+	zone "." {
+		type redirect;
+		file "redirect.db";
+		allow-query { any; };
+		allow-query-on { 10.53.0.1; };
+	};
+};
+
 view "vdlz1" {
 	match-clients { 10.53.0.2; };
 	dlz other {
@@ -32,6 +47,12 @@ view "vdlz1" {
 	zone "." {
 		type primary;
 		file "root.db";
+	};
+
+	zone "allowed.nil" {
+		type primary;
+		file "allowed.nil.db";
+		allow-query { any; };
 	};
 };
 
@@ -57,8 +78,31 @@ view "vdlz3" {
 	};
 	allow-query { any; };
 	allow-query-on { 10.53.0.1; };
+	minimal-responses yes;
 	zone "." {
 		type primary;
 		file "root.db";
+	};
+};
+
+view "vzone" {
+	match-clients { 10.53.0.6; };
+	recursion yes;
+	allow-recursion { any; };
+	zone "." {
+		type primary;
+		file "root.db";
+	};
+
+	zone "allowed.nil" {
+		type primary;
+		file "allowed.nil.db";
+		allow-query { any; };
+	};
+
+	zone "denied.nil" {
+		type primary;
+		file "denied.nil.db";
+		allow-query { none; };
 	};
 };
