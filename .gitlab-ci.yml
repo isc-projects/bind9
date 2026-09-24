@@ -235,6 +235,9 @@ stages:
     - test -s bin/tests/system/systests.output
     - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" bin/tests/system/systests.output ); fi
     - '( ! grep -F "grep: warning:" bin/tests/system/systests.output )'
+    # Run the tests not listed in conf.sh.
+    - PYTEST="$(cd bin/tests/system && . ./conf.sh && echo "$PYTEST")"
+    - test -n "${SKIP_PYTEST_RUNNER}" || ( cd bin/tests/system && "$PYTEST" -n "${TEST_PARALLEL_JOBS:-1}" )
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -504,6 +507,10 @@ gcc:alpine3.20:amd64:
 system:gcc:alpine3.20:amd64:
   <<: *alpine_3_20_amd64_image
   <<: *system_test_job
+  variables:
+    # The image is no longer rebuilt and lacks the pytest runner's
+    # dependencies.
+    SKIP_PYTEST_RUNNER: 1
   needs:
     - job: gcc:alpine3.20:amd64
       artifacts: true
@@ -761,6 +768,10 @@ gcc:asan:
 system:gcc:asan:
   <<: *fedora_40_amd64_image
   <<: *system_test_job
+  variables:
+    # The image is no longer rebuilt and lacks the pytest runner's
+    # dependencies.
+    SKIP_PYTEST_RUNNER: 1
   needs:
     - job: gcc:asan
       artifacts: true
