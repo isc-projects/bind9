@@ -22,6 +22,7 @@ from collections.abc import Iterable
 
 import argparse
 import fileinput
+import random
 import socket
 
 import dns.inet
@@ -37,6 +38,10 @@ def send_queries(
     with "#" are skipped.  Return the number of queries sent.
     """
     family = dns.inet.af_for_address(address)
+    # All queries share a source port, so named would drop a repeated
+    # message ID for the same name as a duplicate query; use sequential
+    # IDs from a random start.
+    first_id = random.getrandbits(16)
     sent = 0
     with socket.socket(family, socket.SOCK_DGRAM) as sock:
         sock.bind(("", source_port))
@@ -45,7 +50,7 @@ def send_queries(
             if not fields or fields[0].startswith("#"):
                 continue
             name, rdtype = fields[:2]
-            query = dns.message.make_query(name, rdtype)
+            query = dns.message.make_query(name, rdtype, id=(first_id + sent) & 0xFFFF)
             sock.sendto(query.to_wire(), (address, port))
             sent += 1
     return sent
