@@ -371,7 +371,7 @@ Where:
  - `AGENT_NAME` is the name of the AI tool or framework.
  - `MODEL_VERSION` is the specific model version used.
  - `[TOOL1] [TOOL2]` are optional specialized analysis tools used
-   (e.g., coccinelle, clang-tidy, AFL, Coverity).
+   (e.g., coccinelle, clang-tidy, AFL).
 
 Basic development tools (git, compilers, meson, ninja, editors,
 clang-format, black, ruff) should not be listed.
