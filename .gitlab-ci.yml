@@ -793,6 +793,9 @@ shfmt:
 
 danger:
   <<: *quick_checks_job
+  environment:
+    name: danger
+    action: access
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
@@ -1731,6 +1734,9 @@ unit:gcc:tumbleweed:libuv-git:amd64:
 # set it to the name of the target customer.
 customer-git:branch:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -1749,6 +1755,9 @@ customer-git:branch:
 
 customer-git:tag:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs: []
   rules:
     - *rule_tag
@@ -1841,24 +1850,36 @@ respdiff:recent-named:
 
 shotgun:udp:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: udp
     SHOTGUN_TRAFFIC_MULTIPLIER: 10
 
 shotgun:tcp:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: tcp
     SHOTGUN_TRAFFIC_MULTIPLIER: 4
 
 shotgun:dot:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: dot
     SHOTGUN_TRAFFIC_MULTIPLIER: 4
 
 shotgun:doh-get:
   <<: *shotgun_job
+  environment:
+    name: zulip
+    action: access
   variables:
     SHOTGUN_SCENARIO: doh-get
     SHOTGUN_TRAFFIC_MULTIPLIER: 2
@@ -1974,6 +1995,9 @@ pairwise:
 
 backports:
   <<: *post_merge
+  environment:
+    name: write
+    action: access
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
@@ -1984,6 +2008,9 @@ backports:
 
 merged-metadata:
   <<: *post_merge
+  environment:
+    name: write
+    action: access
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9\.[0-9]+\.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
@@ -2082,6 +2109,9 @@ autorebase-trigger-security:
 
 autorebase-security:
   <<: *autorebase
+  environment:
+    name: api-write-zulip
+    action: access
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
 
@@ -2098,5 +2128,8 @@ autorebase-trigger-sub:
 
 autorebase-sub:
   <<: *autorebase
+  environment:
+    name: api-write-zulip
+    action: access
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "pipeline" && $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+-sub$/ && $REBASE_ONLY == "1" && $CI_COMMIT_REF_NAME =~ $AUTOREBASED_BRANCHES'
