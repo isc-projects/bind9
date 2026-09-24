@@ -353,14 +353,7 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 		const isc_result_t expected_result;
 		const dns_rdatatype_t expected_type;
 		const bool expected_stale;
-		/*
-		 * Caching fresh data retires the expired RRsets at the node,
-		 * so when the stale RRset is inserted first it is already
-		 * gone by the time the fresh one is cached.  Set when the
-		 * stale RRset was the expected answer: that insertion order
-		 * finds nothing instead.
-		 */
-		const bool purged;
+		const bool one_direction;
 	} testcases[] = {
 		/* Both fresh: the requested type wins over the alias. */
 		{
@@ -432,10 +425,21 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.type2 = a,
 			.rank2 = fresh,
 			.qtype = txt,
+			.expected_result = ISC_R_NOTFOUND,
+			.expected_type = none,
+			.expected_stale = false,
+			.one_direction = true,
+		},
+		{
+			.type1 = a,
+			.rank1 = fresh,
+			.type2 = cname,
+			.rank2 = stale,
+			.qtype = txt,
 			.expected_result = DNS_R_CNAME,
 			.expected_type = cname,
-			.expected_stale = true,
-			.purged = true,
+			.expected_stale = stale,
+			.one_direction = true,
 		},
 		{
 			.type1 = cname,
@@ -558,27 +562,17 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 		const dns_rdatatype_t expected_type =
 			testcases[i].expected_type;
 		const bool expected_stale = testcases[i].expected_stale;
-		const bool purged = testcases[i].purged;
+		const bool one_direction = testcases[i].one_direction;
 
 		/*
 		 * A fresh RRset cached after a stale one retires it; with
 		 * 'purged' set, that insertion order is expected to find
 		 * nothing for the query.
 		 */
-		if (purged && rank1 == stale && rank2 == fresh) {
-			check_cname_precedence(mctx, type1, rank1, type2, rank2,
-					       qtype, ISC_R_NOTFOUND, none,
-					       false);
-		} else {
-			check_cname_precedence(mctx, type1, rank1, type2, rank2,
-					       qtype, expected_result,
-					       expected_type, expected_stale);
-		}
-		if (purged && rank2 == stale && rank1 == fresh) {
-			check_cname_precedence(mctx, type2, rank2, type1, rank1,
-					       qtype, ISC_R_NOTFOUND, none,
-					       false);
-		} else {
+		check_cname_precedence(mctx, type1, rank1, type2, rank2, qtype,
+				       expected_result, expected_type,
+				       expected_stale);
+		if (!one_direction) {
 			check_cname_precedence(mctx, type2, rank2, type1, rank1,
 					       qtype, expected_result,
 					       expected_type, expected_stale);
