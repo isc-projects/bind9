@@ -269,6 +269,326 @@ ISC_LOOP_TEST_IMPL(servestale_fresh_cname_over_stale_type) {
 	isc_loopmgr_shutdown();
 }
 
+static const char *
+precedence_rdata(dns_rdatatype_t type) {
+	switch (type) {
+	case dns_rdatatype_cname:
+		return "target.example.com.";
+	case dns_rdatatype_a:
+		return "10.53.0.1";
+	case dns_rdatatype_ns:
+		return "ns.example.com.";
+	case dns_rdatatype_ds:
+		return "12345 13 2 "
+		       "E2D3C916F6DEEAC73294E8268FB5885044A833FC5459588F4A9184C"
+		       "F"
+		       "C41A5766";
+	default:
+		UNREACHABLE();
+	}
+}
+
+/* 'age' is measured from insertion; dns_rdatatype_none skips an RRset. */
+static void
+check_cname_precedence(isc_mem_t *mctx, dns_rdatatype_t type1,
+		       isc_stdtime_t age1, dns_rdatatype_t type2,
+		       isc_stdtime_t age2, dns_rdatatype_t qtype,
+		       isc_result_t expected, dns_rdatatype_t expected_type,
+		       bool expected_stale) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	isc_stdtime_t now = isc_stdtime_now();
+	dns_fixedname_t fname, ffound;
+	dns_name_t *name = NULL, *foundname = NULL;
+	dns_rdataset_t rdataset;
+
+	db = servestale_setup(mctx, &fname, &name);
+
+	if (type1 != dns_rdatatype_none) {
+		servestale_addrdataset(db, name, now - age1, type1,
+				       precedence_rdata(type1), 3600,
+				       dns_trust_answer);
+	}
+	if (type2 != dns_rdatatype_none) {
+		servestale_addrdataset(db, name, now - age2, type2,
+				       precedence_rdata(type2), 3600,
+				       dns_trust_answer);
+	}
+
+	foundname = dns_fixedname_initname(&ffound);
+	dns_rdataset_init(&rdataset);
+	result = dns_db_find(db, name, NULL, qtype, DNS_DBFIND_STALEOK, now,
+			     foundname, &rdataset, NULL);
+
+	assert_int_equal(result, expected);
+	if (dns_rdataset_isassociated(&rdataset)) {
+		assert_int_equal(rdataset.type, expected_type);
+		assert_true(rdataset.attributes.stale == expected_stale);
+		dns_rdataset_disassociate(&rdataset);
+	} else {
+		assert_int_equal(expected_type, dns_rdatatype_none);
+	}
+
+	dns_db_detach(&db);
+}
+
+/* Check CNAME precedence for both insertion orders. */
+ISC_LOOP_TEST_IMPL(cname_precedence) {
+	isc_mem_t *mctx = NULL;
+	const dns_rdatatype_t cname = dns_rdatatype_cname;
+	const dns_rdatatype_t a = dns_rdatatype_a;
+	const dns_rdatatype_t ns = dns_rdatatype_ns;
+	const dns_rdatatype_t ds = dns_rdatatype_ds;
+	const dns_rdatatype_t txt = dns_rdatatype_txt;
+	const dns_rdatatype_t none = dns_rdatatype_none;
+	const isc_stdtime_t fresh = 0;
+	const isc_stdtime_t stale = 7200; /* expired an hour ago */
+
+	struct {
+		const dns_rdatatype_t type1;
+		const isc_stdtime_t rank1;
+		const dns_rdatatype_t type2;
+		const isc_stdtime_t rank2;
+		const dns_rdatatype_t qtype;
+		const isc_result_t expected_result;
+		const dns_rdatatype_t expected_type;
+		const bool expected_stale;
+		/*
+		 * Caching fresh data retires the expired RRsets at the node,
+		 * so when the stale RRset is inserted first it is already
+		 * gone by the time the fresh one is cached.  Set when the
+		 * stale RRset was the expected answer: that insertion order
+		 * finds nothing instead.
+		 */
+		const bool purged;
+	} testcases[] = {
+		/* Both fresh: the requested type wins over the alias. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = a,
+			.rank2 = fresh,
+			.qtype = a,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = a,
+			.expected_stale = false,
+		},
+		/* Fresh beats stale, in both directions and either order. */
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = a,
+			.rank2 = fresh,
+			.qtype = a,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = a,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = a,
+			.rank2 = stale,
+			.qtype = a,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		/* Both stale: the requested type wins. */
+		{
+			.type1 = a,
+			.rank1 = stale,
+			.type2 = cname,
+			.rank2 = stale,
+			.qtype = a,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = a,
+			.expected_stale = true,
+		},
+		/* Queried type is not in cache, expect CNAME. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = a,
+			.rank2 = fresh,
+			.qtype = txt,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = a,
+			.rank2 = stale,
+			.qtype = txt,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = a,
+			.rank2 = fresh,
+			.qtype = txt,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
+			.purged = true,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = a,
+			.rank2 = stale,
+			.qtype = txt,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
+		},
+		/* A lone CNAME answers ordinary types, including NS, but not
+		   DS. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = a,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = ns,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = ds,
+			.expected_result = ISC_R_NOTFOUND,
+			.expected_type = none,
+			.expected_stale = false,
+		},
+		/* A lone stale CNAME answers ordinary types, including NS, but
+		   not DS. */
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = a,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = ns,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = none,
+			.rank2 = 0,
+			.qtype = ds,
+			.expected_result = ISC_R_NOTFOUND,
+			.expected_type = none,
+			.expected_stale = false,
+		},
+		/* Delegation data beside a CNAME is found by its own type. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = ds,
+			.rank2 = fresh,
+			.qtype = ds,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = ds,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = ns,
+			.rank2 = fresh,
+			.qtype = ns,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = ns,
+			.expected_stale = false,
+		},
+		/* DS does not hide a CNAME from ordinary queries. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = ds,
+			.rank2 = fresh,
+			.qtype = a,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+	};
+
+	isc_mem_create("test", &mctx);
+
+	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
+		const dns_rdatatype_t type1 = testcases[i].type1;
+		const isc_stdtime_t rank1 = testcases[i].rank1;
+		const dns_rdatatype_t type2 = testcases[i].type2;
+		const isc_stdtime_t rank2 = testcases[i].rank2;
+		const dns_rdatatype_t qtype = testcases[i].qtype;
+		const isc_result_t expected_result =
+			testcases[i].expected_result;
+		const dns_rdatatype_t expected_type =
+			testcases[i].expected_type;
+		const bool expected_stale = testcases[i].expected_stale;
+		const bool purged = testcases[i].purged;
+
+		/*
+		 * A fresh RRset cached after a stale one retires it; with
+		 * 'purged' set, that insertion order is expected to find
+		 * nothing for the query.
+		 */
+		if (purged && rank1 == stale && rank2 == fresh) {
+			check_cname_precedence(mctx, type1, rank1, type2, rank2,
+					       qtype, ISC_R_NOTFOUND, none,
+					       false);
+		} else {
+			check_cname_precedence(mctx, type1, rank1, type2, rank2,
+					       qtype, expected_result,
+					       expected_type, expected_stale);
+		}
+		if (purged && rank2 == stale && rank1 == fresh) {
+			check_cname_precedence(mctx, type2, rank2, type1, rank1,
+					       qtype, ISC_R_NOTFOUND, none,
+					       false);
+		} else {
+			check_cname_precedence(mctx, type2, rank2, type1, rank1,
+					       qtype, expected_result,
+					       expected_type, expected_stale);
+		}
+	}
+
+	isc_mem_detach(&mctx);
+	isc_loopmgr_shutdown();
+}
+
 ISC_LOOP_TEST_IMPL(allrdatasets_expiredok_skips_deleted_header) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -425,6 +745,7 @@ ISC_TEST_ENTRY_CUSTOM(servestale_fresh_over_stale_cname, setup_managers,
 		      teardown_managers)
 ISC_TEST_ENTRY_CUSTOM(servestale_fresh_cname_over_stale_type, setup_managers,
 		      teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(cname_precedence, setup_managers, teardown_managers)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

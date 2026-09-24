@@ -1302,6 +1302,12 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	return result;
 }
 
+typedef enum answer_rank {
+	ANSWER_MISSING,
+	ANSWER_STALE,
+	ANSWER_OK,
+} answer_rank_t;
+
 static inline bool
 missing_answer(dns_slabheader_t *found, unsigned int options) {
 	if (found == NULL) {
@@ -1314,6 +1320,27 @@ missing_answer(dns_slabheader_t *found, unsigned int options) {
 	       (DNS_TRUST_GLUE(trust) && (options & DNS_DBFIND_GLUEOK) == 0) ||
 	       (DNS_TRUST_PENDING(trust) &&
 		(options & DNS_DBFIND_PENDINGOK) == 0);
+}
+
+static inline answer_rank_t
+answer_rank(dns_slabheader_t *header, unsigned int options) {
+	if (missing_answer(header, options)) {
+		return ANSWER_MISSING;
+	}
+
+	if (STALE(header)) {
+		return ANSWER_STALE;
+	}
+
+	return ANSWER_OK;
+}
+
+/* Keep unusable candidates distinguishable from absent data. */
+static inline bool
+better_answer(dns_slabheader_t *header, dns_slabheader_t *current,
+	      unsigned int options) {
+	return current == NULL ||
+	       answer_rank(header, options) > answer_rank(current, options);
 }
 
 static void
@@ -1379,6 +1406,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
+	dns_slabheader_t *cname = NULL, *cnamesig = NULL;
 	dns_slabheader_t *nsecheader = NULL, *nsecsig = NULL;
 	dns_typepair_t typepair = DNS_TYPEPAIR(type);
 
@@ -1465,10 +1493,13 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	}
 
 	/*
-	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC4035, section 2.5).
+	 * NSEC and RRSIG can coexist with CNAME (RFC 4035, section 2.5).
+	 * At-parent data also shares the cache node with a child's apex CNAME
+	 * but belongs to the parent zone and must be looked up independently.
 	 */
-	if (type == dns_rdatatype_nsec || type == dns_rdatatype_rrsig) {
+	if (type == dns_rdatatype_nsec || type == dns_rdatatype_rrsig ||
+	    dns_rdatatype_atparent(type) || type == dns_rdatatype_any)
+	{
 		cname_ok = false;
 	}
 
@@ -1481,6 +1512,18 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 	DNS_SLABHEADER_FOREACH(tmp, &node->headers) {
 		dns_slabheader_t *header = NULL, *sigheader = NULL;
+
+		/*
+		 * We can stop the search early if:
+		 * 1. we have a good non-stale answer for the *type*
+		 * 2. we have stale answer for type and stale or good CNAME
+		 */
+		if (answer_rank(found, options) == ANSWER_OK ||
+		    (answer_rank(found, options) == ANSWER_STALE &&
+		     answer_rank(cname, options) != ANSWER_MISSING))
+		{
+			break;
+		}
 
 		store_headers(tmp, &header, &sigheader, &search);
 
@@ -1511,18 +1554,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		if (related_headers(header, sigheader, typepair, &found,
 				    &foundsig))
 		{
-			/*
-			 * We can't exit early until we have an answer with
-			 * sufficient trust level - see missing_answer()
-			 * for details - because we might need NS or NSEC
-			 * records.
-			 */
-			if (missing_answer(found, options) || STALE(found)) {
-				continue;
-			}
-
-			/* We found something, continue with next header */
-			break;
+			continue;
 		}
 
 		if (header == NULL || NEGATIVE(header)) {
@@ -1534,32 +1566,34 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			continue;
 		}
 
-		switch (tmp->typepair) {
-		case dns_rdatatype_cname:
-		case DNS_SIGTYPEPAIR(dns_rdatatype_cname):
-			if (cname_ok) {
-				found = header;
-				foundsig = sigheader;
-			}
-			break;
-
-		case dns_rdatatype_nsec:
-		case DNS_SIGTYPEPAIR(dns_rdatatype_nsec):
-			nsecheader = header;
-			nsecsig = sigheader;
-			break;
-
-		default:
-			if (typepair == dns_typepair_any) {
-				/* QTYPE==ANY, so any anwers will do */
-				found = header;
-				break;
-			}
+		if (cname_ok &&
+		    related_headers(header, sigheader,
+				    DNS_TYPEPAIR(dns_rdatatype_cname), &cname,
+				    &cnamesig))
+		{
+			continue;
 		}
 
-		if (!missing_answer(found, options) && !STALE(found)) {
-			break;
+		if (related_headers(header, sigheader,
+				    DNS_TYPEPAIR(dns_rdatatype_nsec),
+				    &nsecheader, &nsecsig))
+		{
+			continue;
 		}
+
+		if (typepair == dns_typepair_any &&
+		    better_answer(header, found, options))
+		{
+			/* QTYPE==ANY, so any answer will do */
+			found = header;
+			foundsig = NULL;
+		}
+	}
+
+	/* At equal rank, prefer the requested type. */
+	if (cname != NULL && better_answer(cname, found, options)) {
+		found = cname;
+		foundsig = cnamesig;
 	}
 
 	if (empty_node) {
