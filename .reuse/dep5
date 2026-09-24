@@ -12,6 +12,7 @@ Files: **/README
        **/*.batch
        **/*.before*
        **/*.ccache
+       **/*.db*
        **/*.good
        **/*.key
        **/*.pem
@@ -20,6 +21,7 @@ Files: **/README
        **/*.saved
        **/*.zonelist
        **/*dig.out*
+       **/root.hint*
        **/Makefile
        **/Makefile.*
        **/expect
@@ -42,6 +44,8 @@ Files: **/README
        bin/named/bind9.xsl.h
        bin/tests/bigtest/zones
        bin/tests/optional/rbt_test.out
+       bin/tests/system/*.conf*
+       bin/tests/system/_common/*
        bin/tests/system/checkdstool/dig.bat
        bin/tests/system/checkdstool/*.db
        bin/tests/system/checkzone/zones/bad-caa-rr.db
