@@ -11,6 +11,8 @@
 
 import pytest
 
+from rpzrecurse import common
+
 import isctest.mark
 
 pytestmark = [
@@ -29,6 +31,7 @@ pytestmark = [
 
 
 def bootstrap():
+    common.bootstrap()
     return {"dnsrps": True}
 
 

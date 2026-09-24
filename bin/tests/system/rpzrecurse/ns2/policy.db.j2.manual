@@ -1,0 +1,25 @@
+{#
+  Trigger records for the generated policy zones (the README describes
+  the test design).  "client-ip" and "qname" triggers let named skip
+  recursion; "ip", "nsdname" and "nsip" need the answer first.  None of
+  them ever matches: l2.l1.l0 is set up to SERVFAIL, so the rcode alone
+  tells whether recursion was attempted.  Any other trigger is the name
+  that a qname trigger matches.
+#}
+$TTL 60
+{% raw %}@{% endraw %} IN SOA root.ns ns @serial@ 3600 1800 86400 60
+     NS ns
+ns A 127.0.0.1
+{% for trigger in triggers %}
+{% if trigger == "client-ip" %}
+32.1.0.0.127.rpz-client-ip CNAME .
+{% elif trigger == "ip" %}
+32.255.255.255.255.rpz-ip CNAME .
+{% elif trigger == "nsdname" %}
+ns.example.org.rpz-nsdname CNAME .
+{% elif trigger == "nsip" %}
+32.255.255.255.255.rpz-ip CNAME .
+{% else %}
+@trigger@ CNAME .
+{% endif %}
+{% endfor %}
