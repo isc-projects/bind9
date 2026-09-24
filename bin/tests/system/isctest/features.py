@@ -14,21 +14,19 @@ import subprocess
 
 # The flags below are the subset of newer branches' feature probes that this
 # branch's feature-test binary understands.  Probes absent here (developer,
-# fips-dh, fips-mode, fips-provider, openssl-cipher-suites, rsasha1) leave
-# their FEATURE_* variable unset, so the corresponding isctest.mark markers
-# degrade to unconditional skips.
+# fips-dh, fips-mode, fips-provider, libnghttp2, openssl-cipher-suites,
+# querytrace, rsasha1) leave their FEATURE_* variable unset, so the
+# corresponding isctest.mark markers degrade to unconditional skips.
 FEATURES = {
     "DNSRPS": "--enable-dnsrps",
     "DNSTAP": "--enable-dnstap",
     "GEOIP2": "--have-geoip2",
     "GSSAPI": "--gssapi",
     "JSON_C": "--have-json-c",
-    "LIBIDN2": "--with-libidn2",
-    "LIBNGHTTP2": "--with-libnghttp2",
+    "LIBIDN2": "--with-idn",
     "LIBXML2": "--have-libxml2",
     "LMDB": "--with-lmdb",
     "MD5": "--md5",
-    "QUERYTRACE": "--enable-querytrace",
     "TSAN": "--tsan",
     "ZLIB": "--with-zlib",
 }
