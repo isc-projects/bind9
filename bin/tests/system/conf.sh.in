@@ -72,6 +72,10 @@ export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
 
+# Make the Python mock servers log at debug level, like newer branches do;
+# tests grepping ans.run may rely on debug-level lines.
+export ANS_LOG_LEVEL="${ANS_LOG_LEVEL:-debug}"
+
 #
 # Programs detected by configure
 # Variables will be empty if no program was found by configure

@@ -18,7 +18,6 @@ from the zone, and a recursive server must not follow the bogus
 delegation or DNAME.
 """
 
-import dns.flags
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -30,10 +29,6 @@ ZONES = {
     "nszone.example.": "NS",
     "dnamezone.example.": "DNAME",
 }
-
-
-def check_aaflag(response):
-    assert (response.flags & dns.flags.AA) != 0, str(response)
 
 
 def check_in_zone(response, zone):
@@ -50,7 +45,7 @@ def check_in_zone(response, zone):
 
 def check_authoritative_a(response, zone):
     isctest.check.noerror(response)
-    check_aaflag(response)
+    isctest.check.aaflag(response)
     check_in_zone(response, zone)
     rrset = response.get_rrset(
         response.answer,
@@ -64,7 +59,7 @@ def check_authoritative_a(response, zone):
 
 def check_authoritative_soa(response, zone):
     isctest.check.noerror(response)
-    check_aaflag(response)
+    isctest.check.aaflag(response)
     check_in_zone(response, zone)
     rrset = response.get_rrset(
         response.answer,

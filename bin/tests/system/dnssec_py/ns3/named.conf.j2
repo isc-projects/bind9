@@ -1,19 +1,19 @@
-// validating resolver
+// NS3
 
 options {
 	{% include_indented "_common/options.conf.j2" %}
+
+	key-directory "keys";
+
+	minimal-any no;
+	minimal-responses no;
+	recursion no;
+
 	dnssec-validation yes;
 };
 
 {% include "_common/controls.conf.j2" %}
-
+{% include "_common/trusted.conf.j2" %}
 {% include "_common/root.hint.conf" %}
 
-zone "tld.test" {
-	type static-stub;
-	server-addresses { 10.53.0.1; };
-};
-
-trust-anchors {
-	tld.test. static-key 257 3 13 "@TLD_DNSKEY@";
-};
+{% include "_common/zones.conf.j2" %}

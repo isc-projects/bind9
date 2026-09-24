@@ -24,6 +24,7 @@ import dns.rrset
 import dns.zone
 
 from isctest.run import EnvCmd
+from isctest.algorithms import Algorithm
 
 import isctest
 
@@ -31,7 +32,8 @@ TTL = 3600
 
 
 def bootstrap():
-    keygen = EnvCmd("KEYGEN", "-q -a ECDSA256")
+    alg = Algorithm.default()
+    keygen = EnvCmd("KEYGEN", f"-q -a {alg.number} -b {alg.bits}")
     signer = EnvCmd("SIGNER", "-S -g -O full")
 
     def sign_regular_zone(ns: str, zone: str, database: str) -> isctest.kasp.Key:

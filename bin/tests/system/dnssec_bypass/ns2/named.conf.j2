@@ -12,13 +12,12 @@
  */
 
 options {
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 	dnssec-validation no;
 };
+
+{% include "_common/controls.conf.j2" %}
 
 zone "victim.test." {
 	type primary;

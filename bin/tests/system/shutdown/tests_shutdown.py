@@ -10,17 +10,16 @@
 # information regarding copyright ownership.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from string import ascii_lowercase as letters
+
 import os
 import random
 import signal
 import subprocess
-from string import ascii_lowercase as letters
 import time
 
-import pytest
-
-import dns
 import dns.exception
+import pytest
 
 import isctest
 
@@ -47,7 +46,7 @@ def do_work(named_proc, resolver_ip, instance, kill_method, n_workers, n_queries
     if kill_method=="rndc" named will be asked to shutdown by
     means of rndc stop.
     if kill_method=="sigterm" named will be killed by SIGTERM on
-    POSIX systems or by TerminateProcess() on Windows systems.
+    POSIX systems.
 
     :param named_proc: named process instance
     :type named_proc: subprocess.Popen
@@ -160,20 +159,20 @@ def wait_for_proc_termination(proc, max_timeout=10):
     "kill_method",
     ["rndc", "sigterm"],
 )
-def test_named_shutdown(ports, kill_method):
+def test_named_shutdown(kill_method):
     resolver_ip = "10.53.0.3"
 
     cfg_dir = "resolver"
 
     named_cmdline = isctest.run.get_named_cmdline(cfg_dir)
-    instance = isctest.run.get_custom_named_instance("ns3", ports)
+    instance = isctest.instance.NamedInstance("resolver", num=3)
 
     with open(os.path.join(cfg_dir, "named.run"), "ab") as named_log:
         with subprocess.Popen(
             named_cmdline, cwd=cfg_dir, stderr=named_log
         ) as named_proc:
             try:
-                isctest.run.assert_custom_named_is_alive(named_proc, resolver_ip)
+                isctest.check.named_alive(named_proc, resolver_ip)
                 do_work(
                     named_proc,
                     resolver_ip,

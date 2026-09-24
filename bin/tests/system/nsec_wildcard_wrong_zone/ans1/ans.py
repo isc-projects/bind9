@@ -159,19 +159,17 @@ class NsecWildcardWrongZoneHandler(DomainHandler):
             qctx.response.set_rcode(dns.rcode.NXDOMAIN)
             add_signed(qctx.response.authority, soa(VICTIM), self.victim)
 
-            # The victim's own NSEC establishes the NOQNAME proof (and the
-            # *.victim.example wildcard as the closest encloser) first.
-            add_signed(
-                qctx.response.authority,
-                nsec(VICTIM_NSEC_OWNER, VICTIM_NSEC_NEXT),
-                self.victim,
-            )
             # This secure terminal NSEC from an unrelated zone sorts across
             # the victim wildcard and used to be accepted as NOWILDCARD.
             add_signed(
                 qctx.response.authority,
                 nsec(ATTACKER_NSEC_OWNER, ATTACKER),
                 self.attacker,
+            )
+            add_signed(
+                qctx.response.authority,
+                nsec(VICTIM_NSEC_OWNER, VICTIM_NSEC_NEXT),
+                self.victim,
             )
         elif qctx.qname == name(VALID_NXDOMAIN) and qctx.qtype == dns.rdatatype.A:
             qctx.response.set_rcode(dns.rcode.NXDOMAIN)

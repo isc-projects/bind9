@@ -14,13 +14,7 @@
 /* Recursive server that is also authoritative for the affected zones. */
 
 options {
-	query-source address @ns.ip@;
-	notify-source @ns.ip@;
-	transfer-source @ns.ip@;
-	port @PORT@;
-	pid-file "named.pid";
-	listen-on { @ns.ip@; };
-	listen-on-v6 { none; };
+	{% include_indented "_common/options.conf.j2" %}
 	recursion yes;
 	dnssec-validation no;
 };

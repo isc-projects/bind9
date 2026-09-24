@@ -9,14 +9,19 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from typing import cast
+
+import difflib
+import os
 import shutil
-from typing import cast, List, Optional
+
+from dns.edns import EDECode, EDEOption
 
 import dns.edns
-from dns.edns import EDECode, EDEOption
 import dns.flags
 import dns.message
 import dns.rcode
+import dns.rrset
 import dns.zone
 
 import isctest.log
@@ -80,12 +85,12 @@ def noraflag(message: dns.message.Message) -> None:
 
 def _extract_ede_options(
     message: dns.message.Message,
-) -> List[EDEOption]:
+) -> list[EDEOption]:
     """
     Extract EDE options from the DNS message.
     """
     return cast(
-        List[EDEOption],
+        list[EDEOption],
         [
             option
             for option in message.options
@@ -102,9 +107,7 @@ def noede(message: dns.message.Message) -> None:
     assert not ede_options, f"unexpected EDE options {ede_options} in {message}"
 
 
-def ede(
-    message: dns.message.Message, code: EDECode, text: Optional[str] = None
-) -> None:
+def ede(message: dns.message.Message, code: EDECode, text: str | None = None) -> None:
     """
     Check if message contains expected EDE code (and its text).
     """
@@ -152,7 +155,7 @@ def same_answer(res1: dns.message.Message, res2: dns.message.Message):
 def rrsets_equal(
     first_rrset: dns.rrset.RRset,
     second_rrset: dns.rrset.RRset,
-    compare_ttl: Optional[bool] = False,
+    compare_ttl: bool | None = False,
 ) -> None:
     """
     Compare two RRset (optionally including TTL)
@@ -183,7 +186,7 @@ def rrsets_equal(
 def zones_equal(
     first_zone: dns.zone.Zone,
     second_zone: dns.zone.Zone,
-    compare_ttl: Optional[bool] = False,
+    compare_ttl: bool | None = False,
 ) -> None:
     """
     Compare two zones (optionally including TTL)
@@ -237,6 +240,26 @@ def empty_answer(message: dns.message.Message) -> None:
     assert not message.answer, str(message)
 
 
+def empty_authority(message: dns.message.Message) -> None:
+    assert not message.authority, str(message)
+
+
+def empty_additional(message: dns.message.Message) -> None:
+    assert not message.additional, str(message)
+
+
+def has_answer(message: dns.message.Message) -> None:
+    assert message.answer, str(message)
+
+
+def has_authority(message: dns.message.Message) -> None:
+    assert message.authority, str(message)
+
+
+def has_additional(message: dns.message.Message) -> None:
+    assert message.additional, str(message)
+
+
 def rr_count_eq(section: list, expected: int):
     # NOTE: OPT and TSIG records aren't included in the count for ADDITIONAL section
     count = sum(len(rrset) for rrset in section)
@@ -247,3 +270,28 @@ def is_response_to(response: dns.message.Message, query: dns.message.Message) ->
     single_question(response)
     single_question(query)
     assert query.is_response(response), str(response)
+
+
+def file_contents_equal(file1, file2):
+    def normalize_line(line):
+        # remove trailing&leading whitespace and replace multiple whitespaces
+        return " ".join(line.split())
+
+    def read_lines(file_path):
+        with open(file_path, "r", encoding="utf-8") as file:
+            return [normalize_line(line) for line in file.readlines()]
+
+    lines1 = read_lines(file1)
+    lines2 = read_lines(file2)
+
+    differ = difflib.Differ()
+    diff = differ.compare(lines1, lines2)
+
+    for line in diff:
+        assert not line.startswith("+ ") and not line.startswith(
+            "- "
+        ), f'file contents of "{file1}" and "{file2}" differ'
+
+
+def file_empty(file):
+    assert os.path.getsize(file) == 0
