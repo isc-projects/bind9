@@ -14,13 +14,9 @@ from collections.abc import AsyncGenerator
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 from ..qmin_ans import (
     DelayedResponseHandler,
@@ -31,13 +27,10 @@ from ..qmin_ans import (
 
 
 class QueryLogger(QueryLogHandler):
-    domains = [
-        "1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.",
-        "icky.ptang.zoop.boing.good.",
-    ]
+    matcher = Domain("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", "icky.ptang.zoop.boing.good.")
 
 
-class StaleHandler(DomainHandler):
+class StaleHandler(ResponseHandler):
     """
     The test code relies on this server returning non-minimal (i.e. including
     address records in the ADDITIONAL section) responses to NS queries for
@@ -48,11 +41,11 @@ class StaleHandler(DomainHandler):
     handler implemented below.
     """
 
-    domains = ["b.stale", "a.b.stale"]
+    matcher = Domain("b.stale", "a.b.stale")
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
 
         if qctx.qtype == dns.rdatatype.NS:
@@ -73,17 +66,17 @@ class StaleHandler(DomainHandler):
 
 
 class IckyPtangZoopBoingBadHandler(EntRcodeChanger):
-    domains = ["icky.ptang.zoop.boing.bad."]
+    matcher = Domain("icky.ptang.zoop.boing.bad.")
     rcode = dns.rcode.NXDOMAIN
 
 
 class IckyPtangZoopBoingUglyHandler(EntRcodeChanger):
-    domains = ["icky.ptang.zoop.boing.ugly."]
+    matcher = Domain("icky.ptang.zoop.boing.ugly.")
     rcode = dns.rcode.FORMERR
 
 
 class IckyPtangZoopBoingSlowHandler(DelayedResponseHandler):
-    domains = ["icky.ptang.zoop.boing.slow."]
+    matcher = Domain("icky.ptang.zoop.boing.slow.")
     delay = 0.4
 
 

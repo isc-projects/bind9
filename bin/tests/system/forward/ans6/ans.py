@@ -19,14 +19,13 @@ import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QnameQtypeHandler,
     QueryContext,
     ResponseHandler,
-    StaticResponseHandler,
-    ToggleResponsesCommand,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
@@ -54,21 +53,19 @@ def soa(owner: dns.name.Name | str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.SOA, ". . 0 0 0 0 0")
 
 
-class Ns1AHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [NS1]
-    qtypes = [dns.rdatatype.A]
+class Ns1AHandler(StaticResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
     answer = [a(NS1)]
     edns = None
 
 
-class Ns1AaaaHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [NS1]
-    qtypes = [dns.rdatatype.AAAA]
+class Ns1AaaaHandler(StaticResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
     answer = [aaaa(NS1)]
     edns = None
 
 
-class SldDelegationHandler(DomainHandler):
+class SldDelegationHandler(ResponseHandler):
     """
     Delegate every NS query at or below sld.tld. to ns1.sld.tld., copying the
     owner name from the QNAME.  Together with Ns1AHandler / Ns1AaaaHandler
@@ -76,10 +73,7 @@ class SldDelegationHandler(DomainHandler):
     negative catch-all), this drives named's DS-chasing logic.
     """
 
-    domains = [SLD]
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.NS and super().match(qctx)
+    matcher = Domain(SLD) & Qtype(dns.rdatatype.NS)
 
     async def get_responses(
         self, qctx: QueryContext

@@ -17,10 +17,10 @@ import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
 
 
 class DelayedAddressAnswerHandler(ResponseHandler):

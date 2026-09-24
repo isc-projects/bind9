@@ -19,13 +19,13 @@ import dns.rrset
 
 from isctest.asyncserver import (
     AsyncDnsServer,
-    AxfrHandler,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
-    StaticResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.matchers import Matcher, Protocol, Qtype
 
 ZONE = "ixfr-race."
 NS_NAME = f"ns.{ZONE}"
@@ -95,6 +95,21 @@ class TransferState:
         self.initial_axfr_served = False
 
 
+class InitialAxfrServed(Matcher):
+    """
+    Match once the initial AXFR has been served.
+    """
+
+    def __init__(self, progress: TransferState) -> None:
+        self._progress = progress
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._progress.initial_axfr_served
+
+    def __str__(self) -> str:
+        return "after the initial AXFR"
+
+
 class TransferHandler(ResponseHandler):
     """
     Base for the handlers that share a single TransferState.
@@ -108,17 +123,17 @@ class TransferHandler(ResponseHandler):
 class InitialSoaHandler(TransferHandler, StaticResponseHandler):
     answer = [soa(1)]
 
-    def match(self, qctx: QueryContext) -> bool:
-        return (
-            qctx.qtype == dns.rdatatype.SOA and not self._progress.initial_axfr_served
-        )
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & ~InitialAxfrServed(progress)
 
 
 class RefreshSoaHandler(TransferHandler, StaticResponseHandler):
     answer = [soa(4)]
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.SOA and self._progress.initial_axfr_served
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
 
 
 class InitialAxfrHandler(TransferHandler, AxfrHandler):
@@ -133,11 +148,12 @@ class InitialAxfrHandler(TransferHandler, AxfrHandler):
     ]
     final_soa = soa(1)
 
-    def match(self, qctx: QueryContext) -> bool:
-        matched = super().match(qctx)
-        if matched:
-            self._progress.initial_axfr_served = True
-        return matched
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        self._progress.initial_axfr_served = True
+        async for action in super().get_responses(qctx):
+            yield action
 
 
 class TruncatedIxfrHandler(ResponseHandler):
@@ -145,8 +161,7 @@ class TruncatedIxfrHandler(ResponseHandler):
     Set TC on an IXFR received over UDP to force the secondary to retry over TCP.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR and qctx.protocol == DnsProtocol.UDP
+    matcher = Qtype(dns.rdatatype.IXFR) & Protocol(DnsProtocol.UDP)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -166,8 +181,7 @@ class RaceIxfrHandler(ResponseHandler):
     then has to detach the queued second chunk before freeing it.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR and qctx.protocol == DnsProtocol.TCP
+    matcher = Qtype(dns.rdatatype.IXFR) & Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext

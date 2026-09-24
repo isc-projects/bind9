@@ -14,18 +14,16 @@ from collections.abc import AsyncGenerator
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
-    ResponseAction,
-    ResponseDrop,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend, ResponseDrop
 
 
 class DropUdpHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
         if qctx.protocol == DnsProtocol.UDP:
             yield ResponseDrop()
         else:

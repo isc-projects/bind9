@@ -18,14 +18,12 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import (
-    CloseConnection,
     ControlCommand,
     ControllableAsyncDnsServer,
-    DnsResponseSend,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import CloseConnection, DnsResponseSend
 
 
 class ErraticAxfrHandler(ResponseHandler):
@@ -39,7 +37,7 @@ class ErraticAxfrHandler(ResponseHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[CloseConnection | DnsResponseSend, None]:
         action = self.actions[self.counter % len(self.actions)]
         self.counter += 1
 

@@ -28,12 +28,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 PARENT = "p22.hack."
@@ -177,13 +174,11 @@ class ParentHandler(ResponseHandler):
     def __init__(self, keys: dict[str, Key]) -> None:
         self.keys = keys
         self.parent = name(PARENT)
+        self.matcher = Domain(self.parent)
         self.child = name(CHILD)
         self.victim = name(VICTIM)
         self.aac = name(AAC)
         self.prime_nx = name(PRIME_NX)
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(self.parent)
 
     async def get_responses(
         self, qctx: QueryContext

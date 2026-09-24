@@ -13,29 +13,25 @@ from collections.abc import AsyncGenerator
 
 import dns.rcode
 
-from isctest.asyncserver import (
-    ControllableAsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-)
+from isctest.asyncserver import ControllableAsyncDnsServer, QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
 
 from ..reclimit_ans import (
     DirectExampleHandler,
     FallbackNxdomainHandler,
     IndirectExampleOrgHandler,
     LimitControlCommand,
+    Ns1Example,
     Ns1ExampleOrgHandler,
     ReclimitHandler,
     ReclimitStateHandler,
     a,
-    is_ns1_example,
     ns,
 )
 
 
 class Ns1ExampleNetHandler(ReclimitHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return is_ns1_example(qctx.qname, "net")
+    matcher = Ns1Example("net")
 
     async def _get_counted_responses(
         self, qctx: QueryContext

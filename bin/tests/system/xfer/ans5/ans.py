@@ -20,16 +20,16 @@ import dns.rrset
 import dns.tsig
 
 from isctest.asyncserver import (
-    AxfrHandler,
     ControllableAsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseAction,
     ResponseHandler,
-    ResponseHandlerWrapper,
-    SwitchControlCommand,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import SwitchControlCommand
+from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
+from isctest.asyncserver.matchers import Edns, Qtype
 from isctest.vars.algorithms import ALG_VARS
 
 GOOD_KEY_DATA = "LSAnCU+Z"
@@ -185,8 +185,7 @@ class SoaHandler(ResponseHandler):
     def __init__(self, serial: int = 1) -> None:
         self._serial = serial
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.SOA
+    matcher = Qtype(dns.rdatatype.SOA)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -290,8 +289,7 @@ class WrongQnameInFinalSoa(ResponseHandlerWrapper):
 
 
 class IxfrNotimpHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.IXFR
+    matcher = Qtype(dns.rdatatype.IXFR)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -304,8 +302,7 @@ class AxfrEdnsRcodeHandler(ResponseHandler):
     def __init__(self, rcode: dns.rcode.Rcode) -> None:
         self._rcode = rcode
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.AXFR and qctx.query.edns > -1
+    matcher = Qtype(dns.rdatatype.AXFR) & Edns()
 
     async def get_responses(
         self, qctx: QueryContext

@@ -27,12 +27,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 PARENT = "p031.test."
@@ -309,6 +306,7 @@ class GrandparentNsecHandler(ResponseHandler):
         self.child_key = keys[CHILD]
         self.sibling_key = keys[SIBLING]
         self.parent = name(PARENT)
+        self.matcher = Domain(self.parent)
         self.child = name(CHILD)
         self.sibling = name(SIBLING)
         self.grandchild = name(GRANDCHILD)
@@ -327,9 +325,6 @@ class GrandparentNsecHandler(ResponseHandler):
             self.grandchild_too_many,
             self.grandchild_almost_too_many,
         )
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(self.parent)
 
     async def get_responses(
         self, qctx: QueryContext

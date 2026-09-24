@@ -441,17 +441,11 @@ Most importantly, avoid the temptation to define all DNS responses that a given
 easier to follow for static DNS data.  Splitting up static DNS data and custom
 behavior also makes it easier to follow the idea behind each test.
 
-The most commonly subclassed handler classes are (ordered by descending
-specificity):
-
-  - `QnameQtypeHandler`
-  - `QnameHandler`
-  - `DomainHandler`
-
-These handler classes require certain properties (e.g. `qnames`, `qtypes`,
-`domains`) to be defined by their subclasses.  These properties define the set
-of queries that a given handler should be used for.  Please see
-`isctest/asyncserver.py` for up-to-date information on available handler classes
+A handler declares the queries it handles in its `matcher`, built from the
+matchers in `isctest/asyncserver/matchers.py` (`Qname`, `Qtype`, `Domain`,
+...) combined with `&`, `|` and `~`; the first installed handler whose
+matcher matches a query handles it.  Please see
+`isctest/asyncserver/handlers.py` for up-to-date information on available handler classes
 and existing `ans.py` files for how they can be used in practice.  Consult the
 log files (`ans.run`) in case a query is not matched by its intended handler.
 
@@ -472,23 +466,19 @@ from collections.abc import AsyncGenerator
 
 import dns.flags
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 
-class TruncateHandler(DomainHandler):
+class TruncateHandler(ResponseHandler):
     """Answer everything under broken.example. with TC=1."""
 
-    domains = ["broken.example."]
+    matcher = Domain("broken.example.")
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         qctx.response.flags |= dns.flags.TC
         yield DnsResponseSend(qctx.response)
 
@@ -527,7 +517,7 @@ logic, extract that logic into a `<test-name>_ans.py` module in the system test
 directory.  See the `qmin` system test for a practical example.
 
 If multiple system tests would benefit from sharing some common logic, consider
-submitting a merge request adding that logic to `isctest/asyncserver.py` itself.
+submitting a merge request adding that logic to the `isctest/asyncserver/` package itself.
 
 To the extent possible, try to keep each `ans.py` file limited in length and
 scope.  Look at existing `ans.py` files to see what is meant by that.  If the
@@ -588,11 +578,11 @@ delegation pattern end to end.
 The existing mock servers are the best reference.  To find them, grep for
 what you're about to use:
 `git grep -l isctest.asyncserver -- '*/ans*/ans.py'` lists every python
-mock, and a grep for the base class
-(`DomainHandler`, `QnameHandler`, `ConnectionHandler`) or the response
+mock, and a grep for the matcher (`Domain`, `Qname`, ...), the base class
+(`StaticResponseHandler`, `ConnectionHandler`) or the response
 action (`ResponseDrop`, `BytesResponseSend`, ...) you need usually turns
 up a test already doing something similar.  The full toolbox lives in
-`isctest/asyncserver.py` (query matching, TCP connection handling, TSIG
+`isctest/asyncserver/` (query matching, TCP connection handling, TSIG
 keyrings).
 
 

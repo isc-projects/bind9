@@ -18,15 +18,10 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QnameHandler,
-    QnameQtypeHandler,
-    QueryContext,
-    StaticResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 
 def rrset(
@@ -38,22 +33,20 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class RootNsHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["."]
-    qtypes = [dns.rdatatype.NS]
+class RootNsHandler(StaticResponseHandler):
+    matcher = Qname(".") & Qtype(dns.rdatatype.NS)
     answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
     additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleNsHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = ["example."]
-    qtypes = [dns.rdatatype.NS]
+class ExampleNsHandler(StaticResponseHandler):
+    matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
     answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
     additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleCookieHandler(DomainHandler):
-    domains = ["example."]
+class ExampleCookieHandler(ResponseHandler):
+    matcher = Domain("example.")
 
     def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
         for o in qctx.query.options:
@@ -79,8 +72,8 @@ class ExampleCookieHandler(DomainHandler):
             yield DnsResponseSend(qctx.response)
 
 
-class TestDotComServFailHandler(QnameHandler, StaticResponseHandler):
-    qnames = ["test.com."]
+class TestDotComServFailHandler(StaticResponseHandler):
+    matcher = Qname("test.com.")
     authoritative = False
     rcode = dns.rcode.SERVFAIL
 

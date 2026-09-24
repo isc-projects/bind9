@@ -12,26 +12,27 @@
 import dns.rcode
 
 from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.matchers import Domain
 
 from ..qmin_ans import DelayedResponseHandler, EntRcodeChanger, QueryLogHandler
 
 
 class QueryLogger(QueryLogHandler):
-    domains = ["8.2.6.0.1.0.0.2.ip6.arpa.", "a.b.stale.", "zoop.boing.good."]
+    matcher = Domain("8.2.6.0.1.0.0.2.ip6.arpa.", "a.b.stale.", "zoop.boing.good.")
 
 
 class ZoopBoingBadHandler(EntRcodeChanger):
-    domains = ["zoop.boing.bad."]
+    matcher = Domain("zoop.boing.bad.")
     rcode = dns.rcode.NXDOMAIN
 
 
 class ZoopBoingUglyHandler(EntRcodeChanger):
-    domains = ["zoop.boing.ugly."]
+    matcher = Domain("zoop.boing.ugly.")
     rcode = dns.rcode.FORMERR
 
 
 class ZoopBoingSlowHandler(DelayedResponseHandler):
-    domains = ["zoop.boing.slow."]
+    matcher = Domain("zoop.boing.slow.")
     delay = 0.4
 
 

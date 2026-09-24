@@ -12,23 +12,16 @@
 from collections.abc import (
     AsyncGenerator,
     Callable,
-    Collection,
     Coroutine,
     Iterator,
-    Mapping,
     MutableSequence,
-    Sequence,
 )
 from dataclasses import dataclass, field
-from typing import Any, Literal, cast, final
+from typing import Any, Literal, cast
 
 import abc
 import asyncio
-import bisect
 import collections
-import copy
-import datetime
-import enum
 import functools
 import logging
 import os
@@ -37,22 +30,34 @@ import re
 import signal
 import sys
 
-import dns.dnssec
 import dns.exception
 import dns.flags
 import dns.message
 import dns.name
 import dns.node
 import dns.rcode
-import dns.rdata
 import dns.rdataclass
-import dns.rdataset
 import dns.rdatatype
 import dns.rrset
 import dns.tsig
 import dns.zone
 
 import isctest.zone
+
+from .context import DnsProtocol, Peer, QueryContext
+from .dnssec import SigningKey
+from .matchers import Always, Matcher
+
+__all__ = [
+    "AsyncDnsServer",
+    "ConnectionHandler",
+    "ControlCommand",
+    "ControllableAsyncDnsServer",
+    "DnsProtocol",
+    "QueryContext",
+    "ResponseAction",
+    "ResponseHandler",
+]
 
 _UdpHandler = Callable[
     [bytes, tuple[str, int], asyncio.DatagramTransport], Coroutine[Any, Any, None]
@@ -91,7 +96,7 @@ class _AsyncUdpHandler(asyncio.DatagramProtocol):
         asyncio.create_task(handler_coroutine)
 
 
-class AsyncServer:
+class _AsyncServer:
     """
     A generic asynchronous server which may handle UDP and/or TCP traffic.
 
@@ -215,398 +220,6 @@ class AsyncServer:
         os.unlink(self._pidfile)
 
 
-class DnsProtocol(enum.Enum):
-    UDP = enum.auto()
-    TCP = enum.auto()
-
-
-@dataclass(frozen=True)
-class Peer:
-    """
-    Pretty-printed connection endpoint.
-    """
-
-    host: str
-    port: int
-
-    def __str__(self) -> str:
-        host = f"[{self.host}]" if ":" in self.host else self.host
-        return f"{host}:{self.port}"
-
-
-@dataclass(frozen=True)
-class SigningKey:
-    zone: dns.name.Name
-    dnskey: dns.rrset.RRset
-    private_key: isctest.zone.PrivateKey
-
-
-@dataclass
-class QueryContext:
-    """
-    Context for the incoming query which may be used for preparing the response.
-    """
-
-    query: dns.message.Message
-    response: dns.message.Message
-    zones: Mapping[dns.name.Name, dns.zone.Zone]
-    keys: Mapping[dns.name.Name, Sequence[SigningKey]]
-    socket: Peer
-    peer: Peer
-    protocol: DnsProtocol
-    zone: dns.zone.Zone | None = field(default=None, init=False)
-    soa: dns.rrset.RRset | None = field(default=None, init=False)
-    node: dns.node.Node | None = field(default=None, init=False)
-    answer: dns.rdataset.Rdataset | None = field(default=None, init=False)
-    alias: dns.name.Name | None = field(default=None, init=False)
-    _initialized_response: dns.message.Message | None = field(default=None, init=False)
-    _initialized_response_with_zone_data: dns.message.Message | None = field(
-        default=None, init=False
-    )
-
-    @property
-    def qname(self) -> dns.name.Name:
-        return self.query.question[0].name
-
-    @property
-    def current_qname(self) -> dns.name.Name:
-        return self.alias or self.qname
-
-    @property
-    def qclass(self) -> dns.rdataclass.RdataClass:
-        return self.query.question[0].rdclass
-
-    @property
-    def qtype(self) -> dns.rdatatype.RdataType:
-        return self.query.question[0].rdtype
-
-    def prepare_new_response(
-        self, /, with_zone_data: bool = True
-    ) -> dns.message.Message:
-        if with_zone_data:
-            assert self._initialized_response_with_zone_data
-            self.response = copy.deepcopy(self._initialized_response_with_zone_data)
-        else:
-            assert self._initialized_response
-            self.response = copy.deepcopy(self._initialized_response)
-        return self.response
-
-    def save_initialized_response(self, /, with_zone_data: bool) -> None:
-        if with_zone_data:
-            self._initialized_response_with_zone_data = copy.deepcopy(self.response)
-        else:
-            self._initialized_response = copy.deepcopy(self.response)
-
-    def get_rrsig(
-        self, rrset: dns.rrset.RRset, /, node: dns.node.Node | None = None
-    ) -> dns.rrset.RRset | None:
-        if not self.query.ednsflags & dns.flags.DO:
-            return None
-
-        assert self.zone
-        assert self.zone.origin
-
-        if node is None:
-            node = (
-                self.node
-                if rrset.rdtype != dns.rdatatype.SOA
-                else self.zone.get_node(self.zone.origin)
-            )
-        assert node
-
-        rrsig_rdataset = node.get_rdataset(
-            self.qclass, dns.rdatatype.RRSIG, rrset.rdtype
-        )
-        if not rrsig_rdataset:
-            return None
-
-        rrsig_rrset = dns.rrset.RRset(rrset.name, self.qclass, dns.rdatatype.RRSIG)
-        rrsig_rrset.update(rrsig_rdataset)
-        return rrsig_rrset
-
-    def sign(
-        self,
-        signed: dns.rrset.RRset,
-        /,
-        key: SigningKey | None = None,
-        bogus: bool = False,
-    ) -> dns.rrset.RRset:
-        assert self.zone
-        assert self.zone.origin
-
-        if not key:
-            keys = self.keys.get(self.zone.origin)
-            assert keys
-            key = keys[0]
-
-        one_hour_ago = datetime.datetime.now() - datetime.timedelta(hours=1)
-        signature = dns.dnssec.sign(
-            signed,
-            key.private_key,
-            key.zone,
-            key.dnskey[0],
-            inception=one_hour_ago,
-            lifetime=86400,
-        )
-
-        rdata: dns.rdata.Rdata = signature
-
-        if bogus:
-            rdata = signature.replace(signature=bytes(len(signature.signature)))
-
-        return dns.rrset.from_rdata(signed.name, signed.ttl, rdata)
-
-    @functools.cached_property
-    def nsecx(self) -> "NonExistenceProver":
-        return NonExistenceProver.for_query_context(self)
-
-
-class NonExistenceException(Exception):
-    pass
-
-
-class NonExistenceProver(abc.ABC):
-    """
-    Base class for NSEC/NSEC3 implementations that add RRsets required by the
-    relevant RFCs to negative DNS responses created from zone data.
-    """
-
-    proof_rdatatype: dns.rdatatype.RdataType
-    _provers: dict[dns.rdatatype.RdataType, type["NonExistenceProver"]] = {}
-
-    def __init_subclass__(cls) -> None:
-        assert cls.proof_rdatatype not in cls._provers
-        cls._provers[cls.proof_rdatatype] = cls
-
-    @classmethod
-    def for_query_context(cls, qctx: QueryContext) -> "NonExistenceProver":
-        if not qctx.zone:
-            raise RuntimeError(
-                "Non-existence proof requested for a query context that did not match any zone"
-            )
-
-        for proof_rdatatype, prover_class in cls._provers.items():
-            if next(qctx.zone.iterate_rdatasets(proof_rdatatype), None):
-                return prover_class(qctx)
-
-        raise RuntimeError(
-            "Non-existence proof requested for a zone with no NSEC(3) records"
-        )
-
-    def __init__(self, qctx: QueryContext) -> None:
-        self._qctx = qctx
-
-    @property
-    def _zone(self) -> dns.zone.Zone:
-        assert self._qctx.zone
-        return self._qctx.zone
-
-    @property
-    def _qname(self) -> dns.name.Name:
-        return self._qctx.current_qname
-
-    @abc.abstractmethod
-    def prove_no_ds(self, name: dns.name.Name) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def prove_ent(self) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def prove_nxdomain(self) -> None:
-        raise NotImplementedError
-
-    def prove_nodata(self) -> None:
-        if self._zone.get_node(self._qname):
-            self._prove_nodata_no_wildcard()
-            return
-
-        self._prove_nodata_wildcard()
-
-    @abc.abstractmethod
-    def _prove_nodata_no_wildcard(self) -> None:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def _prove_nodata_wildcard(self) -> None:
-        raise NotImplementedError
-
-    def prove_noerror(self) -> None:
-        if self._zone.get_node(self._qname):
-            return
-
-        self._prove_noerror_wildcard()
-
-    @abc.abstractmethod
-    def _prove_noerror_wildcard(self) -> None:
-        raise NotImplementedError
-
-    def _get_closest_encloser(
-        self, name: dns.name.Name
-    ) -> tuple[dns.name.Name, dns.name.Name]:
-        names = [name, name.parent()]
-        while not self._is_usable_encloser(names[-1]):
-            names.append(names[-1].parent())
-
-        return names[-1], names[-2]
-
-    @abc.abstractmethod
-    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
-        raise NotImplementedError
-
-    @property
-    def _wildcard_for_closest_encloser(self) -> dns.name.Name:
-        closest_encloser_name, _ = self._get_closest_encloser(self._qname)
-        return dns.name.from_text("*", origin=closest_encloser_name)
-
-    @functools.cached_property
-    def _chain(self) -> tuple[dns.name.Name, ...]:
-        proof_rdatasets = self._zone.iterate_rdatasets(self.proof_rdatatype)
-        return tuple(sorted(n for n, _ in proof_rdatasets))
-
-    def _add_chain_element_matching(self, name: dns.name.Name) -> None:
-        self._add_rrset_with_rrsig(name)
-
-    def _add_chain_element_covering(self, name: dns.name.Name) -> None:
-        index = bisect.bisect_left(self._chain, name)
-        self._add_rrset_with_rrsig(self._chain[index - 1])
-
-    def _add_rrset_with_rrsig(self, owner: dns.name.Name) -> None:
-        node = self._zone.get_node(owner)
-        assert node
-
-        rdataset = node.get_rdataset(self._qctx.qclass, self.proof_rdatatype)
-        rrset = dns.rrset.RRset(owner, self._qctx.qclass, self.proof_rdatatype)
-        rrset.update(rdataset)
-
-        sigrdataset = node.get_rdataset(
-            self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
-        )
-        assert sigrdataset
-        rrsig = dns.rrset.RRset(
-            owner, self._qctx.qclass, dns.rdatatype.RRSIG, self.proof_rdatatype
-        )
-        rrsig.update(sigrdataset)
-
-        if rrset not in self._qctx.response.authority:
-            self._qctx.response.authority.append(rrset)
-            self._qctx.response.authority.append(rrsig)
-
-
-@final
-class NsecNonExistenceProver(NonExistenceProver):
-
-    proof_rdatatype = dns.rdatatype.NSEC
-
-    def prove_no_ds(self, name: dns.name.Name) -> None:
-        self._add_nsec_matching(name)
-
-    def prove_ent(self) -> None:
-        self._add_nsec_covering(self._qname)
-
-    def prove_nxdomain(self) -> None:
-        self._add_nsec_covering(self._qname)
-        self._add_nsec_covering(self._wildcard_for_closest_encloser)
-
-    def _prove_nodata_no_wildcard(self) -> None:
-        self._add_nsec_matching(self._qname)
-
-    def _prove_nodata_wildcard(self) -> None:
-        self._add_nsec_covering(self._qname)
-        self._add_nsec_matching(self._wildcard_for_closest_encloser)
-
-    def _prove_noerror_wildcard(self) -> None:
-        self._add_nsec_covering(self._qname)
-
-    def _add_nsec_matching(self, name: dns.name.Name) -> None:
-        if name not in self._chain:
-            raise NonExistenceException("Expected NSEC record not found")
-        self._add_chain_element_matching(name)
-
-    def _add_nsec_covering(self, name: dns.name.Name) -> None:
-        if name in self._chain:
-            raise NonExistenceException("Unexpected NSEC record found")
-        self._add_chain_element_covering(name)
-
-    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
-        return any(n.is_subdomain(name) for n in self._zone.nodes)
-
-
-@final
-class Nsec3NonExistenceProver(NonExistenceProver):
-
-    proof_rdatatype = dns.rdatatype.NSEC3
-
-    def prove_no_ds(self, name: dns.name.Name) -> None:
-        self._add_nsec3_matching_or_closest_encloser_proof(name)
-
-    def prove_ent(self) -> None:
-        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
-
-    def prove_nxdomain(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
-        self._add_nsec3_covering(self._wildcard_for_closest_encloser)
-
-    def _prove_nodata_no_wildcard(self) -> None:
-        self._add_nsec3_matching_or_closest_encloser_proof(self._qname)
-
-    def _prove_nodata_wildcard(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
-        self._add_nsec3_matching(self._wildcard_for_closest_encloser)
-
-    def _prove_noerror_wildcard(self) -> None:
-        self._add_closest_encloser_proof(self._qname)
-
-    def _get_nsec3_owner(self, name: dns.name.Name) -> dns.name.Name:
-        assert self._zone.origin
-
-        nsec3param = self._zone.get_rdataset(
-            self._zone.origin, dns.rdatatype.NSEC3PARAM
-        )
-        assert nsec3param
-
-        nsec3_hash = dns.dnssec.nsec3_hash(
-            name,
-            nsec3param[0].salt,
-            nsec3param[0].iterations,
-            nsec3param[0].algorithm,
-        )
-        return dns.name.from_text(nsec3_hash, origin=self._zone.origin)
-
-    def _add_nsec3_matching(self, name: dns.name.Name) -> None:
-        nsec3_owner = self._get_nsec3_owner(name)
-        if nsec3_owner not in self._chain:
-            raise NonExistenceException("Matching NSEC3 record not found")
-        self._add_chain_element_matching(nsec3_owner)
-
-    def _add_nsec3_covering(self, name: dns.name.Name) -> None:
-        nsec3_owner = self._get_nsec3_owner(name)
-        if nsec3_owner in self._chain:
-            raise NonExistenceException(
-                "Expected a covering NSEC3 record, got a matching one"
-            )
-        self._add_chain_element_covering(nsec3_owner)
-
-    def _add_closest_encloser_proof(self, name: dns.name.Name) -> None:
-        closest_encloser_name, next_closer_name = self._get_closest_encloser(name)
-        self._add_nsec3_matching(closest_encloser_name)
-        self._add_nsec3_covering(next_closer_name)
-
-    def _add_nsec3_matching_or_closest_encloser_proof(
-        self, name: dns.name.Name
-    ) -> None:
-        try:
-            # No Opt-Out
-            self._add_nsec3_matching(name)
-        except NonExistenceException:
-            # Opt-Out
-            self._add_closest_encloser_proof(name)
-
-    def _is_usable_encloser(self, name: dns.name.Name) -> bool:
-        return self._get_nsec3_owner(name) in self._chain
-
-
 @dataclass
 class ResponseAction(abc.ABC):
     """
@@ -624,122 +237,8 @@ class ResponseAction(abc.ABC):
         raise NotImplementedError
 
 
-@dataclass
-class DnsResponseSend(ResponseAction):
-    """
-    Action which yields a dns.message.Message response.
-
-    The response may be sent with a delay if requested.
-
-    Depending on the value of the `authoritative` property, this class may set
-    the AA bit in the response (True), clear it (False), or not touch it at all
-    (None).
-
-    The message object is the source of truth: it is rendered to wire at send
-    time, so any mutation made before it is yielded is reflected.  The one
-    exception is a TSIG-signed response, which is sent from its already-rendered
-    wire verbatim to preserve the signature; setting `authoritative` on such a
-    response raises, since the AA change could not reach the signed wire.
-    """
-
-    response: dns.message.Message
-    authoritative: bool | None = None
-    delay: float = 0.0
-    acknowledge_hand_rolled_response: bool = False
-
-    async def perform(self) -> dns.message.Message | bytes | None:
-        """
-        Yield a potentially delayed response that is a dns.message.Message.
-        """
-        assert isinstance(self.response, dns.message.Message)
-        if not (
-            _is_asyncserver_response(self.response)
-            or self.acknowledge_hand_rolled_response
-        ):
-            error = "The response you are trying to send was not created using "
-            error += "AsyncDnsServer's response preparation methods. "
-            error += "This will break features such as automatic AA flag "
-            error += "and RCODE handling. If you need a fresh copy of a "
-            error += "response, use `QueryContext.prepare_new_response` "
-            error += "instead of `dns.message.make_response`. "
-            error += "To acknowledge this and proceed anyway, set "
-            error += "`acknowledge_hand_rolled_response=True` in "
-            error += "DnsResponseSend's constructor."
-            raise RuntimeError(error)
-
-        if self.authoritative is not None:
-            if self.response.tsig is not None and self.response.wire is not None:
-                raise RuntimeError(
-                    "DnsResponseSend(authoritative=...) has no effect on a "
-                    "TSIG-signed, already-rendered response: it is sent from its "
-                    "cached wire verbatim, so the AA-bit change would be silently "
-                    "lost. Set the AA bit before signing the response."
-                )
-            if self.authoritative:
-                self.response.flags |= dns.flags.AA
-            else:
-                self.response.flags &= ~dns.flags.AA
-        if self.delay > 0:
-            logging.info(
-                "Delaying response (ID=%d) by %d ms",
-                self.response.id,
-                self.delay * 1000,
-            )
-            await asyncio.sleep(self.delay)
-        return self.response
-
-
-@dataclass
-class BytesResponseSend(ResponseAction):
-    """
-    Action which yields a raw response that is a sequence of bytes.
-
-    The response may be sent with a delay if requested.
-    """
-
-    response: bytes
-    delay: float = 0.0
-
-    async def perform(self) -> dns.message.Message | bytes | None:
-        """
-        Yield a potentially delayed response that is a sequence of bytes.
-        """
-        assert isinstance(self.response, bytes)
-        if self.delay > 0:
-            logging.info("Delaying raw response by %d ms", self.delay * 1000)
-            await asyncio.sleep(self.delay)
-        return self.response
-
-
-@dataclass
-class ResponseDrop(ResponseAction):
-    """
-    Action which does nothing - as if a packet was dropped.
-    """
-
-    async def perform(self) -> dns.message.Message | bytes | None:
-        return None
-
-
 class _ConnectionTeardownRequested(Exception):
     pass
-
-
-@dataclass
-class CloseConnection(ResponseAction):
-    """
-    Action which makes the server close the connection (TCP only).
-
-    The connection may be closed with a delay if requested.
-    """
-
-    delay: float = 0.0
-
-    async def perform(self) -> dns.message.Message | bytes | None:
-        if self.delay > 0:
-            logging.info("Waiting %.1fs before closing TCP connection", self.delay)
-            await asyncio.sleep(self.delay)
-        raise _ConnectionTeardownRequested
 
 
 class ConnectionHandler(abc.ABC):
@@ -761,129 +260,17 @@ class ConnectionHandler(abc.ABC):
         raise NotImplementedError
 
 
-def block_reading(peer: Peer, writer_not_the_reader: asyncio.StreamWriter) -> None:
-    """
-    Block reads for the reader associated with the provided writer.
-
-    Yes, pass the writer, not the reader. See the comments below for details.
-    """
-
-    loop = asyncio.get_running_loop()
-
-    logging.info("Blocking reads from %s", peer)
-
-    # This is Michał's submission for the Ugliest Hack of the Year contest.
-    # (The alternative was implementing an asyncio transport from scratch.)
-    #
-    # In order to prevent the client socket from being read from, simply
-    # not calling `reader.read()` is not enough, because asyncio buffers
-    # incoming data itself on the transport level.  However, `StreamReader`
-    # does not expose the underlying transport as a property.  Therefore,
-    # cheat by extracting it from `StreamWriter` as it is the same
-    # bidirectional transport as for the read side (a `Transport`, which is
-    # a subclass of both `ReadTransport` and `WriteTransport`) and call
-    # `ReadTransport.pause_reading()` to remove the underlying socket from
-    # the set of descriptors monitored by the selector, thereby preventing
-    # any reads from happening on the client socket.  However...
-    loop.call_soon(writer_not_the_reader.transport.pause_reading)  # type: ignore
-
-    # ...due to `AsyncDnsServer._handle_tcp()` being a coroutine, by the
-    # time it gets executed, asyncio transport code will already have added
-    # the client socket to the set of descriptors monitored by the
-    # selector.  Therefore, if the client starts sending data immediately,
-    # a read from the socket will have already been scheduled by the time
-    # this handler gets executed.  There is no way to prevent that from
-    # happening, so work around it by abusing the fact that the transport
-    # at hand is specifically an instance of `_SelectorSocketTransport`
-    # (from asyncio.selector_events) and set the size of its read buffer to
-    # just a single byte.  This does give asyncio enough time to read that
-    # single byte from the client socket's buffer before that socket is
-    # removed from the set of monitored descriptors, but prevents the
-    # one-off read from emptying the client socket buffer _entirely_, which
-    # is enough to trigger sending an RST segment when the connection is
-    # closed shortly afterwards.
-    writer_not_the_reader.transport.max_size = 1  # type: ignore
-
-
-@dataclass
-class IgnoreAllConnections(ConnectionHandler):
-    """
-    A connection handler that makes the server not read anything from the
-    client socket, effectively ignoring all incoming connections.
-    """
-
-    _connections: set[asyncio.StreamWriter] = field(default_factory=set)
-
-    async def handle(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, peer: Peer
-    ) -> None:
-        block_reading(peer, writer)
-        # Due to the way various asyncio-related objects (tasks, streams,
-        # transports, selectors) are referencing each other, pausing reads for
-        # a TCP transport (which in practice means removing the client socket
-        # from the set of descriptors monitored by a selector) can cause the
-        # client task (AsyncDnsServer._handle_tcp()) to be prematurely
-        # garbage-collected, causing asyncio code to raise a "Task was
-        # destroyed but it is pending!" exception.  Prevent that from happening
-        # by keeping a reference to each incoming TCP connection to protect its
-        # related asyncio objects from getting garbage-collected.  This
-        # prevents AsyncDnsServer from closing any of the ignored TCP
-        # connections indefinitely, which is obviously a pretty brain-dead idea
-        # for a production-grade DNS server, but AsyncDnsServer was never meant
-        # to be one and this hack reliably solves the problem at hand.
-        self._connections.add(writer)
-
-
-@dataclass
-class ConnectionReset(ConnectionHandler):
-    """
-    A connection handler that makes the server close the connection without
-    reading anything from the client socket.
-
-    The connection may be closed with a delay if requested.
-
-    The sole purpose of this handler is to trigger a connection reset, i.e. to
-    make the server send an RST segment; this happens when the server closes a
-    client's socket while there is still unread data in that socket's buffer.
-    If closing the connection _after_ the query is read by the server is enough
-    for a given use case, the CloseConnection response handler should be used
-    instead.
-    """
-
-    delay: float = 0.0
-
-    async def handle(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, peer: Peer
-    ) -> None:
-        block_reading(peer, writer)
-
-        if self.delay > 0:
-            logging.info(
-                "Waiting %.1fs before closing TCP connection from %s", self.delay, peer
-            )
-            await asyncio.sleep(self.delay)
-
-        raise _ConnectionTeardownRequested
-
-
 class ResponseHandler(abc.ABC):
     """
     Base class for generic response handlers.
 
-    If a query passes the `match()` function logic, then it is handled by this
-    response handler and response(s) may be generated by the `get_responses()`
-    method.
+    The queries a handler handles are declared in its `matcher`; the first
+    handler whose matcher matches a query handles it, and response(s) may be
+    generated by its `get_responses()` method.  The default matcher handles
+    every query.
     """
 
-    # pylint: disable=unused-argument
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Matching logic - the first handler whose `match()` method returns True
-        is used for handling the query.
-
-        The default for each handler is to handle all queries.
-        """
-        return True
+    matcher: Matcher = Always()
 
     @abc.abstractmethod
     async def get_responses(
@@ -895,408 +282,13 @@ class ResponseHandler(abc.ABC):
         The response prepared from zone data is passed to this method in
         qctx.response.
         """
-        yield DnsResponseSend(qctx.response)
+        raise NotImplementedError
+        yield  # pylint: disable=unreachable
 
     def __str__(self) -> str:
-        return self.__class__.__name__
-
-
-class ResponseHandlerWrapper(ResponseHandler, abc.ABC):
-    """
-    Base class for handlers that wrap another handler and modify each response
-    it yields.  `match()` and the response stream are delegated to the wrapped
-    `inner` handler; subclasses implement `_modify_response()` to mutate each
-    yielded action in place, and may override `_on_query_received()` to reset
-    per-query state.
-    """
-
-    def __init__(self, inner: ResponseHandler) -> None:
-        self._inner = inner
-
-    def match(self, qctx: QueryContext) -> bool:
-        return self._inner.match(qctx)
-
-    def _on_query_received(self, qctx: QueryContext) -> None:
-        pass
-
-    @abc.abstractmethod
-    def _modify_response(
-        self, qctx: QueryContext, response_action: ResponseAction
-    ) -> None:
-        raise NotImplementedError
-
-    @final
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        self._on_query_received(qctx)
-        async for response_action in self._inner.get_responses(qctx):
-            self._modify_response(qctx, response_action)
-            yield response_action
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}({self._inner})"
-
-
-class IgnoreAllQueries(ResponseHandler):
-    """
-    Do not respond to any queries sent to the server.
-    """
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        yield ResponseDrop()
-
-
-class QnameHandler(ResponseHandler):
-    """
-    Base class used for deriving custom QNAME handlers.
-
-    The derived class must specify a list of `qnames` that it wants to handle.
-    Queries for exactly these QNAMEs will then be passed to the
-    `get_response()` method in the derived class.
-    """
-
-    @property
-    @abc.abstractmethod
-    def qnames(self) -> list[str]:
-        """
-        A list of QNAMEs handled by this class.
-        """
-        raise NotImplementedError
-
-    def __init__(self) -> None:
-        self._qnames: list[dns.name.Name] = [dns.name.from_text(d) for d in self.qnames]
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(QNAMEs: {', '.join(self.qnames)})"
-
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Handle queries whose QNAME matches any of the QNAMEs handled by this
-        class.
-        """
-        return qctx.qname in self._qnames
-
-
-class QnameQtypeHandler(QnameHandler):
-    """
-    Handle queries for which both of the following conditions are true:
-
-    - the query's QNAME is present in `self.qnames`,
-    - the query's QTYPE is present in `self.qtypes`.
-    """
-
-    @property
-    @abc.abstractmethod
-    def qtypes(self) -> list[dns.rdatatype.RdataType]:
-        """
-        A list of QTYPEs handled by this class.
-        """
-        raise NotImplementedError
-
-    def __init__(self) -> None:
-        super().__init__()
-        self._qtypes: list[dns.rdatatype.RdataType] = self.qtypes
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(QNAMEs: {', '.join(self.qnames)}; QTYPEs: {', '.join(map(str, self.qtypes))})"
-
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Handle queries whose QNAME and QTYPE match any of the QNAMEs and
-        QTYPEs handled by this class.
-        """
-        return qctx.qtype in self._qtypes and super().match(qctx)
-
-
-class _UnsetEdnsType:
-    pass
-
-
-class StaticResponseHandler(ResponseHandler):
-    """
-    Base class used for deriving custom static response handlers.
-
-    The derived class can specify the RRsets to be included in the answer,
-    authority, and additional sections of the response, whether to set the AA
-    bit in the response, and a delay before sending the response.
-
-    The default implementation of `get_responses()` uses these properties to
-    prepare and yield a single response.
-    """
-
-    @property
-    def rcode(self) -> dns.rcode.Rcode | None:
-        """
-        Optional RCODE to be set in the response.
-        """
-        return None
-
-    @property
-    def answer(self) -> Sequence[dns.rrset.RRset]:
-        """
-        RRsets to be included in the answer section of the response.
-        """
-        return []
-
-    @property
-    def authority(self) -> Sequence[dns.rrset.RRset]:
-        """
-        RRsets to be included in the authority section of the response.
-        """
-        return []
-
-    @property
-    def additional(self) -> Sequence[dns.rrset.RRset]:
-        """
-        RRsets to be included in the additional section of the response.
-        """
-        return []
-
-    @property
-    def authoritative(self) -> bool | None:
-        """
-        Whether to set the AA bit in the response.
-        """
-        return None
-
-    @property
-    def delay(self) -> float:
-        """
-        Delay before sending the response.
-        """
-        return 0.0
-
-    @property
-    def edns(self) -> int | bool | None | _UnsetEdnsType:
-        """
-        Value passed to the response's ``use_edns()``.  Left unset by default,
-        so EDNS is untouched; set it to anything ``use_edns()`` accepts (e.g.
-        ``None`` to strip EDNS and mimic a non-EDNS server).
-        """
-        return _UnsetEdnsType()
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.answer.extend(self.answer)
-        qctx.response.authority.extend(self.authority)
-        qctx.response.additional.extend(self.additional)
-        if self.rcode is not None:
-            qctx.response.set_rcode(self.rcode)
-        if not isinstance(self.edns, _UnsetEdnsType):
-            qctx.response.use_edns(self.edns)
-        yield DnsResponseSend(
-            qctx.response, authoritative=self.authoritative, delay=self.delay
-        )
-
-
-class DomainHandler(ResponseHandler):
-    """
-    Base class used for deriving custom domain handlers.
-
-    The derived class must specify a list of `domains` that it wants to handle.
-    Queries for any of these domains (and their subdomains) will then be passed
-    to the `get_response()` method in the derived class.
-
-    The most specific matching domain is stored in the `matched_domain` attribute.
-    """
-
-    @property
-    @abc.abstractmethod
-    def domains(self) -> list[str]:
-        """
-        A list of domain names handled by this class.
-        """
-        raise NotImplementedError
-
-    def __init__(self) -> None:
-        self._domains: list[dns.name.Name] = sorted(
-            [dns.name.from_text(d) for d in self.domains], reverse=True
-        )
-        self._matched_domain: dns.name.Name | None = None
-
-    @property
-    def matched_domain(self) -> dns.name.Name:
-        assert self._matched_domain is not None
-        return self._matched_domain
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(domains: {', '.join(self.domains)})"
-
-    def match(self, qctx: QueryContext) -> bool:
-        """
-        Handle queries whose QNAME matches any of the domains handled by this
-        class.
-        """
-        self._matched_domain = None
-        for domain in self._domains:
-            if qctx.qname.is_subdomain(domain):
-                self._matched_domain = domain
-                return True
-        return False
-
-
-class ForwarderHandler(ResponseHandler):
-    """
-    A handler forwarding all received queries to another DNS server with an
-    optional delay and then relaying the responses back to the original client.
-
-    Queries are currently always forwarded via UDP.
-    """
-
-    @property
-    @abc.abstractmethod
-    def target(self) -> str:
-        """
-        The address of the DNS server to forward queries to.
-        """
-        raise NotImplementedError
-
-    @property
-    def port(self) -> int:
-        """
-        The port of the DNS server to forward queries to.
-
-        The default value of 0 causes the same port as the one used by this
-        server for listening to be used.
-        """
-        return 0
-
-    @property
-    def delay(self) -> float:
-        """
-        The number of seconds to wait before forwarding each query.
-        """
-        return 0.0
-
-    def __str__(self) -> str:
-        return f"{self.__class__.__name__}(target: {self.target}:{self.port})"
-
-    class ForwarderProtocol(asyncio.DatagramProtocol):
-        def __init__(self, query: bytes, response: asyncio.Future) -> None:
-            self._query = query
-            self._response = response
-
-        def connection_made(self, transport: asyncio.BaseTransport) -> None:
-            logging.debug("[OUT] %s", self._query.hex())
-            cast(asyncio.DatagramTransport, transport).sendto(self._query)
-
-        def datagram_received(self, data: bytes, _: tuple[str, int]) -> None:
-            logging.debug("[IN] %s", data.hex())
-            self._response.set_result(data)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        loop = asyncio.get_running_loop()
-        response = loop.create_future()
-        forwarding_target = f"{self.target}:{self.port or qctx.socket.port}"
-
-        if self.delay > 0:
-            logging.info(
-                "Waiting %.1fs before forwarding %s query from %s to %s over UDP",
-                self.delay,
-                qctx.protocol.name,
-                qctx.peer,
-                forwarding_target,
-            )
-            await asyncio.sleep(self.delay)
-
-        logging.info(
-            "Forwarding %s query from %s to %s over UDP",
-            qctx.protocol.name,
-            qctx.peer,
-            forwarding_target,
-        )
-
-        transport, _ = await loop.create_datagram_endpoint(
-            lambda: self.ForwarderProtocol(qctx.query.to_wire(), response),
-            local_addr=(qctx.socket.host, 0),
-            remote_addr=(self.target, self.port or qctx.socket.port),
-        )
-
-        try:
-            await response
-        finally:
-            transport.close()
-
-        logging.info(
-            "Relaying UDP response from %s to %s over %s",
-            forwarding_target,
-            qctx.peer,
-            qctx.protocol.name,
-        )
-
-        try:
-            message = dns.message.from_wire(response.result(), keyring=False)
-            yield DnsResponseSend(message, acknowledge_hand_rolled_response=True)
-        except dns.exception.DNSException:
-            logging.warning(
-                "Failed to parse response from %s as a DNS message, relaying it as raw bytes",
-                forwarding_target,
-            )
-            yield BytesResponseSend(response.result())
-
-
-class AxfrHandler(ResponseHandler):
-    """
-    Base class for AXFR response handlers.
-
-    Subclasses must define the `initial_soa`, `zone_contents`, and `final_soa`
-    properties to specify the content of the AXFR responses.
-
-    The responses are constructed without any regard to zone data.
-    """
-
-    @property
-    @abc.abstractmethod
-    def initial_soa(self) -> dns.rrset.RRset:
-        """
-        Initial SOA record of response packets sent in response to
-        AXFR queries.
-        """
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
-    def zone_contents(self) -> Collection[dns.rrset.RRset]:
-        """
-        Answer section of the second response packet sent in response to
-        AXFR queries.
-        """
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
-    def final_soa(self) -> dns.rrset.RRset:
-        """
-        Final SOA record of response packets sent in response to
-        AXFR queries.
-        """
-        raise NotImplementedError
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.AXFR
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.answer.append(self.initial_soa)
-        yield DnsResponseSend(qctx.response)
-
-        qctx.prepare_new_response(with_zone_data=False)
-        for rrset_ in self.zone_contents:
-            qctx.response.answer.append(rrset_)
-        yield DnsResponseSend(qctx.response)
-
-        qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.answer.append(self.final_soa)
-        yield DnsResponseSend(qctx.response)
+        if isinstance(self.matcher, Always):
+            return self.__class__.__name__
+        return f"{self.__class__.__name__} matching {self.matcher}"
 
 
 @dataclass
@@ -1390,7 +382,7 @@ def _is_asyncserver_response(message: dns.message.Message) -> bool:
     return getattr(message, _ASYNCSERVER_RESPONSE_MARKER, False)
 
 
-class AsyncDnsServer(AsyncServer):
+class AsyncDnsServer(_AsyncServer):
     """
     DNS server which responds to queries based on zone data and/or custom
     handlers.
@@ -2030,7 +1022,7 @@ class AsyncDnsServer(AsyncServer):
         Yield response(s) to the query from a matching query handler.
         """
         for handler in self._response_handlers:
-            if handler.match(qctx):
+            if handler.matcher.match(qctx):
                 logging.debug("Matched response handler: %s", handler)
                 async for response in handler.get_responses(qctx):
                     yield response
@@ -2078,7 +1070,7 @@ class ControllableAsyncDnsServer(AsyncDnsServer):
         """
         control_response = self._handle_control_command(qctx)
         if control_response:
-            yield await DnsResponseSend(response=control_response).perform()
+            yield control_response
             return
 
         async for response in super()._prepare_responses(qctx):
@@ -2188,69 +1180,3 @@ class ControlCommand(abc.ABC):
 
     def __str__(self) -> str:
         return self.__class__.__name__
-
-
-class ToggleResponsesCommand(ControlCommand):
-    """
-    Disable/enable sending responses from the server.
-    """
-
-    control_subdomain = "send-responses"
-
-    def __init__(self) -> None:
-        self._current_handler: IgnoreAllQueries | None = None
-
-    def handle(
-        self, args: list[str], server: ControllableAsyncDnsServer, qctx: QueryContext
-    ) -> str | None:
-        if len(args) != 1:
-            logging.error("Invalid %s query %s", self, qctx.qname)
-            qctx.response.set_rcode(dns.rcode.SERVFAIL)
-            return "invalid query; use exactly one of 'enable' or 'disable' in QNAME"
-
-        mode = args[0]
-
-        if mode == "disable":
-            if self._current_handler:
-                return "sending responses already disabled"
-            self._current_handler = IgnoreAllQueries()
-            server.install_response_handler(self._current_handler, prepend=True)
-            return "sending responses disabled"
-
-        if mode == "enable":
-            if not self._current_handler:
-                return "sending responses already enabled"
-            server.uninstall_response_handler(self._current_handler)
-            self._current_handler = None
-            return "sending responses enabled"
-
-        logging.error("Unrecognized response sending mode '%s'", mode)
-        qctx.response.set_rcode(dns.rcode.SERVFAIL)
-        return f"unrecognized response sending mode '{mode}'"
-
-
-class SwitchControlCommand(ControlCommand):
-    """
-    Switch the server's response handlers based on the control query.
-
-    A sequence of response handlers is associated with each key.  When a
-    control query is received, the server's response handlers are replaced
-    with the sequence associated with the key extracted from the control
-    query.
-    """
-
-    control_subdomain = "switch"
-
-    def __init__(self, handler_mapping: dict[str, Sequence[ResponseHandler]]):
-        self._handler_mapping = handler_mapping
-
-    def handle(
-        self, args: list[str], server: ControllableAsyncDnsServer, qctx: QueryContext
-    ) -> str | None:
-        if len(args) != 1 or args[0] not in self._handler_mapping:
-            logging.error("Invalid %s query %s", self, qctx.qname)
-            qctx.response.set_rcode(dns.rcode.SERVFAIL)
-            return f"invalid query; exactly one of {list(self._handler_mapping.keys())} is expected in QNAME"
-
-        server.replace_response_handlers(*self._handler_mapping[args[0]])
-        return f"switched to handler set '{args[0]}'"

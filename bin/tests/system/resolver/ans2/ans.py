@@ -17,17 +17,10 @@ import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    IgnoreAllQueries,
-    QnameHandler,
-    QnameQtypeHandler,
-    QueryContext,
-    ResponseHandler,
-    StaticResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import IgnoreAllQueries, StaticResponseHandler
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 from ..resolver_ans import (
     DelegationHandler,
@@ -41,12 +34,10 @@ from ..resolver_ans import (
 )
 
 
-class BadGoodDnameNsHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [
-        "baddname.example.org.",
-        "gooddname.example.org.",
-    ]
-    qtypes = [dns.rdatatype.NS]
+class BadGoodDnameNsHandler(StaticResponseHandler):
+    matcher = Qname("baddname.example.org.", "gooddname.example.org.") & Qtype(
+        dns.rdatatype.NS
+    )
     answer = [rrset("example.org.", dns.rdatatype.NS, "a.root-servers.nil.")]
     authoritative = True
 
@@ -60,28 +51,28 @@ def _cname_rrsets(
     )
 
 
-class Cname1Handler(QnameHandler, StaticResponseHandler):
-    qnames = ["cname1.example.com."]
+class Cname1Handler(StaticResponseHandler):
+    matcher = Qname("cname1.example.com.")
     # Data for the "cname + other data / 1" test
-    answer = _cname_rrsets(qnames[0])
+    answer = _cname_rrsets(matcher.qnames[0])
     authoritative = False
 
 
-class Cname2Handler(QnameHandler, StaticResponseHandler):
-    qnames = ["cname2.example.com."]
+class Cname2Handler(StaticResponseHandler):
+    matcher = Qname("cname2.example.com.")
     # Data for the "cname + other data / 2" test: same RRs in opposite order
-    answer = tuple(reversed(_cname_rrsets(qnames[0])))
+    answer = tuple(reversed(_cname_rrsets(matcher.qnames[0])))
     authoritative = False
 
 
-class ExampleOrgHandler(QnameHandler):
-    qnames = [
+class ExampleOrgHandler(ResponseHandler):
+    matcher = Qname(
         "www.example.org",
         "badcname.example.org",
         "goodcname.example.org",
         "foo.baddname.example.org",
         "foo.gooddname.example.org",
-    ]
+    )
 
     async def get_responses(
         self, qctx: QueryContext
@@ -96,20 +87,14 @@ class ExampleOrgHandler(QnameHandler):
         yield DnsResponseSend(qctx.response, authoritative=True)
 
 
-class NoResponseExampleUdpHandler(QnameHandler, IgnoreAllQueries):
-    qnames = ["noresponse.exampleudp.net."]
+class NoResponseExampleUdpHandler(IgnoreAllQueries):
+    matcher = Qname("noresponse.exampleudp.net.")
 
 
-class RootNsHandler(QnameQtypeHandler):
-    qnames = [
-        "example.com.",
-        "com.",
-        "example.org.",
-        "org.",
-        "net.",
-    ]
-
-    qtypes = [dns.rdatatype.NS]
+class RootNsHandler(ResponseHandler):
+    matcher = Qname("example.com.", "com.", "example.org.", "org.", "net.") & Qtype(
+        dns.rdatatype.NS
+    )
 
     async def get_responses(
         self, qctx: QueryContext
@@ -119,8 +104,8 @@ class RootNsHandler(QnameQtypeHandler):
         yield DnsResponseSend(qctx.response, authoritative=True)
 
 
-class ZoneVersionHandler(QnameHandler):
-    qnames = ["zoneversion."]
+class ZoneVersionHandler(ResponseHandler):
+    matcher = Qname("zoneversion.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -176,8 +161,8 @@ class Ns7Delegation(DelegationHandler):
     server_number = 7
 
 
-class PartialFormerrHandler(DomainHandler, StaticResponseHandler):
-    domains = ["partial-formerr."]
+class PartialFormerrHandler(StaticResponseHandler):
+    matcher = Domain("partial-formerr.")
     authoritative = False
     rcode = dns.rcode.FORMERR
 
