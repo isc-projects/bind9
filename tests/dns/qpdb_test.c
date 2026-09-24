@@ -158,6 +158,9 @@ servestale_addrdataset(dns_db_t *db, const dns_name_t *name, isc_stdtime_t now,
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = rtype;
 	rdatalist.ttl = ttl;
+	if (rtype == dns_rdatatype_rrsig) {
+		rdatalist.covers = dns_rdata_covers(&rdata);
+	}
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 
 	dns_rdataset_init(&rdataset);
@@ -304,19 +307,19 @@ precedence_rdata(dns_rdatatype_t type) {
 
 /* 'age' is measured from insertion; dns_rdatatype_none skips an RRset. */
 static void
-check_cname_precedence(isc_mem_t *mctx, dns_rdatatype_t type1,
+check_cname_precedence(isc_mem_t *dbmctx, dns_rdatatype_t type1,
 		       isc_stdtime_t age1, dns_rdatatype_t type2,
 		       isc_stdtime_t age2, dns_rdatatype_t qtype,
 		       isc_result_t expected, dns_rdatatype_t expected_type,
-		       bool expected_stale) {
+		       bool expected_stale, bool signatures) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
 	dns_fixedname_t fname, ffound;
 	dns_name_t *name = NULL, *foundname = NULL;
-	dns_rdataset_t rdataset;
+	dns_rdataset_t rdataset, sigrdataset;
 
-	db = servestale_setup(mctx, &fname, &name);
+	db = servestale_setup(dbmctx, &fname, &name);
 
 	if (type1 != dns_rdatatype_none) {
 		servestale_addrdataset(db, name, now - age1, type1,
@@ -329,10 +332,33 @@ check_cname_precedence(isc_mem_t *mctx, dns_rdatatype_t type1,
 				       dns_trust_answer);
 	}
 
+	if (signatures) {
+		const dns_rdatatype_t types[] = { type1, type2 };
+		const isc_stdtime_t ages[] = { age1, age2 };
+
+		for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+			char typebuf[DNS_RDATATYPE_FORMATSIZE], sigbuf[256];
+
+			if (types[i] == dns_rdatatype_none) {
+				continue;
+			}
+			dns_rdatatype_format(types[i], typebuf,
+					     sizeof(typebuf));
+			snprintf(sigbuf, sizeof(sigbuf),
+				 "%s 13 2 3600 20300101000000 20200101000000 "
+				 "12345 example.com. AA==",
+				 typebuf);
+			servestale_addrdataset(db, name, now - ages[i],
+					       dns_rdatatype_rrsig, sigbuf,
+					       3600, dns_trust_answer);
+		}
+	}
+
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&sigrdataset);
 	result = dns_db_find(db, name, NULL, qtype, DNS_DBFIND_STALEOK, now,
-			     NULL, foundname, &rdataset, NULL);
+			     NULL, foundname, &rdataset, &sigrdataset);
 
 	assert_int_equal(result, expected);
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -343,13 +369,20 @@ check_cname_precedence(isc_mem_t *mctx, dns_rdatatype_t type1,
 	} else {
 		assert_int_equal(expected_type, dns_rdatatype_none);
 	}
+	assert_true(dns_rdataset_isassociated(&sigrdataset) ==
+		    (signatures && expected_type != dns_rdatatype_none));
+	if (dns_rdataset_isassociated(&sigrdataset)) {
+		assert_int_equal(sigrdataset.type, dns_rdatatype_rrsig);
+		assert_int_equal(sigrdataset.covers, expected_type);
+		dns_rdataset_disassociate(&sigrdataset);
+	}
 
 	dns_db_detach(&db);
 }
 
 /* Check CNAME precedence for both insertion orders. */
 ISC_LOOP_TEST_IMPL(cname_precedence) {
-	isc_mem_t *mctx = NULL;
+	isc_mem_t *dbmctx = NULL;
 	const dns_rdatatype_t cname = dns_rdatatype_cname;
 	const dns_rdatatype_t a = dns_rdatatype_a;
 	const dns_rdatatype_t ns = dns_rdatatype_ns;
@@ -368,14 +401,6 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 		const isc_result_t expected_result;
 		const dns_rdatatype_t expected_type;
 		const bool expected_stale;
-		/*
-		 * Caching fresh data retires the expired RRsets at the node,
-		 * so when the stale RRset is inserted first it is already
-		 * gone by the time the fresh one is cached.  Set when the
-		 * stale RRset was the expected answer: that insertion order
-		 * finds nothing instead.
-		 */
-		const bool purged;
 	} testcases[] = {
 		/* Both fresh: the requested type wins over the alias. */
 		{
@@ -450,7 +475,6 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.expected_result = DNS_R_CNAME,
 			.expected_type = cname,
 			.expected_stale = true,
-			.purged = true,
 		},
 		{
 			.type1 = cname,
@@ -560,7 +584,7 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 		},
 	};
 
-	isc_mem_create(&mctx);
+	isc_mem_create(&dbmctx);
 
 	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
 		const dns_rdatatype_t type1 = testcases[i].type1;
@@ -573,34 +597,21 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 		const dns_rdatatype_t expected_type =
 			testcases[i].expected_type;
 		const bool expected_stale = testcases[i].expected_stale;
-		const bool purged = testcases[i].purged;
 
-		/*
-		 * A fresh RRset cached after a stale one retires it; with
-		 * 'purged' set, that insertion order is expected to find
-		 * nothing for the query.
-		 */
-		if (purged && rank1 == stale && rank2 == fresh) {
-			check_cname_precedence(mctx, type1, rank1, type2, rank2,
-					       qtype, ISC_R_NOTFOUND, none,
-					       false);
-		} else {
-			check_cname_precedence(mctx, type1, rank1, type2, rank2,
-					       qtype, expected_result,
-					       expected_type, expected_stale);
-		}
-		if (purged && rank2 == stale && rank1 == fresh) {
-			check_cname_precedence(mctx, type2, rank2, type1, rank1,
-					       qtype, ISC_R_NOTFOUND, none,
-					       false);
-		} else {
-			check_cname_precedence(mctx, type2, rank2, type1, rank1,
-					       qtype, expected_result,
-					       expected_type, expected_stale);
+		for (unsigned int signatures = 0; signatures < 2; signatures++)
+		{
+			check_cname_precedence(dbmctx, type1, rank1, type2,
+					       rank2, qtype, expected_result,
+					       expected_type, expected_stale,
+					       signatures != 0);
+			check_cname_precedence(dbmctx, type2, rank2, type1,
+					       rank1, qtype, expected_result,
+					       expected_type, expected_stale,
+					       signatures != 0);
 		}
 	}
 
-	isc_mem_detach(&mctx);
+	isc_mem_detach(&dbmctx);
 	isc_loopmgr_shutdown(loopmgr);
 }
 

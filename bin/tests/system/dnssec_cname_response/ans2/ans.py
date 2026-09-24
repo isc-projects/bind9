@@ -20,7 +20,7 @@ import dns.zone
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Domain, Matcher, Qtype
+from isctest.asyncserver.matchers import Domain, Matcher, Qname, Qtype
 
 # 'example.' answers DNSKEY/NSEC/NSEC3/RRSIG queries with a CNAME (the
 # meta-types whose CNAME answer the resolver and validator must cope with).
@@ -104,6 +104,14 @@ class ExampleMetatypeCnameHandler(CnameHandler):
 
 class SecureDsCnameHandler(CnameHandler):
     matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
+
+
+class InsecureApexCnameHandler(CnameHandler):
+    """
+    Synthesize an apex CNAME, which conflicts with SOA/NS in a zone file.
+    """
+
+    matcher = Qname("insecure.parent.") & Qtype(dns.rdatatype.A)
 
 
 class SignedZoneHandler(ResponseHandler):
@@ -190,6 +198,7 @@ class StuffedNxdomainHandler(ResponseHandler):
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(
+        InsecureApexCnameHandler(),
         LoneAHandler(),
         ExampleMetatypeCnameHandler(),
         SignedZoneHandler(EXAMPLE),
