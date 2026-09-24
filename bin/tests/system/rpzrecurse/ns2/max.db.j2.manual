@@ -1,0 +1,12 @@
+{#
+  Policy zone max<num> for the 64-zone test: name1 to name<num> all point
+  at 10.53.0.<num>, so the answer to name<num> identifies the zone it
+  came from.
+#}
+$TTL 60
+{% raw %}@{% endraw %} IN SOA root.ns ns 1996072700 3600 1800 86400 60
+     NS ns
+ns   A 127.0.0.1
+{% for j in range(1, num + 1) %}
+name@j@ A 10.53.0.@num@
+{% endfor %}
