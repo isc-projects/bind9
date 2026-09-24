@@ -175,15 +175,8 @@ def test_cname_for_validator_dnskey_fetch(ns3):
 
 def test_ds_cname_does_not_deadlock():
     """
-    A DS query answered with an unsigned CNAME must not send the validator
-    into a self-join deadlock (GL#5878). While proving the CNAME insecure
-    the validator would fetch the DS for the same name, re-entering the
-    in-flight DS fetch it is blocked on and stalling for ~12 seconds until a
-    backstop timer fires. The validator now detects that such a fetch cannot
-    advance the alias chain and aborts, so the client gets SERVFAIL promptly.
-
-    'secure.' is a properly signed zone (so validation reaches the DS query),
-    but its authoritative server answers DS queries with an unsigned CNAME.
+    An unsigned CNAME answer to a DS query makes validation fetch the same DS.
+    Reject the fetch loop promptly instead of waiting for a timeout (GL#5878).
     """
     msg = isctest.query.create("insecure.secure.", "DS")
 
