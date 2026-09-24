@@ -18,7 +18,7 @@ ns A 127.0.0.1
 {% elif trigger == "nsdname" %}
 ns.example.org.rpz-nsdname CNAME .
 {% elif trigger == "nsip" %}
-32.255.255.255.255.rpz-ip CNAME .
+32.255.255.255.255.rpz-nsip CNAME .
 {% else %}
 @trigger@ CNAME .
 {% endif %}
