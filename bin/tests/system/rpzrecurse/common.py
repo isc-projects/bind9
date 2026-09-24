@@ -87,3 +87,9 @@ def bootstrap():
     write_case(templates, "6a", 0, [[]], qname_wait_recurse=True)
     write_case(templates, "6b", 0, [["nsdname"]], qname_wait_recurse=True, serial=2)
     write_case(templates, "6c", 0, [[]], qname_wait_recurse=True, serial=3)
+
+    # policy zones for the 64-zone test (named.max.conf)
+    for num in range(1, 65):
+        templates.render(
+            f"ns2/db.max{num}.local", {"num": num}, template="ns2/max.db.j2.manual"
+        )
