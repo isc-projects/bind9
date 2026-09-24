@@ -43,19 +43,10 @@ ENV_RE = Re(b"([^=]+)=(.*)")
 PORT_MIN = 5001
 PORT_MAX = 32767
 PORTS_PER_TEST = 20
-PRIORITY_TESTS = [
-    # Ten tests that are scheduled first. Speeds up parallel execution.
-    # Sorted by observed duration (longest first), measured from CI.
-    "dupsigs/",
-    "timeouts/",
-    "rpzrecurse/",
-    "nsupdate/",
-    "serve_stale/",
-    "doth/",
-    "resolver/",
-    "catz/",
-    "digdelv/",
-    "rpz/",
+PRIORITY_TESTS: List[str] = [
+    # Tests that are scheduled first. Speeds up parallel execution.
+    # The long-running tests are all run by the legacy runner on this
+    # branch.
 ]
 for _p in PRIORITY_TESTS:
     _dir = os.path.join(FILE_DIR, _p.rstrip("/"))
@@ -142,6 +133,19 @@ os.environ.setdefault(
     "DEFAULT_ALGORITHM_DST_NUMBER", os.environ["DEFAULT_ALGORITHM_NUMBER"]
 )
 
+# Tests listed in conf.sh are run by the legacy runner, tests*.py
+# modules included; leave those to it.
+LEGACY_TESTS = frozenset(
+    subprocess.run(
+        ". ./conf.sh && echo $SUBDIRS",
+        shell=True,
+        check=True,
+        cwd=FILE_DIR,
+        stdout=subprocess.PIPE,
+        text=True,
+    ).stdout.split()
+)
+
 # ---- Fix pytest-xdist loadscope for node IDs containing "::" ----------
 
 # LoadScopeScheduling._split_scope uses rsplit("::", 1) which breaks when
@@ -198,7 +202,7 @@ def pytest_ignore_collect(collection_path):
         isctest.log.warning("unexpected test path: %s (ignored)", collection_path)
         return True
     system_test_name = match.groups()[0]
-    return "-" in system_test_name
+    return "-" in system_test_name or system_test_name in LEGACY_TESTS
 
 
 def pytest_collection_modifyitems(items):
