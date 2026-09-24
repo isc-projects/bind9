@@ -1,0 +1,4 @@
+@ 0 IN SOA . . 0 0 0 0 0
+@ 0 IN NS .
+; a zone without a NSEC3PARAM record and a create private record
+@ 0 IN TYPE65534 \# 6 00 00 80 00 00 00

@@ -1645,6 +1645,7 @@ dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version, bool complete,
 isc_result_t
 dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version, bool complete,
 		  dns_rdatatype_t privatetype, bool *answer) {
+	bool found = false;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_nsec3param_t nsec3param;
@@ -1669,7 +1670,6 @@ dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version, bool complete,
 		return result;
 	}
 
-	bool found = false;
 	DNS_RDATASET_FOREACH(&rdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
@@ -1681,12 +1681,11 @@ dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version, bool complete,
 		}
 	}
 	dns_rdataset_disassociate(&rdataset);
-	*answer = found;
 
 try_private:
-	if (privatetype == 0 || complete) {
+	if (found || privatetype == 0 || complete) {
 		dns_db_detachnode(&node);
-		*answer = false;
+		*answer = found;
 		return ISC_R_SUCCESS;
 	}
 	result = dns_db_findrdataset(db, node, version, privatetype, 0, 0,
