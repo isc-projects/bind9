@@ -81,7 +81,6 @@ towire_minfo(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 
-	REQUIRE(rdata->type == dns_rdatatype_minfo);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, true);
@@ -106,7 +105,6 @@ towire_naptr(ARGS_TOWIRE) {
 	dns_name_t name;
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == dns_rdatatype_naptr);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
@@ -148,7 +146,6 @@ towire_rp(ARGS_TOWIRE) {
 	isc_region_t region;
 	dns_name_t rmail;
 
-	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
@@ -174,7 +171,6 @@ towire_soa(ARGS_TOWIRE) {
 	dns_name_t mname;
 	dns_name_t rname;
 
-	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, true);
@@ -208,7 +204,6 @@ towire_talink(ARGS_TOWIRE) {
 	dns_name_t prev;
 	dns_name_t next;
 
-	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
@@ -234,8 +229,6 @@ towire_in_a6(ARGS_TOWIRE) {
 	unsigned char prefixlen;
 	unsigned char octets;
 
-	REQUIRE(rdata->type == dns_rdatatype_a6);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
@@ -261,8 +254,6 @@ towire_in_px(ARGS_TOWIRE) {
 	dns_name_t name;
 	isc_region_t region;
 
-	REQUIRE(rdata->type == dns_rdatatype_px);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
 
 	dns_compress_setpermitted(cctx, false);
