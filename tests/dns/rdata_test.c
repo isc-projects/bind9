@@ -3934,6 +3934,42 @@ ISC_RUN_TEST_IMPL(secalg_format) {
 	assert_string_equal(small, "");
 }
 
+/* Non-IN names must be copied without compression, even on repeated use. */
+ISC_RUN_TEST_IMPL(towire_other_classes) {
+	unsigned char wire[] = { 2,   'n', 's', 7,   'e', 'x',
+				 'a', 'm', 'p', 'l', 'e', 0 };
+	isc_region_t region = { .base = wire, .length = sizeof(wire) };
+	dns_rdataclass_t classes[] = { dns_rdataclass_ch, dns_rdataclass_hs,
+				       65535 };
+
+	for (size_t i = 0; i < sizeof(classes) / sizeof(classes[0]); i++) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_compress_t cctx;
+		unsigned char buf[2 * sizeof(wire)];
+		isc_buffer_t target;
+		isc_result_t result;
+
+		dns_rdata_fromregion(&rdata, classes[i], dns_rdatatype_ns,
+				     &region);
+		dns_compress_init(&cctx, isc_g_mctx, 0);
+		isc_buffer_init(&target, buf, sizeof(buf));
+		for (size_t j = 0; j < 2; j++) {
+			result = dns_rdata_towire(&rdata, &cctx, &target);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_int_equal(isc_buffer_usedlength(&target),
+					 (j + 1) * sizeof(wire));
+			assert_memory_equal(buf + j * sizeof(wire), wire,
+					    sizeof(wire));
+		}
+		result = dns_rdata_towire(&rdata, &cctx, &target);
+		assert_int_equal(result, ISC_R_NOSPACE);
+		assert_int_equal(isc_buffer_usedlength(&target), sizeof(buf));
+		assert_memory_equal(buf, wire, sizeof(wire));
+		assert_memory_equal(buf + sizeof(wire), wire, sizeof(wire));
+		dns_compress_invalidate(&cctx);
+	}
+}
+
 ISC_TEST_LIST_START
 
 /* types */
@@ -3980,6 +4016,7 @@ ISC_TEST_ENTRY(atcname)
 ISC_TEST_ENTRY(atparent)
 ISC_TEST_ENTRY(iszonecutauth)
 ISC_TEST_ENTRY(secalg_format)
+ISC_TEST_ENTRY(towire_other_classes)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
