@@ -14,7 +14,8 @@ from collections.abc import AsyncGenerator
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import DnsResponseSend, QueryContext, ResponseAction
+from isctest.asyncserver import QueryContext
+from isctest.asyncserver.actions import DnsResponseSend
 
 from ..bailiwick_ans import ResponseSpoofer, spoofing_server
 
@@ -28,7 +29,7 @@ class UnsolicitedNsSpoofer(ResponseSpoofer, mode="unsolicited-ns"):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
         txt_rrset = dns.rrset.from_text(
@@ -54,7 +55,7 @@ class ParentGlueSpoofer(ResponseSpoofer, mode="parent-glue"):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
         ns_rrset = dns.rrset.from_text(
@@ -76,7 +77,7 @@ class DnameSpoofer(ResponseSpoofer, mode="dname"):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
         cname_rrset = dns.rrset.from_text(

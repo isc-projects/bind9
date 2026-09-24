@@ -16,13 +16,9 @@ import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 from ..qmin_ans import (
     DelayedResponseHandler,
@@ -33,27 +29,27 @@ from ..qmin_ans import (
 
 
 class QueryLogger(QueryLogHandler):
-    domains = ["1.0.0.2.ip6.arpa.", "fwd.", "good."]
+    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.")
 
 
 class BadHandler(EntRcodeChanger):
-    domains = ["bad."]
+    matcher = Domain("bad.")
     rcode = dns.rcode.NXDOMAIN
 
 
 class UglyHandler(EntRcodeChanger):
-    domains = ["ugly."]
+    matcher = Domain("ugly.")
     rcode = dns.rcode.FORMERR
 
 
 class SlowHandler(DelayedResponseHandler):
-    domains = ["slow."]
+    matcher = Domain("slow.")
     delay = 0.2
 
 
 def send_delegation(
     qctx: QueryContext, zone_cut: dns.name.Name, target_addr: str
-) -> ResponseAction:
+) -> DnsResponseSend:
     """
     Delegate `zone_cut` to a single in-bailiwick name server, `ns.<zone_cut>`,
     with a single IPv4 glue record (provided in `target_addr`) included in the
@@ -71,7 +67,7 @@ def send_delegation(
     return DnsResponseSend(response, authoritative=False)
 
 
-class StaleHandler(DomainHandler):
+class StaleHandler(ResponseHandler):
     """
     `a.b.stale` is a subdomain of `b.stale` and these two subdomains need to be
     delegated to different name servers.  Therefore, their delegations cannot
@@ -80,11 +76,11 @@ class StaleHandler(DomainHandler):
     on the QNAME.
     """
 
-    domains = ["stale."]
+    matcher = Domain("stale.")
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
         a_b_stale = dns.name.from_text("a.b.stale.")
         b_stale = dns.name.from_text("b.stale.")

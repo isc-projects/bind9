@@ -15,18 +15,13 @@ import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseDrop,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend, ResponseDrop
+from isctest.asyncserver.matchers import Qtype
 
 
 class ReplyA(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A
+    matcher = Qtype(dns.rdatatype.A)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -39,8 +34,7 @@ class ReplyA(ResponseHandler):
 
 
 class IgnoreNs(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.NS
+    matcher = Qtype(dns.rdatatype.NS)
 
     async def get_responses(
         self, qctx: QueryContext

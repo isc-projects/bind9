@@ -14,12 +14,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    QnameQtypeHandler,
-    QueryContext,
-    StaticResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Once, Qname, Qtype
 
 DNS64_TRIGGER = "nodata.test."
 
@@ -40,37 +37,24 @@ def aaaa() -> dns.rrset.RRset:
     return rrset(DNS64_TRIGGER, dns.rdatatype.AAAA, "2001:db8::1")
 
 
-class NodataOnceHandler(QnameQtypeHandler, StaticResponseHandler):
+class NodataOnceHandler(StaticResponseHandler):
     """
     Answer only the first AAAA query, with NODATA, so the DNS64 resolver looks
     up an A record; the delayed A lookup lets filter-a re-enter and re-query
     AAAA (answered by AaaaHandler), triggering the bug.
     """
 
-    qnames = [DNS64_TRIGGER]
-    qtypes = [dns.rdatatype.AAAA]
+    matcher = Once(Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA))
     authority = [soa()]
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._answered = False
 
-    def match(self, qctx: QueryContext) -> bool:
-        if self._answered:
-            return False
-        self._answered = True
-        return super().match(qctx)
-
-
-class AaaaHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [DNS64_TRIGGER]
-    qtypes = [dns.rdatatype.AAAA]
+class AaaaHandler(StaticResponseHandler):
+    matcher = Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA)
     answer = [aaaa()]
 
 
-class DelayedAHandler(QnameQtypeHandler, StaticResponseHandler):
-    qnames = [DNS64_TRIGGER]
-    qtypes = [dns.rdatatype.A]
+class DelayedAHandler(StaticResponseHandler):
+    matcher = Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.A)
     answer = [a()]
     delay = 2.0
 

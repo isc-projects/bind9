@@ -34,7 +34,9 @@ from dnssec_nsec3.ans1.common import (
     rrset_from_rdata,
     soa_rrset,
 )
-from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 F055_ZONE = "f055.test."
@@ -143,8 +145,8 @@ def add_nsec3_nxdomain(
     add_signed(response.authority, chain.cover_for(f"*.{closest}"), signer)
 
 
-class F055Handler(DomainHandler):
-    domains = [F055_ZONE]
+class F055Handler(ResponseHandler):
+    matcher = Domain(F055_ZONE)
 
     def __init__(self, keys: dict[str, Key]) -> None:
         super().__init__()

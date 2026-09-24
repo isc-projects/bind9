@@ -31,7 +31,9 @@ from dnssec_nsec3.ans1.common import (
     rrset_from_rdata,
     soa_rrset,
 )
-from isctest.asyncserver import DnsResponseSend, DomainHandler, QueryContext
+from isctest.asyncserver import QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 TTL = 300
 PARENT = "f025.test."
@@ -114,8 +116,8 @@ def add_wildcard_answer(response: dns.message.Message, owner: str, child: Key) -
     response.answer.append(wildcard_rrsig(owner, child))
 
 
-class F025Handler(DomainHandler):
-    domains = [PARENT, CHILD]
+class F025Handler(ResponseHandler):
+    matcher = Domain(PARENT, CHILD)
 
     def __init__(self, keys: dict[str, Key]) -> None:
         super().__init__()

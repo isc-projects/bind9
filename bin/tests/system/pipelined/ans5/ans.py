@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from isctest.asyncserver import AsyncDnsServer, ForwarderHandler
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import ForwarderHandler
 
 
 class ForwardToNs2(ForwarderHandler):

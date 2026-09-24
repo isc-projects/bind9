@@ -16,12 +16,8 @@ import abc
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import (
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
 
 
 def log_query(qctx: QueryContext) -> None:
@@ -39,7 +35,7 @@ def log_query(qctx: QueryContext) -> None:
         print(f"{qtype} {qname}", file=query_log)
 
 
-class QueryLogHandler(DomainHandler):
+class QueryLogHandler(ResponseHandler):
     """
     Log all received DNS queries to a text file.  Use the zone file for
     preparing responses.
@@ -47,12 +43,12 @@ class QueryLogHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
         yield DnsResponseSend(qctx.response)
 
 
-class EntRcodeChanger(DomainHandler):
+class EntRcodeChanger(ResponseHandler):
     """
     Log all received DNS queries to a text file.  Use the zone file for
     preparing responses, but override the RCODE returned for empty
@@ -67,7 +63,7 @@ class EntRcodeChanger(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         assert qctx.zone
 
         log_query(qctx)
@@ -83,7 +79,7 @@ class EntRcodeChanger(DomainHandler):
             yield DnsResponseSend(qctx.response)
 
 
-class DelayedResponseHandler(DomainHandler):
+class DelayedResponseHandler(ResponseHandler):
     """
     Log all received DNS queries to a text file.  Use the zone file for
     preparing responses, but delay sending every answer by the amount of time
@@ -97,6 +93,6 @@ class DelayedResponseHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
         yield DnsResponseSend(qctx.response, delay=self.delay)

@@ -21,10 +21,11 @@ import dns.tsigkeyring
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import LabelCount, LeftmostLabel, Protocol, Qtype
 from isctest.name import prepend_label
 from isctest.vars.algorithms import ALG_VARS
 
@@ -91,8 +92,7 @@ class _SpoofableHandler(ResponseHandler):
 
 
 class NsHandler(_SpoofableHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.NS and qctx.qname == _tld(qctx)
+    matcher = Qtype(dns.rdatatype.NS) & LabelCount(2)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -107,8 +107,7 @@ class NsHandler(_SpoofableHandler):
 
 
 class GlueHandler(_SpoofableHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A and qctx.qname == _ns_name(qctx)
+    matcher = Qtype(dns.rdatatype.A) & LabelCount(3) & LeftmostLabel(b"ns")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -122,8 +121,7 @@ class GlueHandler(_SpoofableHandler):
 
 
 class TcpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A and qctx.protocol == DnsProtocol.TCP
+    matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext
@@ -135,12 +133,9 @@ class TcpAHandler(ResponseHandler):
 
 
 class WithtsigUdpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return (
-            qctx.qtype == dns.rdatatype.A
-            and qctx.protocol == DnsProtocol.UDP
-            and _first_label(qctx) == "withtsig"
-        )
+    matcher = (
+        Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP) & LeftmostLabel(b"withtsig")
+    )
 
     async def get_responses(
         self, qctx: QueryContext
@@ -157,8 +152,7 @@ class WithtsigUdpAHandler(ResponseHandler):
 
 
 class UdpAHandler(ResponseHandler):
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qtype == dns.rdatatype.A and qctx.protocol == DnsProtocol.UDP
+    matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP)
 
     async def get_responses(
         self, qctx: QueryContext
