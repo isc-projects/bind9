@@ -85,3 +85,39 @@ def test_cname_recursion_catz_member_zone(ns2):
     msg = isctest.query.create("alias.member.", "A")
     res = isctest.query.udp(msg, ns2.ip)
     assert_full_chain(res, "alias.member.", "target3.external.", "10.0.0.97")
+
+
+@pytest.mark.requires_zones_loaded("ns1", "ns2")
+def test_additional_from_catz_member_zone(ns2):
+    with ns2.watch_log_from_start() as watcher:
+        watcher.wait_for_line("zone member/IN: transferred serial 1")
+
+    msg = isctest.query.create("mx.internal.", "MX")
+    res = isctest.query.udp(msg, ns2.ip)
+    isctest.check.noerror(res)
+    address = res.get_rrset(
+        res.additional,
+        dns.name.from_text("ns1.member."),
+        dns.rdataclass.IN,
+        dns.rdatatype.A,
+    )
+    assert address is not None
+
+
+@pytest.mark.requires_zones_loaded("ns1", "ns2")
+def test_nxdomain_redirect_to_catz_member_zone(ns2):
+    with ns2.watch_log_from_start() as watcher:
+        watcher.wait_for_line("zone member/IN: transferred serial 1")
+
+    # NXDOMAIN for ns1. is redirected to ns1.member.
+    msg = isctest.query.create("ns1.", "A")
+    res = isctest.query.udp(msg, ns2.ip)
+    isctest.check.noerror(res)
+    answer = res.get_rrset(
+        res.answer,
+        dns.name.from_text("ns1."),
+        dns.rdataclass.IN,
+        dns.rdatatype.A,
+    )
+    assert answer is not None
+    assert str(answer[0]) == "10.53.0.1"

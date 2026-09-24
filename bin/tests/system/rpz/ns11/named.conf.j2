@@ -16,6 +16,8 @@ options {
 
 {% include "_common/controls.conf.j2" %}
 
+{% include "_common/root.hint.conf" %}
+
 zone "0.0.127.in-addr.arpa" {
 	type primary;
 	file "0.0.127.in-addr.arpa.db";
