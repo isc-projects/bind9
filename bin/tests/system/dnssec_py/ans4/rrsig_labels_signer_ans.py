@@ -53,12 +53,9 @@ import dns.rdatatype
 import dns.rdtypes.ANY.NSEC3
 import dns.rrset
 
-from isctest.asyncserver import (
-    DnsResponseSend,
-    DomainHandler,
-    QueryContext,
-    ResponseAction,
-)
+from isctest.asyncserver import QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain
 
 ZONE_NAME = "attacker.rrsig-labels-signer."
 PARENT_ZONE_NAME = "rrsig-labels-signer."
@@ -112,12 +109,12 @@ def _type_bitmap(*types: int) -> bytes:
     return bytes(bm)
 
 
-class AttackerZoneHandler(DomainHandler):
+class AttackerZoneHandler(ResponseHandler):
     """
     Serve attacker.rrsig-labels-signer. with crafted wildcard RRSIG.
     """
 
-    domains = [ZONE_NAME]
+    matcher = Domain(ZONE_NAME)
 
     def __init__(self) -> None:
         super().__init__()
@@ -221,7 +218,7 @@ class AttackerZoneHandler(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         qtype = qctx.qtype
         qname = qctx.qname
         response = qctx.prepare_new_response(with_zone_data=False)

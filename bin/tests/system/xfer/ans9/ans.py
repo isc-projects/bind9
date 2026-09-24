@@ -18,21 +18,21 @@ import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
-    DnsResponseSend,
-    DomainHandler,
     QueryContext,
-    ResponseAction,
-    ToggleResponsesCommand,
+    ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.matchers import Domain
 
 
-class AXFRServer(DomainHandler):
+class AXFRServer(ResponseHandler):
     """
     Yield SOA and AXFR responses. Every new AXFR response increments the SOA
     version.
     """
 
-    domains = ["xfr-and-reconfig", "private-dns-overrun"]
+    matcher = Domain("xfr-and-reconfig", "private-dns-overrun")
 
     def __init__(self) -> None:
         super().__init__()
@@ -40,7 +40,7 @@ class AXFRServer(DomainHandler):
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         # This is oversimplified because I am lazy - we are appending the SOA
         # RRset to the ANSWER section for _every_ QTYPE.  named is only
         # expected to send a SOA query over UDP and then an AXFR query over

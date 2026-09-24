@@ -25,11 +25,11 @@ import dns.rdatatype
 from isctest.asyncserver import (
     AsyncDnsServer,
     DnsProtocol,
-    DnsResponseSend,
     QueryContext,
-    ResponseAction,
     ResponseHandler,
 )
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Qname, Qtype
 
 
 class MismatchOnUdpHandler(ResponseHandler):
@@ -40,15 +40,11 @@ class MismatchOnUdpHandler(ResponseHandler):
     framework.
     """
 
-    def __init__(self) -> None:
-        self._trigger = dns.name.from_text("trigger.example.")
-
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname == self._trigger and qctx.qtype == dns.rdatatype.A
+    matcher = Qname("trigger.example.") & Qtype(dns.rdatatype.A)
 
     async def get_responses(
         self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+    ) -> AsyncGenerator[DnsResponseSend, None]:
         if qctx.protocol == DnsProtocol.UDP:
             qctx.response.id = qctx.query.id ^ 0xFFFF
             yield DnsResponseSend(qctx.response)
