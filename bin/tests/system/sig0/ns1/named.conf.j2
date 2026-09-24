@@ -15,6 +15,7 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	recursion no;
 	notify no;
+	sig0checks-quota 0;
 };
 
 {% include "_common/controls.conf.j2" %}
