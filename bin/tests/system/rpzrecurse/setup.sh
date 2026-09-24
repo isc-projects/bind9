@@ -15,8 +15,6 @@ set -e
 
 . ../conf.sh
 
-$PERL testgen.pl
-
 # setup policy zones for a 64-zone test
 i=1
 while test $i -le 64; do
