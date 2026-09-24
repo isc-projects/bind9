@@ -110,6 +110,38 @@ CONF_ENV = get_env_bytes(". ./conf.sh && env")
 os.environb.update(CONF_ENV)
 isctest.log.debug("variables in env: %s", ", ".join([str(key) for key in CONF_ENV]))
 
+# --------------- Environment this branch's conf.sh lacks --------------------
+
+os.environ.setdefault("TOP_BUILDDIR", os.environ["TOP"])
+os.environ.setdefault("ANS_LOG_LEVEL", "debug")
+
+# configure --without-python leaves PYTHON empty, but the mock servers
+# still need an interpreter.
+if not os.environ.get("PYTHON"):
+    os.environ["PYTHON"] = sys.executable
+
+# conf.sh only exports the algorithm selection if configure found Python
+# and never exports per-algorithm support.
+import get_algorithms
+
+if "DEFAULT_ALGORITHM" not in os.environ:
+    _algs = get_algorithms.ALGORITHM_SETS[get_algorithms.ALGORITHM_SET]
+    _algs = get_algorithms.select_random(get_algorithms.filter_supported(_algs))
+    os.environ.update(get_algorithms.algorithms_env(_algs))
+for _alg in get_algorithms.ALL_ALGORITHMS:
+    _supported = get_algorithms.is_supported(_alg)
+    os.environ[f"{_alg.name}_SUPPORTED"] = "1" if _supported else "0"
+
+# get_algorithms.py logs through the root logger, which implicitly attaches
+# a stderr handler to it; without removal, every test's debug log ends up
+# in the pytest output.
+isctest.log.avoid_duplicated_logs()
+
+# Algorithm numbers and DST identifiers only differ on newer branches.
+os.environ.setdefault(
+    "DEFAULT_ALGORITHM_DST_NUMBER", os.environ["DEFAULT_ALGORITHM_NUMBER"]
+)
+
 # ---- Fix pytest-xdist loadscope for node IDs containing "::" ----------
 
 # LoadScopeScheduling._split_scope uses rsplit("::", 1) which breaks when
@@ -363,6 +395,9 @@ def env(ports):
         env[portname] = str(portnum)
     env["builddir"] = f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
+    # start.pl and stop.pl on this branch locate test directories via
+    # SYSTEMTESTTOP.
+    env["SYSTEMTESTTOP"] = env["builddir"]
     env["HYPOTHESIS_STORAGE_DIRECTORY"] = (
         f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}/.hypothesis"
     )
