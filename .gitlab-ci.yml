@@ -369,6 +369,9 @@ shfmt:
 
 danger:
   <<: *precheck_job
+  environment:
+    name: danger
+    action: access
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
@@ -901,6 +904,9 @@ sign:
 # set it to the name of the target customer.
 customer-git:branch:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -918,6 +924,9 @@ customer-git:branch:
 
 customer-git:tag:
   <<: *customer_git
+  environment:
+    name: customer
+    action: access
   needs:
     - job: release
       artifacts: false
@@ -1041,6 +1050,9 @@ pairwise:
 
 merged-metadata:
   <<: *post_merge
+  environment:
+    name: write
+    action: access
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9\.[0-9]+\.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
