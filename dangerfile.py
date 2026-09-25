@@ -349,3 +349,26 @@ for log_level in user_visible_log_levels:
             "sure none of the messages added is a leftover debug message."
         )
         break
+
+###############################################################################
+# SYSTEM TESTS
+###############################################################################
+#
+# FAIL if the merge request adds a tests_*.py module next to a shell test.  The
+# pytest runner does not support those; the legacy runner runs them without
+# the pytest runner's fixtures and setup, so a test cherry-picked from a newer
+# branch, where it can sit next to a shell test, does not run as written.
+
+SYSTEM_TEST_MODULE_RE = re.compile(r"^bin/tests/system/([^/]+)/tests_[^/]*\.py$")
+
+for path in danger.git.created_files:
+    match = SYSTEM_TEST_MODULE_RE.match(path)
+    if match is None:
+        continue
+    test = match.group(1)
+    if os.path.exists(f"bin/tests/system/{test}/tests.sh"):
+        fail(
+            f"`{path}` is added next to the `{test}` shell test, which the "
+            "pytest runner does not support on this branch. Please move it "
+            "to a system test directory of its own."
+        )
