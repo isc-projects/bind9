@@ -46,11 +46,8 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 #define ARGS_TOWIRE \
 	dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target
 
-#define TOWIRE_NAME_REST ((unsigned int)-1)
-
 static isc_result_t
-towire_name(ARGS_TOWIRE, bool compress, unsigned int prefix_len,
-	    unsigned int suffix_len) {
+towire_name(ARGS_TOWIRE, bool compress, unsigned int prefix_len) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -68,12 +65,7 @@ towire_name(ARGS_TOWIRE, bool compress, unsigned int prefix_len,
 	isc_region_consume(&region, name_length(&name));
 	RETERR(dns_name_towire(&name, cctx, target));
 
-	if (suffix_len == TOWIRE_NAME_REST) {
-		suffix_len = region.length;
-	} else {
-		REQUIRE(region.length >= suffix_len);
-	}
-	return mem_tobuffer(target, region.base, suffix_len);
+	return mem_tobuffer(target, region.base, region.length);
 }
 
 static isc_result_t
@@ -304,105 +296,97 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 
 	switch (RDATA_KEY(rdata->rdclass, rdata->type)) {
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_ns):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_md):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_mf):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_cname):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_soa):
 		result = towire_soa(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_mb):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_mg):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_mr):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_ptr):
-		result = towire_name(rdata, cctx, target, true, 0, 0);
+		result = towire_name(rdata, cctx, target, true, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_minfo):
 		result = towire_minfo(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_mx):
-		result = towire_name(rdata, cctx, target, true, 2, 0);
+		result = towire_name(rdata, cctx, target, true, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_rp):
 		result = towire_rp(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_afsdb):
-		result = towire_name(rdata, cctx, target, false, 2, 0);
+		result = towire_name(rdata, cctx, target, false, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_rt):
-		result = towire_name(rdata, cctx, target, false, 2, 0);
+		result = towire_name(rdata, cctx, target, false, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_nsap_ptr):
-		result = towire_name(rdata, cctx, target, false, 0, 0);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_sig):
-		result = towire_name(rdata, cctx, target, false, 18,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 18);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_px):
 		result = towire_in_px(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_nxt):
-		result = towire_name(rdata, cctx, target, false, 0,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_srv):
-		result = towire_name(rdata, cctx, target, false, 6, 0);
+		result = towire_name(rdata, cctx, target, false, 6);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_naptr):
 		result = towire_naptr(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_kx):
-		result = towire_name(rdata, cctx, target, false, 2, 0);
+		result = towire_name(rdata, cctx, target, false, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_a6):
 		result = towire_in_a6(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_dname):
-		result = towire_name(rdata, cctx, target, false, 0, 0);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_rrsig):
-		result = towire_name(rdata, cctx, target, false, 18,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 18);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_nsec):
-		result = towire_name(rdata, cctx, target, false, 0,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_talink):
 		result = towire_talink(rdata, cctx, target);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_svcb):
-		result = towire_name(rdata, cctx, target, false, 2,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_https):
-		result = towire_name(rdata, cctx, target, false, 2,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 2);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_dsync):
-		result = towire_name(rdata, cctx, target, false, 5, 0);
+		result = towire_name(rdata, cctx, target, false, 5);
 		break;
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_tkey):
-		result = towire_name(rdata, cctx, target, false, 0,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	case RDATA_KEY(dns_rdataclass_any, dns_rdatatype_tsig):
-		result = towire_name(rdata, cctx, target, false, 0,
-				     TOWIRE_NAME_REST);
+		result = towire_name(rdata, cctx, target, false, 0);
 		break;
 	default:
 		result = mem_tobuffer(target, rdata->data, rdata->length);
