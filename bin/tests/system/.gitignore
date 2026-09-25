@@ -9,3 +9,18 @@ named.run
 /systests.output
 /random.data
 parallel.mk
+
+# Caches of the pytest runner and of the Python code it runs.
+__pycache__
+.hypothesis
+.pytest_cache
+
+# Artifacts of the pytest runner: the temporary directories and convenience
+# symlinks it creates, which have a hyphen in their names.  Tests run by the
+# legacy runner may have one as well.
+/pytest.conftest.log.txt
+/*-*
+!/*-*.c
+!/allow-query
+!/filter-aaaa
+!/mkeys-eddsa
