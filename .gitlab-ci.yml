@@ -1898,7 +1898,7 @@ release:
       EOF
     - chmod +x "/tmp/${CI_JOB_NAME}.sh"
     - /bin/sh -c "set -e -x; ${SSH_SCRIPT_RUNNER_PRE}"
-    - echo -e "\e[31m*** Sleeping until /tmp/${CI_JOB_NAME}.sh is executed over SSH... ⌛\e[0m"
+    - echo -e "\e[31m*** Sleeping until /tmp/${CI_JOB_NAME}.sh is executed over SSH; in order to proceed, run:\n***\n***     ${SSH_COMMAND_HINT}\n***\e[0m"
     - while [ "$(cat "/tmp/${CI_JOB_NAME}-done")" != "${CI_COMMIT_TAG}" ]; do sleep 10; done
     - /bin/sh -c "set -e -x; ${SSH_SCRIPT_RUNNER_POST}"
     - cp "/tmp/${CI_JOB_NAME}.log" "${CI_PROJECT_DIR}/${CI_JOB_NAME}-${CI_COMMIT_TAG}.log"
@@ -1920,6 +1920,7 @@ sign:
       cat "/tmp/${CI_COMMIT_TAG}.asc" > "${RELEASE_DIRECTORY}/$${SOURCE_TARBALL}.asc"
       tar --create --file="${RELEASE_DIRECTORY}".tar.gz --gzip "${RELEASE_DIRECTORY}"
       rm -f "/tmp/${CI_COMMIT_TAG}.bin" "/tmp/${CI_COMMIT_TAG}.asc"
+    SSH_COMMAND_HINT: "ssh bind9-${CI_JOB_NAME}"
   artifacts:
     paths:
       - bind-${CI_COMMIT_TAG}-release.tar.gz
@@ -1947,6 +1948,7 @@ staging:
       ssh "${STAGING_USER_ACTIONS}@${STAGING_HOST}" "unpack ${CI_COMMIT_TAG}"
     SSH_SCRIPT_RUNNER_POST: |-
       rm -f "/tmp/${RELEASE_TARBALL}"
+    SSH_COMMAND_HINT: "ssh-agent ssh bind9-confirm-${CI_JOB_NAME}"
   artifacts:
     paths:
       - staging-${CI_COMMIT_TAG}.log
@@ -1969,6 +1971,7 @@ publish-private:
       ssh "${STAGING_USER_ACTIONS}@${STAGING_HOST}" "publish-private ${CI_COMMIT_TAG}"
     SSH_SCRIPT_RUNNER_POST: |-
       awk '/^Public Use URL:/ {print $$NF}' "/tmp/${CI_JOB_NAME}.log" > "url-${CI_COMMIT_TAG}.txt"
+    SSH_COMMAND_HINT: "ssh-agent ssh bind9-confirm-${CI_JOB_NAME}"
   artifacts:
     paths:
       - publish-private-${CI_COMMIT_TAG}.log
@@ -1994,6 +1997,7 @@ publish:
   variables:
     SSH_SCRIPT_CLIENT: |-
       ssh "${STAGING_USER_ACTIONS}@${STAGING_HOST}" "publish ${CI_COMMIT_TAG}"
+    SSH_COMMAND_HINT: "ssh-agent ssh bind9-confirm-${CI_JOB_NAME}"
   artifacts:
     paths:
       - publish-${CI_COMMIT_TAG}.log
