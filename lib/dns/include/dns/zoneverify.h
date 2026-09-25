@@ -22,6 +22,8 @@
 #include <dns/types.h>
 
 /*%
+ * Use 'zonename' as the logging prefix, or stderr if NULL.
+ *
  * Verify that certain things are sane:
  *
  *   The apex has a DNSKEY record with at least one KSK, and at least
@@ -40,7 +42,7 @@
  * correctly signed by at least one key present in 'secroots'.
  */
 isc_result_t
-dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+dns_zoneverify_dnssec(const char *zonename, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
 		      isc_mem_t *mctx, bool ignore_kskflag, bool keyset_kskonly,
 		      void (*report)(const char *, ...));

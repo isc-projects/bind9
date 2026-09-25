@@ -30,6 +30,8 @@
 #include <dns/zoneaddr.h>
 #include <dns/zonefetch.h>
 
+#include "zone/viewname_p.h"
+
 /*%
  *	Types and functions below meant to be used for internal zone
  *	modules only, and associated unit tests.
@@ -546,6 +548,7 @@ struct dns_zone {
 	uint32_t sigvalidityinterval;
 	uint32_t keyvalidityinterval;
 	uint32_t sigresigninginterval;
+	dns_viewname_t viewname;
 	dns_view_t *view;
 	dns_view_t *prev_view;
 	dns_kasp_t *kasp;

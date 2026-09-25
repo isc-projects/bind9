@@ -926,22 +926,17 @@ dns_zone_isloaded(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver);
+dns_zone_verifydb(dns_view_t *view, dns_db_t *db, dns_dbversion_t *ver);
 /*%<
- * If 'zone' is a mirror zone, perform DNSSEC validation of version 'ver' of
- * its database, 'db'.  Ensure that the DNSKEY RRset at zone apex is signed by
- * at least one trust anchor specified for the view that 'zone' is assigned to.
- * If 'ver' is NULL, use the current version of 'db'.
- *
- * If 'zone' is not a mirror zone, return ISC_R_SUCCESS immediately.
+ * Perform DNSSEC validation of version 'ver' of database 'db'.  Ensure that
+ * the DNSKEY RRset at zone apex is signed by at least one trust anchor in
+ * 'view', if non-NULL.  If 'ver' is NULL, use the current version of 'db'.
+ * The caller must keep 'view' alive (a weak reference suffices) throughout
+ * the call, and is responsible for deciding whether validation is required.
  *
  * Returns:
  *
- * \li	#ISC_R_SUCCESS		either 'zone' is not a mirror zone or 'zone' is
- *				a mirror zone and all DNSSEC checks succeeded
- *				and the DNSKEY RRset at zone apex is signed by
- *				a trusted key
- *
+ * \li	#ISC_R_SUCCESS		all DNSSEC checks succeeded
  * \li	#DNS_R_VERIFYFAILURE	any other case
  */
 

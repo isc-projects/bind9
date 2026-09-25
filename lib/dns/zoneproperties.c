@@ -476,7 +476,7 @@ setfilename(dns_zone_t *zone, char **field, const char *value) {
 
 	isc_buffer_init(&b, filename, sizeof(filename));
 	dns_zone_expandzonefile(&b, value, &zone->origin,
-				zone->view != NULL ? zone->view->name : NULL,
+				dns__viewname_get(&zone->viewname),
 				dns_zonetype_name(zone->type));
 	setstring(zone, field, filename);
 }
@@ -1287,12 +1287,12 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 		(void)dns_rdataclass_totext(zone->rdclass, &buffer);
 	}
 
-	if (zone->view != NULL && strcmp(zone->view->name, "_bind") != 0 &&
-	    strcmp(zone->view->name, "_default") != 0 &&
-	    strlen(zone->view->name) < isc_buffer_availablelength(&buffer))
+	const char *viewname = dns__viewname_display(&zone->viewname);
+	if (viewname != NULL &&
+	    strlen(viewname) < isc_buffer_availablelength(&buffer))
 	{
 		isc_buffer_putstr(&buffer, "/");
-		isc_buffer_putstr(&buffer, zone->view->name);
+		isc_buffer_putstr(&buffer, viewname);
 	}
 	if (dns__zone_inline_secure(zone) &&
 	    9U < isc_buffer_availablelength(&buffer))
