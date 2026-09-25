@@ -108,6 +108,10 @@ class ZoneKey(ABC):
         Implemented once here; both subclasses inherit it via self.dnskey.
         """
         dnskey = self.dnskey
+        # named on this branch only takes trust anchors as keys.
+        ta_type = {"static-ds": "static-key", "initial-ds": "initial-key"}.get(
+            ta_type, ta_type
+        )
         if ta_type in ["static-ds", "initial-ds"]:
             ds = dns.dnssec.make_ds(dnskey.name, dnskey[0], dsdigest)
             parts = str(ds).split()
