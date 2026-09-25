@@ -1,11 +1,9 @@
-#!/usr/bin/python3
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at https://mozilla.org/MPL/2.0/.
 #
 # See the COPYRIGHT file distributed with this work for additional
@@ -29,12 +27,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsResponseSend,
-    QueryContext,
-    ResponseHandler,
-)
+from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
+from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 TTL = 300
 TLD = "tld.test."
@@ -182,8 +177,7 @@ class VictimForgedNxdomainHandler(SignedResponseHandler):
     This serves the forged response for the victim's domain.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname == name(VICTIM) and qctx.qtype == dns.rdatatype.A
+    matcher = Qname(VICTIM) & Qtype(dns.rdatatype.A)
 
     def respond(self, qctx: QueryContext) -> None:
         forged_nxdomain(qctx.response, self.keys)
@@ -195,8 +189,7 @@ class ChildDsHandler(SignedResponseHandler):
     It is actually a validly signed DS response.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname == name(ATTACKER) and qctx.qtype == dns.rdatatype.DS
+    matcher = Qname(ATTACKER) & Qtype(dns.rdatatype.DS)
 
     def respond(self, qctx: QueryContext) -> None:
         response = qctx.response
@@ -215,8 +208,7 @@ class AttackerZoneHandler(SignedResponseHandler):
     the apex are answered with an NXDOMAIN with no NSEC or NSEC3 present.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(name(ATTACKER))
+    matcher = Domain(ATTACKER)
 
     def respond(self, qctx: QueryContext) -> None:
         if qctx.qname == name(ATTACKER):
@@ -246,8 +238,7 @@ class TldZoneHandler(SignedResponseHandler):
     The attack assumes that the adversary can inject these responses on-path.
     """
 
-    def match(self, qctx: QueryContext) -> bool:
-        return qctx.qname.is_subdomain(name(TLD))
+    matcher = Domain(TLD)
 
     def respond(self, qctx: QueryContext) -> None:
         if qctx.qname == name(TLD):
