@@ -29,6 +29,14 @@ if TYPE_CHECKING:
 
 NS_DIR_RE = Re(r"^(a?ns([0-9]+))/")
 
+# named on this branch predates the primary/secondary terminology.
+LEGACY_TERMS = [
+    (Re(r"\btype\s+primary\b"), "type master"),
+    (Re(r"\btype\s+secondary\b"), "type slave"),
+    (Re(r"\bprimaries\b"), "masters"),
+    (Re(r"\bprimary-only\b"), "master-only"),
+]
+
 
 class IncludeIndented(jinja2.ext.Extension):
     """
@@ -156,8 +164,11 @@ class TemplateEngine:
                 data["ns"] = Nameserver(match.group(1))
 
         debug("rendering template `%s` to file `%s`", template, output)
-        stream = self.j2env.get_template(template).stream(data)
-        stream.dump(output, encoding="utf-8")
+        text = self.j2env.get_template(template).render(data)
+        if output.endswith(".conf"):
+            for term, legacy in LEGACY_TERMS:
+                text = term.sub(legacy, text)
+        Path(output).write_text(text, encoding="utf-8")
 
     def render_auto(self, data: dict[str, Any] | None = None):
         """
