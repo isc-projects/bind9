@@ -104,6 +104,7 @@ isctest.log.debug("variables in env: %s", ", ".join([str(key) for key in CONF_EN
 # --------------- Environment this branch's conf.sh lacks --------------------
 
 os.environ.setdefault("TOP_BUILDDIR", os.environ["TOP"])
+os.environ.setdefault("TOP_SRCDIR", os.environ["TOP"])
 os.environ.setdefault("ANS_LOG_LEVEL", "debug")
 
 # configure --without-python leaves PYTHON empty, but the mock servers
@@ -111,22 +112,38 @@ os.environ.setdefault("ANS_LOG_LEVEL", "debug")
 if not os.environ.get("PYTHON"):
     os.environ["PYTHON"] = sys.executable
 
-# conf.sh only exports the algorithm selection if configure found Python
-# and never exports per-algorithm support.
-import get_algorithms
 
-if "DEFAULT_ALGORITHM" not in os.environ:
-    _algs = get_algorithms.ALGORITHM_SETS[get_algorithms.ALGORITHM_SET]
-    _algs = get_algorithms.select_random(get_algorithms.filter_supported(_algs))
-    os.environ.update(get_algorithms.algorithms_env(_algs))
-for _alg in get_algorithms.ALL_ALGORITHMS:
-    _supported = get_algorithms.is_supported(_alg)
+# conf.sh sets a fixed algorithm selection, and there is no
+# get_algorithms.py to report per-algorithm support.
+def _algorithm_supported(alg):
+    with tempfile.TemporaryDirectory() as keydir:
+        proc = subprocess.run(
+            [os.environ["KEYGEN"], "-q", "-K", keydir, "-a", alg.name]
+            + ["-b", str(alg.bits), "foo"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    return proc.returncode == 0
+
+
+for _alg in isctest.algorithms.ALL_ALGORITHMS:
+    _supported = _algorithm_supported(_alg)
     os.environ[f"{_alg.name}_SUPPORTED"] = "1" if _supported else "0"
 
-# get_algorithms.py logs through the root logger, which implicitly attaches
-# a stderr handler to it; without removal, every test's debug log ends up
-# in the pytest output.
-isctest.log.avoid_duplicated_logs()
+# Tests written for the newer branches expect their default algorithm
+# selection rather than the one conf.sh makes for the legacy tests, and
+# the newer branches cannot be built without ECDSA.
+if os.environ["ECDSAP256SHA256_SUPPORTED"] != "1":
+    raise RuntimeError("ECDSAP256SHA256 is required to run system tests with pytest.")
+for _prefix, _alg in [
+    ("DEFAULT", isctest.algorithms.ECDSAP256SHA256),
+    ("ALTERNATIVE", isctest.algorithms.RSASHA256),
+    ("DISABLED", isctest.algorithms.ECDSAP384SHA384),
+]:
+    os.environ[f"{_prefix}_ALGORITHM"] = _alg.name
+    os.environ[f"{_prefix}_ALGORITHM_NUMBER"] = str(_alg.number)
+    os.environ[f"{_prefix}_BITS"] = str(_alg.bits)
 
 # Algorithm numbers and DST identifiers only differ on newer branches.
 os.environ.setdefault(
