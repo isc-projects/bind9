@@ -43,11 +43,9 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	return ISC_R_SUCCESS;
 }
 
-#define ARGS_TOWIRE \
-	dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target
-
 static isc_result_t
-towire_name(ARGS_TOWIRE, bool compress, unsigned int prefix_len) {
+towire_name(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target,
+	    bool compress, unsigned int prefix_len) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -69,7 +67,7 @@ towire_name(ARGS_TOWIRE, bool compress, unsigned int prefix_len) {
 }
 
 static isc_result_t
-towire_minfo(ARGS_TOWIRE) {
+towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_name_t rmail;
 
@@ -93,7 +91,7 @@ towire_minfo(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_naptr(ARGS_TOWIRE) {
+towire_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t sr;
 
@@ -134,7 +132,7 @@ towire_naptr(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_rp(ARGS_TOWIRE) {
+towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_name_t rmail;
 
@@ -157,7 +155,7 @@ towire_rp(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_soa(ARGS_TOWIRE) {
+towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 	dns_name_t mname;
@@ -191,7 +189,7 @@ towire_soa(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_talink(ARGS_TOWIRE) {
+towire_talink(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sregion;
 	dns_name_t prev;
 	dns_name_t next;
@@ -215,7 +213,7 @@ towire_talink(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_in_a6(ARGS_TOWIRE) {
+towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
 	unsigned char prefixlen;
@@ -242,7 +240,7 @@ towire_in_a6(ARGS_TOWIRE) {
 }
 
 static isc_result_t
-towire_in_px(ARGS_TOWIRE) {
+towire_in_px(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -279,7 +277,7 @@ isc_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 		 isc_buffer_t *target) {
 	isc_result_t result;
-	isc_buffer_t st;
+	isc_buffer_t saved_for_rollback;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
@@ -292,7 +290,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 		return ISC_R_SUCCESS;
 	}
 
-	st = *target;
+	saved_for_rollback = *target;
 
 	switch (RDATA_KEY(rdata->rdclass, rdata->type)) {
 	case RDATA_KEY(dns_rdataclass_in, dns_rdatatype_ns):
@@ -394,7 +392,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		*target = st;
+		*target = saved_for_rollback;
 		dns_compress_rollback(cctx, target->used);
 	}
 	return result;
