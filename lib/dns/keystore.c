@@ -26,6 +26,8 @@
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 
+#include "dst_parse.h"
+
 isc_result_t
 dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
 		    dns_keystore_t **kspp) {
@@ -218,8 +220,12 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 		 * and policy name through 'dns_name_tofilenametext()'. We
 		 * could create a new function to convert a name to PKCS#11
 		 * text, but this existing function will suffice.
+		 *
+		 * The label is written to the Label field of the private
+		 * key file, which dst__privstruct_parse() reads back into a
+		 * MAXFIELDSIZE buffer, so that is the most that fits.
 		 */
-		char label[NAME_MAX + 1];
+		char label[MAXFIELDSIZE];
 		isc_buffer_t buf;
 		isc_buffer_init(&buf, label, sizeof(label));
 		result = buildpkcs11label(uri, origin, policy, flags, &buf);
