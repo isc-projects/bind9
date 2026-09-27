@@ -2911,7 +2911,7 @@ val_rdataset_next(dns_validator_t *val, dns_linkedname_t **namep,
 }
 
 static dns_rdataset_t *
-find_sigrdataset(const dns_name_t *name, dns_rdatatype_t covers) {
+find_sigrdataset(const dns_linkedname_t *name, dns_rdatatype_t covers) {
 	for (dns_rdataset_t *sigrdataset = ISC_LIST_HEAD(name->list);
 	     sigrdataset != NULL;
 	     sigrdataset = ISC_LIST_NEXT(sigrdataset, link))
@@ -2929,7 +2929,7 @@ find_sigrdataset(const dns_name_t *name, dns_rdatatype_t covers) {
  * Return ISC_R_SUCCESS if every RRSIG covering an NSEC is signed by 'zonename'.
  */
 static isc_result_t
-valid_nsec_signer(dns_validator_t *val, dns_name_t *name,
+valid_nsec_signer(dns_validator_t *val, dns_linkedname_t *name,
 		  dns_name_t *zonename) {
 	isc_result_t result = DNS_R_NOVALIDNSEC;
 	dns_rdataset_t sigset = DNS_RDATASET_INIT;
@@ -2945,7 +2945,7 @@ valid_nsec_signer(dns_validator_t *val, dns_name_t *name,
 			return DNS_R_NOVALIDNSEC;
 		}
 	} else {
-		RETERR(dns_ncache_getsigrdataset(val->rdataset, name,
+		RETERR(dns_ncache_getsigrdataset(val->rdataset, dns_name(name),
 						 dns_rdatatype_nsec, &sigset));
 
 		sigrdataset = &sigset;
@@ -3035,8 +3035,7 @@ checkwildcard(dns_validator_t *val, dns_rdatatype_t type,
 		dns_linkedname_t **proofs = val->proofs;
 		switch (rdataset->type) {
 		case dns_rdatatype_nsec:
-			result = valid_nsec_signer(val, dns_name(name),
-						   zonename);
+			result = valid_nsec_signer(val, name, zonename);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}

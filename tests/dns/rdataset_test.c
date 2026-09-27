@@ -121,8 +121,9 @@ typedef struct {
 #define MAXSETS	   4
 
 static void
-addset(dns_name_t *owner, dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset,
-       dns_rdatatype_t type, dns_rdatatype_t covers, dns_ttl_t ttl) {
+addset(dns_linkedname_t *owner, dns_rdatalist_t *rdatalist,
+       dns_rdataset_t *rdataset, dns_rdatatype_t type, dns_rdatatype_t covers,
+       dns_ttl_t ttl) {
 	dns_rdatalist_init(rdatalist);
 	rdatalist->rdclass = dns_rdataclass_in;
 	rdatalist->type = type;
@@ -145,7 +146,8 @@ static void
 check_noqname(const proofset_t *sets, size_t nsets, dns_rdatatype_t type,
 	      isc_result_t expected) {
 	dns_fixedname_t fowner;
-	dns_name_t *owner = dns_fixedname_initname(&fowner);
+	dns_name_t *ownername = dns_fixedname_initname(&fowner);
+	dns_linkedname_t owner = DNS_LINKEDNAME_INITEMPTY;
 	dns_rdatalist_t rdatalists[MAXSETS], answerlist;
 	dns_rdataset_t rdatasets[MAXSETS], answer;
 	dns_rdataset_t neg = DNS_RDATASET_INIT, negsig = DNS_RDATASET_INIT;
@@ -154,12 +156,13 @@ check_noqname(const proofset_t *sets, size_t nsets, dns_rdatatype_t type,
 	isc_result_t result;
 
 	assert_true(nsets <= MAXSETS);
-	result = dns_name_fromstring(owner, "proof.example.", dns_rootname, 0,
-				     NULL);
+	result = dns_name_fromstring(ownername, "proof.example.", dns_rootname,
+				     0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_name_clone(ownername, dns_name(&owner));
 
 	for (size_t i = 0; i < nsets; i++) {
-		addset(owner, &rdatalists[i], &rdatasets[i], sets[i].type,
+		addset(&owner, &rdatalists[i], &rdatasets[i], sets[i].type,
 		       sets[i].covers, sets[i].ttl);
 		if (sets[i].type == type ||
 		    (sets[i].type == dns_rdatatype_rrsig &&
@@ -170,7 +173,7 @@ check_noqname(const proofset_t *sets, size_t nsets, dns_rdatatype_t type,
 	}
 	addset(NULL, &answerlist, &answer, dns_rdatatype_a, 0, ANSWER_TTL);
 
-	result = dns_rdataset_addnoqname(&answer, owner, type);
+	result = dns_rdataset_addnoqname(&answer, &owner, type);
 	assert_int_equal(result, expected);
 	if (result != ISC_R_SUCCESS) {
 		assert_false(answer.attributes.noqname);
@@ -182,7 +185,7 @@ check_noqname(const proofset_t *sets, size_t nsets, dns_rdatatype_t type,
 
 	result = dns_rdataset_getnoqname(&answer, &found, &neg, &negsig);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(dns_name_equal(&found, owner));
+	assert_true(dns_name_equal(&found, &owner));
 	assert_int_equal(neg.type, type);
 	assert_int_equal(negsig.type, dns_rdatatype_rrsig);
 	assert_int_equal(negsig.covers, type);

@@ -492,9 +492,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		RETERR(dns_rdataset_first(set));
 		dns_rdataset_current(set, &rdata);
 		RETERR(dns_rdata_tostruct(&rdata, &nsec));
-		if (!dns_name_issubdomain(&nsec.next,
-					  dns_name(&sig.signer)))
-		{
+		if (!dns_name_issubdomain(&nsec.next, dns_name(&sig.signer))) {
 			return DNS_R_NOVALIDNSEC;
 		}
 	}
