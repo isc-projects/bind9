@@ -299,6 +299,29 @@ rndc_senddone(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 }
 
 static void
+validate_response(isccc_sexpr_t *response) {
+	isccc_sexpr_t *_ctrl = NULL;
+	uint32_t rpl = 0, ser = ~serial;
+
+	_ctrl = isccc_alist_lookup(response, "_ctrl");
+	if (!isccc_alist_alistp(_ctrl)) {
+		fatal("bad or missing ctrl section in response");
+	}
+
+	if (isccc_cc_lookupuint32(_ctrl, "_rpl", &rpl) != ISC_R_SUCCESS ||
+	    rpl != 1)
+	{
+		fatal("bad or missing ctrl.rpl section in response");
+	}
+
+	if (isccc_cc_lookupuint32(_ctrl, "_ser", &ser) != ISC_R_SUCCESS ||
+	    ser != serial)
+	{
+		fatal("bad or missing ctrl.ser section in response");
+	}
+}
+
+static void
 rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_ccmsg_t *ccmsg = (isccc_ccmsg_t *)arg;
 	isccc_sexpr_t *response = NULL;
@@ -332,6 +355,8 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		isccc_sexpr_print(response, stderr);
 		fprintf(stderr, "\n");
 	}
+
+	validate_response(response);
 
 	data = isccc_alist_lookup(response, "_data");
 	if (!isccc_alist_alistp(data)) {
@@ -408,10 +433,13 @@ rndc_recvnonce(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	DO("parse message",
 	   isccc_cc_fromwire(&source, &response, algorithm, &secret));
 
+	validate_response(response);
+
 	_ctrl = isccc_alist_lookup(response, "_ctrl");
 	if (!isccc_alist_alistp(_ctrl)) {
 		fatal("bad or missing ctrl section in response");
 	}
+
 	nonce = 0;
 	if (isccc_cc_lookupuint32(_ctrl, "_nonce", &nonce) != ISC_R_SUCCESS) {
 		nonce = 0;
