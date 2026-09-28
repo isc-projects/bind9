@@ -515,19 +515,22 @@ typedef struct ns_hook_data {
  * as well; if not, set NS_PLUGIN_AGE to 0.
  */
 #ifndef NS_PLUGIN_VERSION
-#define NS_PLUGIN_VERSION 4
+#define NS_PLUGIN_VERSION 5
 #define NS_PLUGIN_AGE	  0
 #endif /* ifndef NS_PLUGIN_VERSION */
 
 typedef isc_result_t
-ns_plugin_register_t(const char *parameters, const void *cfg, const char *file,
-		     unsigned long line, isc_mem_t *mctx, void *aclctx,
-		     ns_hooktable_t *hooktable, const ns_pluginctx_t *ctx,
-		     void **instp);
+ns_plugin_register_t(const char *const *parameters, const void *cfg,
+		     const char *file, unsigned long line, isc_mem_t *mctx,
+		     void *aclctx, ns_hooktable_t *hooktable,
+		     const ns_pluginctx_t *ctx, void **instp);
 /*%<
  * Called when registering a new plugin.
  *
- * 'parameters' contains the plugin configuration text.
+ * 'parameters' contains the plugin configuration as a NULL-terminated
+ * token array (see <isccfg/tokens.h>), or is NULL if the plugin was
+ * configured without a parameter block. 'file' and 'line' are the
+ * location of the parameter block.
  *
  * '*instp' will be set to the module instance handle if the function
  * is successful.
@@ -546,9 +549,9 @@ ns_plugin_destroy_t(void **instp);
  */
 
 typedef isc_result_t
-ns_plugin_check_t(const char *parameters, const void *cfg, const char *file,
-		  unsigned long line, isc_mem_t *mctx, void *aclctx,
-		  const ns_pluginctx_t *ctx);
+ns_plugin_check_t(const char *const *parameters, const void *cfg,
+		  const char *file, unsigned long line, isc_mem_t *mctx,
+		  void *aclctx, const ns_pluginctx_t *ctx);
 /*%<
  * Check the validity of 'parameters'.
  */
@@ -594,9 +597,10 @@ ns_plugin_expandpath(const char *src, char *dst, size_t dstsize);
  */
 
 isc_result_t
-ns_plugin_register(const char *modpath, const char *parameters, const void *cfg,
-		   const char *cfg_file, unsigned long cfg_line,
-		   isc_mem_t *mctx, void *aclctx, ns_hook_data_t *hookdata);
+ns_plugin_register(const char *modpath, const char *const *parameters,
+		   const void *cfg, const char *cfg_file,
+		   unsigned long cfg_line, isc_mem_t *mctx, void *aclctx,
+		   ns_hook_data_t *hookdata);
 /*%<
  * Load the plugin module specified from the file 'modpath', and
  * register an instance using 'parameters'.
@@ -613,9 +617,9 @@ ns_plugin_register(const char *modpath, const char *parameters, const void *cfg,
  */
 
 isc_result_t
-ns_plugin_check(const char *modpath, const char *parameters, const void *cfg,
-		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
-		void *aclctx, const ns_pluginctx_t *ctx);
+ns_plugin_check(const char *modpath, const char *const *parameters,
+		const void *cfg, const char *cfg_file, unsigned long cfg_line,
+		isc_mem_t *mctx, void *aclctx, const ns_pluginctx_t *ctx);
 /*%<
  * Open the plugin module at 'modpath' and check the validity of
  * 'parameters', logging any errors or warnings found, then

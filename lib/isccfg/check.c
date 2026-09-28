@@ -3224,7 +3224,7 @@ struct check_one_plugin_data {
 static isc_result_t
 check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		 cfg_aclconfctx_t *aclctx, const char *plugin_path,
-		 const char *parameters, void *callback_data) {
+		 const char *const *parameters, void *callback_data) {
 	struct check_one_plugin_data *data = callback_data;
 	char full_path[PATH_MAX];
 	isc_result_t result = ISC_R_SUCCESS;

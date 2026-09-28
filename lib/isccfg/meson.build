@@ -17,5 +17,6 @@ isccfg_srcset.add(
         'kaspconf.c',
         'namedconf.c',
         'parser.c',
+        'tokens.c',
     ),
 )

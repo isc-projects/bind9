@@ -36,6 +36,7 @@
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
+#include <isccfg/tokens.h>
 
 #include <tests/isc.h>
 
@@ -55,6 +56,149 @@ append(void *arg, const char *str, int len) {
 	char *buf = arg;
 	size_t l = strlen(buf);
 	snprintf(buf + l, 1024 - l, "%.*s", len, str);
+}
+
+/* Preserve lexical spelling, including quoted punctuation and escapes. */
+ISC_RUN_TEST_IMPL(tokens_roundtrip) {
+	const char *spelling[] = {
+		"plain",     "\"plain\"",     "\"\"",	       "\"a\\ b\"",
+		"\"a\\;b\"", "\"a\\#b\"",     "\"a\\/b\"",     "\"a\\!b\"",
+		"\"a\\{b\"", "\"a\\}b\"",     "\"a\\\tb\"",    "\"a\\\"b\"",
+		"tail\\",    "tail\\\\",      "\"tail\\\\\"",  "\"a\\\\\\\"b\"",
+		"\"/\"",     "\"/\"",	      "\"/\"",	       "\"*\"",
+		"\"!\"",     CFG_TOKEN_SLASH, CFG_TOKEN_BANG,  CFG_TOKEN_OPEN,
+		"nested",    CFG_TOKEN_END,   CFG_TOKEN_CLOSE, CFG_TOKEN_END,
+		NULL
+	};
+	unsigned int flags[] = { 0, CFG_PRINTER_ONELINE };
+	char input[1024] = "{ ";
+
+	for (const char *const *t = spelling; *t != NULL; t++) {
+		const char *text = *t;
+		if (text == CFG_TOKEN_OPEN) {
+			text = "{";
+		} else if (text == CFG_TOKEN_CLOSE) {
+			text = "}";
+		} else if (text == CFG_TOKEN_END) {
+			text = ";";
+		} else if (text == CFG_TOKEN_SLASH) {
+			text = "/";
+		} else if (text == CFG_TOKEN_BANG) {
+			text = "!";
+		}
+		strlcat(input, text, sizeof(input));
+		strlcat(input, " ", sizeof(input));
+	}
+	strlcat(input, "}", sizeof(input));
+
+	for (size_t i = 0; i < ARRAY_SIZE(flags); i++) {
+		cfg_obj_t *obj = NULL, *copy = NULL;
+		char printed[1024] = "";
+		isc_buffer_t b;
+
+		isc_buffer_constinit(&b, input, strlen(input));
+		isc_buffer_add(&b, strlen(input));
+		assert_int_equal(cfg_parse_buffer(&b, "tokens", 1,
+						  &cfg_type_bracketed_tokens, 0,
+						  &obj),
+				 ISC_R_SUCCESS);
+		cfg_printx(obj, flags[i], append, printed);
+		isc_buffer_constinit(&b, printed, strlen(printed));
+		isc_buffer_add(&b, strlen(printed));
+		assert_int_equal(cfg_parse_buffer(&b, "printed", 1,
+						  &cfg_type_bracketed_tokens, 0,
+						  &copy),
+				 ISC_R_SUCCESS);
+
+		const char *const *original = cfg_obj_astokens(obj);
+		const char *const *reparsed = cfg_obj_astokens(copy);
+		for (size_t j = 0; j < ARRAY_SIZE(spelling); j++) {
+			if (spelling[j] != NULL &&
+			    CFG_TOKEN_ISSTRING(spelling[j]))
+			{
+				assert_non_null(original[j]);
+				assert_non_null(reparsed[j]);
+				assert_true(CFG_TOKEN_ISSTRING(original[j]));
+				assert_true(CFG_TOKEN_ISSTRING(reparsed[j]));
+				assert_string_equal(original[j], spelling[j]);
+				assert_string_equal(reparsed[j], spelling[j]);
+			} else {
+				assert_ptr_equal(original[j], spelling[j]);
+				assert_ptr_equal(reparsed[j], spelling[j]);
+			}
+		}
+		cfg_obj_detach(&obj);
+		cfg_obj_detach(&copy);
+	}
+}
+
+/* Decoding leaves lexical tokens intact and previous results valid. */
+ISC_RUN_TEST_IMPL(tokens_strings) {
+	const char *tokens[] = { "\"dynamic-\"", "\"\"",
+				 "\"a\\\"b\"",	 "\"a\\ b\"",
+				 "\"tail\\\\\"", "\"a\\\\\\\"b\"",
+				 "a\\\"b",	 "\"a\nb\"",
+				 "plain",	 NULL };
+	const char *expected[] = { "dynamic-", "",	   "a\"b",
+				   "a\\ b",    "tail\\\\", "a\\\\\"b",
+				   "a\\\"b",   "a\nb",	   "plain" };
+	const char *values[ARRAY_SIZE(expected)] = { NULL };
+	cfg_tokens_t tok;
+
+	cfg_tokens_init(&tok, tokens, "strings", 1);
+	for (size_t i = 0; i < ARRAY_SIZE(expected); i++) {
+		assert_ptr_equal(cfg_tokens_peek(&tok), tokens[i]);
+		assert_int_equal(cfg_tokens_getstring(&tok, &values[i]),
+				 ISC_R_SUCCESS);
+	}
+	assert_null(cfg_tokens_peek(&tok));
+	for (size_t i = 0; i < ARRAY_SIZE(expected); i++) {
+		assert_string_equal(values[i], expected[i]);
+	}
+	assert_string_equal(tokens[0], "\"dynamic-\"");
+	cfg_tokens_clear(&tok);
+}
+
+/* ACL keywords, named references, and addresses must stay distinct. */
+ISC_RUN_TEST_IMPL(tokens_aml) {
+	const char *aml = "{ \"key\"; \"geoip\"; \"192.0.2.1\"; \"::1\"; "
+			  "!10.0.0.0/8; key \"key name\"; any; { ::1; }; }";
+	char input[1024] = "{ ", printed[1024] = "", expected[1024] = "";
+	cfg_obj_t *direct = NULL, *tokens = NULL, *copy = NULL, *obj = NULL;
+	isc_buffer_t b;
+	cfg_tokens_t tok;
+
+	isc_buffer_constinit(&b, aml, strlen(aml));
+	isc_buffer_add(&b, strlen(aml));
+	assert_int_equal(cfg_parse_buffer(&b, "aml", 1, &cfg_type_bracketed_aml,
+					  0, &direct),
+			 ISC_R_SUCCESS);
+	cfg_printx(direct, CFG_PRINTER_ONELINE, append, expected);
+	strlcat(input, aml, sizeof(input));
+	strlcat(input, " }", sizeof(input));
+	isc_buffer_constinit(&b, input, strlen(input));
+	isc_buffer_add(&b, strlen(input));
+	assert_int_equal(cfg_parse_buffer(&b, "tokens", 1,
+					  &cfg_type_bracketed_tokens, 0,
+					  &tokens),
+			 ISC_R_SUCCESS);
+	cfg_printx(tokens, CFG_PRINTER_ONELINE, append, printed);
+	isc_buffer_constinit(&b, printed, strlen(printed));
+	isc_buffer_add(&b, strlen(printed));
+	assert_int_equal(cfg_parse_buffer(&b, "printed", 1,
+					  &cfg_type_bracketed_tokens, 0, &copy),
+			 ISC_R_SUCCESS);
+	cfg_tokens_init(&tok, cfg_obj_astokens(copy), "printed", 1);
+	assert_int_equal(cfg_tokens_getaml(&tok, &obj), ISC_R_SUCCESS);
+	assert_null(cfg_tokens_next(&tok));
+	printed[0] = '\0';
+	cfg_printx(obj, CFG_PRINTER_ONELINE, append, printed);
+	assert_string_equal(printed, expected);
+	cfg_tokens_clear(&tok);
+	cfg_obj_detach(&direct);
+	cfg_obj_detach(&tokens);
+	cfg_obj_detach(&copy);
+	cfg_obj_detach(&obj);
 }
 
 ISC_RUN_TEST_IMPL(addzoneconf) {
@@ -355,6 +499,9 @@ ISC_RUN_TEST_IMPL(cfg_map_findclause_empty) {
 
 ISC_TEST_LIST_START
 
+ISC_TEST_ENTRY(tokens_roundtrip)
+ISC_TEST_ENTRY(tokens_strings)
+ISC_TEST_ENTRY(tokens_aml)
 ISC_TEST_ENTRY(addzoneconf)
 ISC_TEST_ENTRY(parse_buffer)
 ISC_TEST_ENTRY(parse_nulbyte)

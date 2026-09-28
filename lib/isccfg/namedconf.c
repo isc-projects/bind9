@@ -2129,7 +2129,8 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "nsip-enable", &cfg_type_boolean, 0 },
 	{ "nsdname-enable", &cfg_type_boolean, 0 },
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "dnsrps-options", &cfg_type_bracketed_text, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "dnsrps-options", &cfg_type_bracketed_tokens,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = { "rpz",
@@ -2383,7 +2384,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dns64-contact", &cfg_type_astring, 0, NULL },
 	{ "dns64-server", &cfg_type_astring, 0, NULL },
 	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE, NULL },
-	{ "dnsrps-options", &cfg_type_bracketed_text, CFG_CLAUSEFLAG_OBSOLETE,
+	{ "dnsrps-options", &cfg_type_bracketed_tokens, CFG_CLAUSEFLAG_OBSOLETE,
 	  NULL },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0, NULL },
 	{ "dnssec-enable", NULL, CFG_CLAUSEFLAG_ANCIENT, NULL },
@@ -2944,7 +2945,7 @@ static cfg_type_t cfg_type_dlz = { "dlz",	  cfg_parse_named_map,
 static cfg_tuplefielddef_t dyndb_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "library", &cfg_type_qstring, 0 },
-	{ "parameters", &cfg_type_bracketed_text, 0 },
+	{ "parameters", &cfg_type_bracketed_tokens, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -2964,7 +2965,7 @@ static cfg_type_t cfg_type_plugintype = { "plugintype",	     cfg_parse_enum,
 static cfg_tuplefielddef_t plugin_fields[] = {
 	{ "type", &cfg_type_plugintype, 0 },
 	{ "library", &cfg_type_astring, 0 },
-	{ "parameters", &cfg_type_optional_bracketed_text, 0 },
+	{ "parameters", &cfg_type_optional_bracketed_tokens, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_plugin = { "plugin",	       cfg_parse_tuple,

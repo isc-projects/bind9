@@ -1511,7 +1511,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 
 	obj = cfg_tuple_get(dyndb, "parameters");
 	if (obj != NULL) {
-		result = dns_dyndb_load(library, name, cfg_obj_asstring(obj),
+		result = dns_dyndb_load(library, name, cfg_obj_astokens(obj),
 					cfg_obj_file(obj), cfg_obj_line(obj),
 					mctx, dctx);
 	}
@@ -3556,7 +3556,7 @@ create_mapped_acl(void) {
 isc_result_t
 named_register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 			  cfg_aclconfctx_t *aclctx, const char *plugin_path,
-			  const char *parameters, void *callback_data) {
+			  const char *const *parameters, void *callback_data) {
 	char full_path[PATH_MAX];
 	isc_result_t result;
 	ns_hook_data_t *hookdata = callback_data;

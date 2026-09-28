@@ -11,13 +11,15 @@
  * information regarding copyright ownership.
  */
 
+#include <isc/parseint.h>
+
 #include <dns/byaddr.h>
 #include <dns/rdatalist.h>
 #include <dns/view.h>
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
-#include <isccfg/grammar.h>
+#include <isccfg/tokens.h>
 
 #include <ns/hooks.h>
 
@@ -392,36 +394,96 @@ synthrecord_entry(void *arg, void *cbdata, isc_result_t *resp) {
 	}
 }
 
-static cfg_clausedef_t synthrecord_cfgclauses[] = {
-	{ "prefix", &cfg_type_astring, 0, NULL },
-	{ "origin", &cfg_type_astring, 0, NULL },
-	{ "allow-synth", &cfg_type_bracketed_aml, 0, NULL },
-	{ "ttl", &cfg_type_uint32, 0, NULL }
-};
-
-static cfg_clausedef_t *synthrecord_cfgparamsclausesets[] = {
-	synthrecord_cfgclauses, NULL
-};
-
-static cfg_type_t synthrecord_cfgparams = {
-	"synthrecord-params", cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody,      &cfg_rep_map,	 synthrecord_cfgparamsclausesets
-};
+/*
+ * The parsed plugin parameters. The cursor owns decoded strings until
+ * the parameters have been applied.
+ */
+typedef struct synthrecord_params {
+	cfg_tokens_t tokens;
+	const char *prefix;
+	const char *origin;
+	cfg_obj_t *allowsynth;
+	uint32_t ttl;
+	bool has_ttl;
+} synthrecord_params_t;
 
 static isc_result_t
-synthrecord_initprefix(synthrecord_t *inst, const cfg_obj_t *synthrecordcfg) {
-	isc_result_t result;
-	const char *base = NULL;
-	const cfg_obj_t *obj = NULL;
+synthrecord_parseparams(const char *const *parameters, const char *cfgfile,
+			unsigned long cfgline, synthrecord_params_t *params) {
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_tokens_t *tok = &params->tokens;
 
-	result = cfg_map_get(synthrecordcfg, "prefix", &obj);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
-			      ISC_LOG_ERROR, "synthrecord: prefix not found");
-		return result;
+	*params = (synthrecord_params_t){ .ttl = DEFAULT_TTL };
+
+	cfg_tokens_init(tok, parameters, cfgfile, cfgline);
+	while (cfg_tokens_peek(tok) != NULL) {
+		const char *name = NULL, *value = NULL;
+
+		CHECK(cfg_tokens_getstring(tok, &name));
+
+		if (strcasecmp(name, "prefix") == 0) {
+			if (params->prefix != NULL) {
+				cfg_tokens_log(tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			CHECK(cfg_tokens_getstring(tok, &params->prefix));
+		} else if (strcasecmp(name, "origin") == 0) {
+			if (params->origin != NULL) {
+				cfg_tokens_log(tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			CHECK(cfg_tokens_getstring(tok, &params->origin));
+		} else if (strcasecmp(name, "allow-synth") == 0) {
+			if (params->allowsynth != NULL) {
+				cfg_tokens_log(tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			CHECK(cfg_tokens_getaml(tok, &params->allowsynth));
+		} else if (strcasecmp(name, "ttl") == 0) {
+			if (params->has_ttl) {
+				cfg_tokens_log(tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			params->has_ttl = true;
+			CHECK(cfg_tokens_getstring(tok, &value));
+			if (isc_parse_uint32(&params->ttl, value, 0) !=
+			    ISC_R_SUCCESS)
+			{
+				cfg_tokens_log(tok, ISC_LOG_ERROR,
+					       "invalid ttl '%s'", value);
+				CLEANUP(ISC_R_BADNUMBER);
+			}
+		} else {
+			cfg_tokens_log(tok, ISC_LOG_ERROR,
+				       "unknown option '%s'", name);
+			CLEANUP(ISC_R_FAILURE);
+		}
+
+		CHECK(cfg_tokens_expect(tok, CFG_TOKEN_END));
 	}
 
-	base = obj->value.string;
+cleanup:
+	if (result != ISC_R_SUCCESS && params->allowsynth != NULL) {
+		cfg_obj_detach(&params->allowsynth);
+	}
+	return result;
+}
+
+static isc_result_t
+synthrecord_initprefix(synthrecord_t *inst,
+		       const synthrecord_params_t *params) {
+	const char *base = params->prefix;
+
+	if (base == NULL) {
+		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
+			      ISC_LOG_ERROR, "synthrecord: prefix not found");
+		return ISC_R_NOTFOUND;
+	}
+
 	if (strstr(base, ".") != NULL) {
 		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
 			      ISC_LOG_ERROR,
@@ -441,28 +503,24 @@ synthrecord_initprefix(synthrecord_t *inst, const cfg_obj_t *synthrecordcfg) {
 	isc_ascii_lowercopy((uint8_t *)inst->prefix.base,
 			    (uint8_t *)inst->prefix.base, inst->prefix.length);
 
-	return result;
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
-synthrecord_initorigin(synthrecord_t *inst, const cfg_obj_t *synthrecordcfg,
+synthrecord_initorigin(synthrecord_t *inst, const synthrecord_params_t *params,
 		       const dns_name_t *zname) {
-	isc_result_t result;
-	const cfg_obj_t *obj = NULL;
-	const char *originstr = NULL;
+	const char *originstr = params->origin;
 
-	result = cfg_map_get(synthrecordcfg, "origin", &obj);
-	if (inst->mode == REVERSE && result != ISC_R_SUCCESS) {
+	if (inst->mode == REVERSE && originstr == NULL) {
 		isc_log_write(NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_HOOKS,
 			      ISC_LOG_ERROR,
 			      "'origin' must be set when configuring "
 			      "'synthrecord' for a reverse zone");
-		return result;
+		return ISC_R_NOTFOUND;
 	}
 
 	dns_name_init(&inst->origin);
-	if (result == ISC_R_SUCCESS) {
-		originstr = cfg_obj_asstring(obj);
+	if (originstr != NULL) {
 		RETERR(dns_name_fromstring(&inst->origin, originstr, NULL, 0,
 					   inst->mctx));
 
@@ -494,24 +552,16 @@ synthrecord_setconfigmode(synthrecord_t *inst, const dns_name_t *zname) {
 static isc_result_t
 synthrecord_parseallowsynth(synthrecord_t *inst, const cfg_obj_t *cfg,
 			    cfg_aclconfctx_t *aclctx,
-			    const cfg_obj_t *synthrecordcfg) {
-	isc_result_t result;
-	const cfg_obj_t *obj = NULL;
-
+			    const synthrecord_params_t *params) {
 	INSIST(inst->allowedsynth == NULL);
-	result = cfg_map_get(synthrecordcfg, "allow-synth", &obj);
 
-	if (result == ISC_R_NOTFOUND) {
+	if (params->allowsynth == NULL) {
 		dns_acl_any(inst->mctx, &inst->allowedsynth);
 		return ISC_R_SUCCESS;
 	}
 
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
-
-	RETERR(cfg_acl_fromconfig(obj, cfg, aclctx, inst->mctx, 0,
-				  &inst->allowedsynth));
+	RETERR(cfg_acl_fromconfig(params->allowsynth, cfg, aclctx, inst->mctx,
+				  0, &inst->allowedsynth));
 
 	for (unsigned int i = 0; i < inst->allowedsynth->length; i++) {
 		switch (inst->allowedsynth->elements[i].type) {
@@ -528,60 +578,39 @@ synthrecord_parseallowsynth(synthrecord_t *inst, const cfg_obj_t *cfg,
 			return ISC_R_UNEXPECTED;
 		}
 	}
-	return result;
+	return ISC_R_SUCCESS;
 }
 
 static isc_result_t
-synthrecord_parsettl(synthrecord_t *inst, const cfg_obj_t *synthrecordcfg) {
-	isc_result_t result;
-	const cfg_obj_t *obj = NULL;
-
-	result = cfg_map_get(synthrecordcfg, "ttl", &obj);
-
-	if (result == ISC_R_NOTFOUND) {
-		inst->ttl = DEFAULT_TTL;
-		result = ISC_R_SUCCESS;
-	} else if (result == ISC_R_SUCCESS) {
-		inst->ttl = cfg_obj_asuint32(obj);
-	}
-
-	return result;
-}
-
-static isc_result_t
-synthrecord_parseconfig(synthrecord_t *inst, const char *parameters,
+synthrecord_parseconfig(synthrecord_t *inst, const char *const *parameters,
 			const cfg_obj_t *cfg, const char *cfgfile,
 			unsigned long cfgline, cfg_aclconfctx_t *aclctx,
 			const dns_name_t *zname) {
 	isc_result_t result;
-	cfg_obj_t *synthrecordcfg = NULL;
-	isc_buffer_t b;
+	synthrecord_params_t params;
 
-	isc_buffer_constinit(&b, parameters, strlen(parameters));
-	isc_buffer_add(&b, strlen(parameters));
-
-	CHECK(cfg_parse_buffer(&b, cfgfile, cfgline, &synthrecord_cfgparams, 0,
-			       &synthrecordcfg));
+	CHECK(synthrecord_parseparams(parameters, cfgfile, cfgline, &params));
 
 	synthrecord_setconfigmode(inst, zname);
-	CHECK(synthrecord_initorigin(inst, synthrecordcfg, zname));
-	CHECK(synthrecord_initprefix(inst, synthrecordcfg));
-	CHECK(synthrecord_parseallowsynth(inst, cfg, aclctx, synthrecordcfg));
-	CHECK(synthrecord_parsettl(inst, synthrecordcfg));
+	CHECK(synthrecord_initorigin(inst, &params, zname));
+	CHECK(synthrecord_initprefix(inst, &params));
+	CHECK(synthrecord_parseallowsynth(inst, cfg, aclctx, &params));
+	inst->ttl = params.ttl;
 
 cleanup:
-	if (synthrecordcfg != NULL) {
-		cfg_obj_detach(&synthrecordcfg);
+	cfg_tokens_clear(&params.tokens);
+	if (params.allowsynth != NULL) {
+		cfg_obj_detach(&params.allowsynth);
 	}
 
 	return result;
 }
 
 isc_result_t
-plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
-		unsigned long cfgline, isc_mem_t *mctx, void *aclctx,
-		ns_hooktable_t *hooktable, const ns_pluginctx_t *ctx,
-		void **instp) {
+plugin_register(const char *const *parameters, const void *cfg,
+		const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
+		void *aclctx, ns_hooktable_t *hooktable,
+		const ns_pluginctx_t *ctx, void **instp) {
 	synthrecord_t *inst = NULL;
 	ns_hook_t hook;
 	isc_result_t result;
@@ -617,9 +646,9 @@ plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
 }
 
 isc_result_t
-plugin_check(const char *parameters, const void *cfg, const char *cfgfile,
-	     unsigned long cfgline, isc_mem_t *mctx, void *aclctx,
-	     const ns_pluginctx_t *ctx) {
+plugin_check(const char *const *parameters, const void *cfg,
+	     const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
+	     void *aclctx, const ns_pluginctx_t *ctx) {
 	isc_result_t result;
 	synthrecord_t *inst = NULL;
 
