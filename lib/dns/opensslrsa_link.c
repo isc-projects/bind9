@@ -991,5 +991,8 @@ dst__opensslrsa_shutdown(void) {
 	REQUIRE(rsa_exponent_max != NULL);
 
 	BN_free(rsa_exponent_min);
+	rsa_exponent_min = NULL;
+
 	BN_free(rsa_exponent_max);
+	rsa_exponent_max = NULL;
 }
