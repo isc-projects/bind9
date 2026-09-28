@@ -652,7 +652,7 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 			rrl, client_addr, NULL, 0, dns_rdatatype_none, NULL,
 			DNS_RRL_RTYPE_TCP, now, false, log_buf, log_buf_len);
 		if (credit_e != NULL) {
-			age = get_age(rrl, e, now);
+			age = get_age(rrl, credit_e, now);
 			if (age < rrl->window) {
 				scale = 1.0;
 			}
