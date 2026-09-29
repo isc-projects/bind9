@@ -200,7 +200,6 @@ NS8 = Nameserver("ns8")
 NS9 = Nameserver("ns9")
 NS10 = Nameserver("ns10")
 NS11 = Nameserver("ns11")
-NO_NS = Nameserver(".", 0, "", "")
 
 ANS1 = Nameserver("ans1")
 ANS2 = Nameserver("ans2")
@@ -219,7 +218,7 @@ ANS11 = Nameserver("ans11")
 class Zone:
 
     name: str
-    ns: Nameserver
+    ns: Nameserver | None = None
     type: str = "primary"
     filepath: Path | None = field(default=None)
 
