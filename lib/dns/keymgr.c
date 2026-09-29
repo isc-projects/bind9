@@ -3036,17 +3036,18 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 
 		/* Determine key states from the metadata. */
 		if (active <= now) {
-			dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
-			ttlsig += dns_kasp_zonepropagationdelay(kasp);
-			if ((active + ttlsig) <= now) {
+			dns_ttl_t sigdelay = dns_kasp_zonemaxttl(kasp, true);
+			sigdelay += dns_kasp_zonepropagationdelay(kasp);
+			sigdelay += dns_kasp_retiresafety(kasp);
+			sigdelay += dns_kasp_signdelay(kasp);
+			if ((active + sigdelay) <= now) {
 				zrrsig_state = OMNIPRESENT;
 			} else {
 				zrrsig_state = RUMOURED;
 				(void)dst_key_gettime(dkey->key,
 						      DST_TIME_ZRRSIG,
 						      &lastchange);
-				nextchange = lastchange + ttlsig +
-					     dns_kasp_retiresafety(kasp);
+				nextchange = lastchange + sigdelay;
 			}
 			goal_state = OMNIPRESENT;
 		}
@@ -3068,17 +3069,18 @@ dns_keymgr_offline(const dns_name_t *origin, dns_dnsseckeylist_t *keyring,
 		}
 
 		if (inactive > 0 && inactive <= now) {
-			dns_ttl_t ttlsig = dns_kasp_zonemaxttl(kasp, true);
-			ttlsig += dns_kasp_zonepropagationdelay(kasp);
-			if ((inactive + ttlsig) <= now) {
+			dns_ttl_t sigdelay = dns_kasp_zonemaxttl(kasp, true);
+			sigdelay += dns_kasp_zonepropagationdelay(kasp);
+			sigdelay += dns_kasp_retiresafety(kasp);
+			sigdelay += dns_kasp_signdelay(kasp);
+			if ((inactive + sigdelay) <= now) {
 				zrrsig_state = HIDDEN;
 			} else {
 				zrrsig_state = UNRETENTIVE;
 				(void)dst_key_gettime(dkey->key,
 						      DST_TIME_ZRRSIG,
 						      &lastchange);
-				nextchange = lastchange + ttlsig +
-					     dns_kasp_retiresafety(kasp);
+				nextchange = lastchange + sigdelay;
 			}
 			goal_state = HIDDEN;
 		}
