@@ -213,6 +213,11 @@ name compression is allowed, according to RFC 3597.
 
         dctx = dns_decompress_setpermitted(dctx, true); /* or false */
 
+It is allowed for the types defined in RFC 1035, and for the older
+types that RFC 3597 section 4 asks receivers to decompress (RP, AFSDB,
+RT, SIG, PX, NXT, NAPTR and SRV) even though their `towire_typename()`
+must not compress them.
+
 |Parameter|Description |
 |---------|-----------------------|
 |`class`|This argument should be ignored when used with a class-generic RR type otherwise `REQUIRE(class == <value>)` should be present at the start of the function.|
