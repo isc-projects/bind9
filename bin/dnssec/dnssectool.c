@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <isc/base32.h>
@@ -37,7 +38,6 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/tls.h>
-#include <isc/tm.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -330,10 +330,11 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 		str = tail;
 	} else if (str[0] >= 'A' && str[0] <= 'Z') {
 		/* parse ctime() format as written by `dnssec-settime -p` */
-		endp = isc_tm_strptime(str, "%a %b %d %H:%M:%S %Y", &tm);
+		endp = strptime(str, "%a %b %d %H:%M:%S %Y", &tm);
 		if (endp != str + 24) {
 			fatal("time value %s is invalid", orig);
 		}
+		tm.tm_isdst = -1;
 		base = mktime(&tm);
 		str += 24;
 	}
