@@ -91,7 +91,6 @@ libisc_la_HEADERS =			\
 	include/isc/time.h		\
 	include/isc/timer.h		\
 	include/isc/tls.h		\
-	include/isc/tm.h		\
 	include/isc/types.h		\
 	include/isc/urcu.h		\
 	include/isc/url.h		\
@@ -193,7 +192,6 @@ libisc_la_SOURCES =		\
 	time.c			\
 	timer.c			\
 	tls.c			\
-	tm.c			\
 	url.c			\
 	utf8.c			\
 	uv.c			\

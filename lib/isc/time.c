@@ -27,7 +27,6 @@
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/time.h>
-#include <isc/tm.h>
 #include <isc/util.h>
 
 #define ISC_VALID_TIME(t) (t != NULL && t->nanoseconds < NS_PER_SEC)
@@ -371,11 +370,11 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 	REQUIRE(buf != NULL);
 	REQUIRE(t != NULL);
 
-	p = isc_tm_strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
+	p = strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
 	if (p == NULL) {
 		return ISC_R_UNEXPECTED;
 	}
-	when = isc_tm_timegm(&t_tm);
+	when = timegm(&t_tm);
 	if (when == -1) {
 		return ISC_R_UNEXPECTED;
 	}
