@@ -823,11 +823,8 @@ static bool
 client_handle_content_type_header(http_cstream_t *cstream, const uint8_t *value,
 				  const size_t valuelen) {
 	const char type_dns_message[] = DNS_MEDIA_TYPE;
-	const size_t len = sizeof(type_dns_message) - 1;
 
-	UNUSED(valuelen);
-
-	if (strncasecmp((const char *)value, type_dns_message, len) == 0) {
+	if (HEADER_MATCH(type_dns_message, value, valuelen)) {
 		cstream->response_status.content_type_valid = true;
 		return true;
 	}
