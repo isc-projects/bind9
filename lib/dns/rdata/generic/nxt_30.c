@@ -142,7 +142,11 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
+	/*
+	 * RFC 3597 section 4 asks receivers to decompress this type,
+	 * even though senders must not compress it.
+	 */
+	dctx = dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name);
 	RETERR(dns_name_fromwire(&name, source, dctx, target));
