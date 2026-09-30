@@ -226,7 +226,7 @@ notify_createmessage(dns_notify_t *notify, dns_message_t **messagep) {
 	 */
 	dns_name_clone(dns_zone_getorigin(notify->zone), tempname);
 	dns_rdataset_makequestion(temprdataset, dns_zone_getclass(notify->zone),
-				  dns_rdatatype_soa);
+				  notify->type);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
 	dns_message_addname(message, tempname, DNS_SECTION_QUESTION);
 	tempname = NULL;
