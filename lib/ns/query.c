@@ -5809,9 +5809,15 @@ fetch_callback(void *arg) {
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
 	 * that a lookup due to stale-answer-client-timeout may have set.
+	 *
+	 * We still check whether the client has requested and is allowed
+	 * recursion before resetting 'recursionok' to true, because the
+	 * current fetch might have originated e.g. by RPZ even with RD=0.
 	 */
 	if (client->inner.view->cachedb != NULL &&
-	    client->inner.view->recursion)
+	    client->inner.view->recursion && client->inner.ra &&
+	    client->message != NULL &&
+	    (client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
 	{
 		client->query.recursionok = true;
 	}
