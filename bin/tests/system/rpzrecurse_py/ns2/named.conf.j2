@@ -1,0 +1,27 @@
+options {
+    {% include_indented "_common/options.conf.j2" %}
+    recursion no;
+    dnssec-validation no;
+    querylog yes;
+};
+
+{% include "_common/controls.conf.j2" %}
+
+view "recursive" {
+	response-policy {
+		zone "nsdname.zone" recursive-only no;
+		zone "rpzip.zone";
+	}
+	nsdname-enable yes
+	nsip-enable yes;
+
+	zone "nsdname.zone" { type primary; file "db.nsdname"; };
+	zone "rpzip.zone" { type primary; file "db.rpzip"; };
+
+	zone "." {
+		type hint;
+		file "root.hint";
+	};
+
+	recursion yes;
+};

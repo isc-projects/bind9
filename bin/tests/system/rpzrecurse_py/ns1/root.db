@@ -22,3 +22,6 @@ ns.example.             A       10.53.0.1
 
 seed.client-reuse.	A	192.0.2.11
 blocked.client-reuse.	A	192.0.2.10
+
+cve-2026-97313.test	NS	ns.cve-2026-97313.test.
+ns.cve-2026-97313.test	A	10.53.0.7

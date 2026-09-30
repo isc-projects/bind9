@@ -15,6 +15,7 @@ import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
+        "ans7/ans.run",
         "ns8/named.args",
     ]
 )
