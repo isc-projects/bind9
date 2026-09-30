@@ -79,6 +79,7 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_zone_t *zone = NULL;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char tsigbuf[DNS_NAME_FORMATSIZE * 2 + sizeof(": TSIG '' ()")];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_tsigkey_t *tsigkey;
 
 	/*
@@ -142,6 +143,7 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		tsigbuf[0] = '\0';
 	}
 
+	dns_rdatatype_format(zone_rdataset->type, typebuf, sizeof(typebuf));
 	dns_name_format(zonename, namebuf, sizeof(namebuf));
 	result = dns_view_findzone(client->inner.view, zonename,
 				   DNS_ZTFIND_EXACT, &zone);
@@ -156,8 +158,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 			isc_sockaddr_t *from = ns_client_getsockaddr(client);
 			isc_sockaddr_t *to = ns_client_getdestaddr(client);
 			notify_log(client, ISC_LOG_INFO,
-				   "received notify for zone '%s'%s", namebuf,
-				   tsigbuf);
+				   "received NOTIFY(%s) for zone '%s'%s",
+				   typebuf, namebuf, tsigbuf);
 			result = dns_zone_notifyreceive(zone, from, to,
 							request);
 			goto done;
@@ -166,8 +168,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 
 	result = DNS_R_NOTAUTH;
 	notify_log(client, ISC_LOG_NOTICE,
-		   "received notify for zone '%s'%s: %s", namebuf, tsigbuf,
-		   isc_result_totext(result));
+		   "received NOTIFY(%s) for zone '%s'%s: %s", typebuf, namebuf,
+		   tsigbuf, isc_result_totext(result));
 
 done:
 	if (zone != NULL) {
