@@ -262,7 +262,7 @@ sub construct_ns_command {
 
 			$line =~ s/#.*$//;
 
-			$command .= $line;
+			$command .= $line." ";
 
 			last;
 		}
@@ -295,6 +295,26 @@ sub construct_ns_command {
 
 	# get the shell to report the pid of the server ($!)
 	$command .= " echo \$!";
+
+	my $env_file = $testdir . "/" . $server . "/" . "named.env";
+	if (-e $env_file) {
+		my $env = "env ";
+
+		open(my $fh, "<", $env_file) or die "unable to read env_file \"$env_file\" ($OS_ERROR)\n";
+
+		while(my $line=<$fh>) {
+			next if ($line =~ /^\s*$/); #discard blank lines
+			next if ($line =~ /^\s*#/); #discard comment lines
+
+			chomp $line;
+
+			$env .= $line." ";
+
+			last;
+		}
+
+		$command = $env . $command
+	}
 
 	return $command;
 }
