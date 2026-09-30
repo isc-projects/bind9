@@ -6162,8 +6162,16 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
 	 * that a lookup due to stale-answer-client-timeout may have set.
+	 *
+	 * We still check whether the client has requested and is allowed
+	 * recursion before resetting 'recursionok' to true, because the
+	 * current fetch might have originated e.g. by RPZ even with RD=0.
 	 */
-	if (client->view->cachedb != NULL && client->view->recursion) {
+	if (client->view->cachedb != NULL && client->view->recursion &&
+	    (client->attributes & NS_CLIENTATTR_RA) != 0 &&
+	    client->message != NULL &&
+	    (client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+	{
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
 	client->query.fetchoptions &= ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
