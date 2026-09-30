@@ -22,3 +22,6 @@ ns.example.             A       10.53.0.1
 
 l0.			NS	ns.l0.
 ns.l0.			A	10.53.0.1
+
+cve-2026-97313.test	NS	ns.cve-2026-97313.test.
+ns.cve-2026-97313.test	A	10.53.0.7
