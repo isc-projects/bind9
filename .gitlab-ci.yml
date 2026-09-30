@@ -1466,6 +1466,47 @@ unit:gcc:tarball:
     - job: gcc:tarball
       artifacts: true
 
+# Job checking that the Dockerfile used for the official BIND 9 container
+# images still works.
+
+docker-image:
+  stage: build
+  image: public.ecr.aws/docker/library/docker:latest
+  services:
+    - name: public.ecr.aws/docker/library/docker:dind
+      alias: docker
+  variables:
+    # This job needs no BIND 9 source, only the tarball-create artifact.
+    GIT_STRATEGY: none
+    # Talk to the dind service over plain TCP rather than TLS.
+    DOCKER_TLS_CERTDIR: ""
+  script:
+    - VERSION="$(basename build/meson-dist/bind-*.tar.xz .tar.xz)"
+    - VERSION="${VERSION#bind-}"
+    # Build the image from the bind9-docker branch matching this source tree,
+    # replacing the release tarball it normally downloads with the one built
+    # from this source tree.
+    - docker build
+      --build-arg "BIND9_VERSION=${VERSION}"
+      --build-context "tarball=build/meson-dist"
+      --tag "bind9:${VERSION}"
+      "https://gitlab.isc.org/isc-projects/bind9-docker.git#v${VERSION%.*}"
+    - docker run --rm "bind9:${VERSION}" -V
+  needs:
+    - job: tarball-create
+      artifacts: true
+  tags:
+    - docker
+    - linux
+    - amd64
+    - runner-manager
+  rules:
+    - *rule_mr_manual
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $REBASE_ONLY != "1"'
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|trigger|web)$/ && $REBASE_ONLY != "1"'
+      when: manual
+      allow_failure: true
+
 # Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
 
 gcc:tumbleweed:amd64:
