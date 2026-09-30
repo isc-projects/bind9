@@ -14,3 +14,14 @@ named.run
 /random.data
 /resolve
 parallel.mk
+
+# Artifacts of the pytest runner: the temporary directories and convenience
+# symlinks it creates, which have a hyphen in their names.  Tests run by the
+# legacy runner may have one as well.
+/pytest.conftest.log.txt
+/*-*
+!/*-*.c
+!/*-*.sh
+!/allow-query
+!/filter-aaaa
+!/serve-stale

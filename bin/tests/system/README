@@ -154,6 +154,20 @@ while setting environment variable SYSTEMTEST_FORCE_COLOR to 1 forces system
 test output to be printed in color.
 
 
+Running Tests Written for the pytest Runner
+---
+Newer BIND 9 branches run their system tests with pytest alone, and such tests
+can be cherry-picked to this branch.  The tests listed in conf.sh are run by
+run.sh as described above; any other test is run by the pytest runner
+(conftest.py and the isctest package):
+
+    cd bin/tests/system
+    pytest [-n numproc] [test-directory...]
+
+A test meant for the pytest runner must therefore neither be added to conf.sh
+nor be placed in the directory of a test listed there.
+
+
 Running Multiple System Test Suites Simultaneously
 ---
 In some cases it may be desirable to have multiple instances of the system test

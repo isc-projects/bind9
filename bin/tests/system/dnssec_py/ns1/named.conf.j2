@@ -1,0 +1,18 @@
+// NS1
+
+options {
+	{% include_indented "_common/options.conf.j2" %}
+
+	key-directory "keys";
+
+	minimal-any no;
+	minimal-responses no;
+	recursion no;
+
+	dnssec-validation yes;
+};
+
+{% include "_common/controls.conf.j2" %}
+{% include "_common/trusted.conf.j2" %}
+
+{% include "_common/zones.conf.j2" %}
