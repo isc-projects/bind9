@@ -1507,20 +1507,20 @@ dns_zone_sethooktable(dns_zone_t *zone, void *hooktable,
  */
 
 void
-dns_zone_setcfg(dns_zone_t *zone, const char *cfg);
+dns_zone_setcfg(dns_zone_t *zone, void *cfg, void (*cfg_detach)(void *));
 /*%<
- * Save a copy of the configuration text for 'zone', which can be
+ * Set a pointer to the configuration object for 'zone', which can be
  * used later to dump the configuration status.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
  */
 
-const char *
+void *
 dns_zone_getcfg(dns_zone_t *zone);
 /*%<
- * Return a pointer to the configuration text for 'zone', that was
- * previously saved using _setcfg().
+ * Return a pointer to the configuration object for 'zone', that was
+ * previously set using _setcfg().
  *
  * Requires:
  * \li	'zone' to be a valid zone.

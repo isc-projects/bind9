@@ -5934,40 +5934,6 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	return ISC_R_SUCCESS;
 }
 
-static void
-emit_text(void *arg, const char *buf, int len) {
-	ns_dzarg_t *dzarg = arg;
-	isc_result_t result;
-
-	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
-	result = putmem(dzarg->text, buf, len);
-	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
-		dzarg->result = result;
-	}
-}
-
-static isc_result_t
-save_zoneconfig(dns_zone_t *zone, const cfg_obj_t *zconfig) {
-	isc_result_t result;
-	isc_buffer_t *text = NULL;
-
-	isc_buffer_allocate(isc_g_mctx, &text, 256);
-
-	ns_dzarg_t dzarg = {
-		.magic = DZARG_MAGIC,
-		.text = text,
-	};
-
-	cfg_printx(zconfig, CFG_PRINTER_ONELINE, emit_text, &dzarg);
-	CHECK(putnull(text));
-
-	dns_zone_setcfg(zone, isc_buffer_base(text));
-
-cleanup:
-	isc_buffer_free(&text);
-	return result;
-}
-
 /*
  * Configure or reconfigure a zone.
  */
@@ -6168,7 +6134,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		}
 		CHECK(named_zone_configure(config, vconfig, zconfig, aclctx,
 					   kasplist, zone, NULL));
-		CHECK(save_zoneconfig(zone, zconfig));
 		dns_zone_attach(zone, &view->redirect);
 		goto cleanup;
 	}
@@ -6346,7 +6311,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 */
 	CHECK(named_zone_configure(config, vconfig, zconfig, aclctx, kasplist,
 				   zone, raw));
-	CHECK(save_zoneconfig(zone, zconfig));
 
 	/*
 	 * Add the zone to its view in the new view list.
@@ -7585,7 +7549,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		      ISC_LOG_DEBUG(1), "apply_configuration: %s", __func__);
 
 static isc_result_t
-create_views(cfg_obj_t *config, dns_viewlist_t *viewlist, bool *nzp) {
+create_views(cfg_obj_t *config, dns_viewlist_t *viewlist) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *bindview = NULL;
 	const cfg_obj_t *views = NULL;
@@ -7619,9 +7583,6 @@ create_views(cfg_obj_t *config, dns_viewlist_t *viewlist, bool *nzp) {
 
 		CHECK(setup_newzones(view, config, vconfig));
 		explicitviews = true;
-		if (view->newzone.allowed) {
-			*nzp = true;
-		}
 		dns_view_detach(&view);
 	}
 
@@ -7634,9 +7595,6 @@ create_views(cfg_obj_t *config, dns_viewlist_t *viewlist, bool *nzp) {
 		INSIST(view != NULL);
 
 		CHECK(setup_newzones(view, config, NULL));
-		if (view->newzone.allowed) {
-			*nzp = true;
-		}
 		dns_view_detach(&view);
 	}
 
@@ -7809,9 +7767,9 @@ configure_kasplist(const cfg_obj_t *config, dns_kasplist_t *kasplist,
 }
 
 static isc_result_t
-apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
-		    named_server_t *server, bool first_time,
-		    bool *newzones_allowed) {
+apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *userconfig,
+		    cfg_obj_t *bindkeys, named_server_t *server,
+		    bool first_time) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
 	const cfg_obj_t *options = NULL;
@@ -7885,7 +7843,7 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 		goto cleanup_kasplist;
 	}
 
-	result = create_views(effectiveconfig, &viewlist, newzones_allowed);
+	result = create_views(effectiveconfig, &viewlist);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_viewlist;
 	}
@@ -8849,6 +8807,19 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	 */
 	named_g_defaultconfigtime = isc_time_now();
 
+	/*
+	 * Set the current effective and user configuration
+	 */
+	if (server->effectiveconfig != NULL) {
+		cfg_obj_detach(&server->effectiveconfig);
+	}
+	cfg_obj_attach(effectiveconfig, &server->effectiveconfig);
+
+	if (server->userconfig != NULL) {
+		cfg_obj_detach(&server->userconfig);
+	}
+	cfg_obj_attach(userconfig, &server->userconfig);
+
 	isc_loopmgr_resume();
 	exclusive = false;
 
@@ -8858,8 +8829,8 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	}
 
 	/* Configure the statistics channel(s) */
-	result = named_statschannels_configure(named_g_server, effectiveconfig,
-					       server->aclctx);
+	result = named_statschannels_configure(
+		named_g_server, server->effectiveconfig, server->aclctx);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_ERROR,
@@ -8872,7 +8843,8 @@ apply_configuration(cfg_obj_t *effectiveconfig, cfg_obj_t *bindkeys,
 	 * Bind the control port(s).
 	 */
 	result = named_controls_configure(named_g_server->controls,
-					  effectiveconfig, server->aclctx);
+					  server->effectiveconfig,
+					  server->aclctx);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_ERROR, "binding control channel(s): %s",
@@ -8962,6 +8934,7 @@ cleanup_aclctx:
 		      ISC_LOG_DEBUG(1), "apply_configuration: %s",
 		      isc_result_totext(result));
 
+	cfg_obj_detach(&effectiveconfig);
 	return result;
 }
 
@@ -8970,8 +8943,6 @@ load_configuration(named_server_t *server, bool first_time) {
 	isc_result_t result;
 	cfg_obj_t *config = NULL, *effective = NULL;
 	cfg_obj_t *bindkeys = NULL, *builtin = NULL;
-	ns_dzarg_t dzarg;
-	bool newzones_allowed = false;
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 		      ISC_LOG_DEBUG(1), "load_configuration");
@@ -9011,54 +8982,8 @@ load_configuration(named_server_t *server, bool first_time) {
 
 	/* Merge and apply */
 	effective = cfg_effective_config(config, builtin);
-
-	/*
-	 * Save the user configuration in text format, to display with "rndc
-	 * showconf". (Text takes up less memory than an object tree.)
-	 */
-	if (server->userconftext != NULL) {
-		isc_buffer_free(&server->userconftext);
-	}
-	isc_buffer_allocate(isc_g_mctx, &server->userconftext, BUFSIZ);
-
-	dzarg = (ns_dzarg_t){
-		.magic = DZARG_MAGIC,
-		.text = server->userconftext,
-	};
-	cfg_printx(config, 0, emit_text, &dzarg);
-
-	/*
-	 * And finally we apply the effective configuration.
-	 */
-	result = apply_configuration(effective, bindkeys, server, first_time,
-				     &newzones_allowed);
-
-	/*
-	 * Also save the effective configuration as an object tree, if
-	 * "allow-new-zones" or catalog zones are in use. That takes
-	 * more memory than text but avoids the need to re-parse the
-	 * configuration when zone changes are made. Otherwise, save the
-	 * effective configuration as text.
-	 */
-	if (server->effectiveconfig != NULL) {
-		cfg_obj_detach(&server->effectiveconfig);
-	}
-
-	if (server->effectivetext != NULL) {
-		isc_buffer_free(&server->effectivetext);
-	}
-
-	if (newzones_allowed) {
-		server->effectiveconfig = effective;
-		effective = NULL;
-	} else {
-		isc_buffer_allocate(isc_g_mctx, &server->effectivetext, BUFSIZ);
-		dzarg = (ns_dzarg_t){
-			.magic = DZARG_MAGIC,
-			.text = server->effectivetext,
-		};
-		cfg_printx(effective, 0, emit_text, &dzarg);
-	}
+	result = apply_configuration(effective, config, bindkeys, server,
+				     first_time);
 
 cleanup:
 	if (bindkeys != NULL) {
@@ -9069,9 +8994,6 @@ cleanup:
 	}
 	if (builtin != NULL) {
 		cfg_obj_detach(&builtin);
-	}
-	if (effective != NULL) {
-		cfg_obj_detach(&effective);
 	}
 
 	return result;
@@ -9671,12 +9593,8 @@ named_server_destroy(named_server_t **serverp) {
 		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
 	}
 
-	if (server->userconftext != NULL) {
-		isc_buffer_free(&server->userconftext);
-	}
-
-	if (server->effectivetext != NULL) {
-		isc_buffer_free(&server->effectivetext);
+	if (server->userconfig != NULL) {
+		cfg_obj_detach(&server->userconfig);
 	}
 
 	if (server->effectiveconfig != NULL) {
@@ -13009,6 +12927,18 @@ cleanup:
 	return result;
 }
 
+static void
+emit_text(void *arg, const char *buf, int len) {
+	ns_dzarg_t *dzarg = arg;
+	isc_result_t result;
+
+	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
+	result = putmem(dzarg->text, buf, len);
+	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
+		dzarg->result = result;
+	}
+}
+
 /*
  * Act on a "showzone" command from the command channel.
  */
@@ -13016,9 +12946,10 @@ isc_result_t
 named_server_showzone(named_server_t *server, isc_lex_t *lex,
 		      isc_buffer_t *text) {
 	isc_result_t result;
+	const cfg_obj_t *zconfig = NULL;
 	char zonename[DNS_NAME_FORMATSIZE];
 	dns_zone_t *zone = NULL;
-	const char *zconfig = NULL;
+	ns_dzarg_t dzarg;
 
 	REQUIRE(text != NULL);
 
@@ -13036,7 +12967,12 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 	}
 
 	CHECK(putstr(text, "zone "));
-	CHECK(putstr(text, zconfig));
+	dzarg.magic = DZARG_MAGIC;
+	dzarg.text = text;
+	dzarg.result = ISC_R_SUCCESS;
+	cfg_printx(zconfig, CFG_PRINTER_ONELINE, emit_text, &dzarg);
+	CHECK(dzarg.result);
+
 	CHECK(putstr(text, ";"));
 
 	result = ISC_R_SUCCESS;
@@ -13052,11 +12988,12 @@ cleanup:
 isc_result_t
 named_server_showconf(named_server_t *server, isc_lex_t *lex,
 		      isc_buffer_t *text) {
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result, tresult;
 	const char *arg = NULL;
 	cfg_obj_t *config = NULL;
 	ns_dzarg_t dzarg = {
 		.magic = DZARG_MAGIC,
+		.result = ISC_R_SUCCESS,
 		.text = text,
 	};
 
@@ -13069,32 +13006,32 @@ named_server_showconf(named_server_t *server, isc_lex_t *lex,
 	if (arg == NULL) {
 		return ISC_R_UNEXPECTEDEND;
 	}
-
 	if (strcasecmp(arg, "-user") == 0) {
-		result = putmem(text, isc_buffer_base(server->userconftext),
-				isc_buffer_usedlength(server->userconftext));
-	} else if (strcasecmp(arg, "-effective") == 0) {
-		if (server->effectivetext != NULL) {
-			result = putmem(
-				text, isc_buffer_base(server->effectivetext),
-				isc_buffer_usedlength(server->effectivetext));
-		} else {
-			cfg_printx(server->effectiveconfig, 0, emit_text,
-				   &dzarg);
-			result = dzarg.result;
-		}
+		cfg_obj_attach(server->userconfig, &config);
 	} else if (strcasecmp(arg, "-builtin") == 0) {
-		CHECK(named_config_parsedefaults(&config));
-		cfg_printx(config, 0, emit_text, &dzarg);
-		cfg_obj_detach(&config);
-		result = dzarg.result;
+		named_config_parsedefaults(&config);
+	} else if (strcasecmp(arg, "-effective") == 0) {
+		cfg_obj_attach(server->effectiveconfig, &config);
 	} else {
-		result = DNS_R_SYNTAX;
+		CHECK(DNS_R_SYNTAX);
 	}
+
+	if (config == NULL) {
+		result = ISC_R_NOTFOUND;
+		TCHECK(putstr(text, "configuration data not found.\n"));
+		goto cleanup;
+	}
+
+	cfg_printx(config, 0, emit_text, &dzarg);
+	result = dzarg.result;
 
 cleanup:
 	if (isc_buffer_usedlength(text) > 0) {
 		(void)putnull(text);
+	}
+
+	if (config != NULL) {
+		cfg_obj_detach(&config);
 	}
 
 	return result;

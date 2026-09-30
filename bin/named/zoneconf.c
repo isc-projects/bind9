@@ -955,6 +955,12 @@ process_notify_cfg(const cfg_obj_t **maps, dns_zone_t *zone, dns_zone_t *raw) {
 	return ISC_R_SUCCESS;
 }
 
+static void
+detach_cfg(void *arg) {
+	cfg_obj_t *cfg = (cfg_obj_t *)arg;
+	cfg_obj_detach(&cfg);
+}
+
 isc_result_t
 named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		     const cfg_obj_t *zconfig, cfg_aclconfctx_t *aclctx,
@@ -1984,6 +1990,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	default:
 		break;
 	}
+
+	/* Save the configuration for later use */
+	cfg_obj_t *cfg = UNCONST(zconfig);
+	cfg_obj_ref(cfg);
+	dns_zone_setcfg(zone, (void *)cfg, detach_cfg);
 
 	result = ISC_R_SUCCESS;
 
