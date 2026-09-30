@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <time.h>
@@ -28,6 +27,31 @@
 #include <dns/time.h>
 
 static const int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+static int64_t
+date_to_days(uint32_t year, uint32_t month, uint32_t day) {
+	/*
+	 * This is the Neri-Schneider calendar algorithm from "Euclidean affine
+	 * functions and their application to calendar algorithms".
+	 *
+	 * Map January and February to the end of the preceding year.  Shift
+	 * the calendar by one 400-year cycle so that dates in year zero can
+	 * still be calculated using unsigned arithmetic.
+	 */
+	const uint32_t jan_feb = month <= 2U;
+	const uint32_t y = year + 400U - jan_feb;
+	const uint32_t m = month + 12U * jan_feb;
+	const uint32_t century = y / 100U;
+	const uint32_t days_to_year = 1461U * y / 4U - century + century / 4U;
+	const uint32_t days_to_month = (979U * m - 2919U) / 32U;
+	const uint32_t shifted_days = days_to_year + days_to_month + day - 1U;
+
+	/*
+	 * 719468 selects the Unix epoch; 146097 compensates for the 400-year
+	 * shift above.
+	 */
+	return (int64_t)shifted_days - (719468LL + 146097LL);
+}
 
 isc_result_t
 dns_time64_totext(int64_t t, isc_buffer_t *target) {
@@ -127,70 +151,70 @@ dns_time32_totext(uint32_t value, isc_buffer_t *target) {
 	return dns_time64_totext(dns_time64_from32(value), target);
 }
 
-isc_result_t
-dns_time64_fromtext(const char *source, int64_t *target) {
-	int year, month, day, hour, minute, second;
-	int64_t value;
-	int secs;
-	int i;
+static isc_result_t
+time64_fromtext(const char *source, size_t length, int64_t *target) {
+	uint32_t digits[14];
+	uint32_t year, month, day, hour, minute, second;
+	uint32_t month_days;
+	unsigned int i;
 
-#define RANGE(min, max, value)                      \
-	do {                                        \
-		if (value < (min) || value > (max)) \
-			return ((ISC_R_RANGE));     \
-	} while (0)
-
-	if (strlen(source) != 14U) {
+	if (length != ARRAY_SIZE(digits)) {
 		return DNS_R_SYNTAX;
 	}
-	/*
-	 * Confirm the source only consists digits.  sscanf() allows some
-	 * minor exceptions.
-	 */
-	for (i = 0; i < 14; i++) {
-		if (!isdigit((unsigned char)source[i])) {
+	for (i = 0; i < ARRAY_SIZE(digits); i++) {
+		digits[i] = (unsigned char)source[i] - (unsigned int)'0';
+		if (digits[i] > 9U) {
 			return DNS_R_SYNTAX;
 		}
 	}
-	if (sscanf(source, "%4d%2d%2d%2d%2d%2d", &year, &month, &day, &hour,
-		   &minute, &second) != 6)
+
+	/* "YYYYxxxxxxxxxx" */
+	year = digits[0] * 1000U + digits[1] * 100U + digits[2] * 10U +
+	       digits[3];
+	/* "xxxxMMxxxxxxxx" */
+	month = digits[4] * 10U + digits[5];
+	/* "xxxxxxDDxxxxxx" */
+	day = digits[6] * 10U + digits[7];
+	/* "xxxxxxxxHHxxxx" */
+	hour = digits[8] * 10U + digits[9];
+	/* "xxxxxxxxxxMMxx" */
+	minute = digits[10] * 10U + digits[11];
+	/* "xxxxxxxxxxxxSS" */
+	second = digits[12] * 10U + digits[13];
+
+	if (month - 1U >= ARRAY_SIZE(days)) {
+		return ISC_R_RANGE;
+	}
+	month_days = days[month - 1U] +
+		     ((month == 2U && is_leap(year)) ? 1U : 0U);
+	if (day - 1U >= month_days || hour > 23U || minute > 59U ||
+	    second > 60U) /* 60 == leap second. */
 	{
-		return DNS_R_SYNTAX;
+		return ISC_R_RANGE;
 	}
 
-	RANGE(0, 9999, year);
-	RANGE(1, 12, month);
-	RANGE(1, days[month - 1] + ((month == 2 && is_leap(year)) ? 1 : 0),
-	      day);
+	*target = date_to_days(year, month, day) * 86400LL + hour * 3600U +
+		  minute * 60U + second;
+	return ISC_R_SUCCESS;
+}
 
-	RANGE(0, 23, hour);
-	RANGE(0, 59, minute);
-	RANGE(0, 60, second); /* 60 == leap second. */
+isc_result_t
+dns_time64_fromregion(isc_textregion_t source, int64_t *target) {
+	return time64_fromtext(source.base, source.length, target);
+}
 
-	/*
-	 * Calculate seconds from epoch.
-	 * Note: this uses a idealized calendar.
-	 */
-	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
-	for (i = 0; i < (month - 1); i++) {
-		value += days[i] * 86400;
-	}
-	if (is_leap(year) && month > 2) {
-		value += 86400;
-	}
-	if (year < 1970) {
-		for (i = 1969; i >= year; i--) {
-			secs = (is_leap(i) ? 366 : 365) * 86400;
-			value -= secs;
-		}
-	} else {
-		for (i = 1970; i < year; i++) {
-			secs = (is_leap(i) ? 366 : 365) * 86400;
-			value += secs;
-		}
-	}
+isc_result_t
+dns_time64_fromtext(const char *source, int64_t *target) {
+	return time64_fromtext(source, strlen(source), target);
+}
 
-	*target = value;
+isc_result_t
+dns_time32_fromregion(isc_textregion_t source, uint32_t *target) {
+	int64_t value64;
+
+	RETERR(dns_time64_fromregion(source, &value64));
+	*target = (uint32_t)value64;
+
 	return ISC_R_SUCCESS;
 }
 

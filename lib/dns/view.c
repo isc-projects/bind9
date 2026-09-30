@@ -1706,7 +1706,7 @@ dns_view_loadnta(dns_view_t *view) {
 
 	for (;;) {
 		int options = (ISC_LEXOPT_EOL | ISC_LEXOPT_EOF);
-		char *name, *type, *timestamp;
+		char *name, *type;
 		size_t len;
 		dns_fixedname_t fn;
 		const dns_name_t *ntaname;
@@ -1753,8 +1753,7 @@ dns_view_loadnta(dns_view_t *view) {
 		if (token.type != isc_tokentype_string) {
 			CLEANUP(ISC_R_UNEXPECTEDTOKEN);
 		}
-		timestamp = TSTR(token);
-		CHECK(dns_time32_fromtext(timestamp, &t));
+		CHECK(dns_time32_fromregion(token.value.as_textregion, &t));
 
 		CHECK(isc_lex_gettoken(lex, options, &token));
 		if (token.type != isc_tokentype_eol &&

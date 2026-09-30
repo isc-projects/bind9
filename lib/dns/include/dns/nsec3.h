@@ -94,6 +94,11 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 /*%<
  * Make a hashed domain name from an unhashed one. If rethash is not NULL
  * the raw hash is stored there.
+ *
+ * Requires:
+ *\li	'result' is initialized.
+ *\li	'name' is a valid name.
+ *\li	'origin' is a valid absolute name.
  */
 
 unsigned int

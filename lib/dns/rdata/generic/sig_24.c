@@ -85,7 +85,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
+	RETTOK(dns_time32_fromregion(token.value.as_textregion, &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
 	/*
@@ -93,7 +93,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
+	RETTOK(dns_time32_fromregion(token.value.as_textregion, &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
 	/*

@@ -40,19 +40,19 @@ fromtext_keydata(ARGS_FROMTEXT) {
 	/* refresh timer */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &refresh));
+	RETTOK(dns_time32_fromregion(token.value.as_textregion, &refresh));
 	RETERR(uint32_tobuffer(refresh, target));
 
 	/* add hold-down */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &addhd));
+	RETTOK(dns_time32_fromregion(token.value.as_textregion, &addhd));
 	RETERR(uint32_tobuffer(addhd, target));
 
 	/* remove hold-down */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &removehd));
+	RETTOK(dns_time32_fromregion(token.value.as_textregion, &removehd));
 	RETERR(uint32_tobuffer(removehd, target));
 
 	/* flags */

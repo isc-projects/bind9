@@ -286,7 +286,8 @@ dns_skr_read(isc_mem_t *mctx, const char *filename, dns_name_t *origin,
 			}
 
 			/* Create new bundle */
-			CHECK(dns_time32_fromtext(STR(token), &bundle_id));
+			CHECK(dns_time32_fromregion(token.value.as_textregion,
+						    &bundle_id));
 			bundle = NULL;
 			skrbundle_create(mctx, (isc_stdtime_t)bundle_id,
 					 &bundle);

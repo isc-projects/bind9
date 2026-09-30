@@ -50,6 +50,7 @@
 *****/
 
 #include <isc/buffer.h>
+#include <isc/md.h>
 
 #include <dns/name.h>
 
@@ -63,6 +64,8 @@ struct dns_fixedname {
 	unsigned char data[DNS_NAME_MAXWIRE];
 };
 
+typedef unsigned char dns_nsec3hash_t[ISC_SHA1_DIGESTLENGTH];
+
 void
 dns_fixedname_init(dns_fixedname_t *fixed);
 
@@ -74,3 +77,19 @@ dns_fixedname_name(dns_fixedname_t *fixed);
 
 dns_name_t *
 dns_fixedname_initname(dns_fixedname_t *fixed);
+
+isc_result_t
+dns_fixedname_fromnsec3hash(dns_fixedname_t *fixed, const dns_nsec3hash_t *hash,
+			    const dns_name_t *origin);
+/*%<
+ * Initialize 'fixed' with an NSEC3 owner name made from the base32hex
+ * encoding of 'hash', followed by 'origin'.
+ *
+ * Requires:
+ *\li	'fixed' is initialized.
+ *\li	'hash' is non-NULL.
+ *\li	'origin' is a valid absolute name.
+ *
+ * Returns:
+ *\li	#ISC_R_NOSPACE when the resulting name does not fit in 'fixed'.
+ */

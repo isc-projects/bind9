@@ -1206,8 +1206,9 @@ load_text(dns_loadctx_t *lctx) {
 				isc_stdtime_t dump_time;
 				isc_stdtime_t current_time = isc_stdtime_now();
 				GETTOKEN(lctx->lex, 0, &token, false);
-				result = dns_time64_fromtext(DNS_AS_STR(token),
-							     &dump_time64);
+				result = dns_time64_fromregion(
+					token.value.as_textregion,
+					&dump_time64);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
 					LOGIT(result);
