@@ -23,6 +23,8 @@ import dns.rdataclass
 import dns.rdatatype
 import pytest
 
+from isctest.template import TrustAnchor
+
 import isctest
 import isctest.mark
 
@@ -70,7 +72,8 @@ def bootstrap():
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
 
     tld_dnskey = "".join(keys["tld.test."]["dnskey"].split()[3:])
-    return {"TLD_DNSKEY": tld_dnskey}
+    ta = TrustAnchor("tld.test.", "static-key", f'257 3 13 "{tld_dnskey}"')
+    return {"trust_anchors": [ta]}
 
 
 def check_dnskey_response(zone):

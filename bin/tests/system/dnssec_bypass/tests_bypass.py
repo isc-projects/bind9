@@ -132,7 +132,7 @@ def bootstrap():
     root_ksk = sign_regular_zone("ns1", ".", "root.db")
 
     return {
-        "root": root_ksk.into_ta("static-key"),
+        "trust_anchors": [root_ksk.into_ta("static-key")],
     }
 
 
