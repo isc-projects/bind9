@@ -22,6 +22,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "sslyze.log.*",
         "ns*/example*.db",
+        "ns1/named.sslkeylogfile",
     ]
 )
 

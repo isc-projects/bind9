@@ -884,5 +884,15 @@ grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
 if test $ret != 0; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "tests if SSL Key negotiation logging worked ($n)"
+ret=0
+if test -s ns1/named.sslkeylogfile; then
+  grep SERVER_HANDSHAKE_TRAFFIC_SECRET ns1/named.sslkeylogfile >/dev/null || ret=1
+  grep CLIENT_HANDSHAKE_TRAFFIC_SECRET ns1/named.sslkeylogfile >/dev/null || ret=1
+else
+  ret=1
+fi
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
