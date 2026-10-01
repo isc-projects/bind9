@@ -28,6 +28,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "gnutls-cli.*",
         "ns*/example*.db",
+        "ns1/named.sslkeylogfile",
     ]
 )
 

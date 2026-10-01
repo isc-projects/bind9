@@ -158,6 +158,7 @@ path = [
 	"**/named.ednsformerr",
 	"**/named.ednsnotimp",
 	"**/named.ednsrefused",
+	"**/named.env",
 	"**/named.maxudp1460",
 	"**/named.maxudp512",
 	"**/named.noaa",

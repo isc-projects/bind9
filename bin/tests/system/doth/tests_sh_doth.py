@@ -17,6 +17,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "ns*/example*.db",
+        "ns1/named.sslkeylogfile",
     ]
 )
 

@@ -206,7 +206,8 @@ sslkeylogfile_append(const SSL *ssl, const char *line) {
  */
 static void
 sslkeylogfile_init(isc_tlsctx_t *ctx) {
-	if (getenv("SSLKEYLOGFILE") != NULL) {
+	const char *sslkeylogfile = getenv("SSLKEYLOGFILE");
+	if (sslkeylogfile != NULL && *sslkeylogfile != 0) {
 		SSL_CTX_set_keylog_callback(ctx, sslkeylogfile_append);
 	}
 }
