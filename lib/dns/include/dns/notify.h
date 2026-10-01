@@ -32,8 +32,9 @@ struct dns_notifyctx {
 
 	dns_rdatatype_t type;
 
-	dns_notifylist_t notifies;
-	isc_time_t	 notifytime;
+	dns_notifylist_t     notifies;
+	isc_time_t	     notifytime;
+	atomic_uint_fast64_t flags;
 
 	/* Configuration data. */
 	dns_notifytype_t notifytype;
@@ -147,4 +148,35 @@ dns_notify_cancel(dns_notifyctx_t *nctx);
  *
  *	Requires:
  *		'nctx' is not NULL
+ */
+
+void
+dns_notifyctx_setflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Set flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+void
+dns_notifyctx_clearflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Clear flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+bool
+dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Check flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ *
+ *      Returns:
+ *		true if the flag is set
+ *		false otherwise
  */

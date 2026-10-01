@@ -32,6 +32,13 @@
 
 #include "zone_p.h"
 
+/*%
+ * Notify and notify context flags.
+ */
+#define NOTIFY_FLAG(n, f)    ((atomic_load_relaxed(&(n)->flags) & (f)) != 0)
+#define NOTIFY_SETFLAG(n, f) atomic_fetch_or(&(n)->flags, (f))
+#define NOTIFY_CLRFLAG(n, f) atomic_fetch_and(&(n)->flags, ~(f))
+
 static void
 notify_log(dns_notify_t *notify, int level, const char *fmt, ...) {
 	va_list ap;
@@ -799,4 +806,22 @@ dns_notify_cancel(dns_notifyctx_t *nctx) {
 			dns_request_cancel(notify->request);
 		}
 	}
+}
+
+void
+dns_notifyctx_setflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	NOTIFY_SETFLAG(nctx, flag);
+}
+
+void
+dns_notifyctx_clearflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	NOTIFY_CLRFLAG(nctx, flag);
+}
+
+bool
+dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	return NOTIFY_FLAG(nctx, flag);
 }
