@@ -8990,6 +8990,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
@@ -9028,6 +9029,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
