@@ -9,6 +9,9 @@ $TTL 300
 @			NS	ns.example.
 ns.example.             A       10.53.0.1
 
+seed.client-reuse.	A	192.0.2.11
+blocked.client-reuse.	A	192.0.2.10
+
 l0.			NS	ns.l0.
 ns.l0.			A	10.53.0.1
 
