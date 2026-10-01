@@ -69,6 +69,13 @@ typedef enum dns_notify_flags {
 	DNS_NOTIFY_NOSOA = 1 << 0,
 	DNS_NOTIFY_STARTUP = 1 << 1,
 	DNS_NOTIFY_TCP = 1 << 2,
+	DNS_NOTIFY_NEEDSEND = 1 << 3, /*%< need to send out notify messages. */
+	DNS_NOTIFY_NEEDSTARTUP = 1 << 4, /*%< need to send out notify due to the
+					    zone just being loaded for the first
+					    time. */
+	DNS_NOTIFY_NODEFER = 1 << 5,	 /*%< ignore the notify-defer option. */
+	DNS_NOTIFY_DEFERRED = 1 << 6, /*%< notify was deferred according to the
+					 notify-defer option. */
 } dns_notify_flags_t;
 
 void

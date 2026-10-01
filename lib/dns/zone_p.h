@@ -138,8 +138,7 @@ typedef enum {
 	DNS_ZONEFLG_NEEDREFRESH = 1U << 8,  /*%< refresh check needed */
 	DNS_ZONEFLG_UPTODATE = 1U << 9,	    /*%< zone contents are
 					     * up-to-date */
-	DNS_ZONEFLG_NEEDNOTIFY = 1U << 10,  /*%< need to send out notify
-					     * messages */
+	DNS_ZONEFLG_NEEDNOTIFY = 1U << 10,  /*%< obsoleted */
 	DNS_ZONEFLG_FIXJOURNAL = 1U << 11,  /*%< journal file had
 					     * recoverable error,
 					     * needs rewriting */
@@ -163,15 +162,9 @@ typedef enum {
 	DNS_ZONEFLG_THAW = 1U << 24,
 	DNS_ZONEFLG_LOADPENDING = 1U << 25, /*%< Loading scheduled */
 	DNS_ZONEFLG_NODELAY = 1U << 26,
-	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 1U << 28, /*%< need to send out
-						   * notify due to the zone
-						   * just being loaded for
-						   * the first time. */
-	DNS_ZONEFLG_NOTIFYNODEFER = 1U << 29,	  /*%< ignore the
-						   * notify-defer option. */
-	DNS_ZONEFLG_NOTIFYDEFERRED = 1U << 30,	  /*%< notify was deferred
-						   * according to the
-						   * notify-defer option. */
+	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 1U << 28, /*%< obsoleted. */
+	DNS_ZONEFLG_NOTIFYNODEFER = 1U << 29,	  /*%< obsoleted */
+	DNS_ZONEFLG_NOTIFYDEFERRED = 1U << 30,	  /*%< obsoleted */
 	DNS_ZONEFLG_FIRSTREFRESH = 1U << 31,	  /*%< First refresh pending */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;

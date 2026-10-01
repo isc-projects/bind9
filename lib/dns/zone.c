@@ -4424,8 +4424,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	} else {
 		zone_attachdb(zone, db);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED |
-					       DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSTARTUP);
 		if (dns__zone_inline_raw(zone)) {
 			zone_schedule_inline_sync(zone->secure,
 						  inline_sync_incremental);
@@ -6215,7 +6215,7 @@ cleanup:
 	if (result == ISC_R_SUCCESS) {
 		dns__zone_set_resigntime(zone);
 		zone_needdump(zone, DNS_DUMP_DELAY);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 	} else {
 		/*
 		 * Something failed.  Retry in 5 minutes.
@@ -7894,7 +7894,7 @@ skip_removals:
 
 	LOCK_ZONE(zone);
 	zone_needdump(zone, DNS_DUMP_DELAY);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+	dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 	UNLOCK_ZONE(zone);
 
 closeversion:
@@ -8704,7 +8704,7 @@ pauseall:
 	LOCK_ZONE(zone);
 	dns__zone_set_resigntime(zone);
 	if (commit) {
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 		zone_needdump(zone, DNS_DUMP_DELAY);
 	}
 	UNLOCK_ZONE(zone);
@@ -10069,22 +10069,24 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	LOCK_ZONE(zone);
 	if (zone->notifysoa.notifydefer != 0 &&
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYNODEFER) &&
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED))
+	    !dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_NODEFER) &&
+	    !dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_DEFERRRED))
 	{
 		if (isc_time_compare(&now, &zone->notifysoa.notifytime) > 0) {
 			zone->notifysoa.notifytime = now;
 		}
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_DEFERRED);
 		DNS_ZONE_TIME_ADD(&zone->notifysoa.notifytime,
 				  zone->notifysoa.notifydefer,
 				  &zone->notifysoa.notifytime);
 	}
-	notify = (zone->type == dns_zone_secondary ||
-		  zone->type == dns_zone_mirror) &&
-		 (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-		  DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
-		 isc_time_compare(&now, &zone->notifysoa.notifytime) >= 0;
+	notify =
+		(zone->type == dns_zone_secondary ||
+		 zone->type == dns_zone_mirror) &&
+		(dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND) ||
+		 dns_notifyctx_hasflag(&zone->notifysoa,
+				       DNS_NOTIFY_NEEDSTARTUP)) &&
+		isc_time_compare(&now, &zone->notifysoa.notifytime) >= 0;
 	UNLOCK_ZONE(zone);
 
 	if (notify) {
@@ -10132,8 +10134,10 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_primary:
 	case dns_zone_redirect:
 		LOCK_ZONE(zone);
-		notify = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-			  DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
+		notify = (dns_notifyctx_hasflag(&zone->notifysoa,
+						DNS_NOTIFY_NEEDSEND) ||
+			  dns_notifyctx_hasflag(&zone->notifysoa,
+						DNS_NOTIFY_NEEDSTARTUP)) &&
 			 isc_time_compare(&now, &zone->notifysoa.notifytime) >=
 				 0;
 		UNLOCK_ZONE(zone);
@@ -11015,20 +11019,23 @@ dns_zone_notify(dns_zone_t *zone, bool nodefer) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+	dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 	if (nodefer) {
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED)) {
+		if (dns_notifyctx_hasflag(&zone->notifysoa,
+					  DNS_NOTIFY_DEFERRED))
+		{
 			/*
 			 * We have previously deferred the notify, but we have a
 			 * new request not to defer it. Reverse the deferring
 			 * operation.
 			 */
-			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOTIFYDEFERRED);
+			dns_notifyctx_clearflag(&zone->notifysoa,
+						DNS_NOTIFY_DEFERRED);
 			DNS_ZONE_TIME_SUBTRACT(&zone->notifysoa.notifytime,
 					       zone->notifysoa.notifydefer,
 					       &zone->notifysoa.notifytime);
 		}
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOTIFYNODEFER);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NODEFER);
 	}
 	dns__zone_settimer(zone, isc_time_now());
 	UNLOCK_ZONE(zone);
@@ -11059,11 +11066,11 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	startup = !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY |
-				       DNS_ZONEFLG_NEEDSTARTUPNOTIFY |
-				       DNS_ZONEFLG_NOTIFYNODEFER |
-				       DNS_ZONEFLG_NOTIFYDEFERRED);
+	startup = !dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
+	dns_notifyctx_clearflag(&zone->notifysoa,
+				DNS_NOTIFY_NEEDSEND | DNS_NOTIFY_NEEDSTARTUP |
+					DNS_NOTIFY_NODEFER |
+					DNS_NOTIFY_DEFERRED);
 	notifytype = zone->notifysoa.notifytype;
 	DNS_ZONE_TIME_ADD(now, zone->notifysoa.notifydelay,
 			  &zone->notifysoa.notifytime);
@@ -13342,8 +13349,10 @@ zone__settimer(void *arg) {
 		}
 		FALLTHROUGH;
 	case dns_zone_primary:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
+		if (dns_notifyctx_hasflag(&zone->notifysoa,
+					  DNS_NOTIFY_NEEDSEND) ||
+		    dns_notifyctx_hasflag(&zone->notifysoa,
+					  DNS_NOTIFY_NEEDSTARTUP))
 		{
 			next = zone->notifysoa.notifytime;
 		}
@@ -13374,8 +13383,10 @@ zone__settimer(void *arg) {
 	case dns_zone_secondary:
 	case dns_zone_mirror:
 	treat_as_secondary:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY))
+		if (dns_notifyctx_hasflag(&zone->notifysoa,
+					  DNS_NOTIFY_NEEDSEND) ||
+		    dns_notifyctx_hasflag(&zone->notifysoa,
+					  DNS_NOTIFY_NEEDSTARTUP))
 		{
 			next = zone->notifysoa.notifytime;
 		}
@@ -14626,7 +14637,7 @@ inline_secure_bootstrap(dns_zone_t *zone) {
 
 	CHECK(secure_db_create_from_raw(zone, rawdb, &newdb));
 
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+	dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 	CHECK(zone_postload(zone, newdb, isc_time_now(), ISC_R_SUCCESS));
 
 	zone->sourceserial = end;
@@ -14695,7 +14706,7 @@ inline_sync_finalize(dns_zone_t *zone, uint32_t newserial, uint32_t desired) {
 	dns_journal_commit(rjournal);
 
 	LOCK_ZONE(zone);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+	dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 
 	zone->sourceserial = end;
 	zone->sourceserialset = true;
@@ -15490,7 +15501,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 	zone_attachdb(zone, db);
 	dns_db_setmaxrrperset(zone->db, zone->maxrrperset);
 	dns_db_setmaxtypepername(zone->db, zone->maxtypepername);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED | DNS_ZONEFLG_NEEDNOTIFY);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+	dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 	return ISC_R_SUCCESS;
 
 fail:
@@ -15561,7 +15573,7 @@ again:
 	now = isc_time_now();
 	switch (xfrresult) {
 	case ISC_R_SUCCESS:
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 		FALLTHROUGH;
 	case DNS_R_UPTODATE:
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER |
@@ -19150,7 +19162,7 @@ zone_rekey(dns_zone_t *zone) {
 		dns_stats_t *dnssecsignstats =
 			dns_zone_getdnssecsignstats(zone);
 
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 
 		zone_needdump(zone, DNS_DUMP_DELAY);
 
@@ -19973,8 +19985,8 @@ zone_process_keydone(dns_zone_t *zone,
 		commit = true;
 
 		LOCK_ZONE(zone);
-		DNS_ZONE_SETFLAG(zone,
-				 DNS_ZONEFLG_LOADED | DNS_ZONEFLG_NEEDNOTIFY);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
+		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 		zone_needdump(zone, 30);
 		UNLOCK_ZONE(zone);
 	}
