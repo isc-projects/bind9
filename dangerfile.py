@@ -228,3 +228,26 @@ annotations_added = lines_containing(configure_added_lines, '# [pairwise: ')
 if len(switches_added) > len(annotations_added):
     fail('This merge request adds at least one new `./configure` switch that '
          'is not annotated for pairwise testing purposes.')
+
+###############################################################################
+# SYSTEM TESTS
+###############################################################################
+#
+# FAIL if the merge request adds a tests_*.py module next to a shell test.  The
+# pytest runner does not support those, and the legacy runner does not run
+# pytest modules at all, so a test cherry-picked from a newer branch, where it
+# can sit next to a shell test, would never run.
+
+SYSTEM_TEST_MODULE_RE = re.compile(r"^bin/tests/system/([^/]+)/tests_[^/]*\.py$")
+
+for path in danger.git.created_files:
+    match = SYSTEM_TEST_MODULE_RE.match(path)
+    if match is None:
+        continue
+    test = match.group(1)
+    if os.path.exists(f"bin/tests/system/{test}/tests.sh"):
+        fail(
+            f"`{path}` is added next to the `{test}` shell test, which the "
+            "pytest runner does not support on this branch. Please move it "
+            "to a system test directory of its own."
+        )

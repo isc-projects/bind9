@@ -229,6 +229,9 @@ stages:
     - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
     - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" bin/tests/system/systests.output ); fi
+    # Run the tests not listed in conf.sh, on images providing what the pytest
+    # runner needs; pytest is looked up the way newer branches' configure does.
+    - test -z "${RUN_PYTEST_RUNNER}" || ( cd bin/tests/system && "$(command -v pytest-3 || command -v py.test-3 || command -v pytest)" -n "${TEST_PARALLEL_JOBS:-1}" )
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -461,6 +464,8 @@ gcc:almalinux8:amd64:
   <<: *build_job
 
 system:gcc:almalinux8:amd64:
+  variables:
+    RUN_PYTEST_RUNNER: 1
   <<: *almalinux_8_amd64_image
   <<: *system_test_job
   needs:
@@ -548,6 +553,8 @@ gcc:tarball:
       artifacts: true
 
 system:gcc:tarball:
+  variables:
+    RUN_PYTEST_RUNNER: 1
   <<: *base_image
   <<: *system_test_job
   <<: *schedules_tags_web_triggering_rules
@@ -611,6 +618,7 @@ gcc:asan:
 system:gcc:asan:
   variables:
     ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
+    RUN_PYTEST_RUNNER: 1
   <<: *base_image
   <<: *system_test_job
   needs:
@@ -639,6 +647,7 @@ clang:asan:
 system:clang:asan:
   variables:
     ASAN_OPTIONS: ${ASAN_OPTIONS_COMMON}
+    RUN_PYTEST_RUNNER: 1
   <<: *base_image
   <<: *system_test_job
   needs:

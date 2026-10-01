@@ -15,87 +15,87 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=@abs_top_builddir@
+export TOP=@abs_top_builddir@
 
 # Default algorithm for testing
-DEFAULT_ALGORITHM=RSASHA256
-DEFAULT_ALGORITHM_NUMBER=8
-DEFAULT_BITS=1280
+export DEFAULT_ALGORITHM=RSASHA256
+export DEFAULT_ALGORITHM_NUMBER=8
+export DEFAULT_BITS=1280
 
 # Provide TMPDIR variable for tests that need it.
-TMPDIR=${TMPDIR:-/tmp}
+export TMPDIR=${TMPDIR:-/tmp}
 
 # must be different from DEFAULT_ALGORITHM
-ALTERNATIVE_ALGORITHM=RSASHA1
-ALTERNATIVE_ALGORITHM_NUMBER=5
-ALTERNATIVE_BITS=1280
+export ALTERNATIVE_ALGORITHM=RSASHA1
+export ALTERNATIVE_ALGORITHM_NUMBER=5
+export ALTERNATIVE_BITS=1280
 
 # This is an algorithm that is used for tests against the
 # "disable-algorithms" configuration option.  Must be different from above
 # algorithms.
-DISABLED_ALGORITHM=ECDSAP384SHA384
-DISABLED_ALGORITHM_NUMBER=14
-DISABLED_BITS=384
+export DISABLED_ALGORITHM=ECDSAP384SHA384
+export DISABLED_ALGORITHM_NUMBER=14
+export DISABLED_BITS=384
 
-NAMED=$TOP/bin/named/named
+export NAMED=$TOP/bin/named/named
 # We must use "named -l" instead of "lwresd" because argv[0] is lost
 # if the program is libtoolized.
-LWRESD="$TOP/bin/named/named -l"
-DIG=$TOP/bin/dig/dig
-DELV=$TOP/bin/delv/delv
-RNDC=$TOP/bin/rndc/rndc
-NSUPDATE=$TOP/bin/nsupdate/nsupdate
-DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
-TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
-RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
-KEYGEN=$TOP/bin/dnssec/dnssec-keygen
-KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
-SIGNER=$TOP/bin/dnssec/dnssec-signzone
-REVOKE=$TOP/bin/dnssec/dnssec-revoke
-SETTIME=$TOP/bin/dnssec/dnssec-settime
-DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
-HOST=$TOP/bin/dig/host
-IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
-CHECKDS=$TOP/bin/python/dnssec-checkds
-COVERAGE=$TOP/bin/python/dnssec-coverage
-KEYMGR=$TOP/bin/python/dnssec-keymgr
-CHECKZONE=$TOP/bin/check/named-checkzone
-CHECKCONF=$TOP/bin/check/named-checkconf
-PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
-JOURNALPRINT=$TOP/bin/tools/named-journalprint
-VERIFY=$TOP/bin/dnssec/dnssec-verify
-ARPANAME=$TOP/bin/tools/arpaname
-RESOLVE=$TOP/lib/samples/resolve
-RRCHECKER=$TOP/bin/tools/named-rrchecker
-GENRANDOM=$TOP/bin/tools/genrandom
-NSLOOKUP=$TOP/bin/dig/nslookup
-DNSTAPREAD=$TOP/bin/tools/dnstap-read
-MDIG=$TOP/bin/tools/mdig
-NZD2NZF=$TOP/bin/tools/named-nzd2nzf
-FSTRM_CAPTURE=@FSTRM_CAPTURE@
-FEATURETEST=$TOP/bin/tests/system/feature-test
+export LWRESD="$TOP/bin/named/named -l"
+export DIG=$TOP/bin/dig/dig
+export DELV=$TOP/bin/delv/delv
+export RNDC=$TOP/bin/rndc/rndc
+export NSUPDATE=$TOP/bin/nsupdate/nsupdate
+export DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
+export TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
+export RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
+export KEYGEN=$TOP/bin/dnssec/dnssec-keygen
+export KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
+export SIGNER=$TOP/bin/dnssec/dnssec-signzone
+export REVOKE=$TOP/bin/dnssec/dnssec-revoke
+export SETTIME=$TOP/bin/dnssec/dnssec-settime
+export DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
+export HOST=$TOP/bin/dig/host
+export IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
+export CHECKDS=$TOP/bin/python/dnssec-checkds
+export COVERAGE=$TOP/bin/python/dnssec-coverage
+export KEYMGR=$TOP/bin/python/dnssec-keymgr
+export CHECKZONE=$TOP/bin/check/named-checkzone
+export CHECKCONF=$TOP/bin/check/named-checkconf
+export PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+export PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+export PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
+export JOURNALPRINT=$TOP/bin/tools/named-journalprint
+export VERIFY=$TOP/bin/dnssec/dnssec-verify
+export ARPANAME=$TOP/bin/tools/arpaname
+export RESOLVE=$TOP/lib/samples/resolve
+export RRCHECKER=$TOP/bin/tools/named-rrchecker
+export GENRANDOM=$TOP/bin/tools/genrandom
+export NSLOOKUP=$TOP/bin/dig/nslookup
+export DNSTAPREAD=$TOP/bin/tools/dnstap-read
+export MDIG=$TOP/bin/tools/mdig
+export NZD2NZF=$TOP/bin/tools/named-nzd2nzf
+export FSTRM_CAPTURE=@FSTRM_CAPTURE@
+export FEATURETEST=$TOP/bin/tests/system/feature-test
 
-RANDFILE=$TOP/bin/tests/system/random.data
+export RANDFILE=$TOP/bin/tests/system/random.data
 
-BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
-GENCHECK=$TOP/bin/tests/system/rndc/gencheck
-KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
-KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
-LWTEST=$TOP/bin/tests/system/lwresd/lwtest
-MAKEJOURNAL=$TOP/bin/tests/makejournal
-PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
-SAMPLEUPDATE=$TOP/lib/samples/sample-update
+export BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
+export GENCHECK=$TOP/bin/tests/system/rndc/gencheck
+export KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
+export KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
+export LWTEST=$TOP/bin/tests/system/lwresd/lwtest
+export MAKEJOURNAL=$TOP/bin/tests/makejournal
+export PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
+export SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
 # we don't want a KRB5_CONFIG setting breaking the tests
-KRB5_CONFIG=/dev/null
+export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
-KRB5_KTNAME=dns.keytab
+export KRB5_KTNAME=dns.keytab
 
 # the amount of fake "entropy" to generate with GENRANDOM in
 # system tests
-RANDOMSIZE=4096
+export RANDOMSIZE=4096
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -134,29 +134,29 @@ PARALLELDIRS="dnssec rpzrecurse \
 	unknown upforwd verify views wildcard \
 	xfer xferquota zero zonechecks"
 
-SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
+export SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
 # Things that are different on Windows
-KILL=kill
-DIFF=diff
-DOS2UNIX=true
+export KILL=kill
+export DIFF=diff
+export DOS2UNIX=true
 # There's no trailing period on Windows
-TP=.
+export TP=.
 
 # Use the CONFIG_SHELL detected by configure for tests
-SHELL=@SHELL@
+export SHELL=@SHELL@
 
 # CURL will be empty if no program was found by configure
-CURL=@CURL@
+export CURL=@CURL@
 
 # XMLLINT will be empty if no program was found by configure
-XMLLINT=@XMLLINT@
+export XMLLINT=@XMLLINT@
 
 # XSLTPROC will be empty if no program was found by configure
-XSLTPROC=@XSLTPROC@
+export XSLTPROC=@XSLTPROC@
 
 # PERL will be an empty string if no perl interpreter was found.
-PERL=@PERL@
+export PERL=@PERL@
 
 testsock6() {
 	if test -n "$PERL" \
@@ -170,18 +170,18 @@ testsock6() {
 }
 
 # Windows process management leave empty
-PSSUSPEND=
+export PSSUSPEND=
 
-PYTHON=@PYTHON@
+export PYTHON=@PYTHON@
 
 #
 # Determine if we support various optional features.
 #
-CHECK_DSA=@CHECK_DSA@
-HAVEXMLSTATS=@XMLSTATS@
-HAVEJSONSTATS=@JSONSTATS@
-ZLIB=@ZLIB@
-NZD=@NZD_TOOLS@
+export CHECK_DSA=@CHECK_DSA@
+export HAVEXMLSTATS=@XMLSTATS@
+export HAVEJSONSTATS=@JSONSTATS@
+export ZLIB=@ZLIB@
+export NZD=@NZD_TOOLS@
 
 . ${TOP}/version
 
@@ -189,25 +189,25 @@ NZD=@NZD_TOOLS@
 # Set up color-coded test output
 #
 if [ ${SYSTEMTEST_FORCE_COLOR:-0} -eq 1 ] || test -t 1 && type tput > /dev/null 2>&1 && tput setaf 7 > /dev/null 2>&1 ; then
-    COLOR_END=`tput setaf 4`    # blue
-    COLOR_FAIL=`tput setaf 1`   # red
-    COLOR_INFO=`tput bold`      # bold
-    COLOR_NONE=`tput sgr0`
-    COLOR_PASS=`tput setaf 2`   # green
-    COLOR_START=`tput setaf 4`  # blue
-    COLOR_WARN=`tput setaf 3`   # yellow
+    export COLOR_END=`tput setaf 4`    # blue
+    export COLOR_FAIL=`tput setaf 1`   # red
+    export COLOR_INFO=`tput bold`      # bold
+    export COLOR_NONE=`tput sgr0`
+    export COLOR_PASS=`tput setaf 2`   # green
+    export COLOR_START=`tput setaf 4`  # blue
+    export COLOR_WARN=`tput setaf 3`   # yellow
 else
     # set to empty strings so printf succeeds
-    COLOR_END=''
-    COLOR_FAIL=''
-    COLOR_INFO=''
-    COLOR_NONE=''
-    COLOR_PASS=''
-    COLOR_START=''
-    COLOR_WARN=''
+    export COLOR_END=''
+    export COLOR_FAIL=''
+    export COLOR_INFO=''
+    export COLOR_NONE=''
+    export COLOR_PASS=''
+    export COLOR_START=''
+    export COLOR_WARN=''
 fi
 
-SYSTESTDIR="`basename $PWD`"
+export SYSTESTDIR="`basename $PWD`"
 
 if type printf > /dev/null 2>&1
 then
@@ -608,48 +608,3 @@ copy_setports() {
 	-e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
 	$1 > $2
 }
-
-#
-# Export command paths
-#
-export ARPANAME
-export BIGKEY
-export CHECKZONE
-export CYGWIN
-export DESCRIPTION
-export DIG
-export FEATURETEST
-export FSTRM_CAPTURE
-export GENCHECK
-export JOURNALPRINT
-export KEYCREATE
-export KEYDELETE
-export KEYFRLAB
-export KEYGEN
-export KEYSETTOOL
-export KEYSIGNER
-export KRB5_CONFIG
-export KRB5_KTNAME
-export LWRESD
-export LWTEST
-export MAKEJOURNAL
-export MDIG
-export NAMED
-export NSLOOKUP
-export NSUPDATE
-export NZD2NZF
-export PERL
-export PIPEQUERIES
-export PK11DEL
-export PK11GEN
-export PK11LIST
-export PSSUSPEND
-export PYTHON
-export RANDFILE
-export RESOLVE
-export RNDC
-export RRCHECKER
-export SAMPLEUPDATE
-export SIGNER
-export SUBDIRS
-export TMPDIR

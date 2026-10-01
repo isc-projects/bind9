@@ -1,0 +1,12 @@
+{# named on this branch predates the trust-anchors statement. #}
+trusted-keys {
+{% for ta in trust_anchors if ta.type == "static-key" %}
+	"@ta.domain@" @ta.contents@;
+{% endfor %}
+};
+
+managed-keys {
+{% for ta in trust_anchors if ta.type == "initial-key" %}
+	"@ta.domain@" @ta.type@ @ta.contents@;
+{% endfor %}
+};
