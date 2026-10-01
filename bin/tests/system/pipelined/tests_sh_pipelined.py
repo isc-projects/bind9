@@ -16,7 +16,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "output*",
         "pipequeries.err*",
         "raw*",
-        "ans*/ans.run",
     ]
 )
 

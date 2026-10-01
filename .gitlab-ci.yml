@@ -777,8 +777,9 @@ doctest:
     - *find_pytest
     - cd bin/tests/system/isctest
     - RET=0
+    # The tests/ directories hold system tests, run by the system test jobs.
     - >
-      "$PYTEST" --noconftest --doctest-modules --junit-xml="$CI_PROJECT_DIR/junit_doctest.xml" || RET=1
+      "$PYTEST" --noconftest --doctest-modules --ignore=tests --ignore-glob='*/tests' --junit-xml="$CI_PROJECT_DIR/junit_doctest.xml" || RET=1
     - *git_clone_bind9-qa
     - >
       "$PYTHON" "$CI_PROJECT_DIR"/bind9-qa/ci/postprocess_junit_files.py "$CI_PROJECT_DIR/junit_doctest.xml" --output "$CI_PROJECT_DIR/junit.xml"

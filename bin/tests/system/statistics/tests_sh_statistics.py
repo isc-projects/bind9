@@ -18,7 +18,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "named.stats.*",
         "stats.xml.out",
         "xsltproc.out.*",
-        "ans*/ans.run",
         "ns*/statistics-channels.conf",
         "ns*/named.recursing",
     ]

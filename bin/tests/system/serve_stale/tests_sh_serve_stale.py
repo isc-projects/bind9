@@ -17,7 +17,6 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
         "expired.test*",
         "named_dump.db.test*",
         "rndc.out.*",
-        "ans*/ans.run",
         "ns*/named.stats*",
         "ns*/named_dump*",
         "ns*/root.bk",

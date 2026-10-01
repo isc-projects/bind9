@@ -25,7 +25,6 @@ pytestmark = [
     pytest.mark.extra_artifacts(
         [
             "ns2/K*",
-            "ans5/ans.run",
             "ns2/*.jnl",
             "ns2/*.signed",
             "ns2/dsset-*",

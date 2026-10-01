@@ -31,7 +31,6 @@ RESOLVER = "10.53.0.2"
 
 pytestmark = pytest.mark.extra_artifacts(
     [
-        "ans1/ans.run",
         "ns3/K*",
         "ns3/child.f007.test.db",
         "ns3/child.f007.test.db.signed",

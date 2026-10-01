@@ -39,7 +39,6 @@ pytestmark = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
-            "ans*/ans.run",
             "ans*/keys.json",
         ]
     ),
