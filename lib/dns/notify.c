@@ -16,6 +16,7 @@
 #include <isc/netmgr.h>
 #include <isc/ratelimiter.h>
 #include <isc/result.h>
+#include <isc/time.h>
 
 #include <dns/adb.h>
 #include <dns/notify.h>
@@ -42,10 +43,12 @@ notify_log(dns_notify_t *notify, int level, const char *fmt, ...) {
 }
 
 void
-dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type) {
+dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type,
+		   isc_time_t now) {
 	dns_notifyctx_t ctx = {
 		.type = type,
 		.notifytype = dns_notifytype_yes,
+		.notifytime = now,
 		.notifydelay = 5,
 		.notifies = ISC_LIST_INITIALIZER,
 	};

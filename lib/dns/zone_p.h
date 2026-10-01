@@ -473,7 +473,6 @@ struct dns_zone {
 	isc_time_t refreshtime;
 	isc_time_t dumptime;
 	isc_time_t loadtime;
-	isc_time_t notifytime;
 	isc_time_t resigntime;
 	isc_time_t keywarntime;
 	isc_time_t signingtime;

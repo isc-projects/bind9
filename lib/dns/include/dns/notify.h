@@ -33,6 +33,7 @@ struct dns_notifyctx {
 	dns_rdatatype_t type;
 
 	dns_notifylist_t notifies;
+	isc_time_t	 notifytime;
 
 	/* Configuration data. */
 	dns_notifytype_t notifytype;
@@ -70,7 +71,7 @@ typedef enum dns_notify_flags {
 } dns_notify_flags_t;
 
 void
-dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type);
+dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type, isc_time_t now);
 /*%
  *	Initializes a notify context for the RRtype 'type'.
  *
