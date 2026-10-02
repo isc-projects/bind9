@@ -100,6 +100,14 @@ dnssec-policy "fast" {
 	parent-propagation-delay 5;
 };
 
+dnssec-policy "collision" {
+	offline-ksk yes;
+	keys {
+		ksk lifetime unlimited algorithm ecdsap256sha256;
+		zsk lifetime unlimited algorithm ecdsap256sha256;
+	};
+};
+
 dnssec-policy "invalid-skr" {
 	offline-ksk yes;
 	keys {
