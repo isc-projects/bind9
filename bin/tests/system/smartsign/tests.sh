@@ -120,11 +120,11 @@ status=$((status + ret))
 
 echo_i "checking parent zone DNSKEY set"
 ret=0
-grep "key id = $pzid" $pfile.signed >/dev/null || {
+grep "key id = $pzid\$" $pfile.signed >/dev/null || {
   ret=1
   echo_i "missing expected parent ZSK id = $pzid"
 }
-grep "key id = $pkid" $pfile.signed >/dev/null || {
+grep "key id = $pkid\$" $pfile.signed >/dev/null || {
   ret=1
   echo_i "missing expected parent KSK id = $pkid"
 }

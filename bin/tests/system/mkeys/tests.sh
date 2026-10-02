@@ -551,7 +551,7 @@ count=$(grep -c "keyid: " rndc.out.$n) || true
   ret=1
 }
 # it's the original key id
-count=$(grep -c "keyid: $originalid" rndc.out.$n) || true
+count=$(grep -c "keyid: $originalid\$" rndc.out.$n) || true
 [ "$count" -eq 1 ] || {
   echo_i "'keyid: $originalid' count ($count) != 1"
   ret=1
@@ -631,7 +631,7 @@ mkeys_status_on 2 >rndc.out.2.$n 2>&1 || ret=1
 count=$(grep -c "keyid: " rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=$(grep -c "keyid: $originalid" rndc.out.2.$n) || true
+count=$(grep -c "keyid: $originalid\$" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # not revoked
 count=$(grep -c "REVOKE" rndc.out.2.$n) || true
@@ -669,7 +669,7 @@ mkeys_status_on 2 >rndc.out.2.$n 2>&1 || ret=1
 count=$(grep -c "keyid: " rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=$(grep -c "keyid: $originalid" rndc.out.2.$n) || true
+count=$(grep -c "keyid: $originalid\$" rndc.out.2.$n) || true
 [ "$count" -eq 1 ] || ret=1
 # not revoked
 count=$(grep -c "REVOKE" rndc.out.2.$n) || true
