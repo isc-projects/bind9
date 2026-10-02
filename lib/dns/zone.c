@@ -10121,14 +10121,6 @@ zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_primary:
 	case dns_zone_redirect:
-		LOCK_ZONE(zone);
-		notify = (dns_notifyctx_hasflag(&zone->notifysoa,
-						DNS_NOTIFY_NEEDSEND) ||
-			  dns_notifyctx_hasflag(&zone->notifysoa,
-						DNS_NOTIFY_NEEDSTARTUP)) &&
-			 isc_time_compare(&now, &zone->notifysoa.notifytime) >=
-				 0;
-		UNLOCK_ZONE(zone);
 		if (notify) {
 			zone_notify(zone, &now);
 		}
