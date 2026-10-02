@@ -44,6 +44,27 @@ keyfromlabel() {
   cat keyfromlabel.out.$zone.$id
 }
 
+# Unlike dnssec-keygen, pkcs11-tool does not avoid key tag collisions, so
+# dnssec-keyfromlabel may refuse a key. Replace it then.
+hsmkey() {
+  # keygen() and keyfromlabel() overwrite their (global) variables, so
+  # keep ours apart.
+  hsm_type="$1"
+  hsm_bits="$2"
+  hsm_alg="$3"
+  hsm_zone="$4"
+  hsm_id="$5"
+  hsm_dir="$6"
+  shift 6
+
+  for hsm_try in 0 1 2; do
+    keygen $hsm_type $hsm_bits $hsm_zone $hsm_id-$hsm_try || return 1
+    keyfromlabel $hsm_alg $hsm_zone $hsm_id-$hsm_try $hsm_dir "$@" && return 0
+    grep "already exists" keyfromlabel.err.$hsm_zone.$hsm_id-$hsm_try >/dev/null || return 1
+  done
+  return 1
+}
+
 mkdir ns1/keys
 
 dir="ns1"
@@ -64,16 +85,13 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
     ret=0
 
     echo_i "Generate keys $alg $type:$bits for zone $zone"
-    keygen $type $bits $zone enginepkcs11-zsk || ret=1
-    keygen $type $bits $zone enginepkcs11-ksk || ret=1
-    test "$ret" -eq 0 || exit 1
 
     echo_i "Get ZSK $alg $zone $type:$bits"
-    zsk1=$(keyfromlabel $alg $zone enginepkcs11-zsk $dir)
+    zsk1=$(hsmkey $type $bits $alg $zone enginepkcs11-zsk $dir)
     test -z "$zsk1" && exit 1
 
     echo_i "Get KSK $alg $zone $type:$bits"
-    ksk1=$(keyfromlabel $alg $zone enginepkcs11-ksk $dir -f KSK)
+    ksk1=$(hsmkey $type $bits $alg $zone enginepkcs11-ksk $dir -f KSK)
     test -z "$ksk1" && exit 1
 
     (
@@ -90,16 +108,13 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
     test "$ret" -eq 0 || exit 1
 
     echo_i "Generate successor keys $alg $type:$bits for zone $zone"
-    keygen $type $bits $zone enginepkcs11-zsk2 || ret=1
-    keygen $type $bits $zone enginepkcs11-ksk2 || ret=1
-    test "$ret" -eq 0 || exit 1
 
-    echo_i "Get ZSK $alg $id-$zone $type:$bits"
-    zsk2=$(keyfromlabel $alg $zone enginepkcs11-zsk2 $dir)
+    echo_i "Get successor ZSK $alg $zone $type:$bits"
+    zsk2=$(hsmkey $type $bits $alg $zone enginepkcs11-zsk2 $dir)
     test -z "$zsk2" && exit 1
 
-    echo_i "Get KSK $alg $id-$zone $type:$bits"
-    ksk2=$(keyfromlabel $alg $zone enginepkcs11-ksk2 $dir -f KSK)
+    echo_i "Get successor KSK $alg $zone $type:$bits"
+    ksk2=$(hsmkey $type $bits $alg $zone enginepkcs11-ksk2 $dir -f KSK)
     test -z "$ksk2" && exit 1
 
     (
@@ -195,16 +210,13 @@ if [ "${supported}" = 1 ]; then
   ret=0
 
   echo_i "Generate keys $alg $type:$bits for zone $zone"
-  keygen $type $bits $zone enginepkcs11-zsk || ret=1
-  keygen $type $bits $zone enginepkcs11-ksk || ret=1
-  test "$ret" -eq 0 || exit 1
 
   echo_i "Get ZSK $alg $zone $type:$bits"
-  zsk1=$(keyfromlabel $alg $zone enginepkcs11-zsk $dir)
+  zsk1=$(hsmkey $type $bits $alg $zone enginepkcs11-zsk $dir)
   test -z "$zsk1" && exit 1
 
   echo_i "Get KSK $alg $zone $type:$bits"
-  ksk1=$(keyfromlabel $alg $zone enginepkcs11-ksk $dir -f KSK)
+  ksk1=$(hsmkey $type $bits $alg $zone enginepkcs11-ksk $dir -f KSK)
   test -z "$ksk1" && exit 1
 
   (
@@ -225,16 +237,13 @@ if [ "${supported}" = 1 ]; then
   test "$ret" -eq 0 || exit 1
 
   echo_i "Generate successor keys $alg $type:$bits for zone $zone"
-  keygen $type $bits $zone enginepkcs11-zsk2 || ret=1
-  keygen $type $bits $zone enginepkcs11-ksk2 || ret=1
-  test "$ret" -eq 0 || exit 1
 
-  echo_i "Get ZSK $alg $id-$zone $type:$bits"
-  zsk2=$(keyfromlabel $alg $zone enginepkcs11-zsk2 $dir)
+  echo_i "Get successor ZSK $alg $zone $type:$bits"
+  zsk2=$(hsmkey $type $bits $alg $zone enginepkcs11-zsk2 $dir)
   test -z "$zsk2" && exit 1
 
-  echo_i "Get KSK $alg $id-$zone $type:$bits"
-  ksk2=$(keyfromlabel $alg $zone enginepkcs11-ksk2 $dir -f KSK)
+  echo_i "Get successor KSK $alg $zone $type:$bits"
+  ksk2=$(hsmkey $type $bits $alg $zone enginepkcs11-ksk2 $dir -f KSK)
   test -z "$ksk2" && exit 1
 
   (
