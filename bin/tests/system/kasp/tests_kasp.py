@@ -233,7 +233,7 @@ def cb_ixfr_is_signed(expected_updates, params, ksks=None, zsks=None):
         qtype = dns.rdatatype.from_text(parts[1])
         rdata = parts[2]
         return isctest.kasp.verify_update_is_signed(
-            servers["ns3"], zone, qname, qtype, rdata, ksks, zsks
+            servers["ns3"], qname, qtype, rdata, ksks, zsks
         )
 
     for update in expected_updates:
@@ -825,7 +825,6 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, ns4):
     assert f"dynamic: {dynamic}" in response.out
     assert f"inline signing: {inline_signing}" in response.out
     # check subdomain
-    fqdn = f"{zone}."
     qname = f"view.{zone}."
     qtype = dns.rdatatype.TXT
     rdata = txt_rdata
@@ -840,6 +839,7 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, ns4):
         response = None
     assert response.rcode() == dns.rcode.NOERROR
     match = f'{qname} 300 IN TXT "{rdata}"'
+    rrs = []
     rrsigs = []
     for rrset in response.answer:
         if rrset.match(
@@ -848,8 +848,9 @@ def test_kasp_inherit_view(number, dynamic, inline_signing, txt_rdata, ns4):
             rrsigs.append(rrset)
         else:
             assert match in rrset.to_text()
+            rrs.append(rrset)
     assert len(rrsigs) > 0
-    isctest.kasp.check_signatures(rrsigs, qtype, fqdn, keys, [])
+    isctest.kasp.check_signatures(rrs, rrsigs, qtype, keys, [])
 
 
 def test_kasp_default(ns3):
@@ -910,9 +911,7 @@ def test_kasp_default(ns3):
         qname = parts[0]
         qtype = dns.rdatatype.from_text(parts[1])
         rdata = parts[2]
-        return isctest.kasp.verify_update_is_signed(
-            ns3, zone, qname, qtype, rdata, keys, []
-        )
+        return isctest.kasp.verify_update_is_signed(ns3, qname, qtype, rdata, keys, [])
 
     expected_updates = [f"a.{zone}. A 10.0.0.11", f"d.{zone}. A 10.0.0.44"]
     for update in expected_updates:
@@ -1010,9 +1009,7 @@ def test_kasp_dynamic(ns3):
         qname = parts[0]
         qtype = dns.rdatatype.from_text(parts[1])
         rdata = parts[2]
-        return isctest.kasp.verify_update_is_signed(
-            ns3, zone, qname, qtype, rdata, keys, []
-        )
+        return isctest.kasp.verify_update_is_signed(ns3, qname, qtype, rdata, keys, [])
 
     update_msg = dns.update.UpdateMessage(zone)
     update_msg.delete(f"a.{zone}.", "A", "10.0.0.1")
