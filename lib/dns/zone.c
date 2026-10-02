@@ -10068,25 +10068,10 @@ zone_maintenance(dns_zone_t *zone) {
 	 * primaries after.
 	 */
 	LOCK_ZONE(zone);
-	if (zone->notifysoa.notifydefer != 0 &&
-	    !dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_NODEFER) &&
-	    !dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_DEFERRRED))
-	{
-		if (isc_time_compare(&now, &zone->notifysoa.notifytime) > 0) {
-			zone->notifysoa.notifytime = now;
-		}
-		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_DEFERRED);
-		DNS_ZONE_TIME_ADD(&zone->notifysoa.notifytime,
-				  zone->notifysoa.notifydefer,
-				  &zone->notifysoa.notifytime);
-	}
-	notify =
-		(zone->type == dns_zone_secondary ||
-		 zone->type == dns_zone_mirror) &&
-		(dns_notifyctx_hasflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND) ||
-		 dns_notifyctx_hasflag(&zone->notifysoa,
-				       DNS_NOTIFY_NEEDSTARTUP)) &&
-		isc_time_compare(&now, &zone->notifysoa.notifytime) >= 0;
+	dns_notifyctx_defer(&zone->notifysoa, now);
+	notify = (zone->type == dns_zone_secondary ||
+		  zone->type == dns_zone_mirror) &&
+		 dns_notifyctx_notify_needed(&zone->notifysoa, now);
 	UNLOCK_ZONE(zone);
 
 	if (notify) {

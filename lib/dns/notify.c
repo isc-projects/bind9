@@ -39,6 +39,16 @@
 #define NOTIFY_SETFLAG(n, f) atomic_fetch_or(&(n)->flags, (f))
 #define NOTIFY_CLRFLAG(n, f) atomic_fetch_and(&(n)->flags, ~(f))
 
+#define TIME_ADD(a, b, c)                                           \
+	do {                                                        \
+		isc_interval_t _i;                                  \
+		isc_interval_set(&_i, (b), 0);                      \
+		if (isc_time_add((a), &_i, (c)) != ISC_R_SUCCESS) { \
+			isc_interval_set(&_i, (b) / 2, 0);          \
+			(void)isc_time_add((a), &_i, (c));          \
+		}                                                   \
+	} while (0)
+
 static void
 notify_log(dns_notify_t *notify, int level, const char *fmt, ...) {
 	va_list ap;
@@ -824,4 +834,30 @@ bool
 dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag) {
 	REQUIRE(nctx != NULL);
 	return NOTIFY_FLAG(nctx, flag);
+}
+
+void
+dns_notifyctx_defer(dns_notifyctx_t *nctx, isc_time_t now) {
+	REQUIRE(nctx != NULL);
+
+	if (nctx->notifydefer != 0 &&
+	    !dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NODEFER) &&
+	    !dns_notifyctx_hasflag(nctx, DNS_NOTIFY_DEFERRED))
+	{
+		if (isc_time_compare(&now, &nctx->notifytime) > 0) {
+			nctx->notifytime = now;
+		}
+		dns_notifyctx_setflag(nctx, DNS_NOTIFY_DEFERRED);
+		TIME_ADD(&nctx->notifytime, nctx->notifydefer,
+			 &nctx->notifytime);
+	}
+}
+
+bool
+dns_notifyctx_notify_needed(dns_notifyctx_t *nctx, isc_time_t now) {
+	REQUIRE(nctx != NULL);
+
+	return (dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND) ||
+		dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSTARTUP)) &&
+	       isc_time_compare(&now, &nctx->notifytime) >= 0;
 }

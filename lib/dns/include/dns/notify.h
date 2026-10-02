@@ -187,3 +187,26 @@ dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag);
  *		true if the flag is set
  *		false otherwise
  */
+
+void
+dns_notifyctx_defer(dns_notifyctx_t *nctx, isc_time_t now);
+/*%<
+ *	Defer a notify. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+bool
+dns_notifyctx_notify_needed(dns_notifyctx_t *nctx, isc_time_t now);
+/*%<
+ *	Returns if it is time to send out notifies. If the NEEDSEND or
+ *	NEEDSTARTUP flag is set, and the notifytime is in the past,
+ *	then it is time to do the notifies.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ *      Returns:
+ *		true if we need to send out notifies
+ *		false otherwise
+ */
