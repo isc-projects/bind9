@@ -1366,12 +1366,14 @@ def check_rollover_step(server, config, policy, step):
 
             # The DS can be introduced. We ignore any parent registration delay,
             # so set the DS publish time to now.
-            server.rndc(f"dnssec -checkds -key {key.tag} published {zone}")
+            alg = key.algorithm.name
+            server.rndc(f"dnssec -checkds -key {key.tag} -alg {alg} published {zone}")
 
         if ds_swap and kp.metadata["DSState"] == "unretentive":
             # The DS can be withdrawn. We ignore any parent registration
             # delay, so set the DS withdraw time to now.
-            server.rndc(f"dnssec -checkds -key {key.tag} withdrawn {zone}")
+            alg = key.algorithm.name
+            server.rndc(f"dnssec -checkds -key {key.tag} -alg {alg} withdrawn {zone}")
 
     if check_keytimes_flag:
         check_keytimes(keys, expected)
