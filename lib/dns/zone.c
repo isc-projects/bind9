@@ -6276,6 +6276,29 @@ was_dumping(dns_zone_t *zone) {
 	return false;
 }
 
+/*
+ * Key files are named after the key tag, but distinct keys may share a key
+ * tag, e.g. an offline KSK and a ZSK.  Treat a key file holding a different
+ * key than 'pubkey' as missing.
+ */
+static isc_result_t
+keyfromdir(dst_key_t *pubkey, const char *directory, isc_mem_t *mctx,
+	   dst_key_t **key) {
+	isc_result_t result;
+
+	result = dst_key_fromfile(
+		dst_key_name(pubkey), dst_key_id(pubkey), dst_key_alg(pubkey),
+		DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE, directory,
+		mctx, key);
+	if (result == ISC_R_SUCCESS && !dst_key_pubcompare(pubkey, *key, true))
+	{
+		dst_key_free(key);
+		result = ISC_R_FILENOTFOUND;
+	}
+
+	return result;
+}
+
 static isc_result_t
 keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 	    dst_key_t **key) {
@@ -6287,11 +6310,7 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 	if (kasp == NULL || (strcmp(dns_kasp_getname(kasp), "none") == 0) ||
 	    (strcmp(dns_kasp_getname(kasp), "insecure") == 0))
 	{
-		result = dst_key_fromfile(
-			dst_key_name(pubkey), dst_key_id(pubkey),
-			dst_key_alg(pubkey),
-			DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE,
-			directory, mctx, &foundkey);
+		result = keyfromdir(pubkey, directory, mctx, &foundkey);
 	} else {
 		for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
 		     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
@@ -6300,12 +6319,7 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 			directory = dns_keystore_directory(ks,
 							   zone->keydirectory);
 
-			result = dst_key_fromfile(
-				dst_key_name(pubkey), dst_key_id(pubkey),
-				dst_key_alg(pubkey),
-				DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-					DST_TYPE_STATE,
-				directory, mctx, &foundkey);
+			result = keyfromdir(pubkey, directory, mctx, &foundkey);
 			if (result == ISC_R_SUCCESS) {
 				break;
 			}
