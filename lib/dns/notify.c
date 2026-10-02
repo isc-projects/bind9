@@ -807,6 +807,7 @@ destroy:
 
 void
 dns_notify_cancel(dns_notifyctx_t *nctx) {
+	REQUIRE(nctx != NULL);
 	ISC_LIST_FOREACH(nctx->notifies, notify, link) {
 		INSIST(dns__zone_locked(notify->zone));
 		if (notify->find != NULL) {
