@@ -18519,7 +18519,7 @@ zone_notifycds(dns_zone_t *zone, isc_time_t *now) {
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			dnssec_log(
 				zone, ISC_LOG_DEBUG(3),
-				"Creating parent NS fetch in zone_notifyds()");
+				"Creating parent NS fetch in zone_notifycds()");
 		}
 		UNLOCK_ZONE(zone);
 #ifdef ENABLE_AFL
