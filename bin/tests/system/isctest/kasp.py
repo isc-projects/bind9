@@ -912,7 +912,7 @@ def check_dnssecstatus(server, zone, keys, policy=None, view=None, verbose=False
 
     for key in keys:
         if not key.external:
-            assert f"key: {key.tag}" in response.out
+            assert Re(rf"^key: {key.tag} \(") in response.out
 
 
 def _signed_by(rrset, rrsig, dnskey) -> bool:
