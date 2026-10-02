@@ -74,6 +74,3 @@
 /* compare/exchange that MUST succeed */
 #define atomic_compare_exchange_enforced(o, e, d) \
 	RUNTIME_CHECK(atomic_compare_exchange_strong((o), (e), (d)))
-
-/* more comfortable atomic pointer declarations */
-#define atomic_ptr(type) _Atomic(type *)
