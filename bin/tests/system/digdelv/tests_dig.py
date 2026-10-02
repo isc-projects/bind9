@@ -353,7 +353,7 @@ def test_nocrypto(dig, ns1):
     """
     alg_num = os.environ["DEFAULT_ALGORITHM_NUMBER"]
     result = dig(f"+dnssec +norec +nocrypto DNSKEY . @{ns1.ip}")
-    assert Re(rf"256 \d+ {alg_num} \[key id = [1-9]\d*]") in result.out
+    assert Re(rf"256 \d+ {alg_num} \[key id = \d+]") in result.out
     assert Re(r"RRSIG.* \[omitted]") in result.out
     result = dig(f"+norec +nocrypto DS example @{ns1.ip}")
     assert Re(r"DS.* \d+ [12] \[omitted]") in result.out
