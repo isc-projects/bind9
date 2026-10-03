@@ -14,7 +14,6 @@ import pytest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out*",
-        "ans*/ans.run",
         "ns1/nil.db",
         "ns1/*.jnl",
         "ns3/nil.db",

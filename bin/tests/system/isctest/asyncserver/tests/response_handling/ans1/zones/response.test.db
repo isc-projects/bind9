@@ -1,0 +1,8 @@
+; Zone data for the response handlers in ans.py.  fresh.response.test. is
+; deliberately absent so that the zone data prepares an NXDOMAIN response for
+; it.
+response.test.           300 IN SOA   ns.response.test. hostmaster.response.test. 1 3600 600 86400 300
+response.test.           300 IN NS    ns.response.test.
+ns.response.test.        300 IN A     10.53.0.1
+rollback.response.test.  300 IN A     192.0.2.1
+rendered.response.test.  300 IN A     192.0.2.2

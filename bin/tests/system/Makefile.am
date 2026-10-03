@@ -143,6 +143,11 @@ TESTS =				\
 	include_multiplecfg	\
 	inline			\
 	integrity		\
+	isctest/asyncserver/tests/dnssec	\
+	isctest/asyncserver/tests/duplicate_root_zone	\
+	isctest/asyncserver/tests/response_handling	\
+	isctest/asyncserver/tests/transport	\
+	isctest/asyncserver/tests/zone_data	\
 	ixfr			\
 	ixfr_nonminimal		\
 	journal			\
@@ -203,8 +208,6 @@ TESTS =				\
 	rsabigexponent		\
 	runtime			\
 	selfpointedglue		\
-	selftest		\
-	selftest_asyncdnsserver	\
 	sfcache			\
 	sfcache_cname		\
 	shutdown		\

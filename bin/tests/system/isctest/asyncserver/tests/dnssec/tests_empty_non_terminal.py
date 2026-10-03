@@ -43,7 +43,6 @@ import isctest.zone
 
 pytestmark = pytest.mark.extra_artifacts(
     [
-        "ans*/ans.run",
         "ans*/dsset-*",
         "ans*/zones/*.db",
         "ans*/zones/*.db.signed",

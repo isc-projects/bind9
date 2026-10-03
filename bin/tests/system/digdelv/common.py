@@ -16,7 +16,6 @@ Helpers shared by the digdelv test modules.
 import yaml
 
 ARTIFACTS = [
-    "ans*/ans.run",
     "ns*/anchor.*",
     "ns*/dsset-*",
     "ns*/keydata",

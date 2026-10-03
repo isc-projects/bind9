@@ -16,7 +16,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "dig.out.*",
         "named.run.*",
         "query*.log",
-        "ans*/ans.run",
         "ans*/query.log*",
     ]
 )

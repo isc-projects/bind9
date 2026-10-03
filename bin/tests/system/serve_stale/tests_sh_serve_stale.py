@@ -15,7 +15,6 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "rndc.out.*",
-        "ans*/ans.run",
         "ns*/named.stats*",
         "ns*/named_dump*",
         "ns*/root.bk",

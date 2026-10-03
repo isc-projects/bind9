@@ -29,7 +29,6 @@ RESOLVER = isctest.template.NS2.ip
 pytestmark = [
     pytest.mark.extra_artifacts(
         [
-            "ans*/ans.run",
             "ans*/dsset-*",
             "ans*/keys/",
             "ans*/zones/*.db",

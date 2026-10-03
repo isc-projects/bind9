@@ -15,7 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "statschannel.out.*",
-        "ans*/ans.run",
         "ns*/trusted.conf",
         "ns1/K*",
         "ns1/dsset-*",
