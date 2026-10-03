@@ -16,7 +16,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "dig.out.*",
         "dsset-signed.",
         "ans*/ans.limit",
-        "ans*/ans.run",
         "ns1/K*",
         "ns1/signed.db",
         "ns1/signed.db.signed",

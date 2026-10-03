@@ -9,16 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import pytest
 import isctest
 
 import dns.message
-
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/ans.run",
-    ]
-)
 
 
 def test_connreset():

@@ -19,7 +19,6 @@ pytestmark = pytest.mark.extra_artifacts(
         "dnstapread.out*",
         "keyname*",
         "nsupdate.out.*",
-        "ans*/ans.run",
         "ns*/*.bk",
         "ns*/*.jnl",
         "ns1/example.db",

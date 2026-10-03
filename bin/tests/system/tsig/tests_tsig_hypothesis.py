@@ -34,7 +34,6 @@ from hypothesis.strategies import binary, booleans, composite, just, sampled_fro
 
 pytestmark = pytest.mark.extra_artifacts(
     [
-        "ans*/ans.run",
         "ns1/named-fips.conf",
     ]
 )

@@ -21,7 +21,6 @@ pytestmark = [
             "dnsrps.cache",
             "dnsrps*.conf",
             "dnsrpzd*",
-            "ans*/ans.run",
             "ns2/*.queries",
             "ns2/*.local",
             "ns2/named.*.conf",
