@@ -6878,6 +6878,9 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    :option:`rndc dnssec -checkds <rndc dnssec>` with the appropriate parameters,
    to signal that specific DS records are published and/or withdrawn.
 
+   Responses to DS queries are validated, so :any:`dnssec-validation` must be
+   enabled for the server.
+
 .. namedconf:statement:: parental-source
    :tags: dnssec
    :short: Specifies which local IPv4 source address is used to send parental DS queries.
