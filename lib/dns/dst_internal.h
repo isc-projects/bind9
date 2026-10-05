@@ -33,6 +33,7 @@
 #include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
+#include <isc/mutex.h>
 #include <isc/region.h>
 #include <isc/types.h>
 #include <isc/md5.h>
@@ -97,6 +98,7 @@ typedef enum { DO_SIGN, DO_VERIFY } dst_use_t;
 struct dst_key {
 	unsigned int	magic;
 	isc_refcount_t	refs;
+	isc_mutex_t	mdlock;		/*%< lock for shared key data */
 	dns_name_t *	key_name;	/*%< name of the key */
 	unsigned int	key_size;	/*%< size of the key in bits */
 	unsigned int	key_proto;	/*%< protocols this key is used for */
