@@ -783,9 +783,7 @@ BIND provides portable internal versions of many common library calls.
 Some are designed to ensure that library calls have standardized
 [ISC result codes](dev.md#results) instead of using potentially
 nonwportable `errno` values; these include the file operations
-in `isc_file` and `isc_stdio`.  Others, such as `isc_tm_strptime()`,
-are needed to ensure consistent cross-platform behavior.
-Others simply provide needed functions on platforms that don't
+in `isc_file` and `isc_stdio`.  Others simply provide needed functions on platforms that don't
 have them: for example, `isc_string_strlcpy()`  is an implementation
 of the BSD-specific `strlcpy()` function.  On Linux and systems
 without a `strlcpy()` function, it is `#define`d to `isc_string_strlcpy()`
