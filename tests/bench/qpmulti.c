@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include <isc/async.h>
+#include <isc/attributes.h>
 #include <isc/barrier.h>
 #include <isc/lib.h>
 #include <isc/list.h>
@@ -346,7 +347,7 @@ struct bench_state {
 	uint32_t read_ops_per_tx;
 	uint32_t read_tx_per_loop;
 	double zipf_skew;
-	struct thread_args thread[];
+	struct thread_args thread[] ISC_ATTR_COUNTED_BY(nloops);
 };
 
 static void

@@ -20,6 +20,7 @@
 #include <isc/ascii.h>
 #include <isc/async.h>
 #include <isc/atomic.h>
+#include <isc/attributes.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/list.h>
@@ -213,7 +214,7 @@ struct qpcache {
 	dns_qp_t *tree;
 
 	size_t buckets_count;
-	qpcache_bucket_t buckets[]; /* attribute((counted_by(buckets_count))) */
+	qpcache_bucket_t buckets[] ISC_ATTR_COUNTED_BY(buckets_count);
 };
 
 #ifdef DNS_DB_NODETRACE

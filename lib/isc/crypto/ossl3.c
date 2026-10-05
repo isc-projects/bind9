@@ -23,6 +23,7 @@
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/crypto.h>
 #include <isc/hmac.h>
@@ -46,7 +47,7 @@ struct isc_hmac_key {
 	uint32_t len;
 	isc_mem_t *mctx;
 	const OSSL_PARAM *params;
-	uint8_t secret[];
+	uint8_t secret[] ISC_ATTR_COUNTED_BY(len);
 };
 
 struct isc_crypto_quic_hp_protect {
@@ -83,13 +84,17 @@ static EVP_CIPHER *evp_aes_256_ctr = NULL;
 static EVP_CIPHER *evp_chacha20 = NULL;
 
 static isc_constregion_t md_to_name[ISC_MD_MAX] = {
-	[ISC_MD_UNKNOWN] = { NULL, 0 },
-	[ISC_MD_MD5] = { "MD5", sizeof("MD5") - 1 },
-	[ISC_MD_SHA1] = { "SHA1", sizeof("SHA1") - 1 },
-	[ISC_MD_SHA224] = { "SHA2-224", sizeof("SHA2-224") - 1 },
-	[ISC_MD_SHA256] = { "SHA2-256", sizeof("SHA2-256") - 1 },
-	[ISC_MD_SHA384] = { "SHA2-384", sizeof("SHA2-384") - 1 },
-	[ISC_MD_SHA512] = { "SHA2-512", sizeof("SHA2-512") - 1 },
+	[ISC_MD_UNKNOWN] = { 0 },
+	[ISC_MD_MD5] = { .base = "MD5", .length = sizeof("MD5") - 1 },
+	[ISC_MD_SHA1] = { .base = "SHA1", .length = sizeof("SHA1") - 1 },
+	[ISC_MD_SHA224] = { .base = "SHA2-224",
+			    .length = sizeof("SHA2-224") - 1 },
+	[ISC_MD_SHA256] = { .base = "SHA2-256",
+			    .length = sizeof("SHA2-256") - 1 },
+	[ISC_MD_SHA384] = { .base = "SHA2-384",
+			    .length = sizeof("SHA2-384") - 1 },
+	[ISC_MD_SHA512] = { .base = "SHA2-512",
+			    .length = sizeof("SHA2-512") - 1 },
 };
 
 static OSSL_PARAM md_to_hmac_params[ISC_MD_MAX][2] = {

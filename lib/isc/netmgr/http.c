@@ -2689,8 +2689,8 @@ client_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	void *cbarg = req->cbarg;
 
 	result = client_send(
-		handle,
-		&(isc_region_t){ (uint8_t *)req->uvbuf.base, req->uvbuf.len });
+		handle, &(isc_region_t){ .base = (uint8_t *)req->uvbuf.base,
+					 .length = req->uvbuf.len });
 	if (result != ISC_R_SUCCESS) {
 		failed_send_cb(sock, req, result);
 		return;

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <isc/attributes.h>
 #include <isc/bit.h>
 #include <isc/refcount.h>
 
@@ -336,7 +337,7 @@ typedef struct qp_rcuctx {
 	dns_qpmulti_t *multi;
 	ISC_LINK(struct qp_rcuctx) link;
 	dns_qpchunk_t count;
-	dns_qpchunk_t chunk[];
+	dns_qpchunk_t chunk[] ISC_ATTR_COUNTED_BY(count);
 } qp_rcuctx_t;
 
 /*

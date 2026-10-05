@@ -178,7 +178,8 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		return ISC_R_SUCCESS;
 	}
 
-	intoken = (isc_region_t){ tkeyin->key, tkeyin->keylen };
+	intoken = (isc_region_t){ .base = tkeyin->key,
+				  .length = tkeyin->keylen };
 	result = dst_gssapi_acceptctx(tctx->gssapi_keytab, &intoken, &outtoken,
 				      &gss_ctx, principal, tctx->mctx);
 	if (result != ISC_R_SUCCESS) {

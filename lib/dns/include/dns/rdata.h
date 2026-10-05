@@ -107,11 +107,11 @@
  * purpose the client desires.
  */
 struct dns_rdata {
-	unsigned char	*data ISC_ATTR_COUNTED_BY_PTR(length);
+	uint16_t	 length;
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t	 type;
-	uint16_t	 length;
 	uint16_t	 flags;
+	unsigned char	*data ISC_ATTR_COUNTED_BY_PTR(length);
 	ISC_LINK(dns_rdata_t) link;
 };
 

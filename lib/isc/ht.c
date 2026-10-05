@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include <isc/ascii.h>
+#include <isc/attributes.h>
 #include <isc/hash.h>
 #include <isc/ht.h>
 #include <isc/magic.h>
@@ -45,7 +46,7 @@ struct isc_ht_node {
 	isc_ht_node_t *next;
 	uint32_t hashval;
 	size_t keysize;
-	unsigned char key[];
+	unsigned char key[] ISC_ATTR_COUNTED_BY(keysize);
 };
 
 struct isc_ht {

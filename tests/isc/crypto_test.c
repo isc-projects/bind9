@@ -112,9 +112,9 @@ test_aead(const aead_testcase_t *const testcase) {
 
 	result = isc_crypto_aead_seal(
 		aead, nonce,
-		(isc_constregion_t){ testcase->plaintext,
-				     sizeof(testcase->plaintext) },
-		actual_ciphertext, &outlen, (isc_constregion_t){ NULL, 0 });
+		(isc_constregion_t){ .base = testcase->plaintext,
+				     .length = sizeof(testcase->plaintext) },
+		actual_ciphertext, &outlen, (isc_constregion_t){ 0 });
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(outlen, actual_ciphertext.length);
 	assert_memory_not_equal(actual_ciphertext.base, testcase->ciphertext,
@@ -122,11 +122,12 @@ test_aead(const aead_testcase_t *const testcase) {
 
 	result = isc_crypto_aead_seal(
 		aead, nonce,
-		(isc_constregion_t){ testcase->plaintext,
-				     sizeof(testcase->plaintext) },
+		(isc_constregion_t){ .base = testcase->plaintext,
+				     .length = sizeof(testcase->plaintext) },
 		actual_ciphertext, &outlen,
-		(isc_constregion_t){ testcase->additional_data,
-				     sizeof(testcase->additional_data) });
+		(isc_constregion_t){
+			.base = testcase->additional_data,
+			.length = sizeof(testcase->additional_data) });
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(outlen, actual_ciphertext.length);
 	assert_memory_equal(actual_ciphertext.base, testcase->ciphertext,
@@ -139,15 +140,15 @@ test_aead(const aead_testcase_t *const testcase) {
 
 	result = isc_crypto_aead_open(
 		aead, nonce,
-		(isc_constregion_t){ (uint8_t *)testcase->ciphertext,
-				     sizeof(testcase->ciphertext) },
-		actual_plaintext, &outlen, (isc_constregion_t){ NULL, 0 });
+		(isc_constregion_t){ .base = (uint8_t *)testcase->ciphertext,
+				     .length = sizeof(testcase->ciphertext) },
+		actual_plaintext, &outlen, (isc_constregion_t){ 0 });
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 
 	result = isc_crypto_aead_open(
 		aead, nonce,
-		(isc_constregion_t){ (uint8_t *)testcase->ciphertext,
-				     sizeof(testcase->ciphertext) },
+		(isc_constregion_t){ .base = (uint8_t *)testcase->ciphertext,
+				     .length = sizeof(testcase->ciphertext) },
 		actual_plaintext, &outlen, aad);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_memory_equal(actual_plaintext.base, testcase->plaintext,
@@ -252,11 +253,12 @@ ISC_RUN_TEST_IMPL(hkdf) {
 		0xd5, 0xb8, 0x87, 0x18, 0x58, 0x65,
 	};
 
-	result = isc_crypto_hkdf((isc_region_t){ actual, sizeof(actual) },
-				 ISC_MD_SHA256,
-				 (isc_constregion_t){ ikm, sizeof(ikm) },
-				 (isc_constregion_t){ salt, sizeof(salt) },
-				 (isc_constregion_t){ info, sizeof(info) });
+	result = isc_crypto_hkdf(
+		(isc_region_t){ .base = actual, .length = sizeof(actual) },
+		ISC_MD_SHA256,
+		(isc_constregion_t){ .base = ikm, .length = sizeof(ikm) },
+		(isc_constregion_t){ .base = salt, .length = sizeof(salt) },
+		(isc_constregion_t){ .base = info, .length = sizeof(info) });
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_memory_equal(expected, actual, 42);
@@ -284,9 +286,11 @@ ISC_RUN_TEST_IMPL(hkdf_expand_label) {
 	};
 
 	result = isc_crypto_hkdf_expand_label(
-		(isc_region_t){ actual, sizeof(actual) }, ISC_MD_SHA256,
-		(isc_constregion_t){ secret, sizeof(secret) },
-		(isc_constregion_t){ "client in", sizeof("client in") - 1 });
+		(isc_region_t){ .base = actual, .length = sizeof(actual) },
+		ISC_MD_SHA256,
+		(isc_constregion_t){ .base = secret, .length = sizeof(secret) },
+		(isc_constregion_t){ .base = "client in",
+				     .length = sizeof("client in") - 1 });
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_memory_equal(expected, actual, 32);
 }

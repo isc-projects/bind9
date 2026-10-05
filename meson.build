@@ -172,7 +172,6 @@ add_project_arguments(
         '-Werror=vla',
 
         '-fdiagnostics-show-option',
-        '-fexperimental-late-parse-attributes',
         '-fno-delete-null-pointer-checks',
         '-fno-strict-aliasing',
         '-fstrict-flex-arrays=3',
