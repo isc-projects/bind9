@@ -531,6 +531,25 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
             formerr_response_header(message_id=67),
             id="tsignotlast",
         ),
+        pytest.param(
+            wire(
+                header(qdcount=1, arcount=1),
+                question(root(), dns.rdatatype.RdataType.A),
+                rr(
+                    root(),
+                    dns.rdatatype.RdataType.DNAME,
+                    dns.rdataclass.RdataClass.IN,
+                    # DNAME rdata may not be compressed (RFC 3597
+                    # section 4); this pointer aims at the QNAME.
+                    rdata=b"\xc0\x0c",
+                ),
+            ),
+            wire(
+                formerr_response_header(qdcount=1),
+                question(root(), dns.rdatatype.RdataType.A),
+            ),
+            id="compressedrdata",
+        ),
     ],
 )
 def test_formerr(

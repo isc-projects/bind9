@@ -99,7 +99,7 @@ struct dns_compress {
 };
 
 /*
- * Deompression context
+ * Decompression context
  */
 enum dns_decompress {
 	DNS_DECOMPRESS_DEFAULT,
@@ -234,7 +234,7 @@ dns_compress_rollback(dns_compress_t *cctx, unsigned int offset);
  *	Set whether decompression is allowed, according to RFC 3597
  */
 static inline dns_decompress_t /* inline to suppress code generation */
-dns_decompress_setpermitted(dns_decompress_t dctx, bool permitted) {
+dns_decompress_setpermitted(const dns_decompress_t dctx, bool permitted) {
 	if (dctx == DNS_DECOMPRESS_NEVER || dctx == DNS_DECOMPRESS_ALWAYS) {
 		return dctx;
 	} else if (permitted) {
@@ -248,7 +248,7 @@ dns_decompress_setpermitted(dns_decompress_t dctx, bool permitted) {
  *	Returns whether decompression is allowed here
  */
 static inline bool /* inline to suppress code generation */
-dns_decompress_getpermitted(dns_decompress_t dctx) {
+dns_decompress_getpermitted(const dns_decompress_t dctx) {
 	return dctx == DNS_DECOMPRESS_ALWAYS ||
 	       dctx == DNS_DECOMPRESS_PERMITTED;
 }

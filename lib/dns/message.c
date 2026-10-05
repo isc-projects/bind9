@@ -826,8 +826,7 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  * Read a name from buffer "source".
  */
 static isc_result_t
-getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
-	dns_decompress_t dctx) {
+getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg) {
 	isc_buffer_t *scratch;
 	isc_result_t result;
 	unsigned int tries;
@@ -840,7 +839,8 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	 */
 	tries = 0;
 	while (tries < 2) {
-		result = dns_name_fromwire(name, source, dctx, scratch);
+		result = dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
+					   scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			tries++;
@@ -857,9 +857,8 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 }
 
 static isc_result_t
-getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
-	 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
-	 unsigned int rdatalen, dns_rdata_t *rdata) {
+getrdata(isc_buffer_t *source, dns_message_t *msg, dns_rdataclass_t rdclass,
+	 dns_rdatatype_t rdtype, unsigned int rdatalen, dns_rdata_t *rdata) {
 	isc_buffer_t *scratch;
 	isc_result_t result;
 	unsigned int tries;
@@ -881,7 +880,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype, source,
-					    dctx, scratch);
+					    DNS_DECOMPRESS_DEFAULT, scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			if (tries == 0) {
@@ -901,6 +900,15 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			newbuffer(msg, trysize);
 
 			scratch = currentbuffer(msg);
+		} else if (result == DNS_R_DISALLOWED) {
+			/*
+			 * A compression pointer in a type whose
+			 * specification forbids one (RFC 3597 section 4)
+			 * is a malformed message, not something we have
+			 * declined by policy, so report it the way every
+			 * other bad name is reported: as a format error.
+			 */
+			return DNS_R_FORMERR;
 		} else {
 			return result;
 		}
@@ -927,8 +935,7 @@ cleanup_name_hashmaps(dns_namelist_t *section) {
 }
 
 static isc_result_t
-getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
-	     unsigned int options) {
+getquestions(isc_buffer_t *source, dns_message_t *msg, unsigned int options) {
 	isc_region_t r;
 	unsigned int count;
 	dns_name_t *name = NULL;
@@ -954,7 +961,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(getname(name, source, msg, dctx));
+		CHECK(getname(name, source, msg));
 
 		ISC_LIST_APPEND(*section, name, link);
 
@@ -1052,8 +1059,8 @@ update(dns_section_t section, dns_rdataclass_t rdclass) {
 }
 
 static isc_result_t
-getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
-	   dns_section_t sectionid, unsigned int options) {
+getsection(isc_buffer_t *source, dns_message_t *msg, dns_section_t sectionid,
+	   unsigned int options) {
 	isc_region_t r;
 	unsigned int count, rdatalen;
 	dns_name_t *name = NULL;
@@ -1098,7 +1105,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(getname(name, source, msg, dctx));
+		CHECK(getname(name, source, msg));
 
 		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
@@ -1249,10 +1256,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			   msg->opcode == dns_opcode_update &&
 			   sectionid == DNS_SECTION_UPDATE)
 		{
-			result = getrdata(source, msg, dctx, msg->rdclass,
-					  rdtype, rdatalen, rdata);
+			result = getrdata(source, msg, msg->rdclass, rdtype,
+					  rdatalen, rdata);
 		} else {
-			result = getrdata(source, msg, dctx, rdclass, rdtype,
+			result = getrdata(source, msg, rdclass, rdtype,
 					  rdatalen, rdata);
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -1574,7 +1581,6 @@ isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  unsigned int options) {
 	isc_region_t r;
-	dns_decompress_t dctx;
 	isc_result_t result;
 	uint16_t tmpflags;
 	isc_buffer_t origsource;
@@ -1622,15 +1628,13 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->header_ok = 1;
 	msg->state = DNS_SECTION_QUESTION;
 
-	dctx = DNS_DECOMPRESS_ALWAYS;
-
 	bool strict_parse = ((options & DNS_MESSAGEPARSE_BESTEFFORT) == 0);
 	isc_result_t early_check_ret = early_sanity_check(msg);
 	if (strict_parse && (early_check_ret != ISC_R_SUCCESS)) {
 		return early_check_ret;
 	}
 
-	result = getquestions(source, msg, dctx, options);
+	result = getquestions(source, msg, options);
 
 	if (result == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
@@ -1644,7 +1648,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	}
 	msg->question_ok = 1;
 
-	result = getsection(source, msg, dctx, DNS_SECTION_ANSWER, options);
+	result = getsection(source, msg, DNS_SECTION_ANSWER, options);
 	if (result == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -1656,7 +1660,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return result;
 	}
 
-	result = getsection(source, msg, dctx, DNS_SECTION_AUTHORITY, options);
+	result = getsection(source, msg, DNS_SECTION_AUTHORITY, options);
 	if (result == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -1668,7 +1672,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return result;
 	}
 
-	result = getsection(source, msg, dctx, DNS_SECTION_ADDITIONAL, options);
+	result = getsection(source, msg, DNS_SECTION_ADDITIONAL, options);
 	if (result == ISC_R_UNEXPECTEDEND && ignore_tc) {
 		goto truncated;
 	}
@@ -3461,13 +3465,12 @@ cleanup:
 
 static isc_result_t
 render_nameopt(isc_buffer_t *optbuf, bool yaml, isc_buffer_t *target) {
-	dns_decompress_t dctx = DNS_DECOMPRESS_NEVER;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
 	char namebuf[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
 
-	result = dns_name_fromwire(name, optbuf, dctx, NULL);
+	result = dns_name_fromwire(name, optbuf, DNS_DECOMPRESS_NEVER, NULL);
 	if (result == ISC_R_SUCCESS && isc_buffer_activelength(optbuf) == 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		ADD_STRING(target, " \"");

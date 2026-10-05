@@ -1191,7 +1191,7 @@ presentation format, and stores it in a buffer for later printing.
         static isc_result_t
         fromwire[_<class>]_<type>(int rdclass, dns_rdatatype_t type,
                                   isc_buffer_t *source,
-                                  dns_decompress_t *dctx,
+                                  dns_decompress_t dctx,
                                   unsigned int options,
                                   isc_buffer_t *target_t);
 
