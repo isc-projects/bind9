@@ -24,7 +24,7 @@ rndccmd() {
 }
 
 pipequeries() {
-  "$PIPEQUERIES" -p "${PORT}"
+  "$PYTHON" -m isctest.tools.pipequeries -s 10.53.0.4 -p "${PORT}"
 }
 
 status=0
