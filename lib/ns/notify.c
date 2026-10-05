@@ -42,6 +42,44 @@ notify_log(ns_client_t *client, int level, const char *fmt, ...) {
 }
 
 static void
+notify_log_received(ns_client_t *client, int level, dns_name_t *zonename,
+		    dns_rdatatype_t type, isc_result_t result) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char tsigbuf[DNS_NAME_FORMATSIZE * 2 + sizeof(": TSIG '' ()")];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	dns_tsigkey_t *tsigkey;
+
+	tsigbuf[0] = '\0';
+	tsigkey = dns_message_gettsigkey(client->message);
+	if (tsigkey != NULL) {
+		dns_name_format(tsigkey->name, namebuf, sizeof(namebuf));
+
+		if (tsigkey->generated) {
+			char cnamebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(tsigkey->creator, cnamebuf,
+					sizeof(cnamebuf));
+			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s' (%s)",
+				 namebuf, cnamebuf);
+		} else {
+			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s'",
+				 namebuf);
+		}
+	}
+
+	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
+	dns_name_format(zonename, namebuf, sizeof(namebuf));
+
+	if (result == ISC_R_SUCCESS) {
+		notify_log(client, level, "received NOTIFY(%s) for zone '%s'%s",
+			   typebuf, namebuf, tsigbuf);
+	} else {
+		notify_log(client, level,
+			   "received NOTIFY(%s) for zone '%s'%s: %s", typebuf,
+			   namebuf, tsigbuf, isc_result_totext(result));
+	}
+}
+
+static void
 respond(ns_client_t *client, isc_result_t result) {
 	dns_rcode_t rcode;
 	dns_message_t *message;
@@ -77,9 +115,6 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
-	char namebuf[DNS_NAME_FORMATSIZE];
-	char tsigbuf[DNS_NAME_FORMATSIZE * 2 + sizeof(": TSIG '' ()")];
-	dns_tsigkey_t *tsigkey;
 
 	/*
 	 * Attach to the request handle
@@ -116,33 +151,25 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		goto done;
 	}
 
-	/* The one rdataset must be an SOA. */
-	if (zone_rdataset->type != dns_rdatatype_soa) {
+	/* The one rdataset must be an SOA, CDS, or CSYNC. */
+	switch (zone_rdataset->type) {
+	case dns_rdatatype_soa:
+	case dns_rdatatype_cds:
+	case dns_rdatatype_csync:
+		break;
+	default:
 		notify_log(client, ISC_LOG_NOTICE,
-			   "notify question section contains no SOA");
+			   "notify question section contains invalid type");
 		result = DNS_R_FORMERR;
 		goto done;
 	}
 
-	tsigkey = dns_message_gettsigkey(request);
-	if (tsigkey != NULL) {
-		dns_name_format(tsigkey->name, namebuf, sizeof(namebuf));
-
-		if (tsigkey->generated) {
-			char cnamebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(tsigkey->creator, cnamebuf,
-					sizeof(cnamebuf));
-			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s' (%s)",
-				 namebuf, cnamebuf);
-		} else {
-			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s'",
-				 namebuf);
-		}
-	} else {
-		tsigbuf[0] = '\0';
+	if (zone_rdataset->type != dns_rdatatype_soa) {
+		result = DNS_R_NOTIMP;
+		notify_log_received(client, ISC_LOG_DEBUG(3), zonename,
+				    zone_rdataset->type, result);
+		goto done;
 	}
-
-	dns_name_format(zonename, namebuf, sizeof(namebuf));
 	result = dns_view_findzone(client->inner.view, zonename,
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result == ISC_R_SUCCESS) {
@@ -155,9 +182,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		{
 			isc_sockaddr_t *from = ns_client_getsockaddr(client);
 			isc_sockaddr_t *to = ns_client_getdestaddr(client);
-			notify_log(client, ISC_LOG_INFO,
-				   "received notify for zone '%s'%s", namebuf,
-				   tsigbuf);
+			notify_log_received(client, ISC_LOG_INFO, zonename,
+					    zone_rdataset->type, ISC_R_SUCCESS);
 			result = dns_zone_notifyreceive(zone, from, to,
 							request);
 			goto done;
@@ -165,9 +191,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	}
 
 	result = DNS_R_NOTAUTH;
-	notify_log(client, ISC_LOG_NOTICE,
-		   "received notify for zone '%s'%s: %s", namebuf, tsigbuf,
-		   isc_result_totext(result));
+	notify_log_received(client, ISC_LOG_NOTICE, zonename,
+			    zone_rdataset->type, result);
 
 done:
 	if (zone != NULL) {
