@@ -2002,7 +2002,7 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 				 DNS_DECOMPRESS_NEVER, &b));
 
 	if (rdtype == dns_rdatatype_ds) {
-		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &ds));
 	} else {
 		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
 					  digest, sizeof(digest), &ds));

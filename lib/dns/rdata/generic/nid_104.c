@@ -145,8 +145,6 @@ tostruct_nid(ARGS_TOSTRUCT) {
 	REQUIRE(nid != NULL);
 	REQUIRE(rdata->length == 10);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(nid, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &region);
@@ -155,16 +153,6 @@ tostruct_nid(ARGS_TOSTRUCT) {
 	INSIST(region.length == sizeof(nid->nid));
 	memmove(nid->nid, region.base, region.length);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_nid(ARGS_FREESTRUCT) {
-	dns_rdata_nid_t *nid = source;
-
-	REQUIRE(nid != NULL);
-	REQUIRE(nid->common.rdtype == dns_rdatatype_nid);
-
-	return;
 }
 
 static isc_result_t

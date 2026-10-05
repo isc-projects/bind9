@@ -93,16 +93,6 @@ tostruct_cdnskey(ARGS_TOSTRUCT) {
 	return generic_tostruct_key(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_cdnskey(ARGS_FREESTRUCT) {
-	dns_rdata_cdnskey_t *dnskey = (dns_rdata_cdnskey_t *)source;
-
-	REQUIRE(dnskey != NULL);
-	REQUIRE(dnskey->common.rdtype == dns_rdatatype_cdnskey);
-
-	generic_freestruct_key(source);
-}
-
 static isc_result_t
 additionaldata_cdnskey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cdnskey);

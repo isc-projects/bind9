@@ -169,8 +169,6 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	REQUIRE(aaaa != NULL);
 	REQUIRE(rdata->length == 16);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(aaaa, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &r);
@@ -178,17 +176,6 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	memmove(aaaa->in6_addr.s6_addr, r.base, 16);
 
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_in_aaaa(ARGS_FREESTRUCT) {
-	dns_rdata_in_aaaa_t *aaaa = source;
-
-	REQUIRE(aaaa != NULL);
-	REQUIRE(aaaa->common.rdclass == dns_rdataclass_in);
-	REQUIRE(aaaa->common.rdtype == dns_rdatatype_aaaa);
-
-	UNUSED(aaaa);
 }
 
 static isc_result_t

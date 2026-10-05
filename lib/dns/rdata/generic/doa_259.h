@@ -15,7 +15,6 @@
 
 typedef struct dns_rdata_doa {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *mediatype;
 	unsigned char *data;
 	uint32_t enterprise;

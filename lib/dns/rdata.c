@@ -104,13 +104,9 @@
 
 #define CALL_FROMSTRUCT rdclass, type, source, target
 
-#define ARGS_TOSTRUCT const dns_rdata_t *rdata, void *target, isc_mem_t *mctx
+#define ARGS_TOSTRUCT const dns_rdata_t *rdata, void *target
 
-#define CALL_TOSTRUCT rdata, target, mctx
-
-#define ARGS_FREESTRUCT void *source
-
-#define CALL_FREESTRUCT source
+#define CALL_TOSTRUCT rdata, target
 
 #define ARGS_ADDLDATA                                \
 	dns_rdata_t *rdata, const dns_name_t *owner, \
@@ -259,8 +255,6 @@ static isc_result_t generic_fromstruct_key(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_key(ARGS_TOSTRUCT);
 
-static void generic_freestruct_key(ARGS_FREESTRUCT);
-
 static isc_result_t generic_fromtext_txt(ARGS_FROMTEXT);
 
 static isc_result_t generic_totext_txt(ARGS_TOTEXT);
@@ -270,8 +264,6 @@ static isc_result_t generic_fromwire_txt(ARGS_FROMWIRE);
 static isc_result_t generic_fromstruct_txt(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_txt(ARGS_TOSTRUCT);
-
-static void generic_freestruct_txt(ARGS_FREESTRUCT);
 
 static isc_result_t
 generic_txt_first(dns_rdata_txt_t *txt);
@@ -302,15 +294,12 @@ static isc_result_t generic_fromstruct_tlsa(ARGS_FROMSTRUCT);
 
 static isc_result_t generic_tostruct_tlsa(ARGS_TOSTRUCT);
 
-static void generic_freestruct_tlsa(ARGS_FREESTRUCT);
-
 static isc_result_t generic_fromtext_in_svcb(ARGS_FROMTEXT);
 static isc_result_t generic_totext_in_svcb(ARGS_TOTEXT);
 static isc_result_t generic_fromwire_in_svcb(ARGS_FROMWIRE);
 static isc_result_t generic_towire_in_svcb(ARGS_TOWIRE);
 static isc_result_t generic_fromstruct_in_svcb(ARGS_FROMSTRUCT);
 static isc_result_t generic_tostruct_in_svcb(ARGS_TOSTRUCT);
-static void generic_freestruct_in_svcb(ARGS_FREESTRUCT);
 static isc_result_t generic_additionaldata_in_svcb(ARGS_ADDLDATA);
 static bool generic_checknames_in_svcb(ARGS_CHECKNAMES);
 static isc_result_t
@@ -387,31 +376,6 @@ locator_pton(const char *src, unsigned char *dst) {
 	}
 	memmove(dst, tmp, NS_LOCATORSZ);
 	return 1;
-}
-
-static void
-name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
-	if (mctx != NULL) {
-		dns_name_dup(source, mctx, target);
-	} else {
-		dns_name_clone(source, target);
-	}
-}
-
-static void *
-mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
-	void *copy = NULL;
-
-	REQUIRE(source != NULL);
-
-	if (mctx == NULL) {
-		return source;
-	}
-
-	copy = isc_mem_allocate(mctx, length);
-	memmove(copy, source, length);
-
-	return copy;
 }
 
 static isc_result_t
@@ -1411,7 +1375,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+dns_rdata_tostruct(const dns_rdata_t *rdata, void *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	bool use_default = false;
 
@@ -1426,14 +1390,6 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	}
 
 	return result;
-}
-
-void
-dns_rdata_freestruct(void *source) {
-	dns_rdatacommon_t *common = source;
-	REQUIRE(common != NULL);
-
-	FREESTRUCTSWITCH
 }
 
 isc_result_t
@@ -2481,7 +2437,7 @@ dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata) {
 	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
-	result = dns_rdata_tostruct(rdata, &svcb, NULL);
+	result = dns_rdata_tostruct(rdata, &svcb);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/*

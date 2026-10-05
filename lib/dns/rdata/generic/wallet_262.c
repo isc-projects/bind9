@@ -80,16 +80,6 @@ tostruct_wallet(ARGS_TOSTRUCT) {
 	return generic_tostruct_txt(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_wallet(ARGS_FREESTRUCT) {
-	dns_rdata_wallet_t *wallet = source;
-
-	REQUIRE(wallet != NULL);
-	REQUIRE(wallet->common.rdtype == dns_rdatatype_wallet);
-
-	generic_freestruct_txt(source);
-}
-
 static isc_result_t
 additionaldata_wallet(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_wallet);

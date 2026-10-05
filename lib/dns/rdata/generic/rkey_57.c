@@ -90,16 +90,6 @@ tostruct_rkey(ARGS_TOSTRUCT) {
 	return generic_tostruct_key(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_rkey(ARGS_FREESTRUCT) {
-	dns_rdata_rkey_t *rkey = (dns_rdata_rkey_t *)source;
-
-	REQUIRE(rkey != NULL);
-	REQUIRE(rkey->common.rdtype == dns_rdatatype_rkey);
-
-	generic_freestruct_key(source);
-}
-
 static isc_result_t
 additionaldata_rkey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_rkey);

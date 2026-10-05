@@ -16,7 +16,6 @@
 
 typedef struct dns_rdata_soa {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_name_t origin;
 	dns_name_t contact;
 	uint32_t serial;  /*%< host order */

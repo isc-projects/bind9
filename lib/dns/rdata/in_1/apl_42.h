@@ -24,7 +24,6 @@ typedef struct dns_rdata_apl_ent {
 
 typedef struct dns_rdata_in_apl {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	/* type & class specific elements */
 	unsigned char *apl;
 	uint16_t apl_len;

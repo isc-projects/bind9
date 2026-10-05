@@ -17,7 +17,6 @@
 
 typedef struct dns_rdata_hip {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *hit;
 	unsigned char *key;
 	unsigned char *servers;

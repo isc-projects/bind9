@@ -66,15 +66,10 @@
 #define FROMSTRUCTTYPE	"type"
 #define FROMSTRUCTDEF	"use_default = true"
 
-#define TOSTRUCTARGS  "rdata, target, mctx"
+#define TOSTRUCTARGS  "rdata, target"
 #define TOSTRUCTCLASS "rdata->rdclass"
 #define TOSTRUCTTYPE  "rdata->type"
 #define TOSTRUCTDEF   "use_default = true"
-
-#define FREESTRUCTARGS	"source"
-#define FREESTRUCTCLASS "common->rdclass"
-#define FREESTRUCTTYPE	"common->rdtype"
-#define FREESTRUCTDEF	NULL
 
 #define COMPAREARGS  "rdata1, rdata2"
 #define COMPARECLASS "rdata1->rdclass"
@@ -781,8 +776,6 @@ main(int argc, char **argv) {
 			 FROMSTRUCTTYPE, FROMSTRUCTCLASS, FROMSTRUCTDEF);
 		doswitch("TOSTRUCTSWITCH", "tostruct", TOSTRUCTARGS,
 			 TOSTRUCTTYPE, TOSTRUCTCLASS, TOSTRUCTDEF);
-		doswitch("FREESTRUCTSWITCH", "freestruct", FREESTRUCTARGS,
-			 FREESTRUCTTYPE, FREESTRUCTCLASS, FREESTRUCTDEF);
 		doswitch("ADDITIONALDATASWITCH", "additionaldata",
 			 ADDITIONALDATAARGS, ADDITIONALDATATYPE,
 			 ADDITIONALDATACLASS, ADDITIONALDATADEF);

@@ -705,8 +705,6 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, const char **namestrp,
 		/*
 		 * The key data in keystruct is not dynamically allocated.
 		 */
-		keystruct.mctx = NULL;
-
 		if (rdata1 > 0xffff) {
 			CHECKM(ISC_R_RANGE, "key flags");
 		}
@@ -3017,7 +3015,6 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 
 	ns.common.rdtype = dns_rdatatype_ns;
 	ns.common.rdclass = dns_db_class(db);
-	ns.mctx = NULL;
 	dns_name_init(&ns.name);
 	dns_name_clone(nsname, &ns.name);
 	CHECK(dns_rdata_fromstruct(&rdata, dns_db_class(db), dns_rdatatype_ns,
@@ -6555,7 +6552,7 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&dsset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &ds, NULL);
+			result = dns_rdata_tostruct(&rdata, &ds);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (n < (sizeof(ids) / sizeof(ids[0]))) {
 				ids[n] = ds.key_tag;
@@ -14352,7 +14349,7 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t *text) {
 
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(kdset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &kd, NULL);
+			result = dns_rdata_tostruct(&rdata, &kd);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 			dns_rdata_toregion(&rdata, &r);

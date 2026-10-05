@@ -520,51 +520,26 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	naptr->flags_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	INSIST(naptr->flags_len <= r.length);
-	naptr->flags = mem_maybedup(mctx, r.base, naptr->flags_len);
+	naptr->flags = r.base;
 	isc_region_consume(&r, naptr->flags_len);
 
 	naptr->service_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	INSIST(naptr->service_len <= r.length);
-	naptr->service = mem_maybedup(mctx, r.base, naptr->service_len);
+	naptr->service = r.base;
 	isc_region_consume(&r, naptr->service_len);
 
 	naptr->regexp_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	INSIST(naptr->regexp_len <= r.length);
-	naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
+	naptr->regexp = r.base;
 	isc_region_consume(&r, naptr->regexp_len);
 
 	dns_name_init(&name);
 	dns_name_fromregion(&name, &r);
 	dns_name_init(&naptr->replacement);
-	name_duporclone(&name, mctx, &naptr->replacement);
-	naptr->mctx = mctx;
+	dns_name_clone(&name, &naptr->replacement);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_naptr(ARGS_FREESTRUCT) {
-	dns_rdata_naptr_t *naptr = source;
-
-	REQUIRE(naptr != NULL);
-	REQUIRE(naptr->common.rdtype == dns_rdatatype_naptr);
-
-	if (naptr->mctx == NULL) {
-		return;
-	}
-
-	if (naptr->flags != NULL) {
-		isc_mem_free(naptr->mctx, naptr->flags);
-	}
-	if (naptr->service != NULL) {
-		isc_mem_free(naptr->mctx, naptr->service);
-	}
-	if (naptr->regexp != NULL) {
-		isc_mem_free(naptr->mctx, naptr->regexp);
-	}
-	dns_name_free(&naptr->replacement, naptr->mctx);
-	naptr->mctx = NULL;
 }
 
 static isc_result_t

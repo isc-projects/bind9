@@ -235,25 +235,9 @@ tostruct_ch_a(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, name_length(&name));
 
 	dns_name_init(&a->ch_addr_dom);
-	name_duporclone(&name, mctx, &a->ch_addr_dom);
+	dns_name_clone(&name, &a->ch_addr_dom);
 	a->ch_addr = htons(uint16_fromregion(&region));
-	a->mctx = mctx;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_ch_a(ARGS_FREESTRUCT) {
-	dns_rdata_ch_a_t *a = source;
-
-	REQUIRE(a != NULL);
-	REQUIRE(a->common.rdtype == dns_rdatatype_a);
-
-	if (a->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&a->ch_addr_dom, a->mctx);
-	a->mctx = NULL;
 }
 
 static isc_result_t

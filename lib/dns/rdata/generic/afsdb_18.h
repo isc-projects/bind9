@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_afsdb {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t subtype;
 	dns_name_t server;
 } dns_rdata_afsdb_t;

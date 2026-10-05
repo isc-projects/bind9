@@ -90,23 +90,6 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_dlv(ARGS_FREESTRUCT) {
-	dns_rdata_dlv_t *dlv = source;
-
-	REQUIRE(dlv != NULL);
-	REQUIRE(dlv->common.rdtype == dns_rdatatype_dlv);
-
-	if (dlv->mctx == NULL) {
-		return;
-	}
-
-	if (dlv->digest != NULL) {
-		isc_mem_free(dlv->mctx, dlv->digest);
-	}
-	dlv->mctx = NULL;
-}
-
 static isc_result_t
 additionaldata_dlv(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_dlv);

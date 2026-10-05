@@ -230,27 +230,8 @@ tostruct_in_atma(ARGS_TOSTRUCT) {
 	atma->format = r.base[0];
 	isc_region_consume(&r, 1);
 	atma->atma_len = r.length;
-	atma->atma = mem_maybedup(mctx, r.base, r.length);
-	atma->mctx = mctx;
+	atma->atma = r.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_in_atma(ARGS_FREESTRUCT) {
-	dns_rdata_in_atma_t *atma = source;
-
-	REQUIRE(atma != NULL);
-	REQUIRE(atma->common.rdclass == dns_rdataclass_in);
-	REQUIRE(atma->common.rdtype == dns_rdatatype_atma);
-
-	if (atma->mctx == NULL) {
-		return;
-	}
-
-	if (atma->atma != NULL) {
-		isc_mem_free(atma->mctx, atma->atma);
-	}
-	atma->mctx = NULL;
 }
 
 static isc_result_t

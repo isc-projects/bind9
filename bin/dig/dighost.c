@@ -1848,10 +1848,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 			dns_rdataset_current(rdataset, &rdata);
 
 			query->lookup->nsfound++;
-			result = dns_rdata_tostruct(&rdata, &ns, NULL);
+			result = dns_rdata_tostruct(&rdata, &ns);
 			check_result(result, "dns_rdata_tostruct");
 			dns_name_format(&ns.name, namestr, sizeof(namestr));
-			dns_rdata_freestruct(&ns);
 
 			/* Initialize lookup if we've not yet */
 			debug("found NS %s", namestr);
@@ -2010,7 +2009,6 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_name_t *soaname = NULL;
 
 	debug("insert_soa()");
-	soa.mctx = isc_g_mctx;
 	soa.serial = lookup->ixfr_serial;
 	soa.refresh = 0;
 	soa.retry = 0;
@@ -3698,10 +3696,9 @@ check_for_more_data(dig_lookup_t *lookup, dig_query_t *query,
 
 				/* Now we have an SOA.  Work with it. */
 				debug("got an SOA");
-				result = dns_rdata_tostruct(&rdata, &soa, NULL);
+				result = dns_rdata_tostruct(&rdata, &soa);
 				check_result(result, "dns_rdata_tostruct");
 				serial = soa.serial;
-				dns_rdata_freestruct(&soa);
 				if (!query->first_soa_rcvd) {
 					query->first_soa_rcvd = true;
 					query->first_rr_serial = serial;

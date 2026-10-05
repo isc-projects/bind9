@@ -937,7 +937,7 @@ dns_delegset_fromnsrdataset(isc_mem_t *mctx, dns_rdataset_t *rdataset,
 		dns_rdata_ns_t ns;
 
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &ns, NULL);
+		dns_rdata_tostruct(&rdata, &ns);
 		dns_delegset_addns(delegset, deleg, &ns.name);
 	}
 
@@ -1204,7 +1204,7 @@ delegdb_rootns_update(void *arg, const dns_name_t *name,
 			dns_rdata_in_a_t a;
 
 			dns_rdataset_current(rdataset, &rdata);
-			dns_rdata_tostruct(&rdata, &a, NULL);
+			dns_rdata_tostruct(&rdata, &a);
 			addr.type.in = a.in_addr;
 			addr.family = AF_INET;
 			break;
@@ -1213,7 +1213,7 @@ delegdb_rootns_update(void *arg, const dns_name_t *name,
 			dns_rdata_in_aaaa_t aaaa;
 
 			dns_rdataset_current(rdataset, &rdata);
-			dns_rdata_tostruct(&rdata, &aaaa, NULL);
+			dns_rdata_tostruct(&rdata, &aaaa);
 			addr.type.in6 = aaaa.in6_addr;
 			addr.family = AF_INET6;
 			break;

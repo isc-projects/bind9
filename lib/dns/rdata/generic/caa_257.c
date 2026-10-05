@@ -518,37 +518,16 @@ tostruct_caa(ARGS_TOSTRUCT) {
 	 * Tag
 	 */
 	INSIST(sr.length >= caa->tag_len);
-	caa->tag = mem_maybedup(mctx, sr.base, caa->tag_len);
+	caa->tag = sr.base;
 	isc_region_consume(&sr, caa->tag_len);
 
 	/*
 	 * Value
 	 */
 	caa->value_len = sr.length;
-	caa->value = mem_maybedup(mctx, sr.base, sr.length);
+	caa->value = sr.base;
 
-	caa->mctx = mctx;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_caa(ARGS_FREESTRUCT) {
-	dns_rdata_caa_t *caa = (dns_rdata_caa_t *)source;
-
-	REQUIRE(caa != NULL);
-	REQUIRE(caa->common.rdtype == dns_rdatatype_caa);
-
-	if (caa->mctx == NULL) {
-		return;
-	}
-
-	if (caa->tag != NULL) {
-		isc_mem_free(caa->mctx, caa->tag);
-	}
-	if (caa->value != NULL) {
-		isc_mem_free(caa->mctx, caa->value);
-	}
-	caa->mctx = NULL;
 }
 
 static isc_result_t

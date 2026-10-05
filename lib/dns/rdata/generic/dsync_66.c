@@ -266,24 +266,8 @@ tostruct_dsync(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&dsync->target);
-	name_duporclone(&name, mctx, &dsync->target);
-	dsync->mctx = mctx;
+	dns_name_clone(&name, &dsync->target);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_dsync(ARGS_FREESTRUCT) {
-	dns_rdata_dsync_t *dsync = source;
-
-	REQUIRE(dsync != NULL);
-	REQUIRE(dsync->common.rdtype == dns_rdatatype_dsync);
-
-	if (dsync->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&dsync->target, dsync->mctx);
-	dsync->mctx = NULL;
 }
 
 static isc_result_t

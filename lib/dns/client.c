@@ -577,13 +577,12 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 				goto done;
 			}
 			dns_rdataset_current(trdataset, &rdata);
-			tresult = dns_rdata_tostruct(&rdata, &cname, NULL);
+			tresult = dns_rdata_tostruct(&rdata, &cname);
 			dns_rdata_reset(&rdata);
 			if (tresult != ISC_R_SUCCESS) {
 				goto done;
 			}
 			dns_name_copy(&cname.cname, name);
-			dns_rdata_freestruct(&cname);
 			want_restart = true;
 			goto done;
 		case DNS_R_DNAME:
@@ -613,7 +612,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 				goto done;
 			}
 			dns_rdataset_current(trdataset, &rdata);
-			tresult = dns_rdata_tostruct(&rdata, &dname, NULL);
+			tresult = dns_rdata_tostruct(&rdata, &dname);
 			dns_rdata_reset(&rdata);
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
@@ -626,7 +625,6 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 			dns_name_split(name, nlabels, prefix, NULL);
 			tresult = dns_name_concatenate(prefix, &dname.dname,
 						       name);
-			dns_rdata_freestruct(&dname);
 			if (tresult == ISC_R_SUCCESS) {
 				want_restart = true;
 			} else {

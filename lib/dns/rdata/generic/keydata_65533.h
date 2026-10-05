@@ -15,7 +15,6 @@
 
 typedef struct dns_rdata_keydata {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint32_t refresh;  /* Timer for refreshing data */
 	uint32_t addhd;	   /* Hold-down timer for adding */
 	uint32_t removehd; /* Hold-down timer for removing */

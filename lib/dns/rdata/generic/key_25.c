@@ -341,25 +341,8 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 
 	/* Data */
 	key->datalen = sr.length;
-	key->data = mem_maybedup(mctx, sr.base, key->datalen);
-	key->mctx = mctx;
+	key->data = sr.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-generic_freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *)source;
-
-	REQUIRE(key != NULL);
-
-	if (key->mctx == NULL) {
-		return;
-	}
-
-	if (key->data != NULL) {
-		isc_mem_free(key->mctx, key->data);
-	}
-	key->mctx = NULL;
 }
 
 static isc_result_t
@@ -380,16 +363,6 @@ tostruct_key(ARGS_TOSTRUCT) {
 	DNS_RDATACOMMON_INIT(key, rdata->type, rdata->rdclass);
 
 	return generic_tostruct_key(CALL_TOSTRUCT);
-}
-
-static void
-freestruct_key(ARGS_FREESTRUCT) {
-	dns_rdata_key_t *key = (dns_rdata_key_t *)source;
-
-	REQUIRE(key != NULL);
-	REQUIRE(key->common.rdtype == dns_rdatatype_key);
-
-	generic_freestruct_key(source);
 }
 
 static isc_result_t

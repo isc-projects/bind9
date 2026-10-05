@@ -150,8 +150,6 @@ tostruct_l32(ARGS_TOSTRUCT) {
 	REQUIRE(l32 != NULL);
 	REQUIRE(rdata->length == 6);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(l32, rdata->type, rdata->rdclass);
 
 	dns_rdata_toregion(rdata, &region);
@@ -161,16 +159,6 @@ tostruct_l32(ARGS_TOSTRUCT) {
 	n = uint32_fromregion(&region);
 	l32->l32.s_addr = htonl(n);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_l32(ARGS_FREESTRUCT) {
-	dns_rdata_l32_t *l32 = source;
-
-	REQUIRE(l32 != NULL);
-	REQUIRE(l32->common.rdtype == dns_rdatatype_l32);
-
-	return;
 }
 
 static isc_result_t

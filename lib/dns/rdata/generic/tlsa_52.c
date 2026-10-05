@@ -228,25 +228,8 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	tlsa->length = region.length;
 
-	tlsa->data = mem_maybedup(mctx, region.base, region.length);
-	tlsa->mctx = mctx;
+	tlsa->data = region.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-generic_freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
-
-	REQUIRE(tlsa != NULL);
-
-	if (tlsa->mctx == NULL) {
-		return;
-	}
-
-	if (tlsa->data != NULL) {
-		isc_mem_free(tlsa->mctx, tlsa->data);
-	}
-	tlsa->mctx = NULL;
 }
 
 static isc_result_t
@@ -266,16 +249,6 @@ tostruct_tlsa(ARGS_TOSTRUCT) {
 	DNS_RDATACOMMON_INIT(tlsa, rdata->type, rdata->rdclass);
 
 	return generic_tostruct_tlsa(CALL_TOSTRUCT);
-}
-
-static void
-freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_tlsa_t *tlsa = source;
-
-	REQUIRE(tlsa != NULL);
-	REQUIRE(tlsa->common.rdtype == dns_rdatatype_tlsa);
-
-	generic_freestruct_tlsa(source);
 }
 
 static isc_result_t

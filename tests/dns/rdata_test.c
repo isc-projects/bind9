@@ -273,7 +273,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	/*
 	 * Convert from uncompressed wire form into type-specific struct.
 	 */
-	result = dns_rdata_tostruct(rdata, rdata_struct, NULL);
+	result = dns_rdata_tostruct(rdata, rdata_struct);
 	detect_uncleared_libcrypto_error();
 	assert_int_equal(result, ISC_R_SUCCESS);
 

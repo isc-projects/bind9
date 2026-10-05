@@ -20,7 +20,6 @@ typedef uint16_t ch_addr_t;
 
 typedef struct dns_rdata_ch_a {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	dns_name_t ch_addr_dom; /* ch-addr domain for back mapping
 				 * */
 	ch_addr_t ch_addr;	/* chaos address (16 bit) network

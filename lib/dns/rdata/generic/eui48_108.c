@@ -145,22 +145,10 @@ tostruct_eui48(ARGS_TOSTRUCT) {
 	REQUIRE(eui48 != NULL);
 	REQUIRE(rdata->length == 6);
 
-	UNUSED(mctx);
-
 	DNS_RDATACOMMON_INIT(eui48, rdata->type, rdata->rdclass);
 
 	memmove(eui48->eui48, rdata->data, rdata->length);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_eui48(ARGS_FREESTRUCT) {
-	dns_rdata_eui48_t *eui48 = source;
-
-	REQUIRE(eui48 != NULL);
-	REQUIRE(eui48->common.rdtype == dns_rdatatype_eui48);
-
-	return;
 }
 
 static isc_result_t

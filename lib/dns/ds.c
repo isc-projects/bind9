@@ -163,7 +163,6 @@ dns_ds_fromkeyrdata(const dns_name_t *owner, dns_rdata_t *key,
 		goto end;
 	}
 
-	dsrdata->mctx = NULL;
 	dsrdata->common.rdclass = key->rdclass;
 	dsrdata->common.rdtype = dns_rdatatype_ds;
 	dsrdata->algorithm = r.base[3];

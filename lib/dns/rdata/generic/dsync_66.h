@@ -16,7 +16,6 @@
 
 typedef struct dns_rdata_dsync {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t type;
 	uint8_t scheme;
 	uint16_t port;

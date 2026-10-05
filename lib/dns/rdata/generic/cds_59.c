@@ -94,23 +94,6 @@ tostruct_cds(ARGS_TOSTRUCT) {
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_cds(ARGS_FREESTRUCT) {
-	dns_rdata_cds_t *cds = source;
-
-	REQUIRE(cds != NULL);
-	REQUIRE(cds->common.rdtype == dns_rdatatype_cds);
-
-	if (cds->mctx == NULL) {
-		return;
-	}
-
-	if (cds->digest != NULL) {
-		isc_mem_free(cds->mctx, cds->digest);
-	}
-	cds->mctx = NULL;
-}
-
 static isc_result_t
 additionaldata_cds(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cds);

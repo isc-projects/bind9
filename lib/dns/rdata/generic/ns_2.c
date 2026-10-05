@@ -163,23 +163,8 @@ tostruct_ns(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&ns->name);
-	name_duporclone(&name, mctx, &ns->name);
-	ns->mctx = mctx;
+	dns_name_clone(&name, &ns->name);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_ns(ARGS_FREESTRUCT) {
-	dns_rdata_ns_t *ns = source;
-
-	REQUIRE(ns != NULL);
-
-	if (ns->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&ns->name, ns->mctx);
-	ns->mctx = NULL;
 }
 
 static isc_result_t

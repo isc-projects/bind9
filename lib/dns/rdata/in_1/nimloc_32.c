@@ -137,27 +137,8 @@ tostruct_in_nimloc(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	nimloc->nimloc_len = r.length;
-	nimloc->nimloc = mem_maybedup(mctx, r.base, r.length);
-	nimloc->mctx = mctx;
+	nimloc->nimloc = r.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_in_nimloc(ARGS_FREESTRUCT) {
-	dns_rdata_in_nimloc_t *nimloc = source;
-
-	REQUIRE(nimloc != NULL);
-	REQUIRE(nimloc->common.rdclass == dns_rdataclass_in);
-	REQUIRE(nimloc->common.rdtype == dns_rdatatype_nimloc);
-
-	if (nimloc->mctx == NULL) {
-		return;
-	}
-
-	if (nimloc->nimloc != NULL) {
-		isc_mem_free(nimloc->mctx, nimloc->nimloc);
-	}
-	nimloc->mctx = NULL;
 }
 
 static isc_result_t

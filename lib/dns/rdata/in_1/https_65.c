@@ -98,17 +98,6 @@ tostruct_in_https(ARGS_TOSTRUCT) {
 	return generic_tostruct_in_svcb(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_in_https(ARGS_FREESTRUCT) {
-	dns_rdata_in_https_t *https = source;
-
-	REQUIRE(https != NULL);
-	REQUIRE(https->common.rdclass == dns_rdataclass_in);
-	REQUIRE(https->common.rdtype == dns_rdatatype_https);
-
-	generic_freestruct_in_svcb(CALL_FREESTRUCT);
-}
-
 static isc_result_t
 additionaldata_in_https(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_https);

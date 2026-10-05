@@ -201,26 +201,8 @@ tostruct_sink(ARGS_TOSTRUCT) {
 
 	/* Data */
 	sink->datalen = sr.length;
-	sink->data = mem_maybedup(mctx, sr.base, sink->datalen);
-	sink->mctx = mctx;
+	sink->data = sr.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_sink(ARGS_FREESTRUCT) {
-	dns_rdata_sink_t *sink = (dns_rdata_sink_t *)source;
-
-	REQUIRE(sink != NULL);
-	REQUIRE(sink->common.rdtype == dns_rdatatype_sink);
-
-	if (sink->mctx == NULL) {
-		return;
-	}
-
-	if (sink->data != NULL) {
-		isc_mem_free(sink->mctx, sink->data);
-	}
-	sink->mctx = NULL;
 }
 
 static isc_result_t

@@ -315,7 +315,7 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 			CLEANUP(ISC_R_FAILURE);
 		}
 
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		CHECK(dns_rdata_tostruct(&rdata, &nsec3param));
 
 		del = ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0);
 		init = ((nsec3param.flags & DNS_NSEC3FLAG_INITIAL) != 0);

@@ -1054,12 +1054,11 @@ generic_tostruct_in_svcb(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 
-	name_duporclone(&name, mctx, &svcb->svcdomain);
+	dns_name_clone(&name, &svcb->svcdomain);
 	svcb->svclen = region.length;
-	svcb->svc = mem_maybedup(mctx, region.base, region.length);
+	svcb->svc = region.base;
 
 	svcb->offset = 0;
-	svcb->mctx = mctx;
 
 	return ISC_R_SUCCESS;
 }
@@ -1074,32 +1073,6 @@ tostruct_in_svcb(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->length != 0);
 
 	return generic_tostruct_in_svcb(CALL_TOSTRUCT);
-}
-
-static void
-generic_freestruct_in_svcb(ARGS_FREESTRUCT) {
-	dns_rdata_in_svcb_t *svcb = source;
-
-	REQUIRE(svcb != NULL);
-
-	if (svcb->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&svcb->svcdomain, svcb->mctx);
-	isc_mem_free(svcb->mctx, svcb->svc);
-	svcb->mctx = NULL;
-}
-
-static void
-freestruct_in_svcb(ARGS_FREESTRUCT) {
-	dns_rdata_in_svcb_t *svcb = source;
-
-	REQUIRE(svcb != NULL);
-	REQUIRE(svcb->common.rdclass == dns_rdataclass_in);
-	REQUIRE(svcb->common.rdtype == dns_rdatatype_svcb);
-
-	generic_freestruct_in_svcb(CALL_FREESTRUCT);
 }
 
 static isc_result_t
@@ -1154,8 +1127,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 
 				dns_rdataset_current(&rdataset, &current);
 
-				result = dns_rdata_tostruct(&current, &cname,
-							    NULL);
+				result = dns_rdata_tostruct(&current, &cname);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				dns_name_copy(&cname.cname, fname);
 				dns_name_clone(fname, &name);

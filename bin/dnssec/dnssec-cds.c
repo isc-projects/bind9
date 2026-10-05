@@ -467,7 +467,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness) {
 		bool c;
 
 		dns_rdataset_current(dsset, &dsrdata);
-		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		result = dns_rdata_tostruct(&dsrdata, &ds);
 		check_result(result, "dns_rdata_tostruct(DS)");
 
 		if (ki->tag != ds.key_tag || ki->algo != ds.algorithm) {
@@ -537,7 +537,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 		dns_rdata_init(keyrdata);
 		dns_rdataset_current(keyset, keyrdata);
 
-		result = dns_rdata_tostruct(keyrdata, &dnskey, NULL);
+		result = dns_rdata_tostruct(keyrdata, &dnskey);
 		check_result(result, "dns_rdata_tostruct(DNSKEY)");
 		ki->algo = dnskey.algorithm;
 
@@ -607,7 +607,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 		dns_rdata_rrsig_t sig;
 
 		dns_rdataset_current(sigset, &sigrdata);
-		result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+		result = dns_rdata_tostruct(&sigrdata, &sig);
 		check_result(result, "dns_rdata_tostruct(RRSIG)");
 
 		/*
@@ -703,7 +703,7 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 		int i;
 
 		dns_rdataset_current(dsset, &dsrdata);
-		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
+		result = dns_rdata_tostruct(&dsrdata, &ds);
 		check_result(result, "dns_rdata_tostruct(DS)");
 
 		ds_ok = false;
@@ -738,7 +738,7 @@ ds_from_cds(isc_buffer_t *buf, dns_rdata_t *rds, dns_dsdigest_t dt,
 
 	REQUIRE(buf != NULL);
 
-	result = dns_rdata_tostruct(cds, &ds, NULL);
+	result = dns_rdata_tostruct(cds, &ds);
 	check_result(result, "dns_rdata_tostruct(CDS)");
 	ds.common.rdtype = dns_rdatatype_ds;
 
@@ -890,7 +890,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 	ds = isc_mem_cget(isc_g_mctx, n, sizeof(dns_rdata_ds_t));
 
 	for (i = 0; i < n; i++) {
-		result = dns_rdata_tostruct(&arrdata[i], &ds[i], NULL);
+		result = dns_rdata_tostruct(&arrdata[i], &ds[i]);
 		check_result(result, "dns_rdata_tostruct(DS)");
 	}
 

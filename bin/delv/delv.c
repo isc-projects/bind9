@@ -705,7 +705,6 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	case TRUSTED:
 		dnskey.common.rdclass = dns_rdataclass_in;
 		dnskey.common.rdtype = dns_rdatatype_dnskey;
-		dnskey.mctx = NULL;
 
 		dnskey.flags = (uint16_t)rdata1;
 		dnskey.protocol = (uint8_t)rdata2;
@@ -734,7 +733,6 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	case STATIC_DS:
 		ds.common.rdclass = dns_rdataclass_in;
 		ds.common.rdtype = dns_rdatatype_ds;
-		ds.mctx = NULL;
 
 		ds.key_tag = (uint16_t)rdata1;
 		ds.algorithm = (uint8_t)rdata2;

@@ -632,7 +632,6 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	now = msg->fuzzing ? msg->fuzztime : isc_stdtime_now();
 	tsig = (dns_rdata_any_tsig_t){
-		.mctx = mctx,
 		.common.rdclass = dns_rdataclass_any,
 		.common.rdtype = dns_rdatatype_tsig,
 		.timesigned = now + msg->timeadjust,
@@ -691,8 +690,8 @@ dns_tsig_sign(dns_message_t *msg) {
 				goto cleanup_context;
 			}
 			dns_rdataset_current(msg->querytsig, &querytsigrdata);
-			result = dns_rdata_tostruct(&querytsigrdata, &querytsig,
-						    NULL);
+			result = dns_rdata_tostruct(&querytsigrdata,
+						    &querytsig);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
@@ -939,12 +938,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	keyname = msg->tsigname;
 	RETERR(dns_rdataset_first(msg->tsig));
 	dns_rdataset_current(msg->tsig, &rdata);
-	RETERR(dns_rdata_tostruct(&rdata, &tsig, NULL));
+	RETERR(dns_rdata_tostruct(&rdata, &tsig));
 	dns_rdata_reset(&rdata);
 	if (response) {
 		RETERR(dns_rdataset_first(msg->querytsig));
 		dns_rdataset_current(msg->querytsig, &rdata);
-		RETERR(dns_rdata_tostruct(&rdata, &querytsig, NULL));
+		RETERR(dns_rdata_tostruct(&rdata, &querytsig));
 	}
 
 	/*
@@ -1254,7 +1253,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 */
 	RETERR(dns_rdataset_first(msg->querytsig));
 	dns_rdataset_current(msg->querytsig, &rdata);
-	RETERR(dns_rdata_tostruct(&rdata, &querytsig, NULL));
+	RETERR(dns_rdata_tostruct(&rdata, &querytsig));
 	dns_rdata_reset(&rdata);
 
 	/*
@@ -1269,7 +1268,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			goto cleanup_querystruct;
 		}
 		dns_rdataset_current(msg->tsig, &rdata);
-		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+		result = dns_rdata_tostruct(&rdata, &tsig);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}
@@ -1515,8 +1514,6 @@ cleanup_context:
 	}
 
 cleanup_querystruct:
-	dns_rdata_freestruct(&querytsig);
-
 	return result;
 }
 

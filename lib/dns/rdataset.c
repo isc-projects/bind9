@@ -578,7 +578,7 @@ dns_rdataset_minresign(dns_rdataset_t *rdataset) {
 	result = dns_rdataset_first(rdataset);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_rdataset_current(rdataset, &rdata);
-	(void)dns_rdata_tostruct(&rdata, &sig, NULL);
+	(void)dns_rdata_tostruct(&rdata, &sig);
 	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 		when = 0;
 	} else {
@@ -589,7 +589,7 @@ dns_rdataset_minresign(dns_rdataset_t *rdataset) {
 	result = dns_rdataset_next(rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(rdataset, &rdata);
-		(void)dns_rdata_tostruct(&rdata, &sig, NULL);
+		(void)dns_rdata_tostruct(&rdata, &sig);
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}

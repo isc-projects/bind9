@@ -320,12 +320,12 @@ tostruct_soa(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->origin);
-	name_duporclone(&name, mctx, &soa->origin);
+	dns_name_clone(&name, &soa->origin);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->contact);
-	name_duporclone(&name, mctx, &soa->contact);
+	dns_name_clone(&name, &soa->contact);
 
 	soa->serial = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -341,24 +341,7 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	soa->minimum = uint32_fromregion(&region);
 
-	soa->mctx = mctx;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_soa(ARGS_FREESTRUCT) {
-	dns_rdata_soa_t *soa = source;
-
-	REQUIRE(soa != NULL);
-	REQUIRE(soa->common.rdtype == dns_rdatatype_soa);
-
-	if (soa->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&soa->origin, soa->mctx);
-	dns_name_free(&soa->contact, soa->mctx);
-	soa->mctx = NULL;
 }
 
 static isc_result_t

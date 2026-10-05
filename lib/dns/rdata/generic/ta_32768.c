@@ -90,23 +90,6 @@ tostruct_ta(ARGS_TOSTRUCT) {
 	return generic_tostruct_ds(CALL_TOSTRUCT);
 }
 
-static void
-freestruct_ta(ARGS_FREESTRUCT) {
-	dns_rdata_ta_t *ds = source;
-
-	REQUIRE(ds != NULL);
-	REQUIRE(ds->common.rdtype == dns_rdatatype_ta);
-
-	if (ds->mctx == NULL) {
-		return;
-	}
-
-	if (ds->digest != NULL) {
-		isc_mem_free(ds->mctx, ds->digest);
-	}
-	ds->mctx = NULL;
-}
-
 static isc_result_t
 additionaldata_ta(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);

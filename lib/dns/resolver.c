@@ -5433,7 +5433,7 @@ is_minimal_nsec(dns_rdataset_t *nsecset) {
 		dns_rdata_nsec_t nsec;
 
 		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
+		result = dns_rdata_tostruct(&rdata, &nsec);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (nsec.len == sizeof(minimal_typemap) &&
@@ -5765,14 +5765,14 @@ get_and_check_signer_name(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 
 	rdata = (dns_rdata_t)DNS_RDATA_INIT;
 	dns_rdataset_current(sigrdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+	result = dns_rdata_tostruct(&rdata, &rrsig);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_name_copy(&rrsig.signer, signer);
 
 	while (dns_rdataset_next(sigrdataset) == ISC_R_SUCCESS) {
 		rdata = (dns_rdata_t)DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		result = dns_rdata_tostruct(&rdata, &rrsig);
 		INSIST(result == ISC_R_SUCCESS);
 
 		if (!dns_name_equal(signer, &rrsig.signer)) {
@@ -6141,7 +6141,7 @@ findnoqname(fetchctx_t *fctx, dns_message_t *message, dns_name_t *name,
 	DNS_RDATASET_FOREACH(sigrdataset) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		result = dns_rdata_tostruct(&rdata, &rrsig);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		/* Wildcard has rrsig.labels < labels - 1. */
 		if (rrsig.labels + 1U >= labels) {
@@ -6882,7 +6882,7 @@ cache_delegglue(fetchctx_t *fctx, dns_message_t *message,
 		isc_netaddr_t addr = { .family = AF_INET };
 
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &a, NULL);
+		dns_rdata_tostruct(&rdata, &a);
 		addr.type.in = a.in_addr;
 		dns_delegset_addaddr(delegset, deleg, &addr);
 		naddrs++;
@@ -6922,7 +6922,7 @@ cache_delegglue6(fetchctx_t *fctx, dns_message_t *message,
 		isc_netaddr_t addr = { .family = AF_INET6 };
 
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &aaaa, NULL);
+		dns_rdata_tostruct(&rdata, &aaaa);
 		addr.type.in6 = aaaa.in6_addr;
 		dns_delegset_addaddr(delegset, deleg, &addr);
 		naddrs++;
@@ -6984,7 +6984,7 @@ cache_delegns(fetchctx_t *fctx, const dns_name_t *name, dns_rdataset_t *nsset,
 
 		dns_rdataset_current(nsset, &rdata);
 		INSIST(rdata.type == dns_rdatatype_ns);
-		dns_rdata_tostruct(&rdata, &ns, NULL);
+		dns_rdata_tostruct(&rdata, &ns);
 
 		/* in-domain GLUE */
 		if (dns_name_issubdomain(&ns.name, name)) {
@@ -7214,7 +7214,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	dns_rdataset_current(rdataset, &rdata);
 	switch (rdataset->type) {
 	case dns_rdatatype_cname:
-		result = dns_rdata_tostruct(&rdata, &cname, NULL);
+		result = dns_rdata_tostruct(&rdata, &cname);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tname = &cname.cname;
 		break;
@@ -7224,7 +7224,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		{
 			return true;
 		}
-		result = dns_rdata_tostruct(&rdata, &dname, NULL);
+		result = dns_rdata_tostruct(&rdata, &dname);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_name_init(&prefix);
 		tname = dns_fixedname_initname(&fixed);

@@ -18,7 +18,6 @@
 
 typedef struct dns_rdata_in_nsap {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *nsap;
 	uint16_t nsap_len;
 } dns_rdata_in_nsap_t;

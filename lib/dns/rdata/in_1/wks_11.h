@@ -15,7 +15,6 @@
 
 typedef struct dns_rdata_in_wks {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	struct in_addr in_addr;
 	uint16_t protocol;
 	unsigned char *map;

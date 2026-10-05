@@ -20,7 +20,6 @@ typedef struct dns_rdata_spf_string {
 
 typedef struct dns_rdata_spf {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	unsigned char *txt;
 	uint16_t txt_len;
 	/* private */

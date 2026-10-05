@@ -150,26 +150,8 @@ tostruct_x25(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	x25->x25_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	x25->x25 = mem_maybedup(mctx, r.base, x25->x25_len);
-	x25->mctx = mctx;
+	x25->x25 = r.base;
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_x25(ARGS_FREESTRUCT) {
-	dns_rdata_x25_t *x25 = source;
-
-	REQUIRE(x25 != NULL);
-	REQUIRE(x25->common.rdtype == dns_rdatatype_x25);
-
-	if (x25->mctx == NULL) {
-		return;
-	}
-
-	if (x25->x25 != NULL) {
-		isc_mem_free(x25->mctx, x25->x25);
-	}
-	x25->mctx = NULL;
 }
 
 static isc_result_t

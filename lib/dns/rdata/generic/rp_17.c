@@ -220,29 +220,12 @@ tostruct_rp(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rp->mail);
-	name_duporclone(&name, mctx, &rp->mail);
+	dns_name_clone(&name, &rp->mail);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rp->text);
-	name_duporclone(&name, mctx, &rp->text);
-	rp->mctx = mctx;
+	dns_name_clone(&name, &rp->text);
 	return ISC_R_SUCCESS;
-}
-
-static void
-freestruct_rp(ARGS_FREESTRUCT) {
-	dns_rdata_rp_t *rp = source;
-
-	REQUIRE(rp != NULL);
-	REQUIRE(rp->common.rdtype == dns_rdatatype_rp);
-
-	if (rp->mctx == NULL) {
-		return;
-	}
-
-	dns_name_free(&rp->mail, rp->mctx);
-	dns_name_free(&rp->text, rp->mctx);
-	rp->mctx = NULL;
 }
 
 static isc_result_t

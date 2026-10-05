@@ -106,26 +106,24 @@ str2name(const char *namestr) {
 
 static void
 create_keystruct(uint16_t flags, uint8_t proto, uint8_t alg, const char *keystr,
+		 unsigned char *keydata, size_t keydata_len,
 		 dns_rdata_dnskey_t *keystruct) {
-	unsigned char keydata[4096];
 	isc_buffer_t keydatabuf;
 	isc_region_t r;
 	const dns_rdataclass_t rdclass = dns_rdataclass_in;
 
 	keystruct->common.rdclass = rdclass;
 	keystruct->common.rdtype = dns_rdatatype_dnskey;
-	keystruct->mctx = isc_g_mctx;
 	keystruct->flags = flags;
 	keystruct->protocol = proto;
 	keystruct->algorithm = alg;
 
-	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
+	isc_buffer_init(&keydatabuf, keydata, keydata_len);
 	assert_int_equal(isc_base64_decodestring(keystr, &keydatabuf),
 			 ISC_R_SUCCESS);
 	isc_buffer_usedregion(&keydatabuf, &r);
 	keystruct->datalen = r.length;
-	keystruct->data = isc_mem_allocate(isc_g_mctx, r.length);
-	memmove(keystruct->data, r.base, r.length);
+	keystruct->data = r.base;
 }
 
 static void
@@ -134,6 +132,7 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 		dns_rdata_ds_t *dsstruct) {
 	isc_result_t result;
 	unsigned char rrdata[4096];
+	unsigned char keydata[4096];
 	isc_buffer_t rrdatabuf;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t dnskey;
@@ -141,7 +140,8 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 	/*
 	 * Populate DNSKEY rdata structure.
 	 */
-	create_keystruct(flags, proto, alg, keystr, &dnskey);
+	create_keystruct(flags, proto, alg, keystr, keydata, sizeof(keydata),
+			 &dnskey);
 
 	/*
 	 * Convert to wire format.
@@ -158,8 +158,6 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 	result = dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256, digest,
 				     digest_len, dsstruct);
 	assert_int_equal(result, ISC_R_SUCCESS);
-
-	dns_rdata_freestruct(&dnskey);
 }
 
 /* Common setup: create a keytable and ntatable to test with a few keys */
@@ -419,6 +417,7 @@ ISC_LOOP_TEST_IMPL(delete) {
 /* delete key nodes from the keytable */
 ISC_LOOP_TEST_IMPL(deletekey) {
 	dns_rdata_dnskey_t dnskey;
+	unsigned char keydata[4096];
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 
@@ -428,31 +427,28 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 
 	/* key name doesn't match */
 	dns_test_namefromstring("example.org.", &fn);
-	create_keystruct(257, 3, 5, keystr1, &dnskey);
+	create_keystruct(257, 3, 5, keystr1, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
-	dns_rdata_freestruct(&dnskey);
 
 	/* subdomain match is the same as no match */
 	dns_test_namefromstring("sub.example.org.", &fn);
-	create_keystruct(257, 3, 5, keystr1, &dnskey);
+	create_keystruct(257, 3, 5, keystr1, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
-	dns_rdata_freestruct(&dnskey);
 
 	/* name matches but key doesn't match (resulting in PARTIALMATCH) */
 	dns_test_namefromstring("example.com.", &fn);
-	create_keystruct(257, 3, 5, keystr2, &dnskey);
+	create_keystruct(257, 3, 5, keystr2, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 DNS_R_PARTIALMATCH);
-	dns_rdata_freestruct(&dnskey);
 
 	/*
 	 * exact match: should return SUCCESS on the first try, then
 	 * PARTIALMATCH on the second (because the name existed but
 	 * not a matching key).
 	 */
-	create_keystruct(257, 3, 5, keystr1, &dnskey);
+	create_keystruct(257, 3, 5, keystr1, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
@@ -466,19 +462,17 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
-	dns_rdata_freestruct(&dnskey);
 
 	/*
 	 * A null key node for a name is not deleted when searched by key;
 	 * it must be deleted by dns_keytable_delete()
 	 */
 	dns_test_namefromstring("null.example.", &fn);
-	create_keystruct(257, 3, 5, keystr1, &dnskey);
+	create_keystruct(257, 3, 5, keystr1, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 DNS_R_PARTIALMATCH);
 	assert_int_equal(dns_keytable_delete(keytable, keyname, NULL, NULL),
 			 ISC_R_SUCCESS);
-	dns_rdata_freestruct(&dnskey);
 
 	destroy_tables();
 

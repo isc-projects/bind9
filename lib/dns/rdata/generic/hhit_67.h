@@ -15,7 +15,6 @@
 
 typedef struct dns_rdata_hhit_t {
 	dns_rdatacommon_t common;
-	isc_mem_t *mctx;
 	uint16_t datalen;
 	unsigned char *data;
 } dns_rdata_hhit_t;
