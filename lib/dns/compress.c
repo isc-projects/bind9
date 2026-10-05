@@ -361,17 +361,31 @@ void
 dns_compress_rollback(dns_compress_t *cctx, unsigned int coff) {
 	REQUIRE(CCTX_VALID(cctx));
 
-	for (unsigned int slot = 0; slot <= cctx->mask; slot++) {
+	/*
+	 * coff == 0 is the dns_message_renderend() TC + OPT/TSIG/SIG(0)
+	 * re-render path: every entry is being discarded, so wipe the
+	 * whole table in one shot rather than walking it slot by slot.
+	 */
+	if (coff == 0) {
+		memset(cctx->set, 0,
+		       (size_t)(cctx->mask + 1) * sizeof(*cctx->set));
+		cctx->count = 0;
+		return;
+	}
+
+	/*
+	 * Selective rollback: remove every entry whose buffer offset is
+	 * at or past `coff`. When entries are slid down to preserve the
+	 * probe sequence, the entry shifted into `slot` must be
+	 * re-examined — it may itself be eligible for deletion. Don't
+	 * advance `slot` after a shift.
+	 */
+	unsigned int slot = 0;
+	while (slot <= cctx->mask) {
 		if (cctx->set[slot].coff < coff) {
+			slot++;
 			continue;
 		}
-		/*
-		 * The next few elements might be part of the deleted element's
-		 * probe sequence, so we slide them down to overwrite the entry
-		 * we are deleting and preserve the probe sequence. Moving an
-		 * element to the previous slot reduces its probe distance, so
-		 * we stop when we find an element whose probe distance is zero.
-		 */
 		unsigned int prev = slot;
 		unsigned int next = slot_index(cctx, prev, 1);
 		while (cctx->set[next].coff != 0 &&
@@ -384,5 +398,9 @@ dns_compress_rollback(dns_compress_t *cctx, unsigned int coff) {
 		cctx->set[prev].coff = 0;
 		cctx->set[prev].hash = 0;
 		cctx->count--;
+		if (prev == slot) {
+			slot++;
+		}
+		/* else: leave `slot` to re-examine the shifted entry */
 	}
 }
