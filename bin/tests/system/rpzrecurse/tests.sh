@@ -503,6 +503,21 @@ t4=$(date +%s)
 p2=$((t4 - t3))
 echo_i "elapsed time $p2 seconds"
 
+t=$((t + 1))
+echo_i "testing RD=0 crash described in GL#6408 [CVE-2026-97313] (${t})"
+run_server cve-2026-97313
+$DIG $DIGOPTS trigger.cve-2026-97313.test a @10.53.0.2 -p ${PORT} >dig.out.${t}.1 || status=1
+grep "status: NOERROR" dig.out.${t}.1 >/dev/null || {
+  echo_i "test ${t} failed"
+  status=1
+}
+sleep 2 # wait for SOA with TTL=1 to expire
+$DIG $DIGOPTS +norecurse +tries=1 trigger.cve-2026-97313.test a @10.53.0.2 -p ${PORT} >dig.out.${t}.2
+grep "status: NOERROR" dig.out.${t}.2 >/dev/null || {
+  echo_i "test ${t} failed"
+  status=1
+}
+
 if test $p1 -le $p2; then ret=1; fi
 if test $ret != 0; then echo_i "failed"; fi
 status=$((status + ret))
