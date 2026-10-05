@@ -44,6 +44,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns9/root.db.signed",
         "ns9/sign.ns9.*",
         "ns10/trusted.conf",
+        "ns11/trusted.conf",
     ]
 )
 
