@@ -4945,7 +4945,8 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfo_init(&ci, client, NULL);
 	dns_clientinfo_setecs(&ci, &client->ecs);
 
-	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+	if (WANTDNSSEC(client) && *dbp != NULL && dns_db_iszone(*dbp) &&
+	    dns_db_issecure(*dbp))
 	{
 		return ISC_R_NOTFOUND;
 	}
@@ -5031,10 +5032,12 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_disassociate(&trdataset);
 	}
 nxrrset:
-	if (*nodep != NULL) {
-		dns_db_detachnode(*dbp, nodep);
+	if (*dbp != NULL) {
+		if (*nodep != NULL) {
+			dns_db_detachnode(*dbp, nodep);
+		}
+		dns_db_detach(dbp);
 	}
-	dns_db_detach(dbp);
 	dns_db_attachnode(db, node, nodep);
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
@@ -5055,8 +5058,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
 	dns_fixedname_t fixedredirect;
-	dns_name_t *found, *redirectname;
-	dns_rdataset_t trdataset;
+	dns_name_t *found = NULL, *redirectname = NULL, *tname = NULL;
+	dns_rdataset_t trdataset = DNS_RDATASET_INIT;
 	isc_result_t result;
 	dns_rdatatype_t type;
 	dns_clientinfomethods_t cm;
@@ -5076,18 +5079,22 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		return ISC_R_NOTFOUND;
 	}
 
-	if (dns_name_issubdomain(name, client->view->redirectzone)) {
+	tname = name;
+	if (tname->length == 0) {
+		tname = client->query.qname;
+	}
+	if (dns_name_issubdomain(tname, client->view->redirectzone)) {
 		return ISC_R_NOTFOUND;
 	}
 
 	found = dns_fixedname_initname(&fixed);
-	dns_rdataset_init(&trdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 	dns_clientinfo_setecs(&ci, &client->ecs);
 
-	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+	if (WANTDNSSEC(client) && *dbp != NULL && dns_db_iszone(*dbp) &&
+	    dns_db_issecure(*dbp))
 	{
 		return ISC_R_NOTFOUND;
 	}
@@ -5220,16 +5227,18 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_disassociate(&trdataset);
 	}
 nxrrset:
-	if (*nodep != NULL) {
-		dns_db_detachnode(*dbp, nodep);
+	if (*dbp != NULL) {
+		if (*nodep != NULL) {
+			dns_db_detachnode(*dbp, nodep);
+		}
+		dns_db_detach(dbp);
 	}
-	dns_db_detach(dbp);
 	dns_db_attachnode(db, node, nodep);
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
 	dns_db_detach(&db);
-	*is_zonep = is_zone;
 	*versionp = version;
+	*is_zonep = is_zone;
 
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
@@ -9800,6 +9809,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
@@ -9836,6 +9846,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return query_nodata(qctx, DNS_R_NXRRSET);
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
