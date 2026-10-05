@@ -1,0 +1,13 @@
+$TTL 300
+@       IN SOA ns.parent. root.parent. (
+                1          ; serial
+                3600       ; refresh
+                1800       ; retry
+                1814400    ; expire
+                300        ; minimum
+                )
+        IN NS   ns.parent.
+ns      IN A    10.53.0.2
+
+insecure       IN NS   ns.insecure.parent.
+ns.insecure    IN A    10.53.0.2

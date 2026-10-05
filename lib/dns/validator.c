@@ -1270,9 +1270,10 @@ notfound:
 }
 
 /*%
- * Returns true if proceeding would stall the SHARED fetch: either the
- * fetch cannot advance an alias chain, or an ancestor is already
- * resolving the same (name, type).
+ * Reject validation of the same (name, type) as an ancestor.
+ *
+ * DS at a CNAME owner may be needed to prove insecurity. Fetch loops are
+ * checked by dns_resolver_createfetch().
  */
 static bool
 check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
@@ -1280,27 +1281,6 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	for (dns_validator_t *cur = val; cur != NULL; cur = cur->parent) {
 		if (!dns_name_equal(cur->name, name)) {
 			continue;
-		}
-
-		/*
-		 * Validating a chaining CNAME: a fetch at the alias's own
-		 * name cannot advance the chain (no other type can live at
-		 * a CNAME owner, so e.g. the DS/DNSKEY needed for an
-		 * insecurity proof cannot be there) and would only
-		 * self-join the in-flight fetch.  A chaining DNAME is
-		 * different: it aliases only the names below its owner, so
-		 * the owner itself may legitimately hold the DNSKEY or DS
-		 * this validation needs (e.g. a DNAME at a zone apex).
-		 */
-		if (cur->rdataset != NULL &&
-		    cur->rdataset->attributes.chaining &&
-		    cur->rdataset->type == dns_rdatatype_cname)
-		{
-			validator_log(
-				val, ISC_LOG_DEBUG(3),
-				"fetch would not advance the alias chain: "
-				"aborting validation");
-			return true;
 		}
 
 		/*
@@ -1366,6 +1346,11 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 		0, fopts, 0, val->qc, val->gqc, val->parent_fetch, val->loop,
 		callback, val, &val->edectx, &val->frdataset,
 		&val->fsigrdataset, &val->fetch);
+	if (result == DNS_R_LOOPDETECTED) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "fetch would join a fetch waiting on this "
+			      "validation: aborting validation");
+	}
 	if (result != ISC_R_SUCCESS) {
 		dns_validator_detach(&val);
 	}
@@ -1374,16 +1359,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 }
 
 /*%
- * Start a fetch for the DS RRset at 'name', which lives in the parent zone.
- *
- * If the delegation database already has a usable delegation for that parent,
- * pass it to the resolver as a hint so the fetch is anchored at the parent
- * zone cut.  DS is an at-parent type, so the resolver derives the same cut on
- * its own for a hintless query; supplying it explicitly additionally gives the
- * resolver's fetch loop detection a zone cut to match on, which it does not
- * have for a fetch started without a hint.  The lookup fails harmlessly if the
- * parent delegation is expired or does not line up with the labels in 'name',
- * leaving a hintless DS fetch.
+ * Fetch DS from the parent, using a cached delegation hint if available.
  */
 static isc_result_t
 create_ds_fetch(dns_validator_t *val, dns_name_t *name, isc_job_cb callback,

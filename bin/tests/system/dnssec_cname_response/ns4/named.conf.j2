@@ -2,6 +2,7 @@ options {
 	{% include_indented "_common/options.conf.j2" %}
 	allow-transfer { any; };
 	dnssec-validation yes;
+	qname-minimization off;
 };
 
 {% include "_common/controls.conf.j2" %}
