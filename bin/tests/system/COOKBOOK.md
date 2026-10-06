@@ -260,6 +260,23 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 ```
 
+A mock server (see "Mock a misbehaving server" in the README) takes the same
+setup: for `Zone("f043.test.", ANS1, signed=True)`, `configure()` generates the
+keys in `ans1/keys/`, renders `ans1/zones/f043.test.db` and signs it, and
+`ans1` serves the result with its RRSIGs and proofs.  `dnssec_wildcard` is the
+example; its artifacts are the `ans*/` counterparts, `ans*/keys/` included:
+
+```python
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/dsset-*",
+        "ans*/keys/",
+        "ans*/zones/*.db",
+        "ans*/zones/*.db.signed",
+    ]
+)
+```
+
 
 ## Drive named and watch its logs
 

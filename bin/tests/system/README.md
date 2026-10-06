@@ -504,6 +504,19 @@ configured otherwise).  `qctx.prepare_new_response(with_zone_data=False)`
 replaces the prepared answer with that stub; `with_zone_data=True` restores
 it.
 
+A signed zone is served the way `named` would serve it.  The zone is
+`zones/<origin>.db.signed` with its keys in `ansN/keys/`; the test's
+`bootstrap()` puts both in place, see [the
+cookbook](COOKBOOK.md#set-up-zones-in-bootstrap).  When the query sets DO, the
+prepared response carries the RRSIGs, the DS records at delegations, and the
+NSEC or NSEC3 records proving non-existence, wildcard expansion and empty
+non-terminals, Opt-Out and closest-encloser proofs included.  A handler that
+forges records of its own signs them with `qctx.sign(rrset)` (any key from
+`qctx.keys`, or `bogus=True` for an invalid signature), reads a stored
+signature with `qctx.get_rrsig(rrset)` and adds denial-of-existence records
+with the `qctx.nsecx.prove_*()` methods; see `isctest/asyncserver/dnssec.py`
+and the tests under `isctest/asyncserver/tests/dnssec/`.
+
 **NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
 strongly recommended instead of implementing the `get_responses()` generator
 manually; see `resolver/ans3/ans.py` for practical examples.
