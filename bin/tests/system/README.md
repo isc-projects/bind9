@@ -313,11 +313,15 @@ calls `templates.render()` explicitly, and no defaults are needed.
 
 Fixtures defined in `conftest.py` provide the test context:
 
-- `servers` is a dictionary of all started `isctest.instance.NamedInstance`
-  servers, keyed by directory name; the shortcut fixtures `ns1` through `ns11`
-  return the corresponding instance directly. A `NamedInstance` is the
-  interface for driving a server: `ns1.rndc("...")`, `ns1.reconfigure()`,
-  `ns1.nsupdate(...)`, `ns1.watch_log_from_here()`, `ns1.ip`, ...
+- `servers` is a dictionary of all started servers, keyed by directory name:
+  an `isctest.instance.NamedInstance` for each `nsN` and an
+  `isctest.instance.AnsInstance` for each `ansN`; the shortcut fixtures `ns1`
+  through `ns11` and `ans1` through `ans11` return the corresponding instance
+  directly. A `NamedInstance` is the interface for driving a server:
+  `ns1.rndc("...")`, `ns1.reconfigure()`, `ns1.nsupdate(...)`,
+  `ns1.watch_log_from_here()`, `ns1.ip`, ...  An `AnsInstance` has `ip`, `log`
+  and the `watch_log_*()` methods of that interface, with `ans1.log` being
+  the server's `ans.run`.
 - `templates` renders jinja2 templates at runtime (see above).
 - `named_port`, `named_tlsport`, `control_port`, ... return the assigned port
   numbers.
