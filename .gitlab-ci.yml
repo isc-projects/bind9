@@ -1803,45 +1803,48 @@ unit:clang:freebsd15:amd64:
   <<: *unit_test_job
   <<: *freebsd_autoscaler_15_amd64_tags
 
-# Build and run tests against the latest git version of libuv
+# Build and run tests with TSAN against the latest git version of libuv
 
-gcc:tumbleweed:libuv-git:amd64:
-  <<: *tumbleweed_latest_amd64_image
+gcc:tsan:libuv-git:amd64:
+  <<: *tsan_fedora_44_amd64_image
   <<: *build_job
   variables:
-    EXTRA_SETUP_FILES: "--native-file ci/tumbleweed.ini"
+    EXTRA_SETUP_FILES: "--native-file ci/tsan.ini --native-file ci/tsan-gcc.ini --native-file ci/libuv-git.ini"
   before_script:
     - *list_installed_package_versions
-    - zypper --non-interactive rm --clean-deps libuv-devel
     - git clone --depth 1 https://github.com/libuv/libuv.git /tmp/libuv
     - cd /tmp/libuv
     - sh autogen.sh
-    - ./configure --prefix="$CI_PROJECT_DIR/libuv"
-    - make -j"$BUILD_PARALLEL_JOBS" CFLAGS=""
+    # Same flags as the libuv build in the tsan-fedora-44 image.
+    - CFLAGS="-rdynamic -ggdb -O2 -Wno-deprecated-declarations -fno-omit-frame-pointer -fno-optimize-sibling-calls -fPIC -fsanitize=thread -Wl,-rpath=/opt/tsan/lib -Wl,--enable-new-dtags" LDFLAGS="-fPIE -fsanitize=thread -Wl,-rpath=/opt/tsan/lib -Wl,--disable-new-dtags" ./configure --prefix="$CI_PROJECT_DIR/libuv"
+    - make -j"$BUILD_PARALLEL_JOBS"
     - make install
     - cd "$CI_PROJECT_DIR"
-    - export PKG_CONFIG_PATH="$CI_PROJECT_DIR/libuv/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
   rules:
     - *rule_source_other_than_mr
 
-system:gcc:tumbleweed:libuv-git:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *system_test_job
+system:gcc:tsan:libuv-git:amd64:
+  variables:
+    TSAN_SYMBOLIZER_PATH: "${TSAN_SYMBOLIZER_PATH_FEDORA}"
+  <<: *tsan_fedora_44_amd64_image
+  <<: *system_test_tsan_job
   needs:
-    - job: gcc:tumbleweed:libuv-git:amd64
+    - job: gcc:tsan:libuv-git:amd64
       artifacts: true
   rules:
     - *rule_source_other_than_mr
 
-unit:gcc:tumbleweed:libuv-git:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *unit_test_job
+unit:gcc:tsan:libuv-git:amd64:
+  variables:
+    TSAN_SYMBOLIZER_PATH: "${TSAN_SYMBOLIZER_PATH_FEDORA}"
+  <<: *tsan_fedora_44_amd64_image
+  <<: *unit_test_tsan_job
   before_script:
     - build/named -V > named.version
     - "grep -E '^compiled with libuv version: [0-9]+\\.[0-9]+\\.[0-9]+$' named.version"
     - "grep -E '^linked to libuv version: [0-9]+\\.[0-9]+\\.[0-9]+-dev$' named.version"
   needs:
-    - job: gcc:tumbleweed:libuv-git:amd64
+    - job: gcc:tsan:libuv-git:amd64
       artifacts: true
   rules:
     - *rule_source_other_than_mr
