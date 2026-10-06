@@ -594,8 +594,8 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory) {
 	FILE *fp;
 	isc_result_t result;
-	char filename[NAME_MAX];
-	char tmpname[NAME_MAX];
+	char filename[NAME_MAX + 1];
+	char tmpname[NAME_MAX + 1];
 	char buffer[MAXFIELDSIZE * 2];
 	isc_stdtime_t when;
 	uint32_t value;
