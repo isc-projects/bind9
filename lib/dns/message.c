@@ -822,40 +822,6 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 	return ISC_R_NOTFOUND;
 }
 
-/*
- * Read a name from buffer "source".
- */
-static isc_result_t
-getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg) {
-	isc_buffer_t *scratch;
-	isc_result_t result;
-	unsigned int tries;
-
-	scratch = currentbuffer(msg);
-
-	/*
-	 * First try:  use current buffer.
-	 * Second try:  allocate a new buffer and use that.
-	 */
-	tries = 0;
-	while (tries < 2) {
-		result = dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
-					   scratch);
-
-		if (result == ISC_R_NOSPACE) {
-			tries++;
-
-			newbuffer(msg, SCRATCHPAD_SIZE);
-			scratch = currentbuffer(msg);
-			dns_name_reset(name);
-		} else {
-			return result;
-		}
-	}
-
-	UNREACHABLE();
-}
-
 static isc_result_t
 getrdata(isc_buffer_t *source, dns_message_t *msg, dns_rdataclass_t rdclass,
 	 dns_rdatatype_t rdtype, unsigned int rdatalen, dns_rdata_t *rdata) {
@@ -961,7 +927,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, unsigned int options) {
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(getname(name, source, msg));
+		CHECK(dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
+					NULL));
 
 		ISC_LIST_APPEND(*section, name, link);
 
@@ -1105,7 +1072,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_section_t sectionid,
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(getname(name, source, msg));
+		CHECK(dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
+					NULL));
 
 		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
