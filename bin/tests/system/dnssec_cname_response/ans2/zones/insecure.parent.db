@@ -1,0 +1,13 @@
+$TTL 300
+@       IN SOA ns.insecure.parent. root.insecure.parent. (
+                1          ; serial
+                3600       ; refresh
+                1800       ; retry
+                1814400    ; expire
+                300        ; minimum
+                )
+        IN NS   ns.insecure.parent.
+ns              IN A    10.53.0.2
+cname-target    IN A    192.0.2.1
+@               IN MX   10 mail.insecure.parent.
+mail            IN A    10.53.0.2

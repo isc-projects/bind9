@@ -1617,6 +1617,47 @@ find_coveringnsec(qpc_search_t *search, const dns_name_t *name,
 	return result;
 }
 
+typedef enum answer_rank {
+	ANSWER_MISSING,
+	ANSWER_STALE,
+	ANSWER_OK,
+} answer_rank_t;
+
+static inline bool
+missing_answer(dns_slabheader_t *found, unsigned int options) {
+	if (found == NULL) {
+		return true;
+	}
+
+	dns_trust_t trust = header_trust(found);
+	return (DNS_TRUST_ADDITIONAL(trust) &&
+		(options & DNS_DBFIND_ADDITIONALOK) == 0) ||
+	       (DNS_TRUST_GLUE(trust) && (options & DNS_DBFIND_GLUEOK) == 0) ||
+	       (DNS_TRUST_PENDING(trust) &&
+		(options & DNS_DBFIND_PENDINGOK) == 0);
+}
+
+static inline answer_rank_t
+answer_rank(dns_slabheader_t *header, unsigned int options) {
+	if (missing_answer(header, options)) {
+		return ANSWER_MISSING;
+	}
+
+	if (STALE(header)) {
+		return ANSWER_STALE;
+	}
+
+	return ANSWER_OK;
+}
+
+/* Keep unusable candidates distinguishable from absent data. */
+static inline bool
+better_answer(dns_slabheader_t *header, dns_slabheader_t *current,
+	      unsigned int options) {
+	return current == NULL ||
+	       answer_rank(header, options) > answer_rank(current, options);
+}
+
 static void
 qpc_search_init(qpc_search_t *search, qpcache_t *db, unsigned int options,
 		isc_stdtime_t now) {
@@ -1678,7 +1719,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	dns_slabheader_t *header = NULL;
 	dns_slabheader_t *header_prev = NULL, *header_next = NULL;
-	dns_slabheader_t *found = NULL, *nsheader = NULL;
+	dns_slabheader_t *found = NULL, *nsheader = NULL, *cname = NULL;
 	dns_slabheader_t *foundsig = NULL, *nssig = NULL, *cnamesig = NULL;
 	dns_slabheader_t *update = NULL, *updatesig = NULL;
 	dns_slabheader_t *nsecheader = NULL, *nsecsig = NULL;
@@ -1775,9 +1816,12 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 * (RFC4035, section 2.5 and RFC3007).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
-	 * directly.
+	 * directly. At-parent data shares the cache node with a child's
+	 * apex CNAME but must be looked up independently.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec) {
+	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec ||
+	    dns_rdatatype_atparent(type) || type == dns_rdatatype_any)
+	{
 		cname_ok = false;
 	}
 
@@ -1800,6 +1844,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	nsecheader = NULL;
 	nssig = NULL;
 	nsecsig = NULL;
+	cname = NULL;
 	cnamesig = NULL;
 	empty_node = true;
 	header_prev = NULL;
@@ -1830,26 +1875,10 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 */
 			if (header->type == type ||
 			    (type == dns_rdatatype_any &&
-			     DNS_TYPEPAIR_TYPE(header->type) != 0) ||
-			    (cname_ok && header->type == dns_rdatatype_cname))
+			     DNS_TYPEPAIR_TYPE(header->type) != 0))
 			{
-				/*
-				 * We've found the answer.
-				 */
-				found = header;
-				if (header->type == dns_rdatatype_cname &&
-				    cname_ok)
-				{
-					/*
-					 * If we've already got the
-					 * CNAME RRSIG, use it.
-					 */
-					if (cnamesig != NULL) {
-						foundsig = cnamesig;
-					} else {
-						sigtype = DNS_SIGTYPE(
-							dns_rdatatype_cname);
-					}
+				if (better_answer(header, found, options)) {
+					found = header;
 				}
 			} else if (header->type == sigtype) {
 				/*
@@ -1863,7 +1892,13 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				/*
 				 * We've found a negative cache entry.
 				 */
-				found = header;
+				if (better_answer(header, found, options)) {
+					found = header;
+				}
+			} else if (cname_ok &&
+				   header->type == dns_rdatatype_cname)
+			{
+				cname = header;
 			} else if (header->type == dns_rdatatype_ns) {
 				/*
 				 * Remember a NS rdataset even if we're
@@ -1901,6 +1936,12 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		}
 	}
 
+	/* At equal rank, prefer the requested type. */
+	if (cname != NULL && better_answer(cname, found, options)) {
+		found = cname;
+		foundsig = cnamesig;
+	}
+
 	if (empty_node) {
 		/*
 		 * We have an exact match for the name, but there are no
@@ -1922,14 +1963,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * If we didn't find what we were looking for...
 	 */
-	if (found == NULL ||
-	    (DNS_TRUST_ADDITIONAL(header_trust(found)) &&
-	     ((options & DNS_DBFIND_ADDITIONALOK) == 0)) ||
-	    (header_trust(found) == dns_trust_glue &&
-	     ((options & DNS_DBFIND_GLUEOK) == 0)) ||
-	    (DNS_TRUST_PENDING(header_trust(found)) &&
-	     ((options & DNS_DBFIND_PENDINGOK) == 0)))
-	{
+	if (missing_answer(found, options)) {
 		/*
 		 * Return covering NODATA NSEC record.
 		 */
