@@ -529,6 +529,18 @@ single query.  If your handler's `get_responses()` method contains multiple
 `yield` statements, it might be a sign that it needs to be refactored into
 multiple separate handlers.
 
+A server whose behavior has to change while the test runs is a
+`ControllableAsyncDnsServer`.  It answers TXT queries for names under
+`_control.` by running the `ControlCommand` installed for the subdomain, with
+the labels in front of it as the arguments.  Two commands come with the
+framework, in `isctest/asyncserver/commands.py`:
+`disable.send-responses._control.` makes the `ToggleResponsesCommand` ignore
+every query until `enable.send-responses._control.`, and
+`<key>.switch._control.` makes the `SwitchControlCommand` replace the whole
+handler set with the one registered under `<key>`.  A server may define its
+own: a command may install, uninstall or replace response handlers and returns
+the text of the TXT answer; see `chain/ans4/ans.py` for a practical example.
+
 If multiple `ansN` instances used in a given system test need to share common
 logic, extract that logic into a `<test-name>_ans.py` module in the system test
 directory.  See the `qmin` system test for a practical example.
