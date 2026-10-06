@@ -126,7 +126,7 @@ extern size_t dns_dispatch_tcppipelining;
 extern size_t dns_adb_addrslimit;
 
 static bool want_stats = false;
-static char program_name[NAME_MAX] = "named";
+static char program_name[NAME_MAX + 1] = "named";
 static char absolute_conffile[PATH_MAX];
 static char saved_command_line[4096] = { 0 };
 static char ellipsis[5] = { 0 };

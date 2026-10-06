@@ -1700,7 +1700,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 			isc_result_t result2;
 			isc_buffer_t buf;
 
-			isc_buffer_init(&buf, filename, NAME_MAX);
+			isc_buffer_init(&buf, filename, sizeof(filename));
 			result2 = dst_key_getfilename(
 				dst_key_name(dnskey), dst_key_id(dnskey),
 				dst_key_alg(dnskey),

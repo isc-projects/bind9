@@ -219,7 +219,7 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 		 * could create a new function to convert a name to PKCS#11
 		 * text, but this existing function will suffice.
 		 */
-		char label[NAME_MAX];
+		char label[NAME_MAX + 1];
 		isc_buffer_t buf;
 		isc_buffer_init(&buf, label, sizeof(label));
 		result = buildpkcs11label(uri, origin, policy, flags, &buf);
