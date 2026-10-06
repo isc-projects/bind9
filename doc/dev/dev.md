@@ -1208,8 +1208,7 @@ presentation format, and stores it in a buffer for later printing.
         fromwire[_<class>]_<type>(int rdclass, dns_rdatatype_t type,
                                   isc_buffer_t *source,
                                   dns_decompress_t *dctx,
-                                  unsigned int options,
-                                  isc_buffer_t *target_t);
+                                  isc_buffer_t *target);
 
 "fromwire" copies in a record received in a DNS message.
 It performs sanity checks to ensure that the record conforms to the

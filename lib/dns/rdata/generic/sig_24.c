@@ -267,8 +267,6 @@ fromwire_sig(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	isc_buffer_activeregion(source, &sr);
 	/*
 	 * type covered: 2

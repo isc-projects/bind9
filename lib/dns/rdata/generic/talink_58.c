@@ -90,8 +90,6 @@ fromwire_talink(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	dns_name_init(&prev, NULL);
 	dns_name_init(&next, NULL);
 

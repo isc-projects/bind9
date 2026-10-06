@@ -2349,10 +2349,8 @@ load_raw(dns_loadctx_t *lctx) {
 	int target_size = TSIZ;
 	isc_buffer_t target, buf;
 	unsigned char *target_mem = NULL;
-	dns_decompress_t dctx;
 
 	callbacks = lctx->callbacks;
-	dctx = DNS_DECOMPRESS_NEVER;
 
 	if (lctx->first) {
 		result = load_header(lctx);
@@ -2487,7 +2485,7 @@ load_raw(dns_loadctx_t *lctx) {
 		}
 
 		isc_buffer_setactive(&target, (unsigned int)namelen);
-		result = dns_name_fromwire(name, &target, dctx, NULL);
+		result = dns_name_fromwire(name, &target, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -2575,14 +2573,14 @@ load_raw(dns_loadctx_t *lctx) {
 			/*
 			 * It is safe to have the source active region and
 			 * the target available region be the same if
-			 * decompression is disabled (see dctx above) and we
+			 * decompression is disabled (NULL context) and we
 			 * are not downcasing names (options == 0).
 			 */
 			isc_buffer_init(&buf, isc_buffer_current(&target),
 					(unsigned int)rdlen);
 			result = dns_rdata_fromwire(
 				&rdata[i], rdatalist.rdclass, rdatalist.type,
-				&target, dctx, &buf);
+				&target, NULL, &buf);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

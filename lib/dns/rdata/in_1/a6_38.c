@@ -159,8 +159,6 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	isc_buffer_activeregion(source, &sr);
 	/*
 	 * Prefix length.

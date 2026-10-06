@@ -211,9 +211,49 @@ ISC_RUN_TEST_IMPL(parse_conflicting_singleton) {
 	dns_message_detach(&msg);
 }
 
+/*
+ * Ordinary compressed MX records fill several scratch buffers. Retrying a
+ * name or RDATA in a fresh buffer must only charge its pointers once.
+ */
+ISC_RUN_TEST_IMPL(parse_decompression_retry) {
+	unsigned char wirebuf[4096];
+	isc_buffer_t wire;
+	dns_message_t *msg = NULL;
+	const unsigned int records = 100;
+	isc_result_t result;
+
+	isc_buffer_init(&wire, wirebuf, sizeof(wirebuf));
+	put_header(&wire, records, 0);
+	put_question(&wire, "retry.example.", dns_rdatatype_mx);
+	for (unsigned int i = 0; i < records; i++) {
+		isc_buffer_putuint16(&wire, 0xc000 | DNS_MESSAGE_HEADERLEN);
+		isc_buffer_putuint16(&wire, dns_rdatatype_mx);
+		isc_buffer_putuint16(&wire, dns_rdataclass_in);
+		isc_buffer_putuint32(&wire, TTL);
+		isc_buffer_putuint16(&wire, 4);
+		isc_buffer_putuint16(&wire, i);
+		isc_buffer_putuint16(&wire, 0xc000 | DNS_MESSAGE_HEADERLEN);
+	}
+
+	result = parse(&wire, 0, &msg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(msg->dctx.policy, DNS_DECOMPRESS_ALWAYS);
+	assert_int_equal(dns_decompress_getbudget(&msg->dctx),
+			 4 * isc_buffer_usedlength(&wire) - 2 * records);
+	assert_ptr_not_equal(ISC_LIST_HEAD(msg->scratchpad),
+			     ISC_LIST_TAIL(msg->scratchpad));
+	assert_int_equal(dns_rdataset_count(get_rdataset(
+				 msg, DNS_SECTION_ANSWER, "retry.example.",
+				 dns_rdatatype_mx)),
+			 records);
+
+	dns_message_detach(&msg);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(parse_duplicate_singleton)
 ISC_TEST_ENTRY(parse_conflicting_singleton)
+ISC_TEST_ENTRY(parse_decompression_retry)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
