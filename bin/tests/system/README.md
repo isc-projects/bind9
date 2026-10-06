@@ -578,13 +578,11 @@ To point a resolver at the mock, delegate to it from the test's root zone
 (served by ns1) or list it as a forwarder; `cyclic_glue` shows the
 delegation pattern end to end.
 
-The existing mock servers are the best reference.  To find them, grep for
-what you're about to use:
-`git grep -l isctest.asyncserver -- '*/ans*/ans.py'` lists every python
-mock, and a grep for the matcher (`Domain`, `Qname`, ...), the base class
-(`StaticResponseHandler`, `ConnectionHandler`) or the response
-action (`ResponseDrop`, `BytesResponseSend`, ...) you need usually turns
-up a test already doing something similar.  The full toolbox lives in
+The existing mock servers are the best reference.  A grep for the matcher,
+base class or response action you need (`Qname`, `StaticResponseHandler`,
+`ResponseDrop`, ...), e.g.
+`git grep -l StaticResponseHandler -- '*/ans*/*.py' '*/*_ans.py'`, usually
+turns up a test already doing something similar.  The full toolbox lives in
 `isctest/asyncserver/` (query matching, TCP connection handling, TSIG
 keyrings).
 
