@@ -1809,6 +1809,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	unsigned int cused; /* Bytes of compressed name data used */
 	unsigned int nused, labels, n, nmax;
 	unsigned int current, new_current, biggest_pointer;
+	uint32_t hops = 0, indirects = 0;
 	bool done;
 	fw_state state = fw_start;
 	unsigned int c;
@@ -1820,7 +1821,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	/*
 	 * Copy the possibly-compressed name at source into target,
 	 * decompressing it.  Loop prevention is performed by checking
-	 * the new pointer against biggest_pointer.
+	 * the new pointer against biggest_pointer. Hop and indirection limits
+	 * bound the work per name; the context budget also bounds the work
+	 * shared by all names in a message.
 	 */
 
 	REQUIRE(VALID_NAME(name));
@@ -1890,6 +1893,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		switch (state) {
 		case fw_start:
 			if (c < 64) {
+				indirects = 0;
 				offsets[labels] = nused;
 				labels++;
 				if (nused + c + 1 > nmax)
@@ -1915,6 +1919,11 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				{
 					return (DNS_R_DISALLOWED);
 				}
+				if (hops++ >= DNS_NAME_MAXHOPS ||
+				    dctx->budget == 0)
+				{
+					return (DNS_R_BADPOINTER);
+				}
 				new_current = c & 0x3F;
 				state = fw_newcurrent;
 			} else
@@ -1929,6 +1938,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				state = fw_start;
 			break;
 		case fw_newcurrent:
+			dctx->budget--;
 			new_current *= 256;
 			new_current += c;
 			if (new_current >= biggest_pointer)
@@ -1936,6 +1946,11 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			biggest_pointer = new_current;
 			current = new_current;
 			cdata = (unsigned char *)source->base + current;
+			if (*cdata < 192) {
+				indirects = 0;
+			} else if (++indirects > DNS_NAME_MAXINDIRECTS) {
+				return (DNS_R_BADPOINTER);
+			}
 			seen_pointer = true;
 			state = fw_start;
 			break;
