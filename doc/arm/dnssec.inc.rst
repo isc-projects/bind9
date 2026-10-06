@@ -179,7 +179,7 @@ by configuring parental agents:
     };
 
 Here one server, ``192.0.2.1``, is configured for BIND to send DS queries to,
-to check the DS RRset for ``dnssec-example`` during key rollovers. This needs
+to check the DS RRset for ``dnssec.example`` during key rollovers. This needs
 to be a trusted server, because BIND does not validate the response. The
 ``checkds`` option makes BIND use the explicitly configured parental agents,
 rather than looking them up by querying for the parent NS records.
