@@ -471,7 +471,7 @@ isc_result_t
 dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
 		 const char *directory, isc_mem_t *mctx, dst_key_t **keyp) {
 	isc_result_t result;
-	char filename[NAME_MAX];
+	char filename[NAME_MAX + 1];
 	isc_buffer_t buf;
 	dst_key_t *key;
 
@@ -484,7 +484,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
 
 	key = NULL;
 
-	isc_buffer_init(&buf, filename, NAME_MAX);
+	isc_buffer_init(&buf, filename, sizeof(filename));
 	CHECK(dst_key_getfilename(name, id, alg, type, NULL, mctx, &buf));
 	CHECK(dst_key_fromnamedfile(filename, directory, type, mctx, &key));
 	CHECK(computeid(key));
@@ -1855,8 +1855,8 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
 	isc_buffer_t fileb;
 	isc_buffer_t tmpb;
-	char filename[NAME_MAX];
-	char tmpname[NAME_MAX];
+	char filename[NAME_MAX + 1];
+	char tmpname[NAME_MAX + 1];
 	isc_result_t result;
 
 	REQUIRE(VALID_KEY(key));
@@ -1937,8 +1937,8 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
 	isc_buffer_t keyb, tmpb, textb, fileb, classb;
 	isc_region_t r;
-	char tmpname[NAME_MAX];
-	char filename[NAME_MAX];
+	char tmpname[NAME_MAX + 1];
+	char filename[NAME_MAX + 1];
 	unsigned char key_array[DNS_RDATA_MAXLENGTH];
 	/*
 	 * Big enough for the base64 expansion of the key data with
