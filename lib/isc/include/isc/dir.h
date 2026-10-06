@@ -22,7 +22,7 @@
 #include <isc/result.h>
 
 #ifndef NAME_MAX
-#define NAME_MAX 256
+#define NAME_MAX 255
 #endif
 
 #ifndef PATH_MAX
@@ -31,7 +31,7 @@
 
 /*% Directory Entry */
 typedef struct isc_direntry {
-	char	     name[NAME_MAX];
+	char	     name[NAME_MAX + 1];
 	unsigned int length;
 } isc_direntry_t;
 

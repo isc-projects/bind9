@@ -29,7 +29,7 @@ extern int isc_commandline_option;
 /*% Argument associated with option. */
 extern char *isc_commandline_argument;
 /*% For printing error messages. */
-extern char isc_commandline_progname[NAME_MAX];
+extern char isc_commandline_progname[NAME_MAX + 1];
 /*% Print error message. */
 extern bool isc_commandline_errprint;
 /*% Reset getopt. */

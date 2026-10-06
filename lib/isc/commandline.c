@@ -64,7 +64,7 @@ int isc_commandline_option;
 /*% Argument associated with option. */
 char *isc_commandline_argument;
 /*% For printing error messages. */
-char isc_commandline_progname[NAME_MAX];
+char isc_commandline_progname[NAME_MAX + 1];
 /*% Print error messages. */
 bool isc_commandline_errprint = true;
 /*% Reset processing. */

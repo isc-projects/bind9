@@ -2102,7 +2102,7 @@ static void
 keymgr_purge_keyfile(dst_key_t *key, int type) {
 	isc_result_t result;
 	isc_buffer_t fileb;
-	char filename[NAME_MAX];
+	char filename[NAME_MAX + 1];
 
 	/*
 	 * Make the filename.
