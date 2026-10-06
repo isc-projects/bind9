@@ -1423,3 +1423,21 @@ def test_extra_bad_algorithm():
     res2 = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.same_answer(res1, res2)
     isctest.check.adflag(res2)
+
+
+def test_cd_any(ns4):
+    ns4.rndc("flush")
+    msg = isctest.query.create("a.secure.example", "A")
+    isctest.query.tcp(msg, "10.53.0.4")
+    msg = isctest.query.create("a.secure.example", "AAAA", cd=1)
+    isctest.query.tcp(msg, "10.53.0.4")
+
+    msg = isctest.query.create("a.secure.example", "ANY", cd=1)
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.rr_count_eq(res.answer, 4)
+    isctest.check.noadflag(res)
+
+    msg = isctest.query.create("a.secure.example", "ANY")
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.rr_count_eq(res.answer, 2)
+    isctest.check.adflag(res)
