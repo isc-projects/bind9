@@ -212,6 +212,8 @@ if $test_fixed; then
 else
   grep "rrset-order: order 'fixed' was disabled at compilation time" <checkconf.out$n.1 >/dev/null || ret=1
 fi
+grep "option 'nxdomain-redirect' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
+grep "type 'redirect' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 # set -i to ignore deprecate warnings

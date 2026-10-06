@@ -2240,7 +2240,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "nosit-udp-size", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "nta-lifetime", &cfg_type_duration, 0 },
 	{ "nta-recheck", &cfg_type_duration, 0 },
-	{ "nxdomain-redirect", &cfg_type_astring, 0 },
+	{ "nxdomain-redirect", &cfg_type_astring, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },

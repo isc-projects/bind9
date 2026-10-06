@@ -3466,6 +3466,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (strcasecmp(typestr, "hint") == 0) {
 			ztype = CFG_ZONE_HINT;
 		} else if (strcasecmp(typestr, "redirect") == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "zone '%s': type 'redirect' is deprecated",
+				    znamestr);
 			ztype = CFG_ZONE_REDIRECT;
 		} else {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,

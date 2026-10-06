@@ -68,21 +68,6 @@ for the best match when a query is received. Instead, zones in this DLZ
 must be separately specified in a zone statement. This allows users to
 configure a zone normally using standard zone-option semantics, but
 specify a different database backend for storage of the zone's data.
-For example, to implement NXDOMAIN redirection using a DLZ module for
-backend storage of redirection rules:
-
-::
-
-       dlz other {
-              database "dlopen driver.so args";
-              search no;
-       };
-
-       zone "." {
-              type redirect;
-              dlz other;
-       };
-
 
 Sample DLZ Module
 ~~~~~~~~~~~~~~~~~
