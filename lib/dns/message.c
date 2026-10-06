@@ -130,6 +130,21 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 #define RDATASET_FREEMAX   8 * RDATASET_FILLCOUNT
 
 /*%
+ * How many compression pointers one message may make us follow, per byte
+ * of that message.
+ *
+ * A per-name limit does not bound this on its own: thousands of names can
+ * each stay well inside it while all pointing into one shared chain. The
+ * budget scales with the message rather than being fixed, so that the
+ * messages which legitimately carry very many names - UPDATE, AXFR and
+ * IXFR - are accommodated by construction, since they use about one
+ * pointer per name and the message length already bounds how many names
+ * they can hold. Real traffic stays far below one follow per byte; the
+ * packets in our own test suite peak at a tenth of that.
+ */
+#define DNS_MESSAGE_MAXHOPSPERBYTE 4
+
+/*%
  * Text representation of the different items, for message_totext
  * functions.
  */
@@ -829,6 +844,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_rdataclass_t rdclass,
 	isc_result_t result;
 	unsigned int tries;
 	unsigned int trysize;
+	uint32_t budget = dns_decompress_getbudget(&msg->dctx);
 
 	scratch = currentbuffer(msg);
 
@@ -846,9 +862,10 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_rdataclass_t rdclass,
 	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype, source,
-					    DNS_DECOMPRESS_DEFAULT, scratch);
+					    &msg->dctx, scratch);
 
 		if (result == ISC_R_NOSPACE) {
+			dns_decompress_setbudget(&msg->dctx, budget);
 			if (tries == 0) {
 				trysize = 2 * rdatalen;
 				if (trysize < SCRATCHPAD_SIZE) {
@@ -927,8 +944,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, unsigned int options) {
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
-					NULL));
+		dns_decompress_setpermitted(&msg->dctx, true);
+		CHECK(dns_name_fromwire(name, source, &msg->dctx, NULL));
 
 		ISC_LIST_APPEND(*section, name, link);
 
@@ -1072,8 +1089,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_section_t sectionid,
 		 */
 		isc_buffer_remainingregion(source, &r);
 		isc_buffer_setactive(source, r.length);
-		CHECK(dns_name_fromwire(name, source, DNS_DECOMPRESS_ALWAYS,
-					NULL));
+		dns_decompress_setpermitted(&msg->dctx, true);
+		CHECK(dns_name_fromwire(name, source, &msg->dctx, NULL));
 
 		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
@@ -1595,6 +1612,11 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	msg->header_ok = 1;
 	msg->state = DNS_SECTION_QUESTION;
+
+	msg->dctx = DNS_DECOMPRESS_INITIALIZER;
+	dns_decompress_setbudget(&msg->dctx,
+				 DNS_MESSAGE_MAXHOPSPERBYTE *
+					 isc_buffer_usedlength(&origsource));
 
 	bool strict_parse = ((options & DNS_MESSAGEPARSE_BESTEFFORT) == 0);
 	isc_result_t early_check_ret = early_sanity_check(msg);
@@ -3435,7 +3457,7 @@ render_nameopt(isc_buffer_t *optbuf, bool yaml, isc_buffer_t *target) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
 
-	result = dns_name_fromwire(name, optbuf, DNS_DECOMPRESS_NEVER, NULL);
+	result = dns_name_fromwire(name, optbuf, NULL, NULL);
 	if (result == ISC_R_SUCCESS && isc_buffer_activelength(optbuf) == 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		ADD_STRING(target, " \"");

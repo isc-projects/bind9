@@ -288,6 +288,13 @@ struct dns_message {
 	unsigned int sig_reserved;
 	unsigned int reserved; /* reserved space (render) */
 
+	/*
+	 * Compression pointers this message may still make us follow while
+	 * it is being parsed, shared by every name in it. See
+	 * DNS_MESSAGE_MAXHOPSPERBYTE.
+	 */
+	dns_decompress_t dctx;
+
 	uint16_t     padding;
 	unsigned int padding_off;
 

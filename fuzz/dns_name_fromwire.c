@@ -43,6 +43,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_name_t *old_name = dns_fixedname_initname(&old_fixed);
 	isc_buffer_t new_buf;
 	isc_buffer_t old_buf;
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
 
 	/*
 	 * Output buffers may be partially used or undersized.
@@ -68,15 +71,15 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_add(&new_buf, size);
 	isc_buffer_setactive(&new_buf, size);
 	isc_buffer_forward(&new_buf, size / 2);
-	new_result = dns_name_fromwire(new_name, &new_buf,
-				       DNS_DECOMPRESS_PERMITTED, NULL);
+	dns_decompress_setbudget(&dctx, UINT32_MAX);
+	new_result = dns_name_fromwire(new_name, &new_buf, &dctx, NULL);
 
 	isc_buffer_constinit(&old_buf, data, size);
 	isc_buffer_add(&old_buf, size);
 	isc_buffer_setactive(&old_buf, size);
 	isc_buffer_forward(&old_buf, size / 2);
-	old_result = old_name_fromwire(old_name, &old_buf,
-				       DNS_DECOMPRESS_PERMITTED, 0, NULL);
+	dns_decompress_setbudget(&dctx, UINT32_MAX);
+	old_result = old_name_fromwire(old_name, &old_buf, &dctx, 0, NULL);
 
 	REQUIRE(new_result == old_result);
 	REQUIRE(dns_name_equal(new_name, old_name));

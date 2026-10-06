@@ -2409,8 +2409,7 @@ load_raw(dns_loadctx_t *lctx) {
 				     &totallen));
 
 		isc_buffer_setactive(&target, (unsigned int)namelen);
-		CHECK(dns_name_fromwire(name, &target, DNS_DECOMPRESS_NEVER,
-					NULL));
+		CHECK(dns_name_fromwire(name, &target, NULL, NULL));
 
 		if ((lctx->options & DNS_MASTER_CHECKTTL) != 0 &&
 		    rdatalist.ttl > lctx->maxttl)
@@ -2490,8 +2489,8 @@ load_raw(dns_loadctx_t *lctx) {
 			isc_buffer_init(&buf, isc_buffer_current(&target),
 					(unsigned int)rdlen);
 			CHECK(dns_rdata_fromwire(&rdata[i], rdatalist.rdclass,
-						 rdatalist.type, &target,
-						 DNS_DECOMPRESS_NEVER, &buf));
+						 rdatalist.type, &target, NULL,
+						 &buf));
 			ISC_LIST_APPEND(rdatalist.rdata, &rdata[i], link);
 		}
 

@@ -2005,8 +2005,8 @@ read_one_rr(dns_journal_t *j) {
 	 */
 	isc_buffer_setactive(&j->it.source,
 			     j->it.source.used - j->it.source.current);
-	CHECK(dns_name_fromwire(&j->it.name, &j->it.source,
-				DNS_DECOMPRESS_NEVER, &j->it.target));
+	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, NULL,
+				&j->it.target));
 
 	/*
 	 * Check that the RR header is there, and parse it.
@@ -2038,7 +2038,7 @@ read_one_rr(dns_journal_t *j) {
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass, rdtype, &j->it.source,
-				 DNS_DECOMPRESS_NEVER, &j->it.target));
+				 NULL, &j->it.target));
 	j->it.ttl = ttl;
 
 	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;

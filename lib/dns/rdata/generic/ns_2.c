@@ -82,7 +82,7 @@ fromwire_ns(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, true);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&name);
 	return dns_name_fromwire(&name, source, dctx, target);
