@@ -495,10 +495,14 @@ if __name__ == "__main__":
 
 The available response actions are `DnsResponseSend` (optionally with a
 `delay`), `ResponseDrop` (don't answer at all), `BytesResponseSend` (raw
-bytes, for malformed packets) and `CloseConnection` (TCP).  Queries that no
-handler matches are answered from zone data — `AsyncDnsServer` loads every
-`*.db` zone file found in the `ansN/zones/` directory at startup — or with the
-server's default rcode (REFUSED unless configured otherwise).
+bytes, for malformed packets) and `CloseConnection` (TCP).  The zone-data
+response is prepared *before* the handlers run: it is what a handler finds in
+`qctx.response`, and it is what is sent when no handler matches.  For names
+outside the server's zones, as in the example above, which has no zone
+files, it is a stub carrying only the server's default rcode (REFUSED unless
+configured otherwise).  `qctx.prepare_new_response(with_zone_data=False)`
+replaces the prepared answer with that stub; `with_zone_data=True` restores
+it.
 
 **NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
 strongly recommended instead of implementing the `get_responses()` generator
