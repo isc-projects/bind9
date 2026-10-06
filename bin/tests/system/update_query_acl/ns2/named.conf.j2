@@ -1,0 +1,36 @@
+// NS2
+
+options {
+	{% include_indented "_common/options/sources.conf.j2" %}
+	{% include_indented "_common/options/server.conf.j2" %}
+	listen-on { @ns.ip@; 127.0.0.1; };
+	listen-on-v6 { none; };
+	recursion no;
+	dnssec-validation no;
+};
+
+{% include "_common/controls.conf.j2" %}
+
+key "update.key" {
+	algorithm hmac-sha256;
+	secret "1234abcd8765";
+};
+
+// Anyone may query these zones, but only via the loopback address;
+// only "update.key" may update them.
+zone "inline" {
+	type primary;
+	file "zones/inline.db";
+	inline-signing yes;
+	dnssec-policy default;
+	checkds no;
+	allow-query-on { 127.0.0.1; };
+	update-policy { grant update.key zonesub any; };
+};
+
+zone "plain" {
+	type primary;
+	file "zones/plain.db";
+	allow-query-on { 127.0.0.1; };
+	update-policy { grant update.key zonesub any; };
+};
