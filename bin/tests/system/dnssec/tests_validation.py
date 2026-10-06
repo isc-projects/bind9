@@ -106,3 +106,21 @@ def test_ds_keytag_flood_ignores_unsupported_ds():
     res = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.noerror(res)
     isctest.check.adflag(res)
+
+
+def test_cd_any(ns4):
+    ns4.rndc("flush")
+    msg = isctest.query.create("a.secure.example", "A")
+    isctest.query.tcp(msg, "10.53.0.4")
+    msg = isctest.query.create("a.secure.example", "AAAA", cd=1)
+    isctest.query.tcp(msg, "10.53.0.4")
+
+    msg = isctest.query.create("a.secure.example", "ANY", cd=1)
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.rr_count_eq(res.answer, 4)
+    isctest.check.noadflag(res)
+
+    msg = isctest.query.create("a.secure.example", "ANY")
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.rr_count_eq(res.answer, 2)
+    isctest.check.adflag(res)

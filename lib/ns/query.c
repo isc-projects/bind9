@@ -7806,6 +7806,11 @@ query_respond_any(query_ctx_t *qctx) {
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip rdataset");
 			dns_rdataset_disassociate(qctx->rdataset);
+		} else if (!qctx->is_zone &&
+			   DNS_TRUST_PENDING(qctx->rdataset->trust) &&
+			   !PENDINGOK(qctx->client->query.dboptions))
+		{
+			dns_rdataset_disassociate(qctx->rdataset);
 		} else if ((qctx->qtype == dns_rdatatype_any ||
 			    qctx->rdataset->type == qctx->qtype) &&
 			   qctx->rdataset->type != 0)
