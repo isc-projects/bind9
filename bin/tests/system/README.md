@@ -623,13 +623,17 @@ By default, `named` server is started with the following options:
 
 -D <name>       The "-D" option sets a string used to identify the
                 nameserver in a process listing.  In this case, the string
-                is the name of the subdirectory.
+                is the test and subdirectory names, e.g. "dns64-ns1".
 
 -g              Runs the server in the foreground and logs everything to
                 stderr.
 
 -m record
                 Turns on these memory usage debugging flags.
+
+-T maxcachesize=2097152
+                Sets "max-cache-size" to 2 MB, overriding any value in
+                named.conf, to keep the memory of a test run small.
 ```
 
 All output is sent to a file called `named.run` in the nameserver directory.
