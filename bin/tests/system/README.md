@@ -93,7 +93,9 @@ running the command
 sh ifconfig.sh up
 ```
 
-as root.  The interfaces can be removed by executing the command:
+as root (the script is generated from `ifconfig.sh.in` by the build, so it
+only exists once the source tree has been configured and built).  The
+interfaces can be removed by executing the command:
 
 ```sh
 sh ifconfig.sh down
@@ -718,9 +720,9 @@ complex solution.
 
 ### Compatibility with older pytest version
 
-The minimum supported versions of python and the required python packages are
-declared in [requirements.txt](requirements.txt) and in the
-`pytest_configure()` check in `conftest.py`.  When implementing new runner
+The minimum supported versions of the required python packages are declared
+in [requirements.txt](requirements.txt), and the minimum python version in
+the `pytest_configure()` check in `conftest.py`.  When implementing new runner
 features, check feature support in the pytest and pytest-xdist versions
 available in the oldest distributions covered by CI first; we may need to add
 compat code to handle breaking upstream changes in either direction.
