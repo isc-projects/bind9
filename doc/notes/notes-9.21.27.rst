@@ -15,222 +15,235 @@ Notes for BIND 9.21.27
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- [CVE-2026-19630] Crafted DNS messages could exhaust CPU while being
-  parsed.
+- Prevent exhaustion of CPU while parsing crafted DNS messages.
+  :cve:`2026-19630`
 
-  A crafted message could make named spend a disproportionate amount of
-  time expanding compressed names in it, letting a client saturate all
-  worker threads with very little traffic and time out legitimate
-  queries. named now bounds how much name expansion a single message can
-  require and answers FORMERR when that bound is exceeded; ordinary
-  traffic, including zone transfers and dynamic updates, stays well
-  inside it. :gl:`#5932`
+  A crafted message could make :iscman:`named` spend a disproportionate
+  amount of time expanding compressed names in it, letting a client
+  saturate all worker threads with very little traffic and time out
+  legitimate queries. The amount of name expansion a single message can
+  require is now bounded, and :iscman:`named` answers FORMERR when that
+  bound is exceeded; ordinary traffic, including zone transfers and
+  dynamic updates, stays well within it. :gl:`#5932`
 
-- [CVE-2026-94300] Fix remote termination of named under concurrent
-  GSS-TSIG traffic.
+- Prevent concurrent GSS-TSIG traffic from terminating :iscman:`named`.
+  :cve:`2026-94300`
 
   A GSS-TSIG session negotiated through TKEY is shared by every message
-  signed or verified with that key, and named did not serialize access
-  to it, so concurrent signed messages could corrupt Kerberos-owned
-  state and terminate named unexpectedly. :gl:`#6320`
+  signed or verified with that key; previously, :iscman:`named` did not
+  serialize access to it, so concurrent signed messages could corrupt
+  Kerberos-owned state and terminate :iscman:`named` unexpectedly.
+  Access to the shared session is now serialized.
 
-- [CVE-2026-96888] Possible crash with redirect and qname-minimization
-  strict.
+  ISC would like to thank Dave Aitel from OpenAI who independently
+  discovered and responsibly reported the issue to ISC. :gl:`#6320`
 
-  Processing an NXDOMAIN response with a redirect zone could cause
-  `named` to crash if `qname-minimization` was set to `strict`.
-  :gl:`#6386`
+- Fix a crash with redirect zones and strict QNAME minimization.
+  :cve:`2026-96888`
 
-- [CVE-2026-97313] Fix a bug when resuming from a query initiated by
-  RPZ.
+  Processing an NXDOMAIN response with a redirect zone configured could
+  cause :iscman:`named` to crash if :any:`qname-minimization` was set to
+  ``strict``. This has been fixed.
 
-  The :iscman:`named` process could terminate unexpectedly when resuming
-  from a query initiated by RPZ processing. This has been fixed.
+  ISC would like to thank Vitaly Simonovich for bringing this
+  vulnerability to our attention. :gl:`#6386`
 
-  ISC would like to thank `whisperer` for reporting the issue.
-  :gl:`#6408`
+- Fix a crash when resuming from a query initiated by RPZ.
+  :cve:`2026-97313`
+
+  The :iscman:`named` process could terminate unexpectedly when
+  resuming from a query initiated by RPZ processing. This has been
+  fixed.
+
+  ISC would like to thank Vitaly Simonovich for bringing this
+  vulnerability to our attention. :gl:`#6408`
 
 New Features
 ~~~~~~~~~~~~
 
 - Add NXNAME to the known type mnemonics.
 
-  Type `NXNAME` is used by servers returning Compact Denial of Existence
-  in DNSSEC (RFC 9824) answers.  Such answers will now be displayed
-  using the `NXNAME` mnemonic instead of `TYPE128`. :gl:`#5721`
+  Type NXNAME is used by servers returning Compact Denial of Existence
+  in DNSSEC (:rfc:`9824`) answers. Such answers are now displayed using
+  the NXNAME mnemonic instead of TYPE128. :gl:`#5721`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
 - Reject DNS messages that repeat a SOA, CNAME, or DNAME record.
 
-  A DNS message could carry the same SOA, CNAME, or DNAME record many
-  times and named kept every copy while parsing it; with name
-  compression those copies took up far more memory internally than in
-  the message itself, and every later processing step had to handle all
-  of them. named now treats a message that repeats such a record as
-  malformed, whether or not the copies are identical, so responses from
-  a server that sends duplicate singleton records are rejected instead
-  of being accepted as before. :gl:`#6335`
+  Previously, :iscman:`named` discarded identical copies of a SOA,
+  CNAME, or DNAME record repeated within a DNS message. Such a message
+  is now treated as malformed regardless of whether the copies are
+  identical, so responses from servers that send duplicate singleton
+  records are rejected. :gl:`#6335`
 
 - Reject compressed names in record types that forbid compression.
 
-  named used to accept compressed domain names inside any type of DNS
-  record, but RFC 3597 permits compression only in the types defined in
-  RFC 1035 and in a few older types such as SRV and NAPTR. named now
-  rejects as malformed any DNS message that compresses a name in another
-  record type, for example the signer name in an RRSIG record.
+  Previously, :iscman:`named` accepted compressed domain names inside
+  any type of DNS record, but :rfc:`3597` permits compression only in
+  the types defined in :rfc:`1035` and in a few older types such as SRV
+  and NAPTR. Any DNS message that compresses a name in another record
+  type, for example the signer name in an RRSIG record, is now rejected
+  as malformed. :gl:`!12854`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Remove spurious named/named-checkconf warning.
+- Remove a spurious root trust anchor warning and recognize the new
+  root key.
 
-  "static entry for the root zone WILL FAIL after key rollover - use
-  trust-anchors with initial-key or initial-ds instead" only makes sense
-  when you are using ICANN root keys as they use RFC 5011 for DNSKEY
-  management.  Don't log it in other circumstances. :gl:`#5572`
+  The ``static entry for the root zone WILL FAIL after key rollover``
+  warning only makes sense for the IANA root keys, which are rolled over
+  using :rfc:`5011`; :iscman:`named` and :iscman:`named-checkconf` no
+  longer log it for other static root trust anchors. Both now also warn
+  when the configured root :any:`trust-anchors` include an older IANA
+  root key but not the new one (ID 38696). :gl:`#5572`
 
-- Don't accept HMAC-based keys and signatures for SIG(0) or DNSSEC.
+- Do not accept HMAC keys and signatures for SIG(0) or DNSSEC.
 
-  Due to an oversight HMAC keys could be accepted for SIG(0) and DNSSEC
-  purposes.  This has been fixed. :gl:`#6086`
+  Due to an oversight, keys and signatures using HMAC algorithms, which
+  are only meant for TSIG, could be accepted for SIG(0) and DNSSEC
+  purposes. This has been fixed. :gl:`#6086`
 
-- Fix DNSSEC tool dates read one hour late during daylight saving time.
+- Fix DNSSEC tool dates being read one hour late during Daylight Saving
+  Time.
 
   When a key timing value was passed to the DNSSEC tools in the format
-  that dnssec-settime -p prints (for example Wed Jul  1 12:00:00 2026),
-  it was read as standard time. While daylight saving time was in
-  effect, the resulting time was one hour late. These values are now
-  read in the correct local time. :gl:`#6089`
+  printed by :option:`dnssec-settime -p` (for example,
+  ``Wed Jul  1 12:00:00 2026``), it was read as standard time. While
+  Daylight Saving Time was in effect, the resulting time was one hour
+  late. These values are now read in the correct local time.
+  :gl:`#6089`
 
-- Enforce non empty URI target field in URI record.
+- Reject URI records with an empty target.
 
-  RFC 7553 requires that the URI target field MUST NOT be an empty URI
-  ("").  This is now enforced by the from text and from wire methods.
-  :gl:`#6134`
+  :rfc:`7553` requires that the target field of a URI record not be
+  empty. Such records were accepted, but are now rejected both in zone
+  files and in DNS messages. :gl:`#6134`
 
-- Fix a space calculation bug when loading a zone in "RAW" format.
+- Fix a crash when loading a zone in ``raw`` format.
 
-  When loading a specially crafted zone file in "RAW" format, the
-  :iscman:`named` process could terminate unexpectedly. This has been
-  fixed. :gl:`#6141`
+  When loading a specially crafted zone file in ``raw`` format
+  (:any:`masterfile-format`), the :iscman:`named` process could
+  terminate unexpectedly. This has been fixed. :gl:`#6141`
 
-- Fix isc_time_formatISO8601TZms writes past short caller buffers.
+- Fix :option:`rndc signing -list <rndc signing>` output for private
+  algorithms.
 
-  The function isc_time_formatiso8601tzms was incorrectly documented and
-  if the passed in buffer was exactly 29 bytes long there was a 1 byte
-  buffer write overrun.  This has been fixed.  :gl:`#6199`
+  :option:`rndc signing -list <rndc signing>` printed the wrong
+  algorithm name for keys using private algorithms. This has been
+  fixed. :gl:`#6206`
 
-- Rndc signing returned the wrong name for private algorithms.
+- Prevent dynamic update prerequisites from probing zones that refuse
+  queries.
 
-  The wrong function was called when converting the algorithm number to
-  a names for "rndc signing". This has been fixed. :gl:`#6206`
-
-- Dynamic update prerequisites could probe zones that refuse queries.
-
-  Dynamic update prerequisites did not honor `allow-query-on`, nor
-  `allow-query` for inline-signed zones, so clients that were refused
-  queries could use them to learn whether records exist in the zone.
-  These ACLs are now enforced for dynamic updates. :gl:`#6216`
+  Dynamic update prerequisites did not honor :any:`allow-query-on`, nor
+  :any:`allow-query` for inline-signed zones, so clients that were
+  refused queries could use them to learn whether records existed in the
+  zone. These ACLs are now enforced for dynamic updates. :gl:`#6216`
   :gl:`#6217`
 
-- Named-journalprint -x could dereference a NULL pointer.
+- Fix a :iscman:`named-journalprint` crash when using the ``-x``
+  option.
 
-  When a journal is built without an index table, named-journalprint
-  could dereference a NULL pointer when printing extended diagnostics
-  (-x). This has been fixed. :gl:`#6238`
+  When a journal file had no index table, :iscman:`named-journalprint`
+  could crash while printing extended diagnostics with ``-x``. This has
+  been fixed. :gl:`#6238`
 
-- Initialise dstip in notify_send_toaddr and checkds_send_toaddr.
+- Honor :namedconf:ref:`server` settings for keyed NOTIFY and DS
+  queries.
 
-  The dstip structure was not initialised on all paths before it was
-  used in notify_send_toaddr and checkds_send_toaddr.  This could cause
-  server clauses to be ineffective. This has been fixed. :gl:`#6239`
+  When :iscman:`named` sent a NOTIFY message, or a DS query to a
+  parental agent, to a server listed with an explicit TSIG key,
+  settings from the matching :namedconf:ref:`server` statement, such as
+  :any:`notify-source` or :any:`tcp-only`, could be ignored. This has
+  been fixed. :gl:`#6239`
 
 - Fix a catalog zone update bug.
 
-  During a catalog zone update with an unusual case when a new member
-  zone appeared in the new version of the catalog zone under the same
-  label as used for another member in the old version of the catalog
-  zone, the old member zone could remain in the view and be
-  authoritatively served until :iscman:`named` was reloaded or
-  restarted. This has been fixed. :gl:`#6305`
+  When a catalog zone update reused the label of an existing member zone
+  for a different member zone, the old member zone could remain in the
+  view and be served authoritatively until :iscman:`named` was reloaded
+  or restarted. This has been fixed. :gl:`#6305`
 
-- Dig +dns64prefix could process non-IN AAAA records.
+- Fix an out-of-bounds read in :option:`dig +dns64prefix`.
 
-  dig +dns64prefix could process non-IN AAAA records if there was a
-  hostile resolver resulting in an out of bounds read. This has been
-  fixed. :gl:`#6312`
+  When a hostile resolver returned AAAA records of a class other than
+  IN, :option:`dig +dns64prefix` could process them and read out of
+  bounds. This has been fixed. :gl:`#6312`
 
 - Prevent excessive RRL table scans under load.
 
-  Bound RRL entry recycling to prevent large tables from delaying other
-  responses. :gl:`#6351`
+  When response rate limiting (:any:`rate-limit`) was in use, recycling
+  entries in a large RRL table could require scanning much of the table
+  while holding a lock, delaying other responses. The amount of work
+  done to recycle entries is now bounded. :gl:`#6351`
 
-- Fix a crash when receiving an answer with a referra from a `forward
-  only` forwarder.
+- Fix a crash when a forwarder answers with a referral.
 
-  The resolver could crash when a forwarder configured with `forward
-  only` answered a query with a referral. This is now fixed. :gl:`#6373`
+  The resolver could crash when a forwarder used with ``forward only;``
+  answered a query with a referral. This has been fixed. :gl:`#6373`
 
-- Named-checkconf exits without returning a error with a bad command
-  line.
+- Make :iscman:`named-checkconf` fail on invalid command-line
+  arguments.
 
-  Named-checkconf was exiting with a 0 exit status when there was a bad
-  command line argument.  This meant that `named-checkconf $ARGS &&
-  reload` could call reload when $ARGS was bad.  This has been fixed.
+  Previously, :iscman:`named-checkconf` exited with status 0 when given
+  an invalid command-line argument, so a command such as
+  ``named-checkconf $ARGS && rndc reload`` could reload the server even
+  when ``$ARGS`` was invalid. It now exits with a non-zero status.
   :gl:`#6400`
 
-- Unlink the temporary file on rename failure in
-  masterdump.c:closeandrename.
+- Remove the temporary file when saving a zone file fails.
 
-  If the rename fails in masterdump.c:closeandrename there is no useful
-  purpose keeping the temporary file. We already remove it on other
-  error conditions in that function. :gl:`#6405`
+  When writing a zone file failed at the final rename step, the
+  temporary file was left behind. It is now removed, as it already was
+  on other errors. :gl:`#6405`
 
-- Statistics channel serves data on unregistered URL prefixes.
+- Prevent the statistics channel from serving data on unregistered URL
+  prefixes.
 
-  The code to match the requested URL with the URLs named serves wasn't
-  correct.  Truncated request URLs where being matched when they
-  shouldn't have been.  This has been fixed.  :gl:`#6415`
+  The :any:`statistics-channels` HTTP server also matched request paths
+  that were only a prefix of a URL it served, so it returned data for
+  URLs that it should have rejected. This has been fixed. :gl:`#6415`
 
-- Fix a crash on OpenBSD when a signal reaches an idle worker thread.
+- Fix a crash on OpenBSD when a signal reached an idle worker thread.
 
-  On OpenBSD, a signal delivered to named while one of its worker
-  threads was idle could make the server abort with a fatal "Operation
-  canceled" error, because OpenBSD reports such an interrupted wait
-  differently from Linux and the other supported systems. The wait is
-  now resumed after the signal, as it already was elsewhere. :gl:`#6427`
+  On OpenBSD, a signal delivered to :iscman:`named` while one of its
+  worker threads was idle could make the server abort with a fatal
+  "Operation canceled" error, because OpenBSD reports such an
+  interrupted wait differently from Linux and the other supported
+  systems. The wait is now resumed after the signal, as it already was
+  elsewhere. :gl:`#6427`
 
-- BIND erroneously used SOA for NOTIFY(CDS)
+- Use the CDS type in NOTIFY(CDS) messages.
 
-  When notifying the end point of a DSYNC record, BIND was still using
-  SOA as the type instead of CDS. This has been fixed. :gl:`#6433`
+  When sending generalized DNS notifications (:any:`notify-cfg`) to the
+  endpoint listed in a parent zone's DSYNC record, :iscman:`named` set
+  the type to SOA instead of CDS. This has been fixed. :gl:`#6433`
 
 - Resolve names in insecure zones whose apex answers with a CNAME.
 
   A validating resolver returned SERVFAIL for names in an unsigned zone
   whose apex answers with a CNAME, because the validator refused to look
-  up the DS proof that shows the zone is insecure. That lookup is now
-  allowed, and the cache keeps a CNAME next to other records at the same
-  name (including the parent's delegation data) instead of deleting one
-  for the other, choosing the fresher record at lookup time; this
-  supersedes the earlier fix for stale answers after a record changes to
-  or from a CNAME. :gl:`#6435`
+  up the DS proof showing that the zone was insecure. That lookup is now
+  allowed. The cache now also keeps a CNAME alongside other records at
+  the same name, including the parent's delegation data, instead of
+  replacing one with the other, and chooses the fresher record at lookup
+  time. :gl:`#6435`
 
-- GSS-TSIG keys now last as long as the negotiated context.
+- Set GSS-TSIG keys to last as long as the negotiated context.
 
-  When GSS-TSIG is in use, the TSIG key that named derives from a
-  completed TKEY negotiation always expired after at most one hour, even
-  when the negotiated security context was valid for far longer, so
-  clients had to repeat the TKEY exchange every hour to keep sending
-  dynamic updates. named now keeps such a key for as long as that
-  context remains valid, and applies the one-hour limit only when its
-  lifetime cannot be determined.
+  When GSS-TSIG was in use, the TSIG key that :iscman:`named` derived
+  from a completed TKEY negotiation always expired after at most one
+  hour, even when the negotiated security context was valid for far
+  longer, so clients had to repeat the TKEY exchange every hour to keep
+  sending dynamic updates. Such keys are now kept for as long as the
+  negotiated context remains valid; the one-hour limit only applies
+  when the context lifetime cannot be determined. :gl:`!12749`
 
-- Memory leak when answering ANY queries for a wildcard name.
+- Fix a memory leak when answering ANY queries for wildcard names.
 
-  Answering an ANY query with DNSSEC requested, for a name matched by a
-  wildcard, leaked memory. This regression was introduced in 9.21.25.
-
-
+  Since 9.21.25, :iscman:`named` leaked memory when it answered an ANY
+  query with DNSSEC records requested for a name matched by a wildcard.
+  This has been fixed. :gl:`!12812`
