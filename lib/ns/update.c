@@ -317,37 +317,52 @@ inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
  * log a error otherwise we log a informational message.
  */
 static isc_result_t
-checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
-	      dns_acl_t *updateacl, dns_ssutable_t *ssutable) {
+checkqueryacl(ns_client_t *client, dns_name_t *zonename, dns_acl_t *queryacl,
+	      dns_acl_t *queryonacl, dns_acl_t *updateacl,
+	      dns_ssutable_t *ssutable) {
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	bool update_possible =
 		((updateacl != NULL && !dns_acl_isnone(updateacl)) ||
 		 ssutable != NULL);
+	int level = update_possible ? ISC_LOG_ERROR : ISC_LOG_INFO;
 
-	result = ns_client_checkaclsilent(client, NULL, queryacl, true);
-	if (result != ISC_R_SUCCESS) {
-		int level = update_possible ? ISC_LOG_ERROR : ISC_LOG_INFO;
-
+	if (isc_log_wouldlog(ns_lctx, level)) {
 		dns_name_format(zonename, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(client->view->rdclass, classbuf,
 				      sizeof(classbuf));
+	}
 
+	result = ns_client_checkaclsilent(client, NULL, queryacl, true);
+	if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
 			      NS_LOGMODULE_UPDATE, level,
 			      "update '%s/%s' denied due to allow-query",
 			      namebuf, classbuf);
-	} else if (!update_possible) {
-		dns_name_format(zonename, namebuf, sizeof(namebuf));
-		dns_rdataclass_format(client->view->rdclass, classbuf,
-				      sizeof(classbuf));
+		dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
+		return result;
+	}
 
+	result = ns_client_checkaclsilent(client, &client->destaddr, queryonacl,
+					  true);
+	if (result != ISC_R_SUCCESS) {
+		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
+			      NS_LOGMODULE_UPDATE, level,
+			      "update '%s/%s' denied due to allow-query-on",
+			      namebuf, classbuf);
+		dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
+		return result;
+	}
+
+	if (!update_possible) {
 		result = DNS_R_REFUSED;
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
 			      NS_LOGMODULE_UPDATE, ISC_LOG_INFO,
 			      "update '%s/%s' denied", namebuf, classbuf);
+		dns_ede_add(&client->edectx, DNS_EDE_PROHIBITED, NULL);
 	}
+
 	return result;
 }
 
@@ -1688,8 +1703,9 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 	 * so check that we are allowed to query this zone.  Additionally,
 	 * if we would refuse all updates for this zone, we bail out here.
 	 */
-	CHECK(checkqueryacl(client, dns_zone_getqueryacl(zone),
-			    dns_zone_getorigin(zone),
+	CHECK(checkqueryacl(client, dns_zone_getorigin(zone),
+			    dns_zone_getqueryacl(zone),
+			    dns_zone_getqueryonacl(zone),
 			    dns_zone_getupdateacl(zone), ssutable));
 
 	/*

@@ -15783,6 +15783,13 @@ dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->notify_acl);
 	}
 	dns_acl_attach(acl, &zone->notify_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->notify_acl != NULL) {
+			dns_acl_detach(&zone->raw->notify_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->notify_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15795,6 +15802,13 @@ dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->query_acl);
 	}
 	dns_acl_attach(acl, &zone->query_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->query_acl != NULL) {
+			dns_acl_detach(&zone->raw->query_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->query_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15807,6 +15821,13 @@ dns_zone_setqueryonacl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->queryon_acl);
 	}
 	dns_acl_attach(acl, &zone->queryon_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->queryon_acl != NULL) {
+			dns_acl_detach(&zone->raw->queryon_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->queryon_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15819,6 +15840,13 @@ dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->update_acl);
 	}
 	dns_acl_attach(acl, &zone->update_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->update_acl != NULL) {
+			dns_acl_detach(&zone->raw->update_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->update_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15831,6 +15859,13 @@ dns_zone_setforwardacl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->forward_acl);
 	}
 	dns_acl_attach(acl, &zone->forward_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->forward_acl != NULL) {
+			dns_acl_detach(&zone->raw->forward_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->forward_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15843,6 +15878,13 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl) {
 		dns_acl_detach(&zone->xfr_acl);
 	}
 	dns_acl_attach(acl, &zone->xfr_acl);
+
+	if (inline_secure(zone)) {
+		if (zone->raw->xfr_acl != NULL) {
+			dns_acl_detach(&zone->raw->xfr_acl);
+		}
+		dns_acl_attach(acl, &zone->raw->xfr_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15896,6 +15938,9 @@ dns_zone_clearupdateacl(dns_zone_t *zone) {
 	if (zone->update_acl != NULL) {
 		dns_acl_detach(&zone->update_acl);
 	}
+	if (inline_secure(zone) && zone->raw->update_acl != NULL) {
+		dns_acl_detach(&zone->raw->update_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15906,6 +15951,9 @@ dns_zone_clearforwardacl(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	if (zone->forward_acl != NULL) {
 		dns_acl_detach(&zone->forward_acl);
+	}
+	if (inline_secure(zone) && zone->raw->forward_acl != NULL) {
+		dns_acl_detach(&zone->raw->forward_acl);
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -15918,6 +15966,9 @@ dns_zone_clearnotifyacl(dns_zone_t *zone) {
 	if (zone->notify_acl != NULL) {
 		dns_acl_detach(&zone->notify_acl);
 	}
+	if (inline_secure(zone) && zone->raw->notify_acl != NULL) {
+		dns_acl_detach(&zone->raw->notify_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15928,6 +15979,9 @@ dns_zone_clearqueryacl(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	if (zone->query_acl != NULL) {
 		dns_acl_detach(&zone->query_acl);
+	}
+	if (inline_secure(zone) && zone->raw->query_acl != NULL) {
+		dns_acl_detach(&zone->raw->query_acl);
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -15940,6 +15994,9 @@ dns_zone_clearqueryonacl(dns_zone_t *zone) {
 	if (zone->queryon_acl != NULL) {
 		dns_acl_detach(&zone->queryon_acl);
 	}
+	if (inline_secure(zone) && zone->raw->queryon_acl != NULL) {
+		dns_acl_detach(&zone->queryon_acl);
+	}
 	UNLOCK_ZONE(zone);
 }
 
@@ -15950,6 +16007,9 @@ dns_zone_clearxfracl(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	if (zone->xfr_acl != NULL) {
 		dns_acl_detach(&zone->xfr_acl);
+	}
+	if (inline_secure(zone) && zone->raw->xfr_acl != NULL) {
+		dns_acl_detach(&zone->raw->xfr_acl);
 	}
 	UNLOCK_ZONE(zone);
 }
