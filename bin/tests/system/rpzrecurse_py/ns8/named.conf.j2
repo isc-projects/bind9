@@ -1,0 +1,31 @@
+options {
+    {% include_indented "_common/options.conf.j2" %}
+    session-keyfile "session.key";
+    dnssec-validation no;
+    recursion yes;
+    allow-recursion { any; };
+    allow-query-cache { any; };
+};
+
+{% include "_common/controls.conf.j2" %}
+
+view "recursive" {
+    match-clients { any; };
+    match-recursive-only yes;
+    response-policy { zone "recursive-policy" recursive-only yes; };
+    zone "." { type hint; file "root.hint"; };
+    zone "recursive-policy" {
+	type primary;
+	file "recursive-policy.db";
+    };
+};
+
+view "nonrecursive" {
+    match-clients { any; };
+    response-policy { zone "nonrecursive-policy" recursive-only no; };
+    zone "." { type hint; file "root.hint"; };
+    zone "nonrecursive-policy" {
+	type primary;
+	file "nonrecursive-policy.db";
+    };
+};
