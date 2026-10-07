@@ -196,8 +196,8 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 			}
 		}
 	}
-	dns_qpread_destroy(zt->multi, &qpr);
 
+	/* Keep the zone protected through the checks and attachment. */
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		dns_zone_t *zone = pval;
 		/*
@@ -226,6 +226,7 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 			dns_zone_attach(zone, zonep);
 		}
 	}
+	dns_qpread_destroy(zt->multi, &qpr);
 
 	return result;
 }
