@@ -22,7 +22,6 @@ subdir('isctest' / 'vars' / '.build_vars')
 system_test_binaries += {
     # 'bigkey': files('rsabigexponent' / 'bigkey.c'),
     'feature-test': files('feature-test.c'),
-    'pipequeries': files('pipelined' / 'pipequeries.c'),
 }
 
 system_test_libraries += {

@@ -46,7 +46,6 @@ BASIC_VARS = {
     "VERIFY": f"{BUILD_VARS['TOP_BUILDDIR']}/dnssec-verify",
     "WIREFORMAT": f"{BUILD_VARS['TOP_BUILDDIR']}/named-wireformat",
     "BIGKEY": f"{BUILD_VARS['TOP_BUILDDIR']}/bigkey",
-    "PIPEQUERIES": f"{BUILD_VARS['TOP_BUILDDIR']}/pipequeries",
     "TMPDIR": os.getenv("TMPDIR", "/tmp"),
     "KRB5_CONFIG": "/dev/null",  # we don't want a KRB5_CONFIG setting breaking the tests
     "LC_ALL": "C",
