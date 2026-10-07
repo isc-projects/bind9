@@ -160,6 +160,16 @@ Bug Fixes
   :any:`notify-source` or :any:`tcp-only`, could be ignored. This has
   been fixed. :gl:`#6239`
 
+- Fix DNSSEC re-signing stopping after a rejected dynamic update.
+
+  Since 9.21.22, a dynamic update that deleted an RRset in a zone signed
+  with :any:`dnssec-policy`, but was then rejected (for example, for
+  exceeding :any:`max-records-per-type`), could stop :iscman:`named`
+  from re-signing the zone until the server was restarted. Once the
+  existing signatures expired, the zone failed DNSSEC validation. An
+  affected zone showed a next re-signing time in the year 2106 in
+  :option:`rndc zonestatus` output. This has been fixed. :gl:`#6303`
+
 - Fix a catalog zone update bug.
 
   When a catalog zone update reused the label of an existing member zone
