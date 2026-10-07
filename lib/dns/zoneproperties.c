@@ -453,6 +453,12 @@ dns_zone_expandzonefile(isc_buffer_t *b, const char *filename,
 		names.viewname = "";
 	}
 
+	if (strpbrk(filename, "$%") == NULL) {
+		putmem(b, filename, strlen(filename));
+		isc_buffer_putuint8(b, 0);
+		return;
+	}
+
 	/* Normalize the name by converting to lower case */
 	result = dns_name_downcase(zonename, names.zonename);
 	INSIST(result == ISC_R_SUCCESS);

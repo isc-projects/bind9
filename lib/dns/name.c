@@ -1860,6 +1860,8 @@ dns_name_isdnssd(const dns_name_t *name) {
 	return false;
 }
 
+static unsigned char inaddr_prefix[] = "\007IN-ADDR\004ARPA";
+
 static unsigned char inaddr10[] = "\00210\007IN-ADDR\004ARPA";
 
 static unsigned char inaddr16172[] = "\00216\003172\007IN-ADDR\004ARPA";
@@ -1881,6 +1883,8 @@ static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
 
 static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
 
+static dns_name_t const rfc1918prefix = DNS_NAME_INITABSOLUTE(inaddr_prefix);
+
 static dns_name_t const rfc1918names[] = {
 	DNS_NAME_INITABSOLUTE(inaddr10),    DNS_NAME_INITABSOLUTE(inaddr16172),
 	DNS_NAME_INITABSOLUTE(inaddr17172), DNS_NAME_INITABSOLUTE(inaddr18172),
@@ -1896,6 +1900,13 @@ static dns_name_t const rfc1918names[] = {
 bool
 dns_name_isrfc1918(const dns_name_t *name) {
 	size_t i;
+
+	/*
+	 * Even better, this could be a trie or a perfect hashmap
+	 */
+	if (!dns_name_issubdomain(name, &rfc1918prefix)) {
+		return false;
+	}
 
 	for (i = 0; i < (sizeof(rfc1918names) / sizeof(*rfc1918names)); i++) {
 		if (dns_name_issubdomain(name, &rfc1918names[i])) {
