@@ -30,7 +30,6 @@ if HAVE_PYTEST
 noinst_PROGRAMS =		\
 	feature-test		\
 	makejournal		\
-	pipelined/pipequeries	\
 	rndc/gencheck		\
 	rpz/dnsrps
 
@@ -49,14 +48,6 @@ makejournal_CPPFLAGS =		\
 	$(LIBDNS_CFLAGS)
 
 makejournal_LDADD =		\
-	$(LDADD)		\
-	$(LIBDNS_LIBS)
-
-pipelined_pipequeries_CPPFLAGS =	\
-	$(AM_CPPFLAGS)			\
-	$(LIBDNS_CFLAGS)
-
-pipelined_pipequeries_LDADD =	\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
