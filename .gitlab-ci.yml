@@ -2246,15 +2246,20 @@ assign-milestones:
   rules:
     - *rule_tag
 
-# Jobs to update RPMs
+# Jobs to update RPMs (anchors)
 
 .rpm-build-job-common: &rpm_build_job_common
   <<: *manual_release_job_qa
+  allow_failure: false
   # prevent Git push races between pipelines started for different tags
   resource_group: "rpm-build-${SERVICE}"
   after_script:
     - git -C bind/ remote get-url origin | sed "s|\.git$|/-/commit/$(cat commit.txt)|"
     - git -C bind/ show --color "$(cat commit.txt)" | sed "s|^$| |"
+  artifacts:
+    paths:
+      - commit.txt
+    expire_in: "1 month"
 
 .rpm-build-job: &rpm_build_job
   <<: *rpm_build_job_common
@@ -2276,9 +2281,47 @@ assign-milestones:
 
 .rpm-publish-job: &rpm_publish_job
   <<: *manual_release_job_qa
+  allow_failure: false
   script:
     - >
       "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py publish --service "${SERVICE}" --commit "$(cat "commit.txt")"
+  artifacts:
+    paths:
+      - commit.txt
+    expire_in: "1 month"
+
+.monitor-rpm-job-common: &monitor_rpm_job_common
+  <<: *base_image
+  environment:
+    name: write-zulip
+    action: access
+  stage: release
+  before_script:
+    - *git_clone_bind9-qa
+  after_script:
+    - |
+      if [ "${CI_JOB_STATUS}" = "timedout" ]; then
+        MSG="RPM monitoring timed out for ${CI_JOB_NAME}"
+        MSG="${MSG}, check [job ${CI_JOB_ID}](${CI_JOB_URL})"
+        echo "$MSG" > message.txt
+        "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-qa --topic "RPM build errors"
+      fi
+  artifacts:
+    paths:
+      - commit.txt
+    expire_in: "1 month"
+
+.monitor-rpm-build-job: &monitor_rpm_build_job
+  <<: *monitor_rpm_job_common
+  script:
+    - >
+      "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py monitor-build --service "${SERVICE}" --version "${CI_COMMIT_TAG}" --commit "$(cat "commit.txt")"
+
+.monitor-rpm-publish-job: &monitor_rpm_publish_job
+  <<: *monitor_rpm_job_common
+  script:
+    - >
+      "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py monitor-publish --service "${SERVICE}" --commit "$(cat "commit.txt")"
 
 # Update Cloudsmith packages
 
@@ -2291,10 +2334,16 @@ rpms-cloudsmith-build:
     SERVICE: cloudsmith
   rules:
     - *rule_tag_open_source_maintenance
-  artifacts:
-    paths:
-      - commit.txt
-    expire_in: "1 month"
+
+monitor-rpms-cloudsmith-build:
+  <<: *monitor_rpm_build_job
+  variables:
+    SERVICE: cloudsmith
+  rules:
+    - *rule_tag_open_source_maintenance
+  needs:
+    - job: rpms-cloudsmith-build
+      artifacts: true
 
 rpms-cloudsmith-build-private:
   <<: *rpm_build_job_private
@@ -2305,10 +2354,16 @@ rpms-cloudsmith-build-private:
     SERVICE: cloudsmith
   rules:
     - *rule_tag_security_or_subscription
-  artifacts:
-    paths:
-      - commit.txt
-    expire_in: "1 month"
+
+monitor-rpms-cloudsmith-build-private:
+  <<: *monitor_rpm_build_job
+  variables:
+    SERVICE: cloudsmith
+  rules:
+    - *rule_tag_security_or_subscription
+  needs:
+    - job: rpms-cloudsmith-build-private
+      artifacts: true
 
 # Publish Cloudsmith packages
 
@@ -2320,7 +2375,17 @@ rpms-cloudsmith-publish:
   variables:
     SERVICE: cloudsmith
   needs:
-    - job: rpms-cloudsmith-build
+    - job: monitor-rpms-cloudsmith-build
+      artifacts: true
+  rules:
+    - *rule_tag_open_source_maintenance
+
+monitor-rpms-cloudsmith-publish:
+  <<: *monitor_rpm_publish_job
+  variables:
+    SERVICE: cloudsmith
+  needs:
+    - job: rpms-cloudsmith-publish
       artifacts: true
   rules:
     - *rule_tag_open_source_maintenance
@@ -2333,7 +2398,17 @@ rpms-cloudsmith-publish-private:
   variables:
     SERVICE: cloudsmith
   needs:
-    - job: rpms-cloudsmith-build-private
+    - job: monitor-rpms-cloudsmith-build-private
+      artifacts: true
+  rules:
+    - *rule_tag_security_or_subscription
+
+monitor-rpms-cloudsmith-publish-private:
+  <<: *monitor_rpm_publish_job
+  variables:
+    SERVICE: cloudsmith
+  needs:
+    - job: rpms-cloudsmith-publish-private
       artifacts: true
   rules:
     - *rule_tag_security_or_subscription
@@ -2347,6 +2422,16 @@ rpms-copr:
     action: access
   variables:
     SERVICE: copr
+  rules:
+    - *rule_tag_open_source
+
+monitor-rpms-copr:
+  <<: *monitor_rpm_build_job
+  variables:
+    SERVICE: copr
+  needs:
+    - job: rpms-copr
+      artifacts: true
   rules:
     - *rule_tag_open_source
 
@@ -2369,8 +2454,7 @@ rpms-copr:
 # Job updating the Docker image for a specific release
 
 update-docker-image:
-  <<: *base_image
-  <<: *manual_release_job
+  <<: *manual_release_job_qa
   environment:
     name: write-zulip
     action: access
@@ -2389,8 +2473,7 @@ update-docker-image:
     - git commit -m "Version bump to ${VERSION}" Dockerfile
     - git push
     - COMMIT_SHA="$(git log -n1 --format=%H)"
-    - *git_clone_bind9-qa
-    - echo "Docker image for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})" > message.txt
+    - echo "Docker image definition for BIND ${BRANCH} updated to version ${CI_COMMIT_TAG}, commit [${COMMIT_SHA}](${DOCKER_PROJECT}/-/commit/${COMMIT_SHA})" > message.txt
     - >
       "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9 --topic Packaging
   needs:
@@ -2400,8 +2483,36 @@ update-docker-image:
       artifacts: false
   rules:
     - *rule_tag_open_source
-  tags:
-    - smalljob
+
+monitor-update-docker-image:
+  <<: *base_image
+  stage: release
+  environment:
+    name: write-zulip
+    action: access
+  variables:
+    DOCKERHUB_REPO_URL: "https://hub.docker.com/v2/namespaces/internetsystemsconsortium/repositories/bind9"
+  before_script:
+    - *git_clone_bind9-qa
+  script:
+    - VERSION="${CI_COMMIT_TAG#v}"
+    - DOCKER_TAG="${VERSION%.*}"
+    - DOCKERHUB_TAG_URL="${DOCKERHUB_REPO_URL}/tags/${DOCKER_TAG}"
+    - TAG_CREATED_AT="$(curl -s -L https://gitlab.isc.org/api/v4/projects/1/repository/tags/"${CI_COMMIT_TAG}" | jq '.created_at[:19] + "Z" | fromdateiso8601')"
+    - while ! curl -s "${DOCKERHUB_TAG_URL}" | jq -e '(.last_updated[:19] + "Z" | fromdateiso8601) > '"${TAG_CREATED_AT}"; do sleep 300; done
+  after_script:
+    - |
+      if [ "${CI_JOB_STATUS}" != "success" ]; then
+        MSG="Docker build monitoring ${CI_JOB_STATUS}"
+        MSG="${MSG}, check [job ${CI_JOB_ID}](${CI_JOB_URL})"
+        echo "$MSG" > message.txt
+        "$CI_PROJECT_DIR"/bind9-qa/releng/message_zulip.py --message message.txt --channel bind9-qa --topic "Docker build errors"
+      fi
+  needs:
+    - job: update-docker-image
+      artifacts: false
+  rules:
+    - *rule_tag_open_source
 
 # Job creating the release announcement MR in Printing Press
 
