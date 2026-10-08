@@ -431,11 +431,11 @@ status=$((status + ret))
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
+ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time) ($n)"
-ret=0
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (query within stale refresh time window)" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -1042,11 +1042,11 @@ sleep 2
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
+ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time rndc) ($n)"
-ret=0
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (resolver failure)" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -1143,11 +1143,11 @@ sleep 2
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
+ret=0
 $DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time disabled) ($n)"
-ret=0
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (resolver failure)" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
