@@ -92,6 +92,7 @@ ignore_names = [
   # - bin/tests/system/rollover-multisigner/tests_rollover_multisigner.py
   "private",
   "legacy",
+  "ednsflags",
 ]
 
 [tool.ruff]

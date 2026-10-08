@@ -23,7 +23,7 @@ from dns.reversename import ipv4_reverse_domain, ipv6_reverse_domain
 from hypothesis import assume, example, given
 from hypothesis.strategies import ip_addresses
 
-import dns.message
+import dns.edns
 import dns.name
 import dns.rcode
 import dns.rrset
@@ -88,7 +88,7 @@ def test_synthrecord_checkconf():
     ],
 )
 def test_synthrecord_reverse_hasdata(qname, rname, ttl):
-    msg = dns.message.make_query(qname, "PTR")
+    msg = isctest.query.create(qname, "PTR")
     res = isctest.query.udp(msg, SERVER)
     isctest.check.noerror(res)
     if qname[-1] != ".":
@@ -111,7 +111,7 @@ def test_synthrecord_reverse_hasdata(qname, rname, ttl):
     ],
 )
 def test_synthrecord_forward(qname, qtype, rname, rtype, ttl):
-    msg = dns.message.make_query(qname, qtype)
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.udp(msg, SERVER)
     isctest.check.noerror(res)
     if qname[-1] != ".":
@@ -126,7 +126,7 @@ def test_synthrecord_forward(qname, qtype, rname, rtype, ttl):
     [("dynamic-10-53-0-44.example.", "AAAA"), ("dynamic-cafe-cafe--cafe.example", "A")],
 )
 def test_synthrecord_forward_wrongtype(qname, qtype):
-    msg = dns.message.make_query(qname, qtype)
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.udp(msg, SERVER)
     isctest.check.rcode(res, dns.rcode.NOERROR)
     if qname[-1] != ".":
@@ -150,7 +150,7 @@ def test_synthrecord_forward_wrongtype(qname, qtype):
     ],
 )
 def test_synthrecord_forward_nodata(qname, qtype, rcode):
-    msg = dns.message.make_query(qname, qtype)
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.udp(msg, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == rcode
@@ -215,7 +215,7 @@ def test_synthrecord_forward_nodata(qname, qtype, rcode):
     ],
 )
 def test_synthrecord_reverse_hasnodata(qname, qtype, rcode):
-    msg = dns.message.make_query(qname, qtype)
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.udp(msg, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == rcode
@@ -229,7 +229,7 @@ def test_synthrecord_reverse_hasnodata(qname, qtype, rcode):
     ],
 )
 def test_synthrecord_reverse_delegate(qname, rcode):
-    msg = dns.message.make_query(qname, "PTR")
+    msg = isctest.query.create(qname, "PTR")
     res = isctest.query.udp(msg, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == rcode
@@ -256,7 +256,7 @@ def test_synthrecord_reverse_delegate(qname, rcode):
 )
 def test_synthrecord_defaults(qname, rname):
     ttl = 300
-    msg = dns.message.make_query(qname, "PTR")
+    msg = isctest.query.create(qname, "PTR")
     res = isctest.query.udp(msg, SERVER)
     isctest.check.noerror(res)
     if qname[-1] != ".":
@@ -280,7 +280,7 @@ def test_synthrecord_defaults(qname, rname):
     ],
 )
 def test_synthrecord_reverse_anysoa(qname, qtype, rcode, answerscount):
-    msg = dns.message.make_query(qname, qtype)
+    msg = isctest.query.create(qname, qtype)
     res = isctest.query.udp(msg, SERVER)
     assert len(res.answer) == answerscount
     assert res.rcode() == rcode
@@ -311,7 +311,7 @@ def test_synthrecord_reverse_randomdomains(domain):
             or domain.is_subdomain(example_domain)
         )
     )
-    query = dns.message.make_query(domain, "PTR")
+    query = isctest.query.create(domain, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.REFUSED
 
@@ -319,7 +319,7 @@ def test_synthrecord_reverse_randomdomains(domain):
 @given(ip=ip_addresses(network="10.53.0.0/24"))
 def test_sythreverse_noerror_hasdata_v4(ip):
     assume(ip not in [IPv4Address("10.53.0.28"), IPv4Address("10.53.0.4")])
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.NOERROR
     assert res.answer == [
@@ -335,7 +335,7 @@ def test_sythreverse_noerror_hasdata_v4(ip):
 
 @given(ip=ip_addresses(network="10.53.2.0/24"))
 def test_sythreverse_refused_v4(ip):
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.REFUSED
 
@@ -350,7 +350,7 @@ def test_sythreverse_refused_v6(ip):
     assume(not dns.name.from_text(ip.reverse_pointer).is_subdomain(arpa_cafecafe))
     assume(not dns.name.from_text(ip.reverse_pointer).is_subdomain(arpa_zeros16))
     assume(not dns.name.from_text(ip.reverse_pointer).is_subdomain(arpa_ffff16))
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.REFUSED
 
@@ -365,7 +365,7 @@ def test_sythreverse_refused_v6(ip):
 )
 def test_synthreverse_idn_compat(addr, expected):
     ip = IPv6Address(addr)
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.NOERROR
     assert res.answer == [
@@ -380,7 +380,7 @@ def test_synthreverse_idn_compat(addr, expected):
 @example(ip=IPv6Address("::"))
 @given(ip=ip_addresses(network="cafe:cafe::/32"))
 def test_sythreverse_noerror_hasdata_v6(ip):
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.NOERROR
     assert res.answer == [
@@ -399,7 +399,7 @@ def test_sythreverse_unallowed_subnet_v4(ip):
     # allow-nets is 10.53.1.0/29, so only addresses below 10.53.1.9 are allowed
     # to have a synthetic record (_allow_subnet_v4 below checks the opposite)
     assume(ip > IPv4Address("10.53.1.8"))
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -407,7 +407,7 @@ def test_sythreverse_unallowed_subnet_v4(ip):
 
 @given(ip=ip_addresses(network="10.53.1.0/29"))
 def test_sythreverse_allowed_subnet_v4(ip):
-    query = dns.message.make_query(ip.reverse_pointer, "PTR")
+    query = isctest.query.create(ip.reverse_pointer, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert res.rcode() == dns.rcode.NOERROR
     assert res.answer == [
@@ -427,7 +427,7 @@ def test_sythreverse_allowed_subnet_v4(ip):
     )
 )
 def test_sythreverse_arpa_v4_nxdomain_toomanylabel(domain):
-    query = dns.message.make_query(domain, "PTR")
+    query = isctest.query.create(domain, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -442,7 +442,7 @@ def test_sythreverse_arpa_v4_nxdomain_toomanylabel(domain):
     )
 )
 def test_sythforward_arpa_v4_nxdomain_toomanylabel(domain):
-    query = dns.message.make_query(domain, "A")
+    query = isctest.query.create(domain, "A")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -457,7 +457,7 @@ def test_sythforward_arpa_v4_nxdomain_toomanylabel(domain):
     )
 )
 def test_sythforward_arpa_v6_nxdomain_toomanylabel(domain):
-    query = dns.message.make_query(domain, "AAAA")
+    query = isctest.query.create(domain, "AAAA")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -472,7 +472,7 @@ def test_sythforward_arpa_v6_nxdomain_toomanylabel(domain):
     )
 )
 def test_sythforward_arpa_v6_nxdomain_unallowednet(domain):
-    query = dns.message.make_query(domain, "AAAA")
+    query = isctest.query.create(domain, "AAAA")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -484,7 +484,7 @@ def test_sythforward_arpa_v6_nxdomain_unallowednet(domain):
     )
 )
 def test_sythreverse_arpa_v6_nxdomain_toofewlabels(domain):
-    query = dns.message.make_query(domain, "PTR")
+    query = isctest.query.create(domain, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -496,7 +496,7 @@ def test_sythreverse_arpa_v6_nxdomain_toofewlabels(domain):
     )
 )
 def test_sythreverse_arpa_v6_nxdomain_toomanylabels(domain):
-    query = dns.message.make_query(domain, "PTR")
+    query = isctest.query.create(domain, "PTR")
     res = isctest.query.udp(query, SERVER)
     assert len(res.answer) == 0
     assert res.rcode() == dns.rcode.NXDOMAIN
@@ -517,9 +517,33 @@ def test_synthrecord_toolongprefix(ns1, templates):
         watcher.wait_for_line("running")
     ip = IPv4Address("10.53.0.8")
     with ns1.watch_log_from_here() as watcher:
-        query = dns.message.make_query(ip.reverse_pointer, "PTR")
+        query = isctest.query.create(ip.reverse_pointer, "PTR")
         res = isctest.query.udp(query, SERVER)
         assert res.rcode() == dns.rcode.NXDOMAIN
         watcher.wait_for_line(
             "synthrecord cannot create reverse answer name: ran out of space"
         )
+
+
+# No regression test for #6185
+def test_synthrecord_tooshortbuffer(ns1, templates):
+    qname = "f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.f.ip6.arpa"
+    templates.render("ns1/named.conf", {"nocookieudpsize": True})
+    with ns1.watch_log_from_here() as watcher:
+        ns1.rndc("reconfig")
+        watcher.wait_for_line("running")
+    msg = isctest.query.create(qname, "PTR")
+
+    # First, test with a valid cookie. The buffer is truncated and answer is missing.
+    res = isctest.query.udp(msg, ns1.ip)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    isctest.check.tcflag(res)
+
+    # Send again the request, this time with an EDNS flag.
+    msg = isctest.query.create(qname, "PTR")
+    msg.ednsflags = dns.edns.COOKIE
+    res = isctest.query.udp(msg, ns1.ip)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    isctest.check.tcflag(res)

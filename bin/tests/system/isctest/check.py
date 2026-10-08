@@ -83,6 +83,14 @@ def noraflag(message: dns.message.Message) -> None:
     assert (message.flags & dns.flags.RA) == 0, str(message)
 
 
+def tcflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.TC) != 0, str(message)
+
+
+def notcflag(message: dns.message.Message) -> None:
+    assert (message.flags & dns.flags.TC) == 0, str(message)
+
+
 def _extract_ede_options(
     message: dns.message.Message,
 ) -> list[EDEOption]:
