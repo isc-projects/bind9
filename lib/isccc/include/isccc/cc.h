@@ -124,9 +124,11 @@ isccc_cc_createsymtab(isccc_symtab_t **symtabp);
 void
 isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now);
 
-/*% Check for Duplicates */
+/*%
+ * Check for Duplicate.  Entries are not removed before expire is reached.
+ */
 isc_result_t
 isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
-		  isccc_time_t now);
+		  isccc_time_t expire);
 
 ISC_LANG_ENDDECLS

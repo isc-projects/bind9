@@ -49,8 +49,7 @@
 #include <isccc/symtype.h>
 #include <isccc/util.h>
 
-#define MAX_TAGS     256
-#define DUP_LIFETIME 900
+#define MAX_TAGS 256
 #ifndef ISCCC_MAXDEPTH
 #define ISCCC_MAXDEPTH \
 	10 /* Big enough for rndc which just sends a string each way. */
@@ -950,20 +949,15 @@ symtab_undefine(char *key, unsigned int type, isccc_symvalue_t value,
 
 static bool
 symtab_clean(char *key, unsigned int type, isccc_symvalue_t value, void *arg) {
-	isccc_time_t *now;
+	isccc_time_t *now = arg;
 
 	UNUSED(key);
 	UNUSED(type);
 
-	now = arg;
-
-	if (*now < value.as_uinteger) {
-		return false;
+	if (value.as_uinteger <= *now) {
+		return true;
 	}
-	if ((*now - value.as_uinteger) < DUP_LIFETIME) {
-		return false;
-	}
-	return true;
+	return false;
 }
 
 isc_result_t
@@ -994,7 +988,7 @@ has_whitespace(const char *str) {
 
 isc_result_t
 isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
-		  isccc_time_t now) {
+		  isccc_time_t expire) {
 	const char *_frm;
 	const char *_to;
 	char *_ser = NULL, *_tim = NULL, *tmp;
@@ -1047,7 +1041,7 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		return ISC_R_NOMEMORY;
 	}
 	snprintf(key, len, "%s;%s;%s;%s", _frm, _to, _ser, _tim);
-	value.as_uinteger = now;
+	value.as_uinteger = expire;
 	result = isccc_symtab_define(symtab, key, ISCCC_SYMTYPE_CCDUP, value,
 				     isccc_symexists_reject);
 	if (result != ISC_R_SUCCESS) {
