@@ -19,13 +19,18 @@
 #include <stdbool.h>
 
 #include <isc/os.h>
+#include <isc/sockaddr.h>
+#include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/notify.h>
 #include <dns/remote.h>
 #include <dns/update.h>
+#include <dns/zoneaddr.h>
 #include <dns/zonefetch.h>
+
+#include "zone/viewname_p.h"
 
 /*%
  *	Types and functions below meant to be used for internal zone
@@ -358,6 +363,74 @@ struct dns_zonemgr {
 	isc_rwlock_t tlsctx_cache_rwlock;
 };
 
+static inline zone_addr4_t
+zone_addr4_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	REQUIRE(sockaddr != NULL);
+	REQUIRE(sockaddr->type.sa.sa_family == AF_INET);
+	REQUIRE(sockaddr->type.sin.sin_port == 0);
+	return (zone_addr4_t){
+		.address = sockaddr->type.sin.sin_addr,
+	};
+}
+
+static inline zone_addr6_t
+zone_addr6_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	REQUIRE(sockaddr != NULL);
+	REQUIRE(sockaddr->type.sa.sa_family == AF_INET6);
+	REQUIRE(sockaddr->type.sin6.sin6_port == 0);
+	REQUIRE(sockaddr->type.sin6.sin6_flowinfo == 0);
+	return (zone_addr6_t){
+		.address = sockaddr->type.sin6.sin6_addr,
+		.scope = sockaddr->type.sin6.sin6_scope_id,
+	};
+}
+
+static inline isc_sockaddr_t
+zone_addr4_tosockaddr(const zone_addr4_t *address) {
+	isc_sockaddr_t sockaddr;
+	isc_sockaddr_fromin(&sockaddr, &address->address, 0);
+	return sockaddr;
+}
+
+static inline isc_sockaddr_t
+zone_addr6_tosockaddr(const zone_addr6_t *address) {
+	isc_sockaddr_t sockaddr;
+	isc_sockaddr_fromin6(&sockaddr, &address->address, 0);
+	sockaddr.type.sin6.sin6_scope_id = address->scope;
+	return sockaddr;
+}
+
+static inline zone_addr_t
+zone_addr_fromsockaddr(const isc_sockaddr_t *sockaddr) {
+	zone_addr_t address = { .family = sockaddr->type.sa.sa_family };
+	switch (address.family) {
+	case AF_INET:
+		address.type.in = zone_addr4_fromsockaddr(sockaddr);
+		break;
+	case AF_INET6:
+		address.type.in6 = zone_addr6_fromsockaddr(sockaddr);
+		break;
+	default:
+		UNREACHABLE();
+	}
+	return address;
+}
+
+static inline isc_sockaddr_t
+zone_addr_tosockaddr(const zone_addr_t *address) {
+	switch (address->family) {
+	case AF_INET:
+		return zone_addr4_tosockaddr(&address->type.in);
+	case AF_INET6:
+		return zone_addr6_tosockaddr(&address->type.in6);
+	case AF_UNSPEC:
+		/* No source has been selected for an operation yet. */
+		return (isc_sockaddr_t){ 0 };
+	default:
+		UNREACHABLE();
+	}
+}
+
 /*%
  * Zone structure.
  */
@@ -375,8 +448,9 @@ struct dns_zone {
 	const FILE *stream;		  /* loading from a stream? */
 	ISC_LIST(dns_include_t) includes; /* Include files */
 
-	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t dblock;
+	/* Keep db before the aligned lock so they cannot share a cache line. */
 	dns_db_t *db; /* Locked by dblock */
+	alignas(ISC_OS_CACHELINE_SIZE) isc_rwlock_t dblock;
 
 	isc_tid_t tid;
 	/* Locked */
@@ -388,7 +462,6 @@ struct dns_zone {
 	dns_name_t origin;
 	dns_rad_t *rad;
 	ISC_LIST(dns_include_t) newincludes; /* Loading */
-	unsigned int nincludes;
 	dns_masterformat_t masterformat;
 	const dns_master_style_t *masterstyle;
 	char *journal;
@@ -444,11 +517,11 @@ struct dns_zone {
 	dns_remote_t cds_endpoints;
 	dns_notifyctx_t notifycds;
 
-	isc_sockaddr_t parentalsrc4;
-	isc_sockaddr_t parentalsrc6;
-	isc_sockaddr_t xfrsource4;
-	isc_sockaddr_t xfrsource6;
-	isc_sockaddr_t sourceaddr;
+	zone_addr4_t parentalsrc4;
+	zone_addr6_t parentalsrc6;
+	zone_addr4_t xfrsource4;
+	zone_addr6_t xfrsource6;
+	zone_addr_t sourceaddr;
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
@@ -475,15 +548,12 @@ struct dns_zone {
 	uint32_t sigvalidityinterval;
 	uint32_t keyvalidityinterval;
 	uint32_t sigresigninginterval;
+	dns_viewname_t viewname;
 	dns_view_t *view;
 	dns_view_t *prev_view;
 	dns_kasp_t *kasp;
 	dns_kasp_t *defaultkasp;
 	dns_dnsseckeylist_t keyring;
-	dns_checkmxfunc_t checkmx;
-	dns_checksrvfunc_t checksrv;
-	dns_checknsfunc_t checkns;
-	dns_checkisservedbyfunc_t checkisservedby;
 	/*%
 	 * Zones in certain states such as "waiting for zone transfer"
 	 * or "zone transfer in progress" are kept on per-state linked lists
@@ -507,13 +577,12 @@ struct dns_zone {
 	isc_stats_t *requeststats;
 	isc_statsmulti_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
-	dns_isselffunc_t isself;
+	const dns_zone_ops_t *ops;
+	bool checkmx  : 1;
+	bool checksrv : 1;
+	bool checkns  : 1; /* Also enables checkisservedby. */
+	bool isself   : 1;
 	void *isselfarg;
-
-	char *strnamerd;
-	char *strname;
-	char *strrdclass;
-	char *strviewname;
 
 	/*%
 	 * Serial number for deferred journal compaction.
@@ -618,9 +687,7 @@ struct dns_zone {
 	 * Plugin-related data structures
 	 */
 	void *plugins;
-	void (*plugins_free)(isc_mem_t *, void **);
 	void *hooktable;
-	void (*hooktable_free)(isc_mem_t *, void **);
 
 	/* Configuration object */
 	void *cfg;

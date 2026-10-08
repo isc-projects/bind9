@@ -19,6 +19,7 @@
 
 #include <dns/name.h>
 #include <dns/types.h>
+#include <dns/zoneaddr.h>
 
 #define NOTIFY_MAGIC		 ISC_MAGIC('N', 't', 'f', 'y')
 #define DNS_NOTIFY_VALID(notify) ISC_MAGIC_VALID(notify, NOTIFY_MAGIC)
@@ -31,15 +32,14 @@ struct dns_notifyctx {
 
 	dns_rdatatype_t type;
 
-	isc_sockaddr_t	 notifyfrom;
 	dns_notifylist_t notifies;
 
 	/* Configuration data. */
 	dns_notifytype_t notifytype;
 	uint32_t	 notifydefer;
 	uint32_t	 notifydelay;
-	isc_sockaddr_t	 notifysrc4;
-	isc_sockaddr_t	 notifysrc6;
+	zone_addr4_t	 notifysrc4;
+	zone_addr6_t	 notifysrc6;
 };
 
 /*%

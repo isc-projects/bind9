@@ -272,8 +272,6 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime);
 static void
 zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void
-zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
-static void
 zone_schedule_inline_sync(dns_zone_t *zone, inline_sync_phase_t state);
 static void
 refresh_callback(void *arg);
@@ -528,10 +526,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, isc_tid_t tid) {
 	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin);
-	isc_sockaddr_any(&zone->parentalsrc4);
-	isc_sockaddr_any6(&zone->parentalsrc6);
-	isc_sockaddr_any(&zone->xfrsource4);
-	isc_sockaddr_any6(&zone->xfrsource6);
 
 	zone->primaries = r;
 	zone->parentals = r;
@@ -707,19 +701,8 @@ dns__zone_free(dns_zone_t *zone) {
 	}
 
 	dns_zone_setrad(zone, NULL);
+	dns__viewname_free(&zone->viewname, zone->mctx);
 
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-	if (zone->strname != NULL) {
-		isc_mem_free(zone->mctx, zone->strname);
-	}
-	if (zone->strrdclass != NULL) {
-		isc_mem_free(zone->mctx, zone->strrdclass);
-	}
-	if (zone->strviewname != NULL) {
-		isc_mem_free(zone->mctx, zone->strviewname);
-	}
 	if (zone->ssutable != NULL) {
 		dns_ssutable_detach(&zone->ssutable);
 	}
@@ -859,8 +842,7 @@ dns__zone_freedbargs(dns_zone_t *zone) {
 
 void
 dns__zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
-	char namebuf[1024];
-
+	dns__viewname_set(&zone->viewname, zone->mctx, view->name);
 	if (zone->prev_view == NULL && zone->view != NULL) {
 		dns_view_weakattach(zone->view, &zone->prev_view);
 	}
@@ -872,18 +854,6 @@ dns__zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
 	}
 	dns_view_weakattach(view, &zone->view);
 	dns_view_sfd_add(view, &zone->origin);
-
-	if (zone->strviewname != NULL) {
-		isc_mem_free(zone->mctx, zone->strviewname);
-	}
-	if (zone->strnamerd != NULL) {
-		isc_mem_free(zone->mctx, zone->strnamerd);
-	}
-
-	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
-	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
-	zone_viewname_tostr(zone, namebuf, sizeof namebuf);
-	zone->strviewname = isc_mem_strdup(zone->mctx, namebuf);
 
 	if (dns__zone_inline_secure(zone)) {
 		dns_zone_setview(zone->raw, view);
@@ -1807,8 +1777,8 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkmx != NULL) {
-			return (zone->checkmx)(zone, name, owner);
+		if (zone->checkmx) {
+			return (zone->ops->checkmx)(zone, name, owner);
 		}
 		return true;
 	}
@@ -1879,8 +1849,8 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		return (level == ISC_LOG_WARNING) ? true : false;
 	}
 
-	if (zone->checkmx != NULL && result == DNS_R_DELEGATION) {
-		return (zone->checkmx)(zone, name, owner);
+	if (zone->checkmx && result == DNS_R_DELEGATION) {
+		return (zone->ops->checkmx)(zone, name, owner);
 	}
 
 	return true;
@@ -1908,8 +1878,8 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checksrv != NULL) {
-			return (zone->checksrv)(zone, name, owner);
+		if (zone->checksrv) {
+			return (zone->ops->checksrv)(zone, name, owner);
 		}
 		return true;
 	}
@@ -1978,8 +1948,8 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		return (level == ISC_LOG_WARNING) ? true : false;
 	}
 
-	if (zone->checksrv != NULL && result == DNS_R_DELEGATION) {
-		return (zone->checksrv)(zone, name, owner);
+	if (zone->checksrv && result == DNS_R_DELEGATION) {
+		return (zone->ops->checksrv)(zone, name, owner);
 	}
 
 	return true;
@@ -2003,8 +1973,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 	 * Outside of zone.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkns != NULL) {
-			return (zone->checkns)(zone, name, owner, NULL, NULL);
+		if (zone->checkns) {
+			return (zone->ops->checkns)(zone, name, owner, NULL,
+						    NULL);
 		}
 		return true;
 	}
@@ -2076,9 +2047,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 			/*
 			 * Check glue against child zone.
 			 */
-			if (zone->checkns != NULL) {
-				answer = (zone->checkns)(zone, name, owner, &a,
-							 &aaaa);
+			if (zone->checkns) {
+				answer = (zone->ops->checkns)(zone, name, owner,
+							      &a, &aaaa);
 			}
 			dns_rdataset_cleanup(&a);
 			dns_rdataset_cleanup(&aaaa);
@@ -2112,10 +2083,9 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, bool *has_a, bool *has_aaaa,
 			/*
 			 * Log missing address record.
 			 */
-			if (result == DNS_R_DELEGATION && zone->checkns != NULL)
-			{
-				(void)(zone->checkns)(zone, name, owner, &a,
-						      &aaaa);
+			if (result == DNS_R_DELEGATION && zone->checkns) {
+				(void)(zone->ops->checkns)(zone, name, owner,
+							   &a, &aaaa);
 			}
 			/* XXX950 make fatal for 9.5.0. */
 			/* answer = false; */
@@ -2287,8 +2257,8 @@ zone_is_served_by(dns_zone_t *zone, dns_db_t *db, dns_rdatatype_t type,
 	 * Outside of zone, assume good when loading in named.
 	 */
 	if (!dns_name_issubdomain(name, &zone->origin)) {
-		if (zone->checkisservedby != NULL) {
-			return zone->checkisservedby(zone, type, name);
+		if (zone->checkns) {
+			return zone->ops->checkisservedby(zone, type, name);
 		}
 		return true;
 	}
@@ -2299,8 +2269,8 @@ zone_is_served_by(dns_zone_t *zone, dns_db_t *db, dns_rdatatype_t type,
 	dns_rdataset_cleanup(&rdataset);
 	switch (result) {
 	case DNS_R_DELEGATION:
-		if (zone->checkisservedby != NULL) {
-			return zone->checkisservedby(zone, type, name);
+		if (zone->checkns) {
+			return zone->ops->checkisservedby(zone, type, name);
 		}
 		/*
 		 * Treat as success.
@@ -4264,7 +4234,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			CLEANUP(DNS_R_BADZONE);
 		}
 
-		CHECK(dns_zone_verifydb(zone, db, NULL));
+		if (zone->type == dns_zone_mirror) {
+			CHECK(dns_zone_verifydb(zone->view, db, NULL));
+		}
 
 		if (zone->db != NULL) {
 			unsigned int oldsoacount;
@@ -4497,7 +4469,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		isc_mem_free(zone->mctx, inc->name);
 		isc_mem_put(zone->mctx, inc, sizeof(*inc));
 	}
-	zone->nincludes = 0;
 
 	/*
 	 * Transfer new include list.
@@ -4505,7 +4476,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	ISC_LIST_FOREACH(zone->newincludes, inc, link) {
 		ISC_LIST_UNLINK(zone->newincludes, inc, link);
 		ISC_LIST_APPEND(zone->includes, inc, link);
-		zone->nincludes++;
 	}
 
 	if (!dns_db_ispersistent(db)) {
@@ -11336,7 +11306,7 @@ stub_glue_response(void *arg) {
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	uint32_t addr_count, cnamecnt;
 	isc_result_t result;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	dns_rdataset_t *addr_rdataset = NULL;
 	dns_dbnode_t *node = NULL;
 
@@ -11353,13 +11323,14 @@ stub_glue_response(void *arg) {
 		goto cleanup;
 	}
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	if (dns_request_getresult(request) != ISC_R_SUCCESS) {
 		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
-				     &zone->sourceaddr);
+				     &sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary %s"
 			     " (source %s): %s",
@@ -11535,7 +11506,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	dns_zone_t *zone;
 	isc_result_t result;
 	struct stub_glue_request *sgr;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 
 	zone = args->stub->zone;
 	sgr = isc_mem_get(zone->mctx, sizeof(*sgr));
@@ -11562,13 +11533,13 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 
 	atomic_fetch_add_release(&args->stub->pending_requests, 1);
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
-		args->connect_timeout, args->timeout, UDP_REQUEST_TIMEOUT,
-		UDP_REQUEST_RETRIES, zone->loop, stub_glue_response, sgr,
-		&sgr->request);
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, DNS_REQUESTOPT_TCP, args->tsig_key, args->connect_timeout,
+		args->timeout, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
+		zone->loop, stub_glue_response, sgr, &sgr->request);
 
 	if (result != ISC_R_SUCCESS) {
 		uint_fast32_t pr;
@@ -11747,7 +11718,7 @@ stub_callback(void *arg) {
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	uint32_t nscnt, cnamecnt;
 	isc_result_t result;
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	isc_time_t now;
 	bool exiting = false;
 
@@ -11765,9 +11736,10 @@ stub_callback(void *arg) {
 		goto exiting;
 	}
 
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	result = dns_request_getresult(request);
 	switch (result) {
@@ -11788,7 +11760,7 @@ stub_callback(void *arg) {
 		FALLTHROUGH;
 	default:
 		dns_unreachcache_add(zone->view->unreachcache, &curraddr,
-				     &zone->sourceaddr);
+				     &sourceaddr);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from primary "
 			     "%s (source %s): %s",
@@ -12086,7 +12058,7 @@ refresh_callback(void *arg) {
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	const isc_result_t eresult = dns_request_getresult(request);
-	isc_sockaddr_t curraddr;
+	isc_sockaddr_t curraddr, sourceaddr;
 	uint32_t serial, oldserial = 0;
 	bool do_queue_xfrin = false;
 
@@ -12111,9 +12083,10 @@ refresh_callback(void *arg) {
 	/*
 	 * If timeout, log and try the next primary
 	 */
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_sockaddr_format(&curraddr, primary, sizeof(primary));
-	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+	isc_sockaddr_format(&sourceaddr, source, sizeof(source));
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
@@ -12144,7 +12117,7 @@ refresh_callback(void *arg) {
 			{
 				if (dns_unreachcache_find(
 					    zone->view->unreachcache, &curraddr,
-					    &zone->sourceaddr) != ISC_R_SUCCESS)
+					    &sourceaddr) != ISC_R_SUCCESS)
 				{
 					DNS_ZONE_SETFLAG(
 						zone,
@@ -12387,7 +12360,7 @@ refresh_callback(void *arg) {
 	    isc_serial_gt(serial, oldserial))
 	{
 		if (dns_unreachcache_find(zone->view->unreachcache, &curraddr,
-					  &zone->sourceaddr) == ISC_R_SUCCESS)
+					  &sourceaddr) == ISC_R_SUCCESS)
 		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
 				      ISC_LOG_INFO,
@@ -12569,7 +12542,7 @@ soa_query(void *arg) {
 	bool cancel = true;
 	bool have_xfrsource = false, reqnsid, reqexpire;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_sockaddr_t curraddr, sourceaddr;
+	isc_sockaddr_t curraddr, sourceaddr, remotesource;
 	bool do_queue_xfrin = false;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -12594,7 +12567,8 @@ again:
 	INSIST(dns_remote_count(&zone->primaries) > 0);
 	INSIST(!dns_remote_done(&zone->primaries));
 
-	sourceaddr = dns_remote_sourceaddr(&zone->primaries);
+	remotesource = dns_remote_sourceaddr(&zone->primaries);
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
 
@@ -12662,8 +12636,7 @@ again:
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			}
-			result = dns_peer_gettransfersource(peer,
-							    &zone->sourceaddr);
+			result = dns_peer_gettransfersource(peer, &sourceaddr);
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
 			}
@@ -12684,9 +12657,10 @@ again:
 			isc_sockaddr_t any;
 			isc_sockaddr_any(&any);
 
-			zone->sourceaddr = sourceaddr;
+			sourceaddr = remotesource;
 			if (isc_sockaddr_equal(&sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource4;
+				sourceaddr = zone_addr4_tosockaddr(
+					&zone->xfrsource4);
 			}
 		}
 		break;
@@ -12695,15 +12669,17 @@ again:
 			isc_sockaddr_t any;
 			isc_sockaddr_any6(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource6;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr6_tosockaddr(
+					&zone->xfrsource6);
 			}
 		}
 		break;
 	default:
 		CLEANUP(ISC_R_NOTIMPLEMENTED);
 	}
+	zone->sourceaddr = zone_addr_fromsockaddr(&sourceaddr);
 
 	/*
 	 * FIXME(OS): This is a bit hackish, but it enforces the SOA query to go
@@ -12733,8 +12709,8 @@ again:
 	const unsigned int connect_timeout = isc_nm_getprimariestimeout() /
 					     MS_PER_SEC;
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, options, key, connect_timeout, TCP_REQUEST_TIMEOUT,
 		UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES, zone->loop,
 		refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
@@ -12816,7 +12792,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	bool have_xfrsource = false;
 	bool reqnsid;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_sockaddr_t curraddr, sourceaddr;
+	isc_sockaddr_t curraddr, sourceaddr, remotesource;
 	struct stub_cb_args *cb_args = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -12912,7 +12888,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	INSIST(dns_remote_count(&zone->primaries) > 0);
 	INSIST(!dns_remote_done(&zone->primaries));
 
-	sourceaddr = dns_remote_sourceaddr(&zone->primaries);
+	remotesource = dns_remote_sourceaddr(&zone->primaries);
+	sourceaddr = zone_addr_tosockaddr(&zone->sourceaddr);
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
 	/*
@@ -12947,8 +12924,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			}
-			result = dns_peer_gettransfersource(peer,
-							    &zone->sourceaddr);
+			result = dns_peer_gettransfersource(peer, &sourceaddr);
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
 			}
@@ -12975,9 +12951,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			isc_sockaddr_t any;
 			isc_sockaddr_any(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource4;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr4_tosockaddr(
+					&zone->xfrsource4);
 			}
 		}
 		break;
@@ -12986,9 +12963,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			isc_sockaddr_t any;
 			isc_sockaddr_any6(&any);
 
-			zone->sourceaddr = sourceaddr;
-			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
-				zone->sourceaddr = zone->xfrsource6;
+			sourceaddr = remotesource;
+			if (isc_sockaddr_equal(&sourceaddr, &any)) {
+				sourceaddr = zone_addr6_tosockaddr(
+					&zone->xfrsource6);
 			}
 		}
 		break;
@@ -12997,6 +12975,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		POST(result);
 		goto cleanup;
 	}
+	zone->sourceaddr = zone_addr_fromsockaddr(&sourceaddr);
 
 	/*
 	 * Save request parameters so we can reuse them later on
@@ -13011,8 +12990,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->reqnsid = reqnsid;
 
 	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, DNS_REQUESTOPT_TCP, key, cb_args->connect_timeout,
+		zone->view->requestmgr, message, &sourceaddr, &curraddr, NULL,
+		NULL, DNS_REQUESTOPT_TCP, key, cb_args->connect_timeout,
 		cb_args->timeout, UDP_REQUEST_TIMEOUT, UDP_REQUEST_RETRIES,
 		zone->loop, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
@@ -13552,7 +13531,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
-		zone->notifysoa.notifyfrom = *from;
 		UNLOCK_ZONE(zone);
 		if (have_serial) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
@@ -13578,7 +13556,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 			      "notify from %s: no serial", fromtext);
 	}
-	zone->notifysoa.notifyfrom = *from;
 	UNLOCK_ZONE(zone);
 
 	if (to != NULL) {
@@ -13592,6 +13569,7 @@ void
 dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 	      const char *prefix, const char *fmt, va_list ap) {
 	char message[4096];
+	char namebuf[1024];
 	const char *zstr;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -13600,6 +13578,7 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 		return;
 	}
 
+	zone_namerd_tostr(zone, namebuf, sizeof(namebuf));
 	vsnprintf(message, sizeof(message), fmt, ap);
 
 	switch (zone->type) {
@@ -13615,7 +13594,7 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t category, int level,
 
 	isc_log_write(category, DNS_LOGMODULE_ZONE, level, "%s%s%s%s: %s",
 		      prefix != NULL ? prefix : "", prefix != NULL ? ": " : "",
-		      zstr, zone->strnamerd, message);
+		      zstr, namebuf, message);
 }
 
 void
@@ -15907,14 +15886,14 @@ next:
 		isc_sockaddr_any(&any);
 		src = zone->primaries.sources[forward->which];
 		if (isc_sockaddr_equal(&src, &any)) {
-			src = zone->xfrsource4;
+			src = zone_addr4_tosockaddr(&zone->xfrsource4);
 		}
 		break;
 	case PF_INET6:
 		isc_sockaddr_any6(&any);
 		src = zone->primaries.sources[forward->which];
 		if (isc_sockaddr_equal(&src, &any)) {
-			src = zone->xfrsource6;
+			src = zone_addr6_tosockaddr(&zone->xfrsource6);
 		}
 		break;
 	default:
@@ -16259,47 +16238,20 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 		(void)dns_rdataclass_totext(zone->rdclass, &buffer);
 	}
 
-	if (zone->view != NULL && strcmp(zone->view->name, "_bind") != 0 &&
-	    strcmp(zone->view->name, "_default") != 0 &&
-	    strlen(zone->view->name) < isc_buffer_availablelength(&buffer))
+	const char *viewname = dns__viewname_display(&zone->viewname);
+	if (viewname != NULL &&
+	    strlen(viewname) < isc_buffer_availablelength(&buffer))
 	{
 		isc_buffer_putstr(&buffer, "/");
-		isc_buffer_putstr(&buffer, zone->view->name);
+		isc_buffer_putstr(&buffer, viewname);
 	}
-	if (dns__zone_inline_secure(zone) &&
-	    9U < isc_buffer_availablelength(&buffer))
-	{
+	/* Logging also runs without the zone lock.  These configuration
+	 * fields are changed before publication or with exclusive access. */
+	if (zone->raw != NULL && 9U < isc_buffer_availablelength(&buffer)) {
 		isc_buffer_putstr(&buffer, " (signed)");
 	}
-	if (dns__zone_inline_raw(zone) &&
-	    11U < isc_buffer_availablelength(&buffer))
-	{
+	if (zone->secure != NULL && 11U < isc_buffer_availablelength(&buffer)) {
 		isc_buffer_putstr(&buffer, " (unsigned)");
-	}
-
-	buf[isc_buffer_usedlength(&buffer)] = '\0';
-}
-
-static void
-zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length) {
-	isc_buffer_t buffer;
-
-	REQUIRE(buf != NULL);
-	REQUIRE(length > 1U);
-
-	/*
-	 * Leave space for terminating '\0'.
-	 */
-	isc_buffer_init(&buffer, buf, (unsigned int)length - 1);
-
-	if (zone->view == NULL) {
-		isc_buffer_putstr(&buffer, "_none");
-	} else if (strlen(zone->view->name) <
-		   isc_buffer_availablelength(&buffer))
-	{
-		isc_buffer_putstr(&buffer, zone->view->name);
-	} else {
-		isc_buffer_putstr(&buffer, "_toolong");
 	}
 
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
@@ -17577,7 +17529,8 @@ checkds_send_toaddr(void *arg) {
 
 			src = checkds->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = checkds->zone->parentalsrc4;
+				src = zone_addr4_tosockaddr(
+					&checkds->zone->parentalsrc4);
 			}
 		}
 		break;
@@ -17588,7 +17541,8 @@ checkds_send_toaddr(void *arg) {
 
 			src = checkds->src;
 			if (isc_sockaddr_equal(&src, &any)) {
-				src = checkds->zone->parentalsrc6;
+				src = zone_addr6_tosockaddr(
+					&checkds->zone->parentalsrc6);
 			}
 		}
 		break;
@@ -19437,15 +19391,17 @@ dns_zone_dnssecstatus(dns_zone_t *zone, dns_kasp_t *kasp,
 	isc_time_t refreshkeytime;
 	isc_stdtime_t refresh;
 	char timestr[26];
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(out != NULL);
 
+	dns_zone_nameonly(zone, namebuf, sizeof(namebuf));
 	isc_buffer_init(&buf, out, out_len);
 
 	RETERR(isc_buffer_printf(
 		&buf, "DNSSEC status for zone '%s' using policy '%s':\n",
-		zone->strname, dns_kasp_getname(kasp)));
+		namebuf, dns_kasp_getname(kasp)));
 
 	isc_stdtime_tostring(now, timestr, sizeof(timestr));
 	RETERR(isc_buffer_printf(&buf, "Current time:   %s\n", timestr));
@@ -20554,22 +20510,25 @@ cleanup:
 unsigned int
 dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
 	char **array = NULL;
-	unsigned int n = 0;
+	unsigned int n = 0, count = 0;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(includesp != NULL && *includesp == NULL);
 
 	LOCK_ZONE(zone);
-	if (zone->nincludes == 0) {
+	ISC_LIST_FOREACH(zone->includes, include, link) {
+		count++;
+	}
+	if (count == 0) {
 		goto done;
 	}
 
-	array = isc_mem_allocate(zone->mctx, sizeof(char *) * zone->nincludes);
+	array = isc_mem_allocate(zone->mctx, sizeof(char *) * count);
 	ISC_LIST_FOREACH(zone->includes, include, link) {
-		INSIST(n < zone->nincludes);
+		INSIST(n < count);
 		array[n++] = isc_mem_strdup(zone->mctx, include->name);
 	}
-	INSIST(n == zone->nincludes);
+	INSIST(n == count);
 	*includesp = array;
 
 done:
@@ -20760,21 +20719,35 @@ dns_zone_isloaded(dns_zone_t *zone) {
 	return DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED);
 }
 
+static void
+db_namerd_tostr(dns_db_t *db, dns_view_t *view, char *buf, size_t length) {
+	char originbuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	const char *viewname = "";
+
+	dns_name_format(dns_db_origin(db), originbuf, sizeof(originbuf));
+	dns_rdataclass_format(dns_db_class(db), classbuf, sizeof(classbuf));
+	if (view != NULL && strcmp(view->name, "_bind") != 0 &&
+	    strcmp(view->name, "_default") != 0)
+	{
+		viewname = view->name;
+	}
+	snprintf(buf, length, "%.*s/%s%s%.1000s", DNS_NAME_MAXTEXT, originbuf,
+		 classbuf, viewname[0] != '\0' ? "/" : "", viewname);
+}
+
 isc_result_t
-dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
+dns_zone_verifydb(dns_view_t *view, dns_db_t *db, dns_dbversion_t *ver) {
 	dns_dbversion_t *version = NULL;
 	dns_keytable_t *secroots = NULL;
 	isc_result_t result;
 	dns_name_t *origin;
+	char name[2048];
 
-	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(view == NULL || DNS_VIEW_VALID(view));
 	REQUIRE(db != NULL);
 
-	ENTER;
-
-	if (dns_zone_gettype(zone) != dns_zone_mirror) {
-		return ISC_R_SUCCESS;
-	}
+	db_namerd_tostr(db, view, name, sizeof(name));
 
 	if (ver == NULL) {
 		dns_db_currentversion(db, &version);
@@ -20782,14 +20755,14 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 		version = ver;
 	}
 
-	if (zone->view != NULL) {
-		result = dns_view_getsecroots(zone->view, &secroots);
+	if (view != NULL) {
+		result = dns_view_getsecroots(view, &secroots);
 		CHECK(result);
 	}
 
 	origin = dns_db_origin(db);
-	result = dns_zoneverify_dnssec(zone, db, version, origin, secroots,
-				       zone->mctx, true, false, dnssec_report);
+	result = dns_zoneverify_dnssec(name, db, version, origin, secroots,
+				       db->mctx, true, false, dnssec_report);
 
 cleanup:
 	if (secroots != NULL) {
@@ -20801,8 +20774,10 @@ cleanup:
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		dnssec_log(zone, ISC_LOG_ERROR, "zone verification failed: %s",
-			   isc_result_totext(result));
+		isc_log_write(DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_ZONE,
+			      ISC_LOG_ERROR,
+			      "zone %s: zone verification failed: %s", name,
+			      isc_result_totext(result));
 		result = DNS_R_VERIFYFAILURE;
 	}
 
@@ -20912,30 +20887,26 @@ cleanup:
 }
 
 void
-dns_zone_setplugins(dns_zone_t *zone, void *plugins,
-		    void (*plugins_free)(isc_mem_t *, void **)) {
+dns_zone_setplugins(dns_zone_t *zone, void *plugins) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->plugins == NULL);
-	REQUIRE(zone->plugins_free == NULL);
+	REQUIRE(zone->ops != NULL && zone->ops->plugins_free != NULL);
 
 	zone->plugins = plugins;
-	zone->plugins_free = plugins_free;
 }
 
 void
 dns_zone_unloadplugins(dns_zone_t *zone) {
 	if (zone->hooktable != NULL) {
-		INSIST(zone->hooktable_free);
-		zone->hooktable_free(zone->mctx, &zone->hooktable);
+		INSIST(zone->ops->hooktable_free);
+		zone->ops->hooktable_free(zone->mctx, &zone->hooktable);
 		INSIST(zone->hooktable == NULL);
-		zone->hooktable_free = NULL;
 	}
 
 	if (zone->plugins != NULL) {
-		INSIST(zone->plugins_free);
-		zone->plugins_free(zone->mctx, &zone->plugins);
+		INSIST(zone->ops->plugins_free);
+		zone->ops->plugins_free(zone->mctx, &zone->plugins);
 		INSIST(zone->plugins == NULL);
-		zone->plugins_free = NULL;
 	}
 }
 

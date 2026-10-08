@@ -666,16 +666,16 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 	dns_zone_setmaxttl(zone, maxttl);
 
-	if (docheckmx) {
-		dns_zone_setcheckmx(zone, checkmx);
-	}
-	if (docheckns) {
-		dns_zone_setcheckns(zone, checkns);
-		dns_zone_setcheckisservedby(zone, checkisservedby);
-	}
-	if (dochecksrv) {
-		dns_zone_setchecksrv(zone, checksrv);
-	}
+	static const dns_zone_ops_t check_ops = {
+		.checkmx = checkmx,
+		.checksrv = checksrv,
+		.checkns = checkns,
+		.checkisservedby = checkisservedby,
+	};
+	dns_zone_setops(zone, &check_ops);
+	dns_zone_setcheckmx(zone, docheckmx);
+	dns_zone_setcheckns(zone, docheckns);
+	dns_zone_setchecksrv(zone, dochecksrv);
 
 	CHECK(dns_zone_load(zone, false));
 

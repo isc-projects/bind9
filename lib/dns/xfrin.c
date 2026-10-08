@@ -366,7 +366,9 @@ axfr_apply_done(void *arg, isc_result_t result) {
 
 	if (result == ISC_R_SUCCESS) {
 		CHECK(dns_db_endload(xfr->db, &xfr->axfr));
-		CHECK(dns_zone_verifydb(xfr->zone, xfr->db, NULL));
+		if (dns_zone_gettype(xfr->zone) == dns_zone_mirror) {
+			CHECK(dns_zone_verifydb(xfr->view, xfr->db, NULL));
+		}
 		CHECK(axfr_finalize(xfr));
 	} else {
 		(void)dns_db_endload(xfr->db, &xfr->axfr);
@@ -524,7 +526,9 @@ ixfr_apply_one(dns_xfrin_t *xfr, ixfr_apply_data_t *data) {
 	 */
 	dns_db_commitupdate(xfr->db, &callbacks);
 
-	CHECK(dns_zone_verifydb(xfr->zone, xfr->db, xfr->ver));
+	if (dns_zone_gettype(xfr->zone) == dns_zone_mirror) {
+		CHECK(dns_zone_verifydb(xfr->view, xfr->db, xfr->ver));
+	}
 
 	result = ixfr_end_transaction(&xfr->ixfr);
 

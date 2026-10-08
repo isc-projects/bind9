@@ -46,14 +46,13 @@
 #include <dns/rdatatype.h>
 #include <dns/secalg.h>
 #include <dns/types.h>
-#include <dns/zone.h>
 #include <dns/zoneverify.h>
 
 #include <dst/dst.h>
 
 typedef struct vctx {
 	isc_mem_t *mctx;
-	dns_zone_t *zone;
+	const char *zonename;
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_name_t *origin;
@@ -107,18 +106,21 @@ chain_length(struct nsec3_chain_fixed *chain) {
 
 /*%
  * Log a zone verification error described by 'fmt' and the variable arguments
- * following it.  Either use dns_zone_logv() or print to stderr, depending on
- * whether the function was invoked from within named or by a standalone tool,
- * respectively.
+ * following it.  Either use the supplied zone name or print to stderr,
+ * depending on whether the function was invoked from within named or by a
+ * standalone tool, respectively.
  */
 static void
 zoneverify_log_error(const vctx_t *vctx, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	if (vctx->zone != NULL) {
-		dns_zone_logv(vctx->zone, DNS_LOGCATEGORY_GENERAL,
-			      ISC_LOG_ERROR, NULL, fmt, ap);
+	if (vctx->zonename != NULL) {
+		char message[4096];
+		vsnprintf(message, sizeof(message), fmt, ap);
+		isc_log_write(DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
+			      ISC_LOG_ERROR, "zone %s: %s", vctx->zonename,
+			      message);
 	} else {
 		vfprintf(stderr, fmt, ap);
 		fprintf(stderr, "\n");
@@ -1233,12 +1235,12 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 }
 
 static void
-vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
+vctx_init(vctx_t *vctx, isc_mem_t *mctx, const char *zonename, dns_db_t *db,
 	  dns_dbversion_t *ver, dns_name_t *origin, dns_keytable_t *secroots) {
 	memset(vctx, 0, sizeof(*vctx));
 
 	vctx->mctx = mctx;
-	vctx->zone = zone;
+	vctx->zonename = zonename;
 	vctx->db = db;
 	vctx->ver = ver;
 	vctx->origin = origin;
@@ -1908,7 +1910,7 @@ print_summary(const vctx_t *vctx, bool keyset_kskonly,
 }
 
 isc_result_t
-dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+dns_zoneverify_dnssec(const char *zonename, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
 		      isc_mem_t *mctx, bool ignore_kskflag, bool keyset_kskonly,
 		      void (*report)(const char *, ...)) {
@@ -1916,7 +1918,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result, vresult = ISC_R_UNSET;
 	vctx_t vctx;
 
-	vctx_init(&vctx, mctx, zone, db, ver, origin, secroots);
+	vctx_init(&vctx, mctx, zonename, db, ver, origin, secroots);
 
 	result = check_apex_rrsets(&vctx);
 	if (result != ISC_R_SUCCESS) {
