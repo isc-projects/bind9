@@ -1196,6 +1196,7 @@ echo_i "checking for out-of-zone NSEC3 records after ZSK removal ($n)"
 ret=0
 # Delete the ZSK
 file="ns3/inactive/$(cat delzsk.key).key"
+id=$(keyfile_to_key_id "$(cat delzsk.key)")
 $NSUPDATE >nsupdate.out.test$n 2>&1 <<END
 server 10.53.0.3 ${PORT}
 zone delzsk.example.
@@ -1205,7 +1206,7 @@ END
 
 zsk_is_gone() {
   $DIG $DIGOPTS +noall +multi +answer dnskey delzsk.example. @10.53.0.3 >dig.out.ns3.test$n || return 1
-  grep '; key id = '"$oldid"'$' dig.out.ns3.test$n >/dev/null && return 1
+  grep '; key id = '"$id"'$' dig.out.ns3.test$n >/dev/null && return 1
   return 0
 }
 retry_quiet 5 zsk_is_gone || ret=1

@@ -29,10 +29,13 @@ zskunpub=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -G $zone)
 zsksby=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -A none $zone)
 zskactnowpub1d=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -A now -P +1d $zone)
 zsknopriv=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q $zone)
-rm $zsknopriv.private
 
 ksksby=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -P now -A now -fk $zone)
 kskrev=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -R now -fk $zone)
+
+# Only remove the private key once all keys are generated: dnssec-keygen
+# only avoids key tag collisions with keys that have a private key file.
+rm $zsknopriv.private
 
 keyfile_to_static_ds $ksksby >trusted.conf
 cp trusted.conf ../ns2/trusted.conf

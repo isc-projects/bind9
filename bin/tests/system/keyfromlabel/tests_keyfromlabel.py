@@ -117,8 +117,7 @@ def token_init_and_cleanup():
 )
 def test_keyfromlabel(alg_name, alg_type, alg_bits):
 
-    def keygen(alg_type, alg_bits, zone, key_id):
-        label = f"{key_id}-{zone}"
+    def keygen(alg_type, alg_bits, label):
         p11_id = hashlib.sha1(label.encode("utf-8")).hexdigest()
 
         pkcs11_command = [
@@ -143,7 +142,7 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
 
         assert "Key pair generated" in cmd.out
 
-    def keyfromlabel(alg_name, zone, key_id, key_flag):
+    def keyfromlabel(alg_name, zone, label, key_flag):
         key_flag = key_flag.split() if key_flag else []
 
         keyfrlab_command = [
@@ -152,16 +151,32 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
             alg_name,
             "-y",
             "-l",
-            f"pkcs11:token=softhsm2-keyfromlabel;object={key_id}-{zone};pin-source=pin",
+            f"pkcs11:token=softhsm2-keyfromlabel;object={label};pin-source=pin",
             *key_flag,
             zone,
         ]
 
-        cmd = isctest.run.cmd(keyfrlab_command)
+        cmd = isctest.run.cmd(keyfrlab_command, raise_on_exception=False)
+        if cmd.rc != 0 and "already exists" in cmd.err:
+            return None
+        assert cmd.rc == 0
         keyfile = cmd.out.rstrip() + ".key"
 
         assert os.path.exists(keyfile)
 
+        return keyfile
+
+    def hsm_key(alg_type, alg_bits, alg_name, zone, key_id, key_flag):
+        # Unlike dnssec-keygen, pkcs11-tool does not avoid key tag collisions,
+        # so dnssec-keyfromlabel may refuse a key. Replace it then.
+        keyfile = None
+        for attempt in range(3):
+            label = f"{key_id}-{attempt}-{zone}"
+            keygen(alg_type, alg_bits, label)
+            keyfile = keyfromlabel(alg_name, zone, label, key_flag)
+            if keyfile is not None:
+                break
+        assert keyfile is not None, f"{key_id}: key tags keep colliding"
         return keyfile
 
     if f"{alg_name.upper()}_SUPPORTED" not in os.environ:
@@ -170,14 +185,11 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
     # Generate keys for the $zone zone
     zone = f"{alg_name}.example"
 
-    keygen(alg_type, alg_bits, zone, "keyfromlabel-zsk")
-    keygen(alg_type, alg_bits, zone, "keyfromlabel-ksk")
-
     # Get ZSK
-    zsk_file = keyfromlabel(alg_name, zone, "keyfromlabel-zsk", "")
+    zsk_file = hsm_key(alg_type, alg_bits, alg_name, zone, "keyfromlabel-zsk", "")
 
     # Get KSK
-    ksk_file = keyfromlabel(alg_name, zone, "keyfromlabel-ksk", "-f KSK")
+    ksk_file = hsm_key(alg_type, alg_bits, alg_name, zone, "keyfromlabel-ksk", "-f KSK")
 
     # Sign zone with KSK and ZSK
     zone_file = f"zone.{alg_name}.example.db"
