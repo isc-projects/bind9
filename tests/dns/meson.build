@@ -46,6 +46,7 @@ dns_tests = [
     'resconf',
     'resolver',
     'rsa',
+    'secalg',
     'sigs',
     'skr',
     'time',
