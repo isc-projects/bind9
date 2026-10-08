@@ -24,6 +24,7 @@ dns_tests = [
     'dns64',
     'dnssec',
     'dnssecsignstats',
+    'dsdigest',
     'dst',
     'ede',
     'keymgr',
