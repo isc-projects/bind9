@@ -109,6 +109,7 @@ struct named_controls {
 	bool shuttingdown;
 	isc_mutex_t symtab_lock;
 	isc_symtab_t *symtab;
+	isc_stdtime_t last_cleanup_time;
 };
 
 static isc_result_t
@@ -480,7 +481,10 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	 * Duplicate suppression (required for UDP).
 	 */
 	LOCK(&listener->controls->symtab_lock);
-	isccc_cc_cleansymtab(listener->controls->symtab, conn->now);
+	if (conn->now > listener->controls->last_cleanup_time) {
+		isccc_cc_cleansymtab(listener->controls->symtab, conn->now);
+		listener->controls->last_cleanup_time = conn->now;
+	}
 	result = isccc_cc_checkdup(listener->controls->symtab, conn->request,
 				   conn->now);
 	UNLOCK(&listener->controls->symtab_lock);
