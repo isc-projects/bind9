@@ -25,11 +25,12 @@ def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> 
     # attacker does NOT control the contents of the A record - they have to
     # match the contents of the actual wildcard record present in the zone or
     # else the wildcard RRSIG (see below) won't validate, foiling the attack.
+    assert qctx.zone
     wildcard_name = dns.name.from_text("*", origin=qctx.zone.origin)
     wildcard_a_rrset = qctx.zone.get_rrset(wildcard_name, dns.rdatatype.A)
     assert wildcard_a_rrset
-    forged_a_rrset = dns.rrset.from_rdata_list(
-        owner_name, wildcard_a_rrset.ttl, wildcard_a_rrset
+    forged_a_rrset = dns.rrset.from_rdata(
+        owner_name, wildcard_a_rrset.ttl, *wildcard_a_rrset
     )
     qctx.response.additional.append(forged_a_rrset)
 
@@ -43,8 +44,8 @@ def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> 
     # Append the RRSIG for the wildcard record as the signature for the
     # forged A record, making it look as if the A record was synthesized
     # from the wildcard record.
-    forged_a_rrsig = dns.rrset.from_rdata_list(
-        owner_name, wildcard_rrsig.ttl, wildcard_rrsig
+    forged_a_rrsig = dns.rrset.from_rdata(
+        owner_name, wildcard_rrsig.ttl, *wildcard_rrsig
     )
     qctx.response.additional.append(forged_a_rrsig)
 

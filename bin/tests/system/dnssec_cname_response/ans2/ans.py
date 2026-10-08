@@ -102,6 +102,7 @@ class SignedZoneHandler(ResponseHandler):
         self.matcher = Domain(self._zone.origin)
 
     def _soa(self) -> list[dns.rrset.RRset]:
+        assert self._zone.origin
         return rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
 
     async def get_responses(
@@ -158,6 +159,7 @@ class StuffedNxdomainHandler(ResponseHandler):
         self._nsec3_authority = self._build_authority()
 
     def _build_authority(self) -> list[dns.rrset.RRset]:
+        assert self._zone.origin
         authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
         for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
             authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
