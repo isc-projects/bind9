@@ -22,9 +22,11 @@ def test_chase_ds(ns3):
     # Wait for example./DS and example./DNSKEY to expire
     time.sleep(5)
 
-    msg = isctest.query.create("a.example.", "A")
-    res = isctest.query.udp(msg, ns3.ip)
-    isctest.check.noerror(res)
+    with ns3.watch_log_from_here() as watcher:
+        msg = isctest.query.create("a.example.", "A")
+        res = isctest.query.udp(msg, ns3.ip)
+        isctest.check.noerror(res)
+        watcher.wait_for_line("creating fetch for example DS")
 
     # The validator `get_dsset()` function found example. parent NS
     # (which is./NS) using `dns_view_bestzonecut()`, so there is no
