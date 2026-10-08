@@ -13,3 +13,14 @@ a			A	10.0.0.1
 b			A	10.0.0.2
 c			A	10.0.0.3
 d			A	10.0.0.4
+
+; see the xloop comment in ns2/example.db
+xloop1			CNAME	xloop2.example.
+xloop3			CNAME	xloop4.example.
+xloop5			CNAME	xloop6.example.
+xloop7			CNAME	xloop8.example.
+xloop9			CNAME	xloop10.example.
+xloop11			CNAME	xloop12.example.
+xloop13			CNAME	xloop14.example.
+xloop15			CNAME	xloop16.example.
+xloop17			CNAME	xloop0.example.

@@ -59,3 +59,16 @@ hank			CNAME	bank
 bank			CNAME	wank
 wank			CNAME	woop
 woop			CNAME	loop
+
+; long CNAME loop alternating between example (ns2) and sub5.example (ns5),
+; so that neither authoritative server follows it and only the resolver's
+; max-query-restarts limit cuts it
+xloop0			CNAME	xloop1.sub5.example.
+xloop2			CNAME	xloop3.sub5.example.
+xloop4			CNAME	xloop5.sub5.example.
+xloop6			CNAME	xloop7.sub5.example.
+xloop8			CNAME	xloop9.sub5.example.
+xloop10			CNAME	xloop11.sub5.example.
+xloop12			CNAME	xloop13.sub5.example.
+xloop14			CNAME	xloop15.sub5.example.
+xloop16			CNAME	xloop17.sub5.example.
