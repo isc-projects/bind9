@@ -472,12 +472,15 @@ if test $p1 -le $p2; then ret=1; fi
 if test $ret != 0; then echo_i "failed"; fi
 status=$((status + ret))
 
+ret=0
 $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
 # restore original named.conf
 cp ns3/named1.conf ns3/named.conf
 nextpart ns3/named.run >/dev/null
 $RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload >/dev/null
 wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
+if test $ret != 0; then echo_i "failed"; fi
+status=$((status + ret))
 
 t=$((t + 1))
 echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
