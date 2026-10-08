@@ -13965,6 +13965,7 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		    uint32_t start, uint32_t end, dns_difftuple_t **soatuplep,
 		    dns_diff_t *diff) {
 	isc_result_t result;
+	dns_diff_t pending;
 	dns_difftuple_t *tuple = NULL;
 	dns_diffop_t op = DNS_DIFFOP_ADD;
 	int n_soa = 0;
@@ -13974,6 +13975,8 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 	if (start == end) {
 		return DNS_R_UNCHANGED;
 	}
+
+	dns_diff_init(diff->mctx, &pending);
 
 	CHECK(dns_journal_iter_init(journal, start, end, NULL));
 	for (result = dns_journal_first_rr(journal); result == ISC_R_SUCCESS;
@@ -14008,7 +14011,7 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 			dns_zone_log(raw, ISC_LOG_ERROR,
 				     "corrupt journal file: '%s'\n",
 				     raw->journal);
-			return ISC_R_FAILURE;
+			CLEANUP(ISC_R_FAILURE);
 		}
 
 		if (zone->privatetype != 0 && rdata->type == zone->privatetype)
@@ -14043,13 +14046,14 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
 
 		dns_difftuple_create(diff->mctx, op, name, ttl, rdata, &tuple);
-		dns_diff_appendminimal(diff, &tuple);
+		dns_diff_append(&pending, &tuple);
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
 	}
 
 cleanup:
+	dns_diff_appendlistminimal(diff, &pending);
 	return result;
 }
 
@@ -18456,6 +18460,10 @@ zone_notifycds(dns_zone_t *zone) {
 static void
 update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 	   dns_diff_t *diff) {
+	dns_diff_t pending;
+
+	dns_diff_init(diff->mctx, &pending);
+
 	/*
 	 * Delete everything using the existing TTL.
 	 */
@@ -18466,7 +18474,7 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 		dns_rdataset_current(rdataset, &rdata);
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
 				     rdataset->ttl, &rdata, &tuple);
-		dns_diff_appendminimal(diff, &tuple);
+		dns_diff_append(&pending, &tuple);
 	}
 
 	/*
@@ -18479,8 +18487,9 @@ update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
 		dns_rdataset_current(rdataset, &rdata);
 		dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name, ttl,
 				     &rdata, &tuple);
-		dns_diff_appendminimal(diff, &tuple);
+		dns_diff_append(&pending, &tuple);
 	}
+	dns_diff_appendlistminimal(diff, &pending);
 }
 
 static isc_result_t
@@ -18546,7 +18555,7 @@ add_tuple(dns_diff_t *diff, dns_difftuple_t *tuple) {
 	dns_difftuple_t *copy = NULL;
 
 	dns_difftuple_copy(tuple, &copy);
-	dns_diff_appendminimal(diff, &copy);
+	dns_diff_append(diff, &copy);
 }
 
 static void
@@ -18554,10 +18563,12 @@ zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
 		     dns_rdataset_t *dnskeyset, dns_rdataset_t *cdsset,
 		     dns_rdataset_t *cdnskeyset, dns_diff_t *diff) {
 	dns_kasp_t *kasp = zone->kasp;
+	dns_diff_t pending;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(DNS_SKRBUNDLE_VALID(bundle));
+	dns_diff_init(diff->mctx, &pending);
 
 	/* Remove existing DNSKEY, CDS, and CDNSKEY records. */
 	remove_rdataset(zone, diff, dnskeyset);
@@ -18568,11 +18579,11 @@ zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
 	ISC_LIST_FOREACH(bundle->diff.tuples, tuple, link) {
 		switch (tuple->rdata.type) {
 		case dns_rdatatype_dnskey:
-			add_tuple(diff, tuple);
+			add_tuple(&pending, tuple);
 			break;
 		case dns_rdatatype_cdnskey:
 		case dns_rdatatype_cds:
-			add_tuple(diff, tuple);
+			add_tuple(&pending, tuple);
 			break;
 		case dns_rdatatype_rrsig:
 			/* Not interested in right now */
@@ -18580,6 +18591,9 @@ zone_apply_skrbundle(dns_zone_t *zone, dns_skrbundle_t *bundle,
 		default:
 			INSIST(0);
 		}
+	}
+	if (!ISC_LIST_EMPTY(pending.tuples)) {
+		dns_diff_appendlistminimal(diff, &pending);
 	}
 }
 

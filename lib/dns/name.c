@@ -310,11 +310,22 @@ dns_name_internalwildcard(const dns_name_t *name) {
 	return false;
 }
 
-uint32_t
-dns_name_hash(const dns_name_t *name) {
+void
+dns_name_hash_ex(isc_hash32_t *hash, const dns_name_t *name) {
 	REQUIRE(DNS_NAME_VALID(name));
 
-	return isc_hash32(name->ndata, name->length, false);
+	isc_hash32_hash(hash, name->ndata, name->length, false);
+}
+
+uint32_t
+dns_name_hash(const dns_name_t *name) {
+	isc_hash32_t hash;
+
+	isc_hash32_init(&hash);
+
+	dns_name_hash_ex(&hash, name);
+
+	return isc_hash32_finalize(&hash);
 }
 
 dns_namereln_t

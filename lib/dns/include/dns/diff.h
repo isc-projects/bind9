@@ -255,6 +255,23 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuple);
  *
  */
 
+void
+dns_diff_appendlistminimal(dns_diff_t *diff, dns_diff_t *source);
+/*%<
+ * Append all tuples from 'source' to 'diff', removing any duplicate
+ * or conflicting updates as needed to create a minimal diff.
+ *
+ * Requires:
+ *\li	'diff' is a valid diff.
+ *\li	'source' is a valid diff.
+ *
+ * Ensures:
+ *\li	'diff' is a minimal diff.
+ *\li	'source' is empty.
+ *\li	The tuples from 'source' have been freed, or will be freed when
+ *	'diff' is cleared.
+ */
+
 isc_result_t
 dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare);
 /*%<

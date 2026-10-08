@@ -1743,10 +1743,8 @@ next_state:
 		 * have to regenerate the RRSIG NSECs for NSECs that were
 		 * replaced with identical ones.
 		 */
-		ISC_LIST_FOREACH(state->nsec_diff.tuples, t, link) {
-			dns_diff_unlink(&state->nsec_diff, t);
-			dns_diff_appendminimal(&state->nsec_mindiff, &t);
-		}
+		dns_diff_appendlistminimal(&state->nsec_mindiff,
+					   &state->nsec_diff);
 
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "signing rebuilt NSEC chain");
@@ -1783,15 +1781,13 @@ next_state:
 	case update_nsec3:
 		state->state = update_nsec3;
 
-		/* Record our changes for the journal. */
-		ISC_LIST_FOREACH(state->sig_diff.tuples, t, link) {
-			dns_diff_unlink(&state->sig_diff, t);
-			dns_diff_appendminimal(diff, &t);
-		}
-		ISC_LIST_FOREACH(state->nsec_mindiff.tuples, t, link) {
-			dns_diff_unlink(&state->nsec_mindiff, t);
-			dns_diff_appendminimal(diff, &t);
-		}
+		/*
+		 * Record our changes for the journal. Minimize both lists in
+		 * one pass; dns_diff_appendlistminimal() also minimizes tuples
+		 * already present in diff.
+		 */
+		dns_diff_appendlist(diff, &state->sig_diff);
+		dns_diff_appendlistminimal(diff, &state->nsec_mindiff);
 
 		INSIST(ISC_LIST_EMPTY(state->sig_diff.tuples));
 		INSIST(ISC_LIST_EMPTY(state->nsec_diff.tuples));
@@ -1915,10 +1911,8 @@ next_state:
 		 * have to regenerate the RRSIG NSEC3s for NSEC3s that were
 		 * replaced with identical ones.
 		 */
-		ISC_LIST_FOREACH(state->nsec_diff.tuples, t, link) {
-			dns_diff_unlink(&state->nsec_diff, t);
-			dns_diff_appendminimal(&state->nsec_mindiff, &t);
-		}
+		dns_diff_appendlistminimal(&state->nsec_mindiff,
+					   &state->nsec_diff);
 
 		update_log(log, zone, ISC_LOG_DEBUG(3),
 			   "signing rebuilt NSEC3 chain");
@@ -1952,15 +1946,13 @@ next_state:
 		}
 		dns_diff_appendlist(&state->nsec_mindiff, &state->work);
 
-		/* Record our changes for the journal. */
-		ISC_LIST_FOREACH(state->sig_diff.tuples, t, link) {
-			dns_diff_unlink(&state->sig_diff, t);
-			dns_diff_appendminimal(diff, &t);
-		}
-		ISC_LIST_FOREACH(state->nsec_mindiff.tuples, t, link) {
-			dns_diff_unlink(&state->nsec_mindiff, t);
-			dns_diff_appendminimal(diff, &t);
-		}
+		/*
+		 * Record our changes for the journal. Minimize both lists in
+		 * one pass; dns_diff_appendlistminimal() also minimizes tuples
+		 * already present in diff.
+		 */
+		dns_diff_appendlist(diff, &state->sig_diff);
+		dns_diff_appendlistminimal(diff, &state->nsec_mindiff);
 
 		INSIST(ISC_LIST_EMPTY(state->sig_diff.tuples));
 		INSIST(ISC_LIST_EMPTY(state->nsec_diff.tuples));
