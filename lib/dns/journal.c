@@ -2246,12 +2246,11 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 	for (;;) {
 		for (i = 0; i < 2; i++) {
 			if (!have[i] && itresult[i] == ISC_R_SUCCESS) {
-				CHECK(get_name_diff(
-					db[i], ver[i], 0, dbit[i],
-					dns_fixedname_name(&fixname[i]),
-					i == 0 ? DNS_DIFFOP_ADD
-					       : DNS_DIFFOP_DEL,
-					&diff[i]));
+				CHECK(get_name_diff(db[i], ver[i], 0, dbit[i],
+						    dns_name(&fixname[i]),
+						    i == 0 ? DNS_DIFFOP_ADD
+							   : DNS_DIFFOP_DEL,
+						    &diff[i]));
 				itresult[i] = dns_dbiterator_next(dbit[i]);
 				have[i] = true;
 			}
@@ -2271,8 +2270,7 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera, dns_db_t *dbb,
 			}
 		}
 
-		t = dns_name_compare(dns_fixedname_name(&fixname[0]),
-				     dns_fixedname_name(&fixname[1]));
+		t = dns_name_compare(&fixname[0], &fixname[1]);
 		if (t < 0) {
 			dns_diff_appendlist(resultdiff, &diff[0]);
 			have[0] = false;

@@ -266,10 +266,17 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
  * Mark NSEC3PARAM for deletion.
  */
 
+#define dns_nsec3_noexistnodata(type, name, nsec3name, nsec3set, zonename, \
+				exists, data, optout, unknown, setnearest, \
+				closest, nearest, logit, arg)              \
+	dns__nsec3_noexistnodata(type, DNS_NAME__RO_ARG(name),             \
+				 DNS_NAME__RO_ARG(nsec3name), nsec3set,    \
+				 zonename, exists, data, optout, unknown,  \
+				 setnearest, closest, nearest, logit, arg)
 isc_result_t
-dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
-			const dns_name_t *nsec3name, dns_rdataset_t *nsec3set,
-			dns_name_t *zonename, bool *exists, bool *data,
-			bool *optout, bool *unknown, bool *setnearest,
-			dns_name_t *closest, dns_name_t *nearest,
-			dns_nseclog_t logit, void *arg);
+dns__nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
+			 const dns_name_t *nsec3name, dns_rdataset_t *nsec3set,
+			 dns_name_t *zonename, bool *exists, bool *data,
+			 bool *optout, bool *unknown, bool *setnearest,
+			 dns_name_t *closest, dns_name_t *nearest,
+			 dns_nseclog_t logit, void *arg);

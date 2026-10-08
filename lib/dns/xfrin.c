@@ -1521,11 +1521,12 @@ detach:
  * into the given dns_message_t.
  */
 static void
-tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
+tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg,
+	      dns_linkedname_t **target) {
 	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdl = NULL;
 	dns_rdataset_t *rds = NULL;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -1542,7 +1543,7 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 	dns_rdatalist_tordataset(rdl, rds);
 
 	dns_message_gettempname(msg, &name);
-	dns_name_clone(&tuple->name, name);
+	dns_name_clone(&tuple->name, dns_name(name));
 	ISC_LIST_APPEND(name->list, rds, link);
 
 	*target = name;
@@ -1590,9 +1591,9 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *msg = NULL;
 	dns_difftuple_t *soatuple = NULL;
-	dns_name_t *qname = NULL;
+	dns_linkedname_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
-	dns_name_t *msgsoaname = NULL;
+	dns_linkedname_t *msgsoaname = NULL;
 	bool edns = xfr->edns;
 	bool reqnsid = xfr->view->requestnsid;
 	bool reqexpire = dns_zone_getrequestexpire(xfr->zone);
@@ -1607,7 +1608,7 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 
 	/* Create a name for the question section. */
 	dns_message_gettempname(msg, &qname);
-	dns_name_clone(&xfr->name, qname);
+	dns_name_clone(&xfr->name, dns_name(qname));
 
 	/* Formulate the question and attach it to the question name. */
 	dns_message_gettemprdataset(msg, &qrdataset);
@@ -1984,7 +1985,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			DNS_RDATASET_FOREACH(rds) {
 				dns_rdata_t rdata = DNS_RDATA_INIT;
 				dns_rdataset_current(rds, &rdata);
-				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
+				CHECK(xfr_rr(xfr, dns_name(name), rds->ttl,
+					     &rdata));
 
 				/*
 				 * Did we hit the maximum ixfr diffs limit?

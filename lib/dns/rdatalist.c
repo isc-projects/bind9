@@ -171,8 +171,9 @@ dns__rdatalist_count(dns_rdataset_t *rdataset) {
  * NSEC or NSEC3 rdataset together with the RRSIG rdataset covering it.
  */
 static bool
-findproof(dns_name_t *name, dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	  dns_rdataset_t **negp, dns_rdataset_t **negsigp) {
+findproof(dns_linkedname_t *name, dns_rdataclass_t rdclass,
+	  dns_rdatatype_t type, dns_rdataset_t **negp,
+	  dns_rdataset_t **negsigp) {
 	dns_rdataset_t *neg = NULL;
 	dns_rdataset_t *negsig = NULL;
 
@@ -202,14 +203,14 @@ findproof(dns_name_t *name, dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 isc_result_t
-dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+dns__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_linkedname_t *name,
 			  dns_rdatatype_t type) {
 	dns_rdataset_t *neg = NULL;
 	dns_rdataset_t *negsig = NULL;
 	dns_ttl_t ttl;
 
 	REQUIRE(rdataset != NULL);
-	REQUIRE(DNS_NAME_VALID(name));
+	REQUIRE(DNS_NAME_VALID(dns_linkedname_name(name)));
 
 	if (!findproof(name, rdataset->rdclass, type, &neg, &negsig)) {
 		return ISC_R_NOTFOUND;
@@ -233,14 +234,14 @@ dns__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 			  dns_rdataset_t *negsig DNS__DB_FLARG) {
 	dns_rdataset_t *tneg = NULL;
 	dns_rdataset_t *tnegsig = NULL;
-	dns_name_t *noqname = NULL;
+	dns_linkedname_t *noqname = NULL;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->attributes.noqname);
 
 	noqname = rdataset->rdlist.noqname;
 
-	REQUIRE(DNS_NAME_VALID(noqname));
+	REQUIRE(DNS_NAME_VALID(dns_linkedname_name(noqname)));
 
 	if (!findproof(noqname, rdataset->rdclass, rdataset->rdlist.noqnametype,
 		       &tneg, &tnegsig))

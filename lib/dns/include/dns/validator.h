@@ -83,8 +83,8 @@ struct dns_validator {
 	isc_refcount_t references;
 
 	/* Name and type of the response to be validated. */
-	dns_name_t     *name;
-	dns_rdatatype_t type;
+	dns_linkedname_t *name;
+	dns_rdatatype_t	  type;
 
 	/*
 	 * Callback and argument to use to inform the caller
@@ -114,7 +114,7 @@ struct dns_validator {
 	/*
 	 * Proofs to be cached.
 	 */
-	dns_name_t *proofs[DNS_VALIDATOR_MAXPROOF];
+	dns_linkedname_t *proofs[DNS_VALIDATOR_MAXPROOF];
 	/*
 	 * The denial type (NSEC or NSEC3) of the NOQNAME proof.
 	 */
@@ -184,12 +184,13 @@ struct dns_validator {
 #define DNS_VALIDATOR_NONTA    0x0008U /*% Ignore NTA table */
 
 isc_result_t
-dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		     dns_message_t *message, unsigned int options,
-		     isc_loop_t *loop, isc_job_cb cb, void *arg,
-		     isc_counter_t *nvalidations, isc_counter_t *nfails,
-		     isc_counter_t *qc, isc_counter_t *gqc, fetchctx_t *parent,
+dns_validator_create(dns_view_t *view, dns_linkedname_t *name,
+		     dns_rdatatype_t type, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset, dns_message_t *message,
+		     unsigned int options, isc_loop_t *loop, isc_job_cb cb,
+		     void *arg, isc_counter_t *nvalidations,
+		     isc_counter_t *nfails, isc_counter_t *qc,
+		     isc_counter_t *gqc, fetchctx_t *parent,
 		     dns_edectx_t *edectx, dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.

@@ -83,7 +83,7 @@ overmempurge_addrdataset(dns_db_t *db, isc_stdtime_t now, int idx,
 		snprintf(namebuf, sizeof(namebuf), "%d.example.com.", idx);
 	}
 	dns_test_namefromstring(namebuf, &fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_name(&fname);
 
 	result = dns_db_findnode(db, name, true, &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -181,7 +181,7 @@ servestale_setup(isc_mem_t *mctx, dns_fixedname_t *fname, dns_name_t **namep) {
 	dns_db_setservestalettl(db, 86400);
 
 	dns_test_namefromstring("example.com.", fname);
-	*namep = dns_fixedname_name(fname);
+	*namep = dns_name(fname);
 
 	return db;
 }
@@ -601,7 +601,7 @@ ISC_LOOP_TEST_IMPL(allrdatasets_expiredok_skips_deleted_header) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_test_namefromstring("deleted.example.com.", &fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_name(&fname);
 
 	servestale_addrdataset(db, name, now, dns_rdatatype_a, "10.53.0.1",
 			       3600, dns_trust_answer);

@@ -555,7 +555,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				wild = dns_wildcardname;
 			} else {
 				dns_name_t *fname;
-				fname = dns_fixedname_name(&fixed);
+				fname = dns_name(&fixed);
 				dns_name_getlabelsequence(
 					name, i + 1, dlabels - i - 1, fname);
 				result = dns_name_concatenate(dns_wildcardname,
@@ -1095,24 +1095,22 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static bool
 sdlz_addglue_addr(sdlz_addglue_ctx_t *ctx, dns_dbnode_t *node,
-		  dns_rdatatype_t type, dns_name_t **mnamep,
+		  dns_rdatatype_t type, dns_linkedname_t **mnamep,
 		  bool required DNS__DB_FLARG) {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
 
 	dns_message_gettemprdataset(ctx->msg, &rdataset);
 
-	result = findrdataset((dns_db_t *)ctx->sdlz, node, ctx->version, type,
-			      0, 0, rdataset, NULL DNS__DB_FLARG_PASS);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	CHECK(findrdataset((dns_db_t *)ctx->sdlz, node, ctx->version, type, 0,
+			   0, rdataset, NULL DNS__DB_FLARG_PASS));
 
 	if (*mnamep == NULL) {
 		dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 
 		dns_message_gettempname(ctx->msg, mnamep);
-		dns_name_copy(&sdlznode->name, *mnamep);
+		INSIST(*mnamep != NULL);
+		dns_name_copy(&sdlznode->name, dns_linkedname_name(*mnamep));
 	}
 
 	if (required) {
@@ -1133,7 +1131,7 @@ sdlz_addglue_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		dns_rdataset_t *unused ISC_ATTR_UNUSED DNS__DB_FLARG) {
 	sdlz_addglue_ctx_t *ctx = arg;
 	dns_dbnode_t *node = NULL;
-	dns_name_t *mname = NULL;
+	dns_linkedname_t *mname = NULL;
 	isc_result_t result;
 	bool added = false;
 	bool required;

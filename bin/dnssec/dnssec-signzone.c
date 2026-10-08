@@ -389,7 +389,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 		return key;
 	}
 
-	result = dst_key_fromfile(&rrsig->signer, rrsig->keyid,
+	result = dst_key_fromfile(dns_name(&rrsig->signer), rrsig->keyid,
 				  rrsig->algorithm, DST_TYPE_PUBLIC, directory,
 				  isc_g_mctx, &pubkey);
 	if (result != ISC_R_SUCCESS) {
@@ -397,7 +397,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 		return NULL;
 	}
 
-	result = dst_key_fromfile(&rrsig->signer, rrsig->keyid,
+	result = dst_key_fromfile(dns_name(&rrsig->signer), rrsig->keyid,
 				  rrsig->algorithm,
 				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, directory,
 				  isc_g_mctx, &privkey);
@@ -430,7 +430,7 @@ expecttofindkey(dns_name_t *name) {
 
 	dns_fixedname_init(&fname);
 	result = dns_db_find(gdb, name, gversion, dns_rdatatype_dnskey, options,
-			     0, dns_fixedname_name(&fname), NULL, NULL);
+			     0, dns_name(&fname), NULL, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
 	case DNS_R_NXDOMAIN:
@@ -578,7 +578,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 					 "invalid validity period\n",
 					 sigstr);
 			} else if (key == NULL && !future &&
-				   expecttofindkey(&rrsig.signer))
+				   expecttofindkey(dns_name(&rrsig.signer)))
 			{
 				/* rrsig is dropped and not replaced */
 				vbprintf(2,
@@ -1684,12 +1684,12 @@ assignwork(void *arg) {
 
 	UNLOCK(&namelock);
 
-	signname(node, false, dns_fixedname_name(&fname));
+	signname(node, false, dns_name(&fname));
 
 	/*%
 	 * Write a node to the output file, and restart the worker task.
 	 */
-	lock_and_dumpnode(dns_fixedname_name(&fname), node);
+	lock_and_dumpnode(dns_name(&fname), node);
 	dns_db_detachnode(&node);
 
 	isc_async_current(assignwork, NULL);
@@ -2034,8 +2034,7 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node, const unsigned char *salt,
 	rdatalist.ttl = ttl;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	result = dns_db_findnsec3node(gdb, dns_fixedname_name(&hashname), true,
-				      &nsec3node);
+	result = dns_db_findnsec3node(gdb, &hashname, true, &nsec3node);
 	check_result(result, "addnsec3: dns_db_findnode()");
 	result = dns_db_addrdataset(gdb, nsec3node, gversion, 0, &rdataset, 0,
 				    NULL);

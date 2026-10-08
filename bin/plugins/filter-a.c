@@ -512,12 +512,12 @@ mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
  * above processing to happen.
  */
 static bool
-process_name(query_ctx_t *qctx, filter_a_t mode, const dns_name_t *name,
+process_name(query_ctx_t *qctx, filter_a_t mode, const dns_linkedname_t *name,
 	     dns_rdatatype_t type, bool only_if_aaaa_exists) {
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	isc_result_t result;
 	bool modified = false;
-	dns_name_t *n = UNCONST(name);
+	dns_linkedname_t *n = UNCONST(name);
 
 	if (only_if_aaaa_exists) {
 		CHECK(dns_message_findtype(n, dns_rdatatype_aaaa, 0, NULL));
@@ -737,7 +737,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 */
 			result = ns_query_recurse(
 				qctx->client, dns_rdatatype_aaaa,
-				qctx->client->query.qname, qctx->resuming);
+				dns_name(qctx->client->query.qname),
+				qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_A_RECURSING;
 				qctx->client->query.recursing = true;
@@ -750,7 +751,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = qctx->fname,
+			.name = dns_name(qctx->fname),
 			.type = dns_rdatatype_a,
 		};
 		process_section(&filter_answer);
@@ -791,7 +792,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 			.qctx = qctx,
 			.mode = client_state->mode,
 			.section = DNS_SECTION_ANSWER,
-			.name = qctx->tname,
+			.name = dns_name(qctx->tname),
 			.type = dns_rdatatype_a,
 			.only_if_aaaa_exists = qctx->authoritative,
 		};

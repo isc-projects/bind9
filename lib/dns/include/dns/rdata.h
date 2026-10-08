@@ -832,9 +832,11 @@ dns_rdata_covers(dns_rdata_t *rdata);
  *\li	The type covered.
  */
 
+#define dns_rdata_checkowner(name, rdclass, type, wildcard) \
+	dns__rdata_checkowner(DNS_NAME__RO_ARG(name), rdclass, type, wildcard)
 bool
-dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, bool wildcard);
+dns__rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
+		      dns_rdatatype_t type, bool wildcard);
 /*
  * Returns whether this is a valid ownername for this <type,class>.
  * If wildcard is true allow the first label to be a wildcard if
@@ -844,9 +846,11 @@ dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
  *	'name' is a valid name.
  */
 
+#define dns_rdata_checknames(rdata, owner, bad) \
+	dns__rdata_checknames(rdata, DNS_NAME__RO_ARG(owner), bad)
 bool
-dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
-		     dns_name_t *bad);
+dns__rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
+		      dns_name_t *bad);
 /*
  * Returns whether 'rdata' contains valid domain names.  The checks are
  * sensitive to the owner name.

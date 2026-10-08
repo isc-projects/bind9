@@ -249,7 +249,7 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
 		dns_test_namefromstring(testcases[i].namestr,
 					&testcases[i].fixed);
-		testcases[i].name = dns_fixedname_name(&testcases[i].fixed);
+		testcases[i].name = dns_name(&testcases[i].fixed);
 		testcases[i].len = dns_qpkey_fromname(testcases[i].key,
 						      testcases[i].name,
 						      testcases[i].space);
@@ -446,7 +446,7 @@ qpkey_fromstring(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 
 	UNUSED(uctx);
 	dns_test_namefromstring(pval, &fixed);
-	return dns_qpkey_fromname(key, dns_fixedname_name(&fixed), space);
+	return dns_qpkey_fromname(key, dns_name(&fixed), space);
 }
 
 const dns_qpmethods_t string_methods = {

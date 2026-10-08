@@ -458,14 +458,14 @@ dns_delegset_addaddr(dns_delegset_t *delegset, dns_deleg_t *deleg,
 static void
 addname(dns_delegset_t *delegset, dns_namelist_t *list,
 	const dns_name_t *name) {
-	dns_name_t *clone = NULL;
+	dns_linkedname_t *clone = NULL;
 
 	REQUIRE(DNS_DELEGSET_VALID(delegset));
 	REQUIRE(DNS_NAME_VALID(name));
 
 	clone = isc_mem_get(delegset->mctx, sizeof(*clone));
-	dns_name_init(clone);
-	dns_name_dup(name, delegset->mctx, clone);
+	dns_linkedname_init(clone);
+	dns_name_dup(name, delegset->mctx, dns_name(clone));
 	ISC_LIST_APPEND(*list, clone, link);
 }
 
@@ -753,7 +753,7 @@ delegset_destroy(dns_delegset_t *delegset) {
 
 		ISC_LIST_FOREACH(deleg->names, nameserver, link) {
 			ISC_LIST_UNLINK(deleg->names, nameserver, link);
-			dns_name_free(nameserver, delegset->mctx);
+			dns_linkedname_free(nameserver, delegset->mctx);
 			isc_mem_put(delegset->mctx, nameserver,
 				    sizeof(*nameserver));
 		}
@@ -972,7 +972,8 @@ dns_delegset_copy(dns_delegset_t *src, dns_delegdb_t *db,
 		}
 
 		ISC_LIST_FOREACH(srcdeleg->names, name, link) {
-			addname(delegset, &deleg->names, name);
+			addname(delegset, &deleg->names,
+				dns_linkedname_name(name));
 		}
 	}
 

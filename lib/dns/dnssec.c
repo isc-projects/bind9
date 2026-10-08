@@ -190,10 +190,10 @@ digest_sig(dst_context_t *ctx, bool downcase, dns_rdata_t *sigrdata,
 	if (downcase) {
 		dns_fixedname_init(&fname);
 
-		RUNTIME_CHECK(dns_name_downcase(&rrsig->signer,
-						dns_fixedname_name(&fname)) ==
+		RUNTIME_CHECK(dns_name_downcase(dns_name(&rrsig->signer),
+						dns_name(&fname)) ==
 			      ISC_R_SUCCESS);
-		dns_name_toregion(dns_fixedname_name(&fname), &r);
+		dns_name_toregion(&fname, &r);
 	} else {
 		dns_name_toregion(&rrsig->signer, &r);
 	}
@@ -240,12 +240,11 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * Downcase signer.
 	 */
-	dns_name_init(&sig.signer);
+	dns_name_init(dns_name(&sig.signer));
 	dns_fixedname_init(&fsigner);
 	RUNTIME_CHECK(dns_name_downcase(dst_key_name(key),
-					dns_fixedname_name(&fsigner)) ==
-		      ISC_R_SUCCESS);
-	dns_name_clone(dns_fixedname_name(&fsigner), &sig.signer);
+					dns_name(&fsigner)) == ISC_R_SUCCESS);
+	dns_name_clone(&fsigner, dns_name(&sig.signer));
 
 	sig.covered = set->type;
 	sig.algorithm = dst_algorithm_tosecalg(dst_key_alg(key));
@@ -289,9 +288,9 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	dns_fixedname_init(&fnewname);
-	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname)) ==
+	RUNTIME_CHECK(dns_name_downcase(name, dns_name(&fnewname)) ==
 		      ISC_R_SUCCESS);
-	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+	dns_name_toregion(&fnewname, &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
@@ -418,7 +417,8 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * for it.
 	 */
 	siglabels = sig.labels + 1;
-	if (siglabels < dns_name_countlabels(&sig.signer) || siglabels > labels)
+	if (siglabels < dns_name_countlabels(dns_name(&sig.signer)) ||
+	    siglabels > labels)
 	{
 		inc_stat(dns_dnssecstats_fail);
 		return DNS_R_SIGINVALID;
@@ -459,7 +459,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			return DNS_R_INVALIDNSEC3;
 		}
 		dns_name_split(name, labels - 1, NULL, &apex);
-		if (!dns_name_equal(&apex, &sig.signer)) {
+		if (!dns_name_equal(&apex, dns_name(&sig.signer))) {
 			inc_stat(dns_dnssecstats_fail);
 			return DNS_R_SIGINVALID;
 		}
@@ -492,7 +492,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		RETERR(dns_rdataset_first(set));
 		dns_rdataset_current(set, &rdata);
 		RETERR(dns_rdata_tostruct(&rdata, &nsec));
-		if (!dns_name_issubdomain(&nsec.next, &sig.signer)) {
+		if (!dns_name_issubdomain(&nsec.next, dns_name(&sig.signer))) {
 			return DNS_R_NOVALIDNSEC;
 		}
 	}
@@ -513,14 +513,14 @@ again:
 	 * If the name is an expanded wildcard, use the wildcard name.
 	 */
 	dns_fixedname_init(&fnewname);
-	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname)) ==
+	RUNTIME_CHECK(dns_name_downcase(name, dns_name(&fnewname)) ==
 		      ISC_R_SUCCESS);
 	if (labels > siglabels) {
-		dns_name_split(dns_fixedname_name(&fnewname), siglabels, NULL,
-			       dns_fixedname_name(&fnewname));
+		dns_name_split(dns_name(&fnewname), siglabels, NULL,
+			       dns_name(&fnewname));
 	}
 
-	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+	dns_name_toregion(&fnewname, &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
@@ -621,13 +621,13 @@ cleanup:
 
 	if (result == ISC_R_SUCCESS && labels > siglabels) {
 		if (wild != NULL) {
-			RUNTIME_CHECK(dns_name_concatenate(
-					      dns_wildcardname,
-					      dns_fixedname_name(&fnewname),
-					      wild) == ISC_R_SUCCESS);
+			RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname,
+							   dns_name(&fnewname),
+							   wild) ==
+				      ISC_R_SUCCESS);
 		}
 		if (wildsigner != NULL) {
-			dns_name_copy(&sig.signer, wildsigner);
+			dns_name_copy(dns_name(&sig.signer), wildsigner);
 		}
 		inc_stat(dns_dnssecstats_wildcard);
 		result = DNS_R_FROMWILDCARD;

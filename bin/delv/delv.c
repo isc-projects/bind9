@@ -444,7 +444,7 @@ print_status(dns_rdataset_t *rdataset) {
 }
 
 static void
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
+printdata(dns_rdataset_t *rdataset, const dns_name_t *owner) {
 	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
 	static bool first = true;
@@ -1838,7 +1838,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 
 	ISC_LIST_FOREACH(*namelist, response_name, link) {
 		ISC_LIST_FOREACH(response_name->list, rdataset, link) {
-			printdata(rdataset, response_name);
+			printdata(rdataset, dns_name(response_name));
 		}
 	}
 
@@ -1947,7 +1947,7 @@ recvresponse(void *arg) {
 	dns_message_t *query = dns_request_getarg(request);
 	isc_result_t result = dns_request_getresult(request);
 	dns_message_t *response = NULL;
-	dns_name_t *prev = NULL;
+	const dns_name_t *prev = NULL;
 
 	if (result != ISC_R_SUCCESS) {
 		fatal("request event result: %s", isc_result_totext(result));
@@ -1968,10 +1968,11 @@ recvresponse(void *arg) {
 		goto cleanup;
 	}
 
-	MSG_SECTION_FOREACH(response, DNS_SECTION_ANSWER, name) {
+	MSG_SECTION_FOREACH(response, DNS_SECTION_ANSWER, linkedname) {
+		const dns_name_t *name = dns_name(linkedname);
 		dns_rdatatype_t prevtype = dns_rdatatype_none;
 
-		ISC_LIST_FOREACH(name->list, rdataset, link) {
+		ISC_LIST_FOREACH(linkedname->list, rdataset, link) {
 			dns_rdataset_t rds, sigs;
 			int options = 0;
 
@@ -2051,7 +2052,8 @@ sendquery(void *arg) {
 	isc_sockaddr_t peer = isc_nmsocket_getaddr(sock);
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	dns_name_t *query_name = NULL, *mname = NULL;
+	dns_name_t *query_name = NULL;
+	dns_linkedname_t *mname = NULL;
 	dns_rdataset_t *mrdataset = NULL;
 	dns_request_t *request = NULL;
 
@@ -2070,7 +2072,7 @@ sendquery(void *arg) {
 
 	dns_message_gettempname(message, &mname);
 	dns_message_gettemprdataset(message, &mrdataset);
-	dns_name_clone(query_name, mname);
+	dns_name_clone(query_name, dns_name(mname));
 	dns_rdataset_makequestion(mrdataset, dns_rdataclass_in, qtype);
 	ISC_LIST_APPEND(mname->list, mrdataset, link);
 	dns_message_addname(message, mname, DNS_SECTION_QUESTION);

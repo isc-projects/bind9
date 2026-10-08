@@ -2802,7 +2802,7 @@ qpzone_setup_delegation(qpz_search_t *search, dns_name_t *foundname,
 	 * we have trouble.
 	 */
 	if (foundname != NULL && search->copy_name) {
-		zcname = dns_fixedname_name(&search->zonecut_name);
+		zcname = dns_name(&search->zonecut_name);
 		dns_name_copy(zcname, foundname);
 	}
 	if (rdataset != NULL) {
@@ -3482,7 +3482,7 @@ qpzone_check_zonecut(qpznode_t *node, void *arg DNS__DB_FLARG) {
 			 * This may or may not be the best match.  In case it
 			 * is, we need to remember the node name.
 			 */
-			zcname = dns_fixedname_name(&search->zonecut_name);
+			zcname = dns_name(&search->zonecut_name);
 			dns_name_copy(&node->name, zcname);
 			search->copy_name = true;
 		}
@@ -5420,7 +5420,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 static void
 addglue_to_message(qpzonedb_t *qpdb, dns_glue_t *ge, dns_message_t *msg) {
 	for (; ge != NULL; ge = ge->next) {
-		dns_name_t *name = NULL;
+		dns_linkedname_t *name = NULL;
 		dns_rdataset_t *rdataset_a = NULL;
 		dns_rdataset_t *sigrdataset_a = NULL;
 		dns_rdataset_t *rdataset_aaaa = NULL;
@@ -5429,7 +5429,7 @@ addglue_to_message(qpzonedb_t *qpdb, dns_glue_t *ge, dns_message_t *msg) {
 
 		dns_message_gettempname(msg, &name);
 
-		dns_name_copy(&ge->name, name);
+		dns_name_copy(&ge->name, dns_name(name));
 
 		if (ge->header_a != NULL) {
 			dns_message_gettemprdataset(msg, &rdataset_a);

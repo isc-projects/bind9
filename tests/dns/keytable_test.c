@@ -166,7 +166,7 @@ create_tables(void) {
 	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
-	dns_name_t *keyname = dns_fixedname_name(&fn);
+	dns_name_t *keyname = dns_name(&fn);
 	isc_stdtime_t now = isc_stdtime_now();
 
 	assert_int_equal(dns_test_makeview("view", false, false, &view),
@@ -223,7 +223,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
-	dns_name_t *keyname = dns_fixedname_name(&fn);
+	dns_name_t *keyname = dns_name(&fn);
 
 	UNUSED(arg);
 
@@ -419,7 +419,7 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 	dns_rdata_dnskey_t dnskey;
 	unsigned char keydata[4096];
 	dns_fixedname_t fn;
-	dns_name_t *keyname = dns_fixedname_name(&fn);
+	dns_name_t *keyname = dns_name(&fn);
 
 	UNUSED(arg);
 
@@ -594,7 +594,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	isc_result_t result;
 	bool covered;
 	dns_fixedname_t fn;
-	dns_name_t *keyname = dns_fixedname_name(&fn);
+	dns_name_t *keyname = dns_name(&fn);
 	unsigned char digest[DNS_DS_BUFFERSIZE];
 	dns_rdata_ds_t ds;
 	dns_view_t *myview = NULL;

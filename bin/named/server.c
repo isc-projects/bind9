@@ -1286,8 +1286,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
 	dns_fixedname_init(&fixed);
-	RETERR(dns_name_fromtext(dns_fixedname_name(&fixed), &b, dns_rootname,
-				 0));
+	RETERR(dns_name_fromtext(dns_name(&fixed), &b, dns_rootname, 0));
 
 	obj = cfg_tuple_get(ent, "ordering");
 	INSIST(cfg_obj_isstring(obj));
@@ -1314,7 +1313,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 		dns_order_add(order, dns_rootname, rdtype, rdclass, mode);
 	}
 
-	dns_order_add(order, dns_fixedname_name(&fixed), rdtype, rdclass, mode);
+	dns_order_add(order, dns_name(&fixed), rdtype, rdclass, mode);
 
 	return ISC_R_SUCCESS;
 }
@@ -5403,7 +5402,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	obj = NULL;
 	result = named_config_get(maps, "nxdomain-redirect", &obj);
 	if (result == ISC_R_SUCCESS) {
-		dns_name_t *name = dns_fixedname_name(&view->redirectfixed);
+		dns_name_t *name = dns_name(&view->redirectfixed);
 		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
 					  dns_rootname, 0, NULL));
 		view->redirectzone = name;
@@ -5979,9 +5978,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	isc_buffer_constinit(&buffer, zname, strlen(zname));
 	isc_buffer_add(&buffer, strlen(zname));
 	dns_fixedname_init(&fixorigin);
-	CHECK(dns_name_fromtext(dns_fixedname_name(&fixorigin), &buffer,
-				dns_rootname, 0));
-	origin = dns_fixedname_name(&fixorigin);
+	CHECK(dns_name_fromtext(dns_name(&fixorigin), &buffer, dns_rootname,
+				0));
+	origin = dns_name(&fixorigin);
 
 	CHECK(named_config_getclass(cfg_tuple_get(zconfig, "class"),
 				    view->rdclass, &zclass));
@@ -6604,8 +6603,8 @@ tat_send(void *arg) {
 	dns_name_t *keyname = NULL;
 	dns_name_t *tatname = NULL;
 
-	keyname = dns_fixedname_name(&tat->keyname);
-	tatname = dns_fixedname_name(&tat->tatname);
+	keyname = dns_name(&tat->keyname);
+	tatname = dns_name(&tat->tatname);
 
 	dns_name_format(tatname, namebuf, sizeof(namebuf));
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,

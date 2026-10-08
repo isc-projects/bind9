@@ -797,8 +797,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 			sizeof(*looknew->ecs_addr));
 	}
 
-	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
-		      dns_fixedname_name(&looknew->fdomain));
+	dns_name_copy(&lookold->fdomain, dns_name(&looknew->fdomain));
 
 	if (servers) {
 		if (lookold->tls_ctx_cache != NULL) {
@@ -1442,8 +1441,8 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
  * type, and class.
  */
 static void
-add_question(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
-	     dns_rdatatype_t rdtype) {
+add_question(dns_message_t *message, dns_linkedname_t *name,
+	     dns_rdataclass_t rdclass, dns_rdatatype_t rdtype) {
 	dns_rdataset_t *rdataset;
 
 	debug("add_question()");
@@ -1816,7 +1815,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 			unsigned int nlabels;
 			int order;
 
-			domain = dns_fixedname_name(&query->lookup->fdomain);
+			domain = dns_name(&query->lookup->fdomain);
 			namereln = dns_name_fullcompare(name, domain, &order,
 							&nlabels);
 			if (namereln == dns_namereln_equal) {
@@ -1873,7 +1872,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section) {
 				if (lookup->ns_search_only) {
 					lookup->recurse = false;
 				}
-				domain = dns_fixedname_name(&lookup->fdomain);
+				domain = dns_name(&lookup->fdomain);
 				dns_name_copy(name, domain);
 				lookup->edns = lookup->original_edns;
 			}
@@ -2006,7 +2005,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
-	dns_name_t *soaname = NULL;
+	dns_linkedname_t *soaname = NULL;
 
 	debug("insert_soa()");
 	soa.serial = lookup->ixfr_serial;
@@ -2042,7 +2041,7 @@ insert_soa(dig_lookup_t *lookup) {
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	dns_message_gettempname(lookup->sendmsg, &soaname);
-	dns_name_clone(lookup->name, soaname);
+	dns_name_clone(lookup->name, dns_name(soaname));
 	ISC_LIST_INIT(soaname->list);
 	ISC_LIST_APPEND(soaname->list, rdataset, link);
 	dns_message_addname(lookup->sendmsg, soaname, DNS_SECTION_AUTHORITY);
@@ -2171,8 +2170,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 
 	if (lookup->origin != NULL) {
+		dns_linkedname_t *oname = NULL;
+
 		debug("trying origin %s", lookup->origin->origin);
-		dns_message_gettempname(lookup->sendmsg, &lookup->oname);
+		dns_message_gettempname(lookup->sendmsg, &oname);
 		/* XXX Helper funct to conv char* to name? */
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2
@@ -2185,16 +2186,16 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = (unsigned int)strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->oname, &b, dns_rootname, 0);
+		result = dns_name_fromtext(dns_name(oname), &b, dns_rootname,
+					   0);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg, &lookup->name);
-			dns_message_puttempname(lookup->sendmsg,
-						&lookup->oname);
+			dns_message_puttempname(lookup->sendmsg, &oname);
 			fatal("'%s' is not in legal name syntax (%s)", origin,
 			      isc_result_totext(result));
 		}
 		if (lookup->trace && lookup->trace_root) {
-			dns_name_clone(dns_rootname, lookup->name);
+			dns_name_clone(dns_rootname, dns_name(lookup->name));
 		} else {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
@@ -2207,17 +2208,18 @@ setup_lookup(dig_lookup_t *lookup) {
 			if (result == ISC_R_SUCCESS) {
 				if (!dns_name_isabsolute(name)) {
 					result = dns_name_concatenate(
-						name, lookup->oname,
-						lookup->name);
+						name, dns_name(oname),
+						dns_name(lookup->name));
 				} else {
-					dns_name_copy(name, lookup->name);
+					dns_name_copy(name,
+						      dns_name(lookup->name));
 				}
 			}
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);
 				dns_message_puttempname(lookup->sendmsg,
-							&lookup->oname);
+							&oname);
 				if (result == DNS_R_NAMETOOLONG) {
 					return false;
 				}
@@ -2226,16 +2228,16 @@ setup_lookup(dig_lookup_t *lookup) {
 				      isc_result_totext(result));
 			}
 		}
-		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
+		dns_message_puttempname(lookup->sendmsg, &oname);
 	} else {
 		debug("using root origin");
 		if (lookup->trace && lookup->trace_root) {
-			dns_name_clone(dns_rootname, lookup->name);
+			dns_name_clone(dns_rootname, dns_name(lookup->name));
 		} else {
 			len = (unsigned int)strlen(textname);
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
-			result = dns_name_fromtext(lookup->name, &b,
+			result = dns_name_fromtext(dns_name(lookup->name), &b,
 						   dns_rootname, 0);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,

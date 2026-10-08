@@ -112,7 +112,7 @@ void
 ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
-	dns_name_t *zonename;
+	dns_linkedname_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
 
@@ -166,11 +166,12 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 
 	if (zone_rdataset->type != dns_rdatatype_soa) {
 		result = DNS_R_NOTIMP;
-		notify_log_received(client, ISC_LOG_DEBUG(3), zonename,
-				    zone_rdataset->type, result);
+		notify_log_received(client, ISC_LOG_DEBUG(3),
+				    dns_name(zonename), zone_rdataset->type,
+				    result);
 		goto done;
 	}
-	result = dns_view_findzone(client->inner.view, zonename,
+	result = dns_view_findzone(client->inner.view, dns_name(zonename),
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result == ISC_R_SUCCESS) {
 		dns_zonetype_t zonetype = dns_zone_gettype(zone);
@@ -182,7 +183,8 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		{
 			isc_sockaddr_t *from = ns_client_getsockaddr(client);
 			isc_sockaddr_t *to = ns_client_getdestaddr(client);
-			notify_log_received(client, ISC_LOG_INFO, zonename,
+			notify_log_received(client, ISC_LOG_INFO,
+					    dns_name(zonename),
 					    zone_rdataset->type, ISC_R_SUCCESS);
 			result = dns_zone_notifyreceive(zone, from, to,
 							request);
@@ -191,7 +193,7 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	}
 
 	result = DNS_R_NOTAUTH;
-	notify_log_received(client, ISC_LOG_NOTICE, zonename,
+	notify_log_received(client, ISC_LOG_NOTICE, dns_name(zonename),
 			    zone_rdataset->type, result);
 
 done:

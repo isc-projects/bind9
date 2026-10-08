@@ -3169,7 +3169,7 @@ dns__zone_set_resigntime(dns_zone_t *zone) {
 		return;
 	}
 
-	result = dns_db_getsigningtime(db, &resign, dns_fixedname_name(&fixed),
+	result = dns_db_getsigningtime(db, &resign, dns_name(&fixed),
 				       &typepair);
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&zone->resigntime);
@@ -3732,8 +3732,8 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	 */
 	dns_fixedname_init(&fname);
 	result = dns_db_find(db, keyname, ver, dns_rdatatype_keydata,
-			     DNS_DBFIND_NOWILD, 0, dns_fixedname_name(&fname),
-			     NULL, NULL);
+			     DNS_DBFIND_NOWILD, 0, dns_name(&fname), NULL,
+			     NULL);
 	if (result == ISC_R_SUCCESS) {
 		return;
 	}
@@ -8735,7 +8735,7 @@ refresh_time(dns_zonefetch_t *fetch, bool retry) {
 	uint32_t t;
 	dns_rdataset_t *sigset;
 	dns_rdata_t sigrr = DNS_RDATA_INIT;
-	dns_rdata_sig_t sig;
+	dns_rdata_rrsig_t sig;
 	isc_stdtime_t now;
 
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
@@ -8816,7 +8816,7 @@ minimal_update(dns_zonefetch_t *fetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 
 	now = isc_stdtime_now();
 	zone = fetch->zone;
-	name = dns_fixedname_name(&fetch->name);
+	name = dns_name(&fetch->name);
 	kfetch = &fetch->fetchdata.keyfetch;
 
 	DNS_RDATASET_FOREACH(&kfetch->keydataset) {
@@ -8873,7 +8873,7 @@ revocable(dns_zonefetch_t *fetch, dns_rdata_keydata_t *keydata) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
 	REQUIRE(dns_rdataset_isassociated(&fetch->sigset));
 
-	keyname = dns_fixedname_name(&fetch->name);
+	keyname = dns_name(&fetch->name);
 	mctx = fetch->zone->view->mctx;
 
 	/* Generate a key from keydata */
@@ -8930,7 +8930,7 @@ static isc_result_t
 keyfetch_start(dns_zonefetch_t *fetch) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
 
-	fetch->qname = dns_fixedname_name(&fetch->name);
+	fetch->qname = dns_name(&fetch->name);
 	fetch->qtype = dns_rdatatype_dnskey;
 
 	return ISC_R_SUCCESS;
@@ -9034,7 +9034,7 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	kfetch = &fetch->fetchdata.keyfetch;
 	zone = fetch->zone;
 	mctx = fetch->mctx;
-	keyname = dns_fixedname_name(&fetch->name);
+	keyname = dns_name(&fetch->name);
 	dnskeys = &fetch->rrset;
 	dnskeysigs = &fetch->sigset;
 
@@ -11199,7 +11199,7 @@ static void
 create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	     dns_message_t **messagep) {
 	dns_message_t *message = NULL;
-	dns_name_t *qname = NULL;
+	dns_linkedname_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 
 	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
@@ -11215,7 +11215,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	/*
 	 * Make question.
 	 */
-	dns_name_clone(name, qname);
+	dns_name_clone(name, dns_name(qname));
 	dns_rdataset_makequestion(qrdataset, zone->rdclass, rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
@@ -11662,11 +11662,12 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 		 * provided in this message will be used.
 		 */
 		if (!has_glue && dns_name_issubdomain(&ns.name, name)) {
-			dns_name_t *tmp_name;
+			dns_linkedname_t *tmp_name;
 			tmp_name = isc_mem_get(cb_args->stub->mctx,
 					       sizeof(*tmp_name));
-			dns_name_init(tmp_name);
-			dns_name_dup(&ns.name, cb_args->stub->mctx, tmp_name);
+			dns_linkedname_init(tmp_name);
+			dns_name_dup(&ns.name, cb_args->stub->mctx,
+				     dns_name(tmp_name));
 			ISC_LIST_APPEND(ns_list, tmp_name, link);
 		}
 	}
@@ -11680,16 +11681,16 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 			/*
 			 * Resolve NS IPv4 address/A.
 			 */
-			result = stub_request_nameserver_address(cb_args, true,
-								 ns_name);
+			result = stub_request_nameserver_address(
+				cb_args, true, dns_name(ns_name));
 			if (result != ISC_R_SUCCESS) {
 				goto done;
 			}
 			/*
 			 * Resolve NS IPv6 address/AAAA.
 			 */
-			result = stub_request_nameserver_address(cb_args, false,
-								 ns_name);
+			result = stub_request_nameserver_address(
+				cb_args, false, dns_name(ns_name));
 			if (result != ISC_R_SUCCESS) {
 				goto done;
 			}
@@ -11701,7 +11702,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 done:
 	ISC_LIST_FOREACH(ns_list, ns_name, link) {
 		ISC_LIST_UNLINK(ns_list, ns_name, link);
-		dns_name_free(ns_name, cb_args->stub->mctx);
+		dns_name_free(dns_name(ns_name), cb_args->stub->mctx);
 		isc_mem_put(cb_args->stub->mctx, ns_name, sizeof(*ns_name));
 	}
 	return result;
@@ -17319,7 +17320,7 @@ static void
 checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	dns_message_t *message = NULL;
 
-	dns_name_t *tempname = NULL;
+	dns_linkedname_t *tempname = NULL;
 	dns_rdataset_t *temprdataset = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -17339,8 +17340,8 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	/*
 	 * Make question.
 	 */
-	dns_name_init(tempname);
-	dns_name_clone(&zone->origin, tempname);
+	dns_name_init(dns_name(tempname));
+	dns_name_clone(&zone->origin, dns_name(tempname));
 	dns_rdataset_makequestion(temprdataset, zone->rdclass,
 				  dns_rdatatype_ds);
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
@@ -18052,8 +18053,7 @@ dsyncfetch_start(dns_zonefetch_t *fetch) {
 
 	nlabels = dns_name_countlabels(&dsyncfetch->pname);
 	dns_name_init(&prefix);
-	dns_name_split(dns_fixedname_name(&fetch->name), nlabels, &prefix,
-		       NULL);
+	dns_name_split(dns_name(&fetch->name), nlabels, &prefix, NULL);
 
 	result = dns_name_concatenate(&prefix, &_dsync, dsyncname);
 	if (result != ISC_R_SUCCESS) {
@@ -18153,7 +18153,7 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	dsyncfetch = &fetch->fetchdata.dsyncfetch;
 	zone = fetch->zone;
 	rrset = &fetch->rrset;
-	dsyncname = dns_fixedname_name(&dsyncfetch->dsyncname);
+	dsyncname = dns_name(&dsyncfetch->dsyncname);
 
 	zone->fetchcount[ZONEFETCHTYPE_DSYNC]--;
 

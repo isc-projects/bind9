@@ -1281,7 +1281,7 @@ parse_args(int argc, char **argv) {
 }
 
 static uint16_t
-parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
+parse_name(char **cmdlinep, dns_message_t *msg, dns_linkedname_t **namep) {
 	isc_result_t result;
 	char *word;
 	isc_buffer_t source;
@@ -1295,7 +1295,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	dns_message_gettempname(msg, namep);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
-	result = dns_name_fromtext(*namep, &source, dns_rootname, 0);
+	result = dns_name_fromtext(dns_name(*namep), &source, dns_rootname, 0);
 	if (result != ISC_R_SUCCESS) {
 		error("invalid owner name: %s", isc_result_totext(result));
 		isc_buffer_invalidate(&source);
@@ -1362,7 +1362,7 @@ static uint16_t
 make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 	isc_result_t result;
 	char *word;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 	isc_textregion_t region;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
@@ -1876,7 +1876,7 @@ evaluate_class(char *cmdline) {
 static uint16_t
 update_addordelete(char *cmdline, bool isdelete) {
 	isc_result_t result;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *linkedname = NULL;
 	uint32_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
@@ -1892,10 +1892,11 @@ update_addordelete(char *cmdline, bool isdelete) {
 	/*
 	 * Read the owner name.
 	 */
-	retval = parse_name(&cmdline, updatemsg, &name);
+	retval = parse_name(&cmdline, updatemsg, &linkedname);
 	if (retval != STATUS_MORE) {
 		return retval;
 	}
+	const dns_name_t *name = dns_name(linkedname);
 
 	dns_message_gettemprdata(updatemsg, &rdata);
 
@@ -2075,14 +2076,14 @@ doneparsing:
 	rdatalist->ttl = (dns_ttl_t)ttl;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
-	ISC_LIST_INIT(name->list);
-	ISC_LIST_APPEND(name->list, rdataset, link);
-	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
+	ISC_LIST_INIT(linkedname->list);
+	ISC_LIST_APPEND(linkedname->list, rdataset, link);
+	dns_message_addname(updatemsg, linkedname, DNS_SECTION_UPDATE);
 	return STATUS_MORE;
 
 failure:
-	if (name != NULL) {
-		dns_message_puttempname(updatemsg, &name);
+	if (linkedname != NULL) {
+		dns_message_puttempname(updatemsg, &linkedname);
 	}
 	dns_message_puttemprdata(updatemsg, &rdata);
 	return STATUS_SYNTAX;
@@ -2167,7 +2168,7 @@ evaluate_checksvcb(char *cmdline) {
 static void
 setzone(dns_name_t *zonename) {
 	dns_namelist_t *secs = updatemsg->sections;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 
 	if (!ISC_LIST_EMPTY(secs[DNS_SECTION_ZONE])) {
 		INSIST(updatemsg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
@@ -2187,7 +2188,7 @@ setzone(dns_name_t *zonename) {
 		dns_rdataset_t *rdataset = NULL;
 
 		dns_message_gettempname(updatemsg, &name);
-		dns_name_clone(zonename, name);
+		dns_name_clone(zonename, dns_name(name));
 		dns_message_gettemprdataset(updatemsg, &rdataset);
 		dns_rdataset_makequestion(rdataset, getzoneclass(),
 					  dns_rdatatype_soa);
@@ -2652,7 +2653,8 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 
 	/* Windows doesn't like the tsig name to be compressed. */
 	if (updatemsg->tsigname) {
-		updatemsg->tsigname->attributes.nocompress = true;
+		dns_linkedname_name(updatemsg->tsigname)->attributes.nocompress =
+			true;
 	}
 
 	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
@@ -2691,7 +2693,7 @@ recvsoa(void *arg) {
 	dns_message_t *soaquery = reqinfo->msg;
 	dns_message_t *rcvmsg = NULL;
 	dns_section_t section;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 	dns_rdataset_t *soaset = NULL;
 	dns_rdata_soa_t soa;
 	dns_rdata_t soarr = DNS_RDATA_INIT;
@@ -2954,8 +2956,8 @@ droplabel:
 		fatal("could not find enclosing zone");
 	}
 	dns_name_init(&tname);
-	dns_name_getlabelsequence(name, 1, nlabels - 1, &tname);
-	dns_name_clone(&tname, name);
+	dns_name_getlabelsequence(dns_name(name), 1, nlabels - 1, &tname);
+	dns_name_clone(&tname, dns_name(name));
 	dns_request_destroy(&request);
 	dns_message_renderreset(soaquery);
 	dns_message_settsigkey(soaquery, NULL);
@@ -3341,7 +3343,7 @@ recvgss(void *arg) {
 static void
 start_update(void) {
 	dns_rdataset_t *rdataset = NULL;
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 	dns_request_t *request = NULL;
 	dns_message_t *soaquery = NULL;
 
@@ -3379,7 +3381,7 @@ start_update(void) {
 	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 
 	if (userzone != NULL) {
-		dns_name_clone(userzone, name);
+		dns_name_clone(userzone, dns_name(name));
 	} else {
 		dns_rdataset_t *tmprdataset;
 
@@ -3401,9 +3403,9 @@ start_update(void) {
 			return;
 		}
 
-		dns_name_t *firstname =
+		dns_linkedname_t *firstname =
 			ISC_LIST_HEAD(updatemsg->sections[section]);
-		dns_name_clone(firstname, name);
+		dns_name_clone(firstname, dns_name(name));
 
 		/*
 		 * Looks to see if the first name references a DS record
@@ -3413,11 +3415,12 @@ start_update(void) {
 		 */
 		tmprdataset = ISC_LIST_HEAD(firstname->list);
 		if (section == DNS_SECTION_UPDATE &&
-		    !dns_name_isroot(firstname) &&
+		    !dns_name_isroot(dns_linkedname_name(firstname)) &&
 		    tmprdataset->type == dns_rdatatype_ds)
 		{
 			unsigned int labels = dns_name_countlabels(name);
-			dns_name_getlabelsequence(name, 1, labels - 1, name);
+			dns_name_getlabelsequence(dns_name(name), 1, labels - 1,
+						  dns_name(name));
 		}
 	}
 

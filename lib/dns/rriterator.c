@@ -71,9 +71,8 @@ dns_rriterator_first(dns_rriterator_t *it) {
 	 * Walk the tree to find the first node with data.
 	 */
 	while (it->result == ISC_R_SUCCESS) {
-		it->result = dns_dbiterator_current(
-			it->dbit, &it->node,
-			dns_fixedname_name(&it->fixedname));
+		it->result = dns_dbiterator_current(it->dbit, &it->node,
+						    dns_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS) {
 			return it->result;
 		}
@@ -96,7 +95,7 @@ dns_rriterator_first(dns_rriterator_t *it) {
 		}
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
 		dns_rdataset_getownercase(&it->rdataset,
-					  dns_fixedname_name(&it->fixedname));
+					  dns_name(&it->fixedname));
 		it->result = dns_rdataset_first(&it->rdataset);
 		return it->result;
 	}
@@ -123,9 +122,8 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 		if (it->result != ISC_R_SUCCESS) {
 			return it->result;
 		}
-		it->result = dns_dbiterator_current(
-			it->dbit, &it->node,
-			dns_fixedname_name(&it->fixedname));
+		it->result = dns_dbiterator_current(it->dbit, &it->node,
+						    dns_name(&it->fixedname));
 		if (it->result != ISC_R_SUCCESS) {
 			return it->result;
 		}
@@ -140,8 +138,7 @@ dns_rriterator_nextrrset(dns_rriterator_t *it) {
 		return it->result;
 	}
 	dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
-	dns_rdataset_getownercase(&it->rdataset,
-				  dns_fixedname_name(&it->fixedname));
+	dns_rdataset_getownercase(&it->rdataset, dns_name(&it->fixedname));
 	it->result = dns_rdataset_first(&it->rdataset);
 	return it->result;
 }
@@ -192,7 +189,7 @@ dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name, uint32_t *ttl,
 	REQUIRE(rdataset == NULL || *rdataset == NULL);
 	REQUIRE(rdata == NULL || *rdata == NULL);
 
-	*name = dns_fixedname_name(&it->fixedname);
+	*name = dns_name(&it->fixedname);
 	*ttl = it->rdataset.ttl;
 
 	dns_rdata_reset(&it->rdata);

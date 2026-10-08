@@ -224,9 +224,9 @@ typedef enum dns_message_intent {
 /* Obsolete: DNS_MESSAGERENDER_FILTER_AAAA	0x0020	*/
 
 /* clang-format off */
-#define MSG_SECTION_FOREACH(msg, section, elt)                            \
-        for (dns_name_t *elt = ISC_LIST_HEAD((msg)->sections[(section)]); \
-             elt != NULL;                                                 \
+#define MSG_SECTION_FOREACH(msg, section, elt)                                    \
+        for (dns_linkedname_t *elt = ISC_LIST_HEAD((msg)->sections[(section)]); \
+             elt != NULL;                                                             \
              elt = ISC_LIST_NEXT(elt, link))
 /* clang-format on */
 
@@ -258,11 +258,11 @@ struct dns_message {
 	unsigned int counts[DNS_SECTION_MAX];
 
 	/* private from here down */
-	dns_namelist_t	sections[DNS_SECTION_MAX];
-	dns_name_t     *cursors[DNS_SECTION_MAX];
-	dns_rdataset_t *opt;
-	dns_rdataset_t *sig0;
-	dns_rdataset_t *tsig;
+	dns_namelist_t	  sections[DNS_SECTION_MAX];
+	dns_linkedname_t *cursors[DNS_SECTION_MAX];
+	dns_rdataset_t	 *opt;
+	dns_rdataset_t	 *sig0;
+	dns_rdataset_t	 *tsig;
 
 	int state;
 	unsigned int			      : 0; /* bits */
@@ -307,20 +307,20 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t) freerdata;
 	ISC_LIST(dns_rdatalist_t) freerdatalist;
 
-	dns_rcode_t	tsigstatus;
-	dns_rcode_t	querytsigstatus;
-	dns_name_t     *tsigname; /* Owner name of TSIG, if any */
-	dns_rdataset_t *querytsig;
-	dns_tsigkey_t  *tsigkey;
-	dst_context_t  *tsigctx;
-	int		sigstart;
-	int		timeadjust;
+	dns_rcode_t	  tsigstatus;
+	dns_rcode_t	  querytsigstatus;
+	dns_linkedname_t *tsigname; /* Owner name of TSIG, if any */
+	dns_rdataset_t	 *querytsig;
+	dns_tsigkey_t	 *tsigkey;
+	dst_context_t	 *tsigctx;
+	int		  sigstart;
+	int		  timeadjust;
 
-	dns_name_t  *sig0name; /* Owner name of SIG0, if any */
-	dst_key_t   *sig0key;
-	dns_rcode_t  sig0status;
-	isc_region_t query;
-	isc_region_t saved;
+	dns_linkedname_t *sig0name; /* Owner name of SIG0, if any */
+	dst_key_t	 *sig0key;
+	dns_rcode_t	  sig0status;
+	isc_region_t	  query;
+	isc_region_t	  saved;
 
 	/*
 	 * Time to be used when fuzzing.
@@ -767,7 +767,7 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
 
 void
 dns_message_currentname(dns_message_t *msg, dns_section_t section,
-			dns_name_t **name);
+			dns_linkedname_t **name);
 /*%<
  * Sets 'name' to point to the name where the per-section internal name
  * pointer is currently set.
@@ -791,7 +791,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 isc_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     const dns_name_t *target, dns_rdatatype_t type,
-		     dns_rdatatype_t covers, dns_name_t **foundname,
+		     dns_rdatatype_t covers, dns_linkedname_t **foundname,
 		     dns_rdataset_t **rdataset);
 /*%<
  * Search for a name in the specified section.  If it is found, *name is
@@ -825,7 +825,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  */
 
 isc_result_t
-dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
+dns_message_findtype(dns_linkedname_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdataset);
 /*%<
  * Search the name for the specified type.  If it is found, *rdataset is
@@ -845,7 +845,7 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  */
 
 void
-dns_message_addname(dns_message_t *msg, dns_name_t *name,
+dns_message_addname(dns_message_t *msg, dns_linkedname_t *name,
 		    dns_section_t section);
 /*%<
  * Adds the name to the given section.
@@ -863,7 +863,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  */
 
 void
-dns_message_removename(dns_message_t *msg, dns_name_t *name,
+dns_message_removename(dns_message_t *msg, dns_linkedname_t *name,
 		       dns_section_t section);
 /*%<
  * Remove a existing name from a given section.
@@ -889,7 +889,7 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
  */
 
 void
-dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
+dns_message_gettempname(dns_message_t *msg, dns_linkedname_t **item);
 /*%<
  * Return a name that can be used for any temporary purpose, including
  * inserting into the message's linked lists.  The name must be returned
@@ -946,7 +946,7 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  */
 
 void
-dns_message_puttempname(dns_message_t *msg, dns_name_t **item);
+dns_message_puttempname(dns_message_t *msg, dns_linkedname_t **item);
 /*%<
  * Return a borrowed name to the message's name free list.
  *

@@ -24,7 +24,7 @@ typedef struct dns_rdata_rrsig {
 	uint32_t timeexpire;
 	uint32_t timesigned;
 	uint16_t keyid;
-	dns_name_t signer;
+	dns_linkedname_t signer;
 	uint16_t siglen;
 	unsigned char *signature;
 } dns_rdata_rrsig_t;

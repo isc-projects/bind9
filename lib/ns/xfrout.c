@@ -712,6 +712,7 @@ xfrout_delayed_timeout(void *arg, isc_result_t result);
 void
 ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_result_t result;
+	dns_linkedname_t *question_name_wl;
 	dns_name_t *question_name;
 	dns_rdataset_t *question_rdataset;
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw;
@@ -765,15 +766,17 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * The question section must contain exactly one question, and
 	 * it must be for AXFR/IXFR as appropriate.
 	 */
-	question_name = ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
-	question_rdataset = ISC_LIST_HEAD(question_name->list);
+	question_name_wl =
+		ISC_LIST_HEAD(request->sections[DNS_SECTION_QUESTION]);
+	question_name = dns_name(question_name_wl);
+	question_rdataset = ISC_LIST_HEAD(question_name_wl->list);
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
-	if (ISC_LIST_NEXT(question_name, link) != NULL) {
+	if (ISC_LIST_NEXT(question_name_wl, link) != NULL) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
@@ -1354,7 +1357,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	dns_message_t *msg = NULL; /* Client message if UDP, tcpmsg if TCP */
 	isc_result_t result;
 	dns_rdataset_t *qrdataset;
-	dns_name_t *msgname = NULL;
+	dns_linkedname_t *msgname = NULL;
 	dns_rdata_t *msgrdata = NULL;
 	dns_rdatalist_t *msgrdl = NULL;
 	dns_rdataset_t *msgrds = NULL;
@@ -1426,7 +1429,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * have a question section.
 		 */
 		if (!xfr->question_added) {
-			dns_name_t *qname = NULL;
+			dns_linkedname_t *qname = NULL;
 			isc_region_t r;
 
 			/*
@@ -1447,7 +1450,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			r.length = xfr->qname->length;
 			isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
 					  xfr->qname->length);
-			dns_name_fromregion(qname, &r);
+			dns_name_fromregion(dns_name(qname), &r);
 			ISC_LIST_INIT(qname->list);
 			ISC_LIST_APPEND(qname->list, qrdataset, link);
 
@@ -1515,7 +1518,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		INSIST(r.length >= name->length);
 		r.length = name->length;
 		isc_buffer_putmem(&xfr->buf, name->ndata, name->length);
-		dns_name_fromregion(msgname, &r);
+		dns_name_fromregion(dns_name(msgname), &r);
 
 		/* Reserve space for RR header. */
 		isc_buffer_add(&xfr->buf, 10);

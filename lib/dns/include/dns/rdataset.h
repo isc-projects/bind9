@@ -50,6 +50,7 @@
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 
+#include <dns/name.h>
 #include <dns/rdataslab.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatavec.h>
@@ -72,8 +73,9 @@ struct dns_rdatasetmethods {
 	void (*clone)(const dns_rdataset_t  *source,
 		      dns_rdataset_t *target DNS__DB_FLARG);
 	unsigned int (*count)(dns_rdataset_t *rdataset);
-	isc_result_t (*addnoqname)(dns_rdataset_t *rdataset, dns_name_t *name,
-				   dns_rdatatype_t type);
+	isc_result_t (*addnoqname)(dns_rdataset_t   *rdataset,
+				   dns_linkedname_t *name,
+				   dns_rdatatype_t   type);
 	isc_result_t (*getnoqname)(dns_rdataset_t *rdataset, dns_name_t *name,
 				   dns_rdataset_t	 *neg,
 				   dns_rdataset_t *negsig DNS__DB_FLARG);
@@ -236,9 +238,9 @@ struct dns_rdataset {
 			 * dns_rdataset_addnoqname(), and the denial type
 			 * (NSEC or NSEC3) of the proof selected there.
 			 */
-			struct dns_name *noqname;
-			dns_rdatatype_t	 noqnametype;
-			dns_dbnode_t	*node;
+			struct dns_linkedname *noqname;
+			dns_rdatatype_t	       noqnametype;
+			dns_dbnode_t	      *node;
 		} rdlist;
 	};
 };
@@ -491,11 +493,14 @@ dns_rdataset_towire(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
  *	dns_name_towire().
  */
 
+#define dns_rdataset_additionaldata(rdataset, owner_name, add, arg, limit)   \
+	dns__rdataset_additionaldata(rdataset, DNS_NAME__RO_ARG(owner_name), \
+				     add, arg, limit)
 isc_result_t
-dns_rdataset_additionaldata(dns_rdataset_t	    *rdataset,
-			    const dns_name_t	    *owner_name,
-			    dns_additionaldatafunc_t add, void *arg,
-			    size_t limit);
+dns__rdataset_additionaldata(dns_rdataset_t	     *rdataset,
+			     const dns_name_t	     *owner_name,
+			     dns_additionaldatafunc_t add, void *arg,
+			     size_t limit);
 /*%<
  * For each rdata in rdataset, call 'add' for each name and type in the
  * rdata which is subject to additional section processing.
@@ -542,7 +547,7 @@ dns__rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_linkedname_t *name,
 			dns_rdatatype_t type);
 /*%<
  * Associate a noqname proof with this record: the rdataset of 'type'
@@ -590,8 +595,10 @@ dns_rdataset_clearprefetch(dns_rdataset_t *rdataset);
  * It has no function in other databases.
  */
 
+#define dns_rdataset_setownercase(rdataset, name) \
+	dns__rdataset_setownercase(rdataset, DNS_NAME__RO_ARG(name))
 void
-dns_rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
+dns__rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name);
 /*%<
  * Store the casing of 'name', the owner name of 'rdataset', into
  * a bitfield so that the name can be capitalized the same when when

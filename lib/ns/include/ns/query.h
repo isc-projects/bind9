@@ -119,15 +119,15 @@ struct ns_query {
 		};
 	};
 
-	unsigned int	restarts;
-	isc_counter_t  *qc;
-	bool		timerset;
-	dns_name_t     *qname;
-	dns_name_t     *origqname;
-	dns_rdatatype_t qtype;
-	unsigned int	dboptions;
-	unsigned int	fetchoptions;
-	dns_db_t       *gluedb;
+	unsigned int	  restarts;
+	isc_counter_t	 *qc;
+	bool		  timerset;
+	dns_linkedname_t *qname;
+	dns_linkedname_t *origqname;
+	dns_rdatatype_t	  qtype;
+	unsigned int	  dboptions;
+	unsigned int	  fetchoptions;
+	dns_db_t	 *gluedb;
 	uintptr_t authdb_id; /* Database identity; not an attached reference. */
 	dns_zone_t	*authzone;
 	bool		 isreferral;
@@ -177,9 +177,9 @@ typedef struct query_ctx query_ctx_t;
 
 /* query context structure */
 struct query_ctx {
-	isc_buffer_t *dbuf;	     /* name buffer */
-	dns_name_t   *fname;	     /* lookup/response name */
-	dns_name_t   *tname;	     /* temporary name, used
+	isc_buffer_t	 *dbuf;	     /* name buffer */
+	dns_linkedname_t *fname;     /* found name from DB lookup */
+	dns_linkedname_t *tname;     /* temporary name, used
 				      * when processing ANY
 				      * queries */
 	dns_rdataset_t *rdataset;    /* found rdataset */
@@ -213,12 +213,12 @@ struct query_ctx {
 	dns_db_t	*db;	  /* zone or cache database */
 	dns_dbversion_t *version; /* DB version */
 
-	dns_db_t	*zdb;	 /* zone DB values, saved */
-	dns_name_t	*zfname; /* for a better answer */
-	dns_fixedname_t	 zfoundname;
-	dns_dbversion_t *zversion;
-	dns_rdataset_t	*zrdataset;
-	dns_rdataset_t	*zsigrdataset;
+	dns_db_t	 *zdb;	  /* zone DB values, saved */
+	dns_linkedname_t *zfname; /* for a better answer */
+	dns_fixedname_t	  zfoundname;
+	dns_dbversion_t	 *zversion;
+	dns_rdataset_t	 *zrdataset;
+	dns_rdataset_t	 *zsigrdataset;
 
 	dns_rpz_st_t *rpz_st; /* RPZ state */
 	dns_zone_t   *zone;   /* zone to search */

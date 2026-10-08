@@ -1185,7 +1185,7 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 
 	/* Query tuple */
 	if (d->msg != NULL) {
-		dns_name_t *name = NULL;
+		dns_linkedname_t *name = NULL;
 		dns_rdataset_t *rdataset;
 
 		CHECK(dns_message_firstname(d->msg, DNS_SECTION_QUESTION));

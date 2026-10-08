@@ -269,13 +269,12 @@ additionaldata_mx(ARGS_ADDLDATA) {
 	RETERR((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
 
 	dns_fixedname_init(&fixed);
-	result = dns_name_concatenate(&port25, &name,
-				      dns_fixedname_name(&fixed));
+	result = dns_name_concatenate(&port25, &name, dns_name(&fixed));
 	if (result != ISC_R_SUCCESS) {
 		return ISC_R_SUCCESS;
 	}
 
-	return (add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
+	return (add)(arg, dns_name(&fixed), dns_rdatatype_tlsa,
 		     NULL DNS__DB_FILELINE);
 }
 

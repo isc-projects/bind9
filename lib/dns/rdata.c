@@ -1442,8 +1442,8 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 }
 
 bool
-dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, bool wildcard) {
+dns__rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
+		      dns_rdatatype_t type, bool wildcard) {
 	bool result;
 
 	CHECKOWNERSWITCH
@@ -1451,8 +1451,8 @@ dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 bool
-dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
-		     dns_name_t *bad) {
+dns__rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
+		      dns_name_t *bad) {
 	bool result;
 
 	CHECKNAMESSWITCH

@@ -228,8 +228,8 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	dns_fixedname_init(&syncptr->ptr_target_name);
 
 	/* Check if reverse zone is managed by this driver */
-	result = syncptr_find_zone(inst, addr_rdata,
-				   dns_fixedname_name(&ptr_name), &ptr_zone);
+	result = syncptr_find_zone(inst, addr_rdata, dns_name(&ptr_name),
+				   &ptr_zone);
 	if (result != ISC_R_SUCCESS) {
 		log_error_r("PTR record synchronization skipped: reverse zone "
 			    "is not managed by driver instance '%s'",
@@ -239,9 +239,8 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 
 	/* Reverse zone is managed by this driver, prepare PTR record */
 	dns_zone_attach(ptr_zone, &syncptr->zone);
-	dns_name_copy(name, dns_fixedname_name(&syncptr->ptr_target_name));
-	dns_name_clone(dns_fixedname_name(&syncptr->ptr_target_name),
-		       &ptr_struct.ptr);
+	dns_name_copy(name, dns_name(&syncptr->ptr_target_name));
+	dns_name_clone(&syncptr->ptr_target_name, &ptr_struct.ptr);
 	dns_diff_init(inst->mctx, &syncptr->diff);
 	result = dns_rdata_fromstruct(&ptr_rdata, dns_rdataclass_in,
 				      dns_rdatatype_ptr, &ptr_struct,
@@ -254,8 +253,8 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	}
 
 	/* Create diff */
-	dns_difftuple_create(mctx, op, dns_fixedname_name(&ptr_name), ttl,
-			     &ptr_rdata, &tp);
+	dns_difftuple_create(mctx, op, dns_name(&ptr_name), ttl, &ptr_rdata,
+			     &tp);
 	dns_diff_append(&syncptr->diff, &tp);
 
 	/*

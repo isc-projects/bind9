@@ -72,7 +72,7 @@ static bool
 transport_match(void *node, const void *key) {
 	dns_transport_t *transport = node;
 
-	return dns_name_equal(transport->name, key);
+	return dns_name_equal(transport->name, (const dns_name_t *)key);
 }
 
 static isc_result_t

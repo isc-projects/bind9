@@ -76,7 +76,7 @@ main(void) {
 		dns_compress_init(&cctx, isc_g_mctx, 0);
 
 		for (unsigned int i = 0; i < count; i++) {
-			dns_name_t *name = dns_fixedname_name(&fixedname[i]);
+			dns_name_t *name = dns_name(&fixedname[i]);
 			result = dns_name_towire(name, &cctx, &buf);
 			if (result == ISC_R_NOSPACE) {
 				dns_compress_invalidate(&cctx);

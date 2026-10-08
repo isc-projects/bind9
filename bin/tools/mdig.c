@@ -534,7 +534,7 @@ static isc_result_t
 sendquery(struct query *query) {
 	dns_request_t *request = NULL;
 	dns_message_t *message = NULL;
-	dns_name_t *qname = NULL;
+	dns_linkedname_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 	dns_fixedname_t queryname;
@@ -546,8 +546,7 @@ sendquery(struct query *query) {
 	dns_fixedname_init(&queryname);
 	isc_buffer_init(&buf, query->textname, strlen(query->textname));
 	isc_buffer_add(&buf, strlen(query->textname));
-	result = dns_name_fromtext(dns_fixedname_name(&queryname), &buf,
-				   dns_rootname, 0);
+	result = dns_name_fromtext(dns_name(&queryname), &buf, dns_rootname, 0);
 	CHECKM("dns_name_fromtext", result);
 
 	dns_message_create(isc_g_mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
@@ -576,7 +575,7 @@ sendquery(struct query *query) {
 
 	dns_message_gettemprdataset(message, &qrdataset);
 
-	dns_name_clone(dns_fixedname_name(&queryname), qname);
+	dns_name_clone(&queryname, dns_name(qname));
 	dns_rdataset_makequestion(qrdataset, query->rdclass, query->rdtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);

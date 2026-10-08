@@ -485,13 +485,12 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	dns_fixedname_init(&fname);
 	isc_buffer_constinit(&b, keyval, strlen(keyval));
 	isc_buffer_add(&b, strlen(keyval));
-	RETERR(dns_name_fromtext(dns_fixedname_name(&fname), &b, dns_rootname,
-				 0));
+	RETERR(dns_name_fromtext(dns_name(&fname), &b, dns_rootname, 0));
 
 	name = isc_mem_get(peer->mem, sizeof(dns_name_t));
 
 	dns_name_init(name);
-	dns_name_dup(dns_fixedname_name(&fname), peer->mem, name);
+	dns_name_dup(&fname, peer->mem, name);
 
 	result = dns_peer_setkey(peer, &name);
 	if (result != ISC_R_SUCCESS) {

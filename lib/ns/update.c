@@ -216,7 +216,7 @@ typedef struct {
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_diff_t *diff;
-	dns_name_t *name;
+	const dns_name_t *name;
 	dns_name_t *oldname;
 	dns_rdata_t *update_rr;
 	dns_ttl_t update_rr_ttl;
@@ -241,7 +241,7 @@ forward_done(void *arg);
 static isc_result_t
 add_rr_prepare_action(void *data, rr_t *rr);
 static isc_result_t
-rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+rr_exists(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	  const dns_rdata_t *rdata, bool *flag);
 
 /**************************************************************************/
@@ -442,7 +442,7 @@ cleanup:
 
 static isc_result_t
 update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
-	      dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
+	      dns_diffop_t op, const dns_name_t *name, dns_ttl_t ttl,
 	      dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
 
@@ -514,7 +514,7 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
  * If 'action' returns an error, abort iteration and return the error.
  */
 static isc_result_t
-foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	      rrset_func *action, void *action_data) {
 	isc_result_t result;
 	dns_dbnode_t *node;
@@ -576,7 +576,7 @@ cleanup_node:
  * and return the error.
  */
 static isc_result_t
-foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 		rr_func *rr_action, void *rr_action_data) {
 	foreach_node_rr_ctx_t ctx;
 	ctx.rr_action = rr_action;
@@ -594,7 +594,7 @@ foreach_node_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * If 'action' returns an error, abort iteration and return the error.
  */
 static isc_result_t
-foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+foreach_rr(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	   dns_rdatatype_t type, dns_rdatatype_t covers, rr_func *rr_action,
 	   void *rr_action_data) {
 	isc_result_t result;
@@ -727,7 +727,7 @@ rrset_exists_action(void *data ISC_ATTR_UNUSED, rr_t *rr ISC_ATTR_UNUSED) {
  * to false otherwise.
  */
 static isc_result_t
-rrset_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+rrset_exists(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	     dns_rdatatype_t type, dns_rdatatype_t covers, bool *exists) {
 	isc_result_t result;
 	result = foreach_rr(db, ver, name, type, covers, rrset_exists_action,
@@ -758,7 +758,7 @@ cname_compatibility_action(void *data ISC_ATTR_UNUSED, dns_rdataset_t *rrset) {
  */
 static isc_result_t
 cname_incompatible_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
-				dns_name_t *name, bool *exists) {
+				const dns_name_t *name, bool *exists) {
 	isc_result_t result;
 	result = foreach_rrset(db, ver, name, cname_compatibility_action, NULL);
 	RETURN_EXISTENCE_FLAG;
@@ -778,7 +778,7 @@ count_rr_action(void *data, rr_t *rr ISC_ATTR_UNUSED) {
  * Count the number of RRs of 'type' belonging to 'name' in 'ver' of 'db'.
  */
 static isc_result_t
-rr_count(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+rr_count(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	 dns_rdatatype_t type, dns_rdatatype_t covers, int *countp) {
 	*countp = 0;
 	return foreach_rr(db, ver, name, type, covers, count_rr_action, countp);
@@ -798,7 +798,7 @@ name_exists_action(void *data ISC_ATTR_UNUSED,
  * Set '*exists' to true iff the given name exists, to false otherwise.
  */
 static isc_result_t
-name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+name_exists(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	    bool *exists) {
 	isc_result_t result;
 	result = foreach_rrset(db, ver, name, name_exists_action, NULL);
@@ -812,10 +812,10 @@ name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 typedef struct {
 	/* The ownername of the record to be updated. */
-	dns_name_t *name;
+	const dns_name_t *name;
 
 	/* The signature's name if the request was signed. */
-	dns_name_t *signer;
+	const dns_name_t *signer;
 
 	/* The address of the client. */
 	isc_netaddr_t *addr;
@@ -898,9 +898,10 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 }
 
 static bool
-ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	     dns_ssutable_t *ssutable, dns_name_t *signer, isc_netaddr_t *addr,
-	     dns_aclenv_t *aclenv, bool tcp, dst_key_t *key) {
+ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
+	     dns_ssutable_t *ssutable, const dns_name_t *signer,
+	     isc_netaddr_t *addr, dns_aclenv_t *aclenv, bool tcp,
+	     dst_key_t *key) {
 	isc_result_t result;
 	ssu_check_t ssuinfo;
 
@@ -960,7 +961,7 @@ ssu_checkrr(void *data, rr_t *rr) {
  * 'name' and 'rdata' to 'diff'.
  */
 static void
-temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata) {
+temp_append(dns_diff_t *diff, const dns_name_t *name, dns_rdata_t *rdata) {
 	dns_difftuple_t *tuple = NULL;
 
 	REQUIRE(DNS_DIFF_VALID(diff));
@@ -1170,7 +1171,7 @@ typedef struct {
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_diff_t *diff;
-	dns_name_t *name;
+	const dns_name_t *name;
 	dns_rdata_t *update_rr;
 } conditional_delete_ctx_t;
 
@@ -1390,7 +1391,7 @@ delete_if_action(void *data, rr_t *rr) {
  */
 static isc_result_t
 delete_if(rr_predicate *predicate, dns_zone_t *zone, dns_db_t *db,
-	  dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
+	  dns_dbversion_t *ver, const dns_name_t *name, dns_rdatatype_t type,
 	  dns_rdatatype_t covers, dns_rdata_t *update_rr, dns_diff_t *diff) {
 	conditional_delete_ctx_t ctx;
 	ctx.predicate = predicate;
@@ -1474,8 +1475,9 @@ add_rr_prepare_action(void *data, rr_t *rr) {
  * 'rdata', and 'ttl', respectively.
  */
 static void
-get_current_rr(dns_name_t *name, dns_rdata_t *rdata, dns_rdatatype_t *covers,
-	       dns_ttl_t *ttl, dns_rdataclass_t *update_class) {
+get_current_rr(dns_linkedname_t *name, dns_rdata_t *rdata,
+	       dns_rdatatype_t *covers, dns_ttl_t *ttl,
+	       dns_rdataclass_t *update_class) {
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
 	rdataset = ISC_LIST_HEAD(name->list);
@@ -1641,13 +1643,15 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 	}
 
 	update = 0;
-	MSG_SECTION_FOREACH(request, DNS_SECTION_UPDATE, name) {
+	MSG_SECTION_FOREACH(request, DNS_SECTION_UPDATE, linkedname) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
+		const dns_name_t *name = dns_name(linkedname);
 
 		INSIST(ssutable == NULL || update < maxbytypelen);
-		get_current_rr(name, &rdata, &covers, &ttl, &update_class);
+		get_current_rr(linkedname, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (!dns_name_issubdomain(name, zonename)) {
 			FAILC(DNS_R_NOTZONE, "update RR is outside zone");
@@ -1878,7 +1882,7 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		isc_result_t sigresult) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
-	dns_name_t *zonename;
+	dns_linkedname_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL, *raw = NULL;
 
@@ -1916,10 +1920,10 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		      "update zone section contains multiple RRs");
 	}
 
-	result = dns_view_findzone(client->inner.view, zonename,
+	result = dns_view_findzone(client->inner.view, dns_name(zonename),
 				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS) {
-		FAILN(DNS_R_NOTAUTH, zonename,
+		FAILN(DNS_R_NOTAUTH, dns_name(zonename),
 		      "not authoritative for update zone");
 	}
 
@@ -2131,7 +2135,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 }
 
 static isc_result_t
-rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+rr_exists(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 	  const dns_rdata_t *rdata, bool *flag) {
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
@@ -2686,13 +2690,15 @@ update_action(void *arg) {
 	 * Check prerequisites.
 	 */
 
-	MSG_SECTION_FOREACH(request, DNS_SECTION_PREREQUISITE, name) {
+	MSG_SECTION_FOREACH(request, DNS_SECTION_PREREQUISITE, linkedname) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
+		const dns_name_t *name = dns_name(linkedname);
 		bool flag;
 
-		get_current_rr(name, &rdata, &covers, &ttl, &update_class);
+		get_current_rr(linkedname, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (ttl != 0) {
 			PREREQFAILC(DNS_R_FORMERR,
@@ -2797,16 +2803,18 @@ update_action(void *arg) {
 	INSIST(ssutable == NULL || maxbytype != NULL);
 
 	update = 0;
-	MSG_SECTION_FOREACH(request, DNS_SECTION_UPDATE, name) {
+	MSG_SECTION_FOREACH(request, DNS_SECTION_UPDATE, linkedname) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_ttl_t ttl;
 		dns_rdataclass_t update_class;
+		const dns_name_t *name = dns_name(linkedname);
 		bool flag;
 		size_t maxidx = update++;
 
 		INSIST(ssutable == NULL || maxidx < maxbytypelen);
 
-		get_current_rr(name, &rdata, &covers, &ttl, &update_class);
+		get_current_rr(linkedname, &rdata, &covers, &ttl,
+			       &update_class);
 
 		if (update_class == dns_rdataclass_in) {
 			/*
@@ -3001,7 +3009,7 @@ update_action(void *arg) {
 				ctx.ver = ver;
 				ctx.diff = &diff;
 				ctx.name = name;
-				ctx.oldname = name;
+				ctx.oldname = dns_name(linkedname);
 				ctx.update_rr = &rdata;
 				ctx.update_rr_ttl = ttl;
 				ctx.ignore_add = false;

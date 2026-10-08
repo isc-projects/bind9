@@ -899,8 +899,7 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 	dns_fixedname_init(&foundname);
 	result = dns_view_find(view, name, type, now, options, false, NULL,
-			       dns_fixedname_name(&foundname), rdataset,
-			       sigrdataset);
+			       dns_name(&foundname), rdataset, sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The rdataset and sigrdataset of the relevant NSEC record

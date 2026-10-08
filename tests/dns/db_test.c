@@ -305,7 +305,7 @@ ISC_LOOP_TEST_IMPL(version) {
 	/* Open current version for reading */
 	dns_db_currentversion(db, &ver);
 	dns_test_namefromstring("b.test.test.", &fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_name(&fname);
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name, ver, dns_rdatatype_a, 0, 0, foundname,
@@ -317,7 +317,7 @@ ISC_LOOP_TEST_IMPL(version) {
 	/* Open new version for writing */
 	dns_db_currentversion(db, &ver);
 	dns_test_namefromstring("b.test.test.", &fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_name(&fname);
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name, ver, dns_rdatatype_a, 0, 0, foundname,

@@ -82,14 +82,16 @@ negative_response(void) {
 static void
 add_rrset(dns_message_t *msg, const char *ownerstr, dns_rdatatype_t type,
 	  dns_rdatatype_t covers, unsigned int count, size_t size) {
-	dns_name_t *name = NULL;
+	dns_linkedname_t *name = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	size_t payload, rdlen;
 
 	dns_message_gettempname(msg, &name);
-	name_fromstring((dns_fixedname_t *)name, ownerstr);
-	name->attributes.ncache = true;
+	isc_result_t result = dns_name_fromstring(dns_name(name), ownerstr,
+						  dns_rootname, 0, isc_g_mctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_linkedname_attrs(name)->ncache = true;
 
 	dns_message_gettemprdatalist(msg, &rdatalist);
 	rdatalist->rdclass = dns_rdataclass_in;
@@ -101,8 +103,8 @@ add_rrset(dns_message_t *msg, const char *ownerstr, dns_rdatatype_t type,
 	 * Split the rdata bytes evenly, giving the remainder to the first
 	 * rdatas one byte at a time.
 	 */
-	assert_true(size >= name->length + 5 + count * 2);
-	payload = size - name->length - 5 - count * 2;
+	assert_true(size >= dns_name(name)->length + 5 + count * 2);
+	payload = size - dns_name(name)->length - 5 - count * 2;
 	rdlen = payload / count;
 
 	for (unsigned int i = 0; i < count; i++) {

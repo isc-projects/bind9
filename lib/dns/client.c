@@ -440,10 +440,10 @@ start_fetch(resctx_t *rctx) {
 	}
 
 	result = dns_resolver_createfetch(
-		rctx->view->resolver, dns_fixedname_name(&rctx->name),
-		rctx->type, NULL, NULL, NULL, NULL, 0, fopts, 0, NULL, rctx->qc,
-		NULL, rctx->client->loop, fetch_done, rctx, NULL,
-		rctx->rdataset, rctx->sigrdataset, &rctx->fetch);
+		rctx->view->resolver, dns_name(&rctx->name), rctx->type, NULL,
+		NULL, NULL, NULL, 0, fopts, 0, NULL, rctx->qc, NULL,
+		rctx->client->loop, fetch_done, rctx, NULL, rctx->rdataset,
+		rctx->sigrdataset, &rctx->fetch);
 
 	return result;
 }
@@ -451,7 +451,7 @@ start_fetch(resctx_t *rctx) {
 static isc_result_t
 view_find(resctx_t *rctx, dns_db_t **dbp, dns_name_t *foundname) {
 	isc_result_t result;
-	dns_name_t *name = dns_fixedname_name(&rctx->name);
+	dns_name_t *name = dns_name(&rctx->name);
 	dns_rdatatype_t type;
 
 	if (rctx->type == dns_rdatatype_rrsig) {
@@ -487,11 +487,11 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 
 	mctx = rctx->view->mctx;
 
-	name = dns_fixedname_name(&rctx->name);
+	name = dns_name(&rctx->name);
 
 	do {
 		dns_name_t *fname = dns_fixedname_initname(&foundname);
-		dns_name_t *ansname = NULL;
+		dns_linkedname_t *ansname = NULL;
 		dns_db_t *db = NULL;
 		dns_dbnode_t *node = NULL;
 
@@ -539,12 +539,12 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 		 * Get some resource for copying the
 		 * result.
 		 */
-		dns_name_t *aname = dns_fixedname_name(&rctx->name);
+		dns_name_t *aname = dns_name(&rctx->name);
 
 		ansname = isc_mem_get(mctx, sizeof(*ansname));
-		dns_name_init(ansname);
+		dns_linkedname_init(ansname);
 
-		dns_name_dup(aname, mctx, ansname);
+		dns_name_dup(aname, mctx, dns_name(ansname));
 
 		switch (result) {
 		case ISC_R_SUCCESS:
@@ -761,7 +761,7 @@ client_resfind(resctx_t *rctx, dns_fetchresponse_t *resp) {
 				ISC_LIST_UNLINK(ansname->list, rdataset, link);
 				putrdataset(mctx, &rdataset);
 			}
-			dns_name_free(ansname, mctx);
+			dns_name_free(dns_name(ansname), mctx);
 			isc_mem_put(mctx, ansname, sizeof(*ansname));
 		}
 
@@ -908,7 +908,7 @@ startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->sigrdataset = sigrdataset;
 
 	dns_fixedname_init(&rctx->name);
-	dns_name_copy(name, dns_fixedname_name(&rctx->name));
+	dns_name_copy(name, dns_name(&rctx->name));
 
 	dns_view_attach(client->view, &rctx->view);
 
@@ -987,7 +987,7 @@ dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
 			putrdataset(client->mctx, &rdataset);
 		}
 
-		dns_name_free(name, client->mctx);
+		dns_name_free(dns_name(name), client->mctx);
 		isc_mem_put(client->mctx, name, sizeof(*name));
 	}
 }
