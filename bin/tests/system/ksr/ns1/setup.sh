@@ -16,7 +16,6 @@
 
 # Key directories
 mkdir keydir
-mkdir offline
 
 # Zone files
 cp template.db.in common.test.db
@@ -29,3 +28,4 @@ cp template.db.in two-tone.test.db
 cp template.db.in ksk-roll.test.db
 cp template.db.in invalid-skr.test.db
 cp template.db.in fast.test.db
+cp template.db.in collision.test.db
