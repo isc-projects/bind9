@@ -199,11 +199,14 @@ done
 nextpartreset ns3/named.run
 
 echo_i "signing preset nsec3 zone"
+ret=0
 zsk=$(cat autozsk.key)
 ksk=$(cat autoksk.key)
 $SETTIME -K ns3 -P now -A now $zsk >settime.out.test$n.zsk || ret=1
 $SETTIME -K ns3 -P now -A now $ksk >settime.out.test$n.ksk || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys autonsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "waiting for changes to take effect"
 sleep 3
@@ -846,6 +849,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "preparing ZSK roll"
+ret=0
 starttime=$(date +%s)
 oldfile=$(cat active.key)
 oldid=$(keyfile_to_key_id "$(cat active.key)")
@@ -870,6 +874,8 @@ $SETTIME -R now -K ns2 Kbar.+013+59973.key >settime.out.test$n.3 || ret=1
 cp ns2/bar.db.signed ns2/bar.db
 $SIGNER -S -o bar. -O full -K ns2 ns2/bar.db >signing.bar.out$n 2>&1 || ret=1
 ($RNDCCMD 10.53.0.2 thaw bar. 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "waiting for changes to take effect"
 sleep 5
@@ -928,6 +934,7 @@ $SIGNER -S -o . -O full -K ns1 -f ns1/root.db.signed ns1/root.db >signing.root.o
 ($RNDCCMD 10.53.0.1 thaw . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 echo_i "waiting for change to take effect"
 sleep 5
