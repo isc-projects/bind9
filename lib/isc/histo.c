@@ -63,7 +63,7 @@
 #define CHUNKSIZE(hg) MANTISSAS(hg)
 
 typedef atomic_uint_fast64_t hg_bucket_t;
-typedef atomic_ptr(hg_bucket_t) hg_chunk_t;
+typedef _Atomic(hg_bucket_t *) hg_chunk_t;
 
 struct isc_histo {
 	unsigned int magic;
