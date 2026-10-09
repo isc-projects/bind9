@@ -81,6 +81,7 @@ struct keygen_ctx {
 	dns_keystore_t *keystore;
 	char *algname;
 	int size;
+	uint16_t flags;
 	uint16_t tag_min;
 	uint16_t tag_max;
 	dns_rdataclass_t rdclass;
@@ -231,7 +232,6 @@ static void
 keygen(keygen_ctx_t *ctx, const char *keyname) {
 	char filename[255];
 	char algstr[DST_ALG_FORMATSIZE];
-	uint16_t flags = 0;
 	bool conflict = false;
 	bool show_progress = false;
 	isc_buffer_t buf;
@@ -395,7 +395,7 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 		name = dst_key_name(prevkey);
 		ctx->alg = dst_key_alg(prevkey);
 		ctx->size = dst_key_size(prevkey);
-		flags = dst_key_flags(prevkey);
+		ctx->flags = dst_key_flags(prevkey);
 
 		dst_key_format(prevkey, keystr, sizeof(keystr));
 		dst_key_getprivateformat(prevkey, &major, &minor);
@@ -494,21 +494,8 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 		fatal("not a dnskey algorithm %u\n", ctx->alg);
 	}
 
-	if ((ctx->options & DST_TYPE_KEY) == 0) {
-		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
-	}
-
 	if (ctx->directory == NULL) {
 		ctx->directory = ".";
-	}
-
-	if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
-		if (ctx->ksk || ctx->wantksk) {
-			flags |= DNS_KEYFLAG_KSK;
-		}
-		if (ctx->wantrev) {
-			flags |= DNS_KEYFLAG_REVOKE;
-		}
 	}
 
 	switch (ctx->alg) {
@@ -541,17 +528,18 @@ keygen(keygen_ctx_t *ctx, const char *keyname) {
 		if (ctx->keystore != NULL && ctx->policy != NULL) {
 			result = dns_keystore_keygen(
 				ctx->keystore, name, ctx->policy, ctx->rdclass,
-				isc_g_mctx, ctx->alg, ctx->size, flags, &key);
+				isc_g_mctx, ctx->alg, ctx->size, ctx->flags,
+				&key);
 		} else if (!ctx->quiet && show_progress) {
-			result = dst_key_generate(name, ctx->alg, ctx->size, 0,
-						  flags, DNS_KEYPROTO_DNSSEC,
-						  ctx->rdclass, NULL,
-						  isc_g_mctx, &key, &progress);
+			result = dst_key_generate(
+				name, ctx->alg, ctx->size, 0, ctx->flags,
+				DNS_KEYPROTO_DNSSEC, ctx->rdclass, NULL,
+				isc_g_mctx, &key, &progress);
 		} else {
-			result = dst_key_generate(name, ctx->alg, ctx->size, 0,
-						  flags, DNS_KEYPROTO_DNSSEC,
-						  ctx->rdclass, NULL,
-						  isc_g_mctx, &key, NULL);
+			result = dst_key_generate(
+				name, ctx->alg, ctx->size, 0, ctx->flags,
+				DNS_KEYPROTO_DNSSEC, ctx->rdclass, NULL,
+				isc_g_mctx, &key, NULL);
 		}
 
 		if (!ctx->quiet && show_progress) {
@@ -1076,6 +1064,7 @@ main(int argc, char **argv) {
 			ctx.use_nsec3 = false;
 			ctx.alg = DST_ALG_ECDSA256;
 			ctx.size = 0;
+			ctx.flags = DNS_KEYOWNER_ZONE | DNS_KEYFLAG_KSK;
 			ctx.ttl = 3600;
 			ctx.setttl = true;
 			ctx.ksk = true;
@@ -1116,6 +1105,7 @@ main(int argc, char **argv) {
 				ctx.use_nsec3 = false;
 				ctx.alg = dns_kasp_key_algorithm(kaspkey);
 				ctx.size = dns_kasp_key_size(kaspkey);
+				ctx.flags = dns_kasp_key_flags(kaspkey);
 				ctx.ksk = dns_kasp_key_ksk(kaspkey);
 				ctx.zsk = dns_kasp_key_zsk(kaspkey);
 				ctx.lifetime = dns_kasp_key_lifetime(kaspkey);
@@ -1137,6 +1127,19 @@ main(int argc, char **argv) {
 			cfg_obj_detach(&config);
 		}
 	} else {
+		if ((ctx.options & DST_TYPE_KEY) == 0) {
+			ctx.flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type
+							   ZONE */
+		}
+		if ((ctx.flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
+			if (ctx.ksk || ctx.wantksk) {
+				ctx.flags |= DNS_KEYFLAG_KSK;
+			}
+			if (ctx.wantrev) {
+				ctx.flags |= DNS_KEYFLAG_REVOKE;
+			}
+		}
+
 		keygen(&ctx, argv[isc_commandline_index]);
 	}
 

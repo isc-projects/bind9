@@ -980,6 +980,7 @@ cfg_kasp_builtinconfig(isc_mem_t *mctx, const char *name,
 		dns_kasp_key_create(kasp, &new_key);
 		new_key->role |= DNS_KASP_KEY_ROLE_KSK;
 		new_key->role |= DNS_KASP_KEY_ROLE_ZSK;
+		new_key->flags = DNS_KEYOWNER_ZONE | DNS_KEYFLAG_KSK;
 		new_key->lifetime = 0;
 		new_key->algorithm = DST_ALG_ECDSA256;
 		new_key->length = 256;

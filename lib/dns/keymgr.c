@@ -494,7 +494,7 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 		 dst_key_t **dst_key) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool conflict = false;
-	int flags = DNS_KEYOWNER_ZONE;
+	int flags = (int)dns_kasp_key_flags(kkey);
 	dst_key_t *newkey = NULL;
 	uint32_t alg = dns_kasp_key_algorithm(kkey);
 	dns_keystore_t *keystore = dns_kasp_key_keystore(kkey);
@@ -503,10 +503,6 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 	dns_dnsseckeylist_t keykeys;
 
 	ISC_LIST_INIT(keykeys);
-
-	if (dns_kasp_key_ksk(kkey)) {
-		flags |= DNS_KEYFLAG_KSK;
-	}
 
 	/*
 	 * We also need to check against K* files for KEYs.

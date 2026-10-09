@@ -527,6 +527,10 @@ dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey) {
 	if (dst_key_size(dkey->key) != dns_kasp_key_size(key)) {
 		return false;
 	}
+	/* Matching flags? */
+	if (dst_key_flags(dkey->key) != dns_kasp_key_flags(key)) {
+		return false;
+	}
 	/* Matching role? */
 	result = dst_key_getbool(dkey->key, DST_BOOL_KSK, &role);
 	if (result != ISC_R_SUCCESS || role != dns_kasp_key_ksk(key)) {
