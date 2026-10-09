@@ -99,7 +99,7 @@ def test_zsk_prepub_step1(tld, ns3, default_algorithm):
         # Introduce the first key. This will immediately be active.
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step1-p']}",
         ],
         # Next key event is when the successor ZSK needs to be published.
@@ -130,7 +130,7 @@ def test_zsk_prepub_step2(tld, ns3, default_algorithm):
         step = {
             "zone": zone,
             "keyprops": [
-                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
+                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']} sep",
                 f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
             ],
             "manual-mode": True,
@@ -157,7 +157,7 @@ def test_zsk_prepub_step2(tld, ns3, default_algorithm):
         # zsk2 dnskey: hidden -> rumoured
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured zrrsig:hidden offset:{OFFSETS['step2-s']}",
         ],
@@ -189,7 +189,7 @@ def test_zsk_prepub_step3(tld, ns3, default_algorithm):
         step = {
             "zone": zone,
             "keyprops": [
-                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']}",
+                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']} sep",
                 f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step3-p']}",
                 f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:hidden offset:{OFFSETS['step3-s']}",
             ],
@@ -233,7 +233,7 @@ def test_zsk_prepub_step3(tld, ns3, default_algorithm):
         # zsk2 zrrsig: hidden -> rumoured
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:unretentive offset:{OFFSETS['step3-p']}",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:rumoured offset:{OFFSETS['step3-s']}",
         ],
@@ -278,7 +278,7 @@ def test_zsk_prepub_step4(tld, ns3, default_algorithm):
         step = {
             "zone": zone,
             "keyprops": [
-                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-p']}",
+                f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-p']} sep",
                 f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:hidden offset:{OFFSETS['step4-p']}",
                 f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-s']}",
             ],
@@ -309,7 +309,7 @@ def test_zsk_prepub_step4(tld, ns3, default_algorithm):
         # zsk2 zrrsig: rumoured -> omnipresent
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive zrrsig:hidden offset:{OFFSETS['step4-p']}",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-s']}",
         ],
@@ -343,7 +343,7 @@ def test_zsk_prepub_step5(tld, ns3, default_algorithm):
         # zsk1 dnskey: unretentive -> hidden
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:hidden zrrsig:hidden offset:{OFFSETS['step5-p']}",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step5-s']}",
         ],
@@ -379,7 +379,7 @@ def test_zsk_prepub_step6(tld, ns3, default_algorithm):
         # predecessor zsk is now purged.
         "zone": zone,
         "keyprops": [
-            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-p']}",
+            f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-p']} sep",
             f"zsk {LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step6-s']}",
         ],
         "nextev": None,

@@ -71,7 +71,7 @@ def perform_nsec3_tests(server, params):
                 "zone": "nsec3.kasp",
                 "policy": "nsec3",
                 "key-properties": [
-                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
                 ],
             },
             id="nsec3.kasp",
@@ -85,7 +85,7 @@ def perform_nsec3_tests(server, params):
                     "salt-length": 8,
                 },
                 "key-properties": [
-                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
                 ],
             },
             id="nsec3-other.kasp",

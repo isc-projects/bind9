@@ -63,7 +63,7 @@ def test_straight2none_reconfig(zone, ns3, default_algorithm):
         # These zones will go bogus after signatures expire, but
         # remain validly signed for now.
         "keyprops": [
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']} sep",
         ],
         "nextev": None,
     }

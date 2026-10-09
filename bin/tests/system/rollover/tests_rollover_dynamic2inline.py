@@ -36,7 +36,7 @@ def test_dynamic2inline(ns3, default_algorithm, templates):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"csk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            f"csk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
         ],
         "nextev": None,
     }

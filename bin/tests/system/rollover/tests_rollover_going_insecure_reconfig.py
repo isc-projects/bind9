@@ -69,7 +69,7 @@ def test_going_insecure_reconfig_step1(zone, ns3, default_algorithm):
         "zone": szone,
         "cdss": CDSS,
         "keyprops": [
-            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{-DURATION['P10D']}",
+            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{-DURATION['P10D']} sep",
             f"zsk {DURATION['P60D']} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent offset:{-DURATION['P10D']}",
         ],
         # Next key event is when the DS becomes HIDDEN. This
@@ -113,7 +113,7 @@ def test_going_insecure_reconfig_step2(zone, ns3, default_algorithm):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{-DURATION['P10D']}",
+            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{-DURATION['P10D']} sep",
             f"zsk {DURATION['P60D']} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive zrrsig:unretentive offset:{-DURATION['P10D']}",
         ],
         # Next key event is when the DNSKEY becomes HIDDEN.

@@ -68,7 +68,7 @@ def test_lifetime_reconfig(zone, policy, lifetime, ns3, default_algorithm):
         "zone": f"{zone}.kasp",
         "cdss": CDSS,
         "keyprops": [
-            f"csk {DURATION[lifetime]} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            f"csk {DURATION[lifetime]} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
         ],
         "nextev": None,
     }

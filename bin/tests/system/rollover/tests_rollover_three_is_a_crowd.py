@@ -62,8 +62,8 @@ def test_rollover_ksk_three_is_a_crowd(ns3, default_algorithm):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSET1}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSET2}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSET1} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSET2} sep",
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSET1}",
         ],
         "keyrelationships": [0, 1],
@@ -85,9 +85,9 @@ def test_rollover_ksk_three_is_a_crowd(ns3, default_algorithm):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSET1}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSET2}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:0",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSET1} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSET2} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:0 sep",
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSET1}",
         ],
         "check-keytimes": False,  # checked manually with modified values

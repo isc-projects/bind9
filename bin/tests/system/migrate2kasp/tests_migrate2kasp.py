@@ -135,7 +135,7 @@ lifetime = {
                 "config": standard_config,
                 "offset": 0,
                 "key-properties": [
-                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:rumoured",
+                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:rumoured sep",
                     f"zsk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
                 ],
             },
@@ -150,7 +150,7 @@ lifetime = {
                 "config": default_config,
                 "offset": 0,
                 "key-properties": [
-                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:rumoured",
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:rumoured sep",
                 ],
             },
             id="csk.kasp",
@@ -178,7 +178,7 @@ lifetime = {
                 "config": timing_config,
                 "offset": -timedelta(seconds=300),
                 "key-properties": [
-                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:rumoured",
+                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:rumoured sep",
                     f"zsk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
                 ],
             },
@@ -193,7 +193,7 @@ lifetime = {
                 "config": timing_config,
                 "offset": -timedelta(seconds=3900),
                 "key-properties": [
-                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                     f"zsk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
                 ],
             },
@@ -208,7 +208,7 @@ lifetime = {
                 "config": timing_config,
                 "offset": -timedelta(hours=12),
                 "key-properties": [
-                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured",
+                    f"ksk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured sep",
                     f"zsk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
                 ],
             },
@@ -223,9 +223,9 @@ lifetime = {
                 "config": migrate_config,
                 "offset": -timedelta(seconds=3900),
                 "key-properties": [
-                    "ksk - 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    "ksk - 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                     "zsk - 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent",
-                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep",
                     f"zsk {lifetime['P60D']} {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
                 ],
             },
@@ -240,9 +240,9 @@ lifetime = {
                 "config": migrate_config,
                 "offset": -timedelta(seconds=3900),
                 "key-properties": [
-                    "ksk - 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    "ksk - 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                     "zsk - 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent",
-                    "ksk 0 8 3072 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                    "ksk 0 8 3072 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep",
                     # This key is considered to be prepublished, so it is not yet signing.
                     f"zsk {lifetime['P60D']} 8 3072 goal:omnipresent dnskey:rumoured zrrsig:hidden",
                 ],
@@ -258,10 +258,10 @@ lifetime = {
                 "config": migrate_config,
                 "offset": -timedelta(seconds=3900),
                 "key-properties": [
-                    f"ksk - {Algorithm.default().number} {Algorithm.default().bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    f"ksk - {Algorithm.default().number} {Algorithm.default().bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                     f"zsk - {Algorithm.default().number} {Algorithm.default().bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent",
                     # This key is considered to be prepublished, so it is not yet signing, nor is the DS introduced.
-                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:hidden ds:hidden",
+                    f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:hidden ds:hidden sep",
                 ],
             },
             id="migrate-nomatch-kzc.kasp",
@@ -277,7 +277,7 @@ lifetime = {
                 "key-properties": [
                     f"zsk {lifetime['P3M']} 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent",
                     f"zsk {lifetime['P3M']} 8 2048 goal:omnipresent dnskey:rumoured zrrsig:hidden",
-                    f"ksk {lifetime['P1Y']} 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    f"ksk {lifetime['P1Y']} 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                 ],
                 "view": "ext",
                 "tsig": "external:YPfMoAk6h+3iN8MDRQC004iSNHY=",
@@ -294,7 +294,7 @@ lifetime = {
                 "key-properties": [
                     f"zsk {lifetime['P3M']} 8 2048 goal:hidden dnskey:omnipresent zrrsig:omnipresent",
                     f"zsk {lifetime['P3M']} 8 2048 goal:omnipresent dnskey:rumoured zrrsig:hidden",
-                    f"ksk {lifetime['P1Y']} 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+                    f"ksk {lifetime['P1Y']} 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
                 ],
                 "view": "int",
                 "tsig": "internal:4xILSZQnuO1UKubXHkYUsvBRPu8=",

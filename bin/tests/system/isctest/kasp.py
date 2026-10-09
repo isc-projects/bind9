@@ -38,6 +38,10 @@ import isctest.log
 import isctest.query
 import isctest.util
 
+KEYFLAG_ZONE = 1 << 8
+KEYFLAG_ADT = 1 << 1
+KEYFLAG_SEP = 1 << 0
+
 DEFAULT_TTL = 300
 
 NEXT_KEY_EVENT_THRESHOLD = 100
@@ -1625,9 +1629,11 @@ def policy_to_properties(ttl, keys: list[str]) -> list[KeyProperties]:
     Then, optional data for specific tests may follow:
     - "goal", "dnskey", "krrsig", "zrrsig", "ds", followed by a value,
       sets the given state to the specific value
-    - "missing", set if the private key file for this key is not available.
+    - "missing", set if the private key file for this key is not available
     - "offset", an offset for testing key rollover timings
     - "tag-range", followed by <min>-<max> to test key tag ranges
+    - "sep", whether the SEP bit should be set in the key flags
+    - "adt", whether the ADT bit should be set in the key flags
     """
     proplist = []
     count = 0
@@ -1643,14 +1649,13 @@ def policy_to_properties(ttl, keys: list[str]) -> list[KeyProperties]:
         keytag_min = 0
         keytag_max = 65535
         offset = timedelta(0)
+        flags = KEYFLAG_ZONE
 
         role = line[0]
         if role == "zsk":
-            flags = 256
             metadata["ZSK"] = "yes"
             metadata["KSK"] = "no"
         else:
-            flags = 257
             metadata["ZSK"] = "yes" if role == "csk" else "no"
             metadata["KSK"] = "yes"
 
@@ -1685,6 +1690,10 @@ def policy_to_properties(ttl, keys: list[str]) -> list[KeyProperties]:
                 tagrange = keyval[1].split("-")
                 keytag_min = int(tagrange[0])
                 keytag_max = int(tagrange[1])
+            elif line[i] == ("sep"):
+                flags |= KEYFLAG_SEP
+            elif line[i] == ("adt"):
+                flags |= KEYFLAG_ADT
             elif line[i] == "missing":
                 private = False
             else:

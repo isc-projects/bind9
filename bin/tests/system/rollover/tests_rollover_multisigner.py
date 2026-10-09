@@ -138,7 +138,7 @@ def test_rollover_multisigner(ns3, default_algorithm):
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535 sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured tag-range:32768-65535",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
@@ -218,9 +218,9 @@ def test_rollover_multisigner(ns3, default_algorithm):
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden tag-range:32768-65535 sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured zrrsig:hidden tag-range:32768-65535",
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent tag-range:0-32767 offset:{offval}",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent tag-range:0-32767 offset:{offval} sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent tag-range:0-32767 offset:{offval}",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)

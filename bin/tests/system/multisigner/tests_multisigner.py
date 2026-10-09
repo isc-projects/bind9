@@ -540,7 +540,7 @@ def check_remove_cds(
 def test_multisigner(ns2, ns3, ns4, default_algorithm):
     zone = "model2.multisigner"
     keyprops = [
-        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
         f"zsk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
 
@@ -596,7 +596,9 @@ def test_multisigner(ns2, ns3, ns4, default_algorithm):
     check_no_dnssec_in_journal(ns4, zone)
 
     # Add CDNSKEY RRset.
-    newprops = [f"ksk unlimited {default_algorithm.number} {default_algorithm.bits}"]
+    newprops = [
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} sep"
+    ]
     extra = isctest.kasp.policy_to_properties(ttl=TTL, keys=newprops)
     extra[0].private = False
     extra[0].legacy = True
@@ -628,7 +630,7 @@ def test_multisigner(ns2, ns3, ns4, default_algorithm):
 def test_multisigner_update_any(ns2, ns3, ns4, default_algorithm):
     zone = "model2.update-any"
     keyprops = [
-        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
         f"zsk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
 
@@ -684,7 +686,9 @@ def test_multisigner_update_any(ns2, ns3, ns4, default_algorithm):
     check_no_dnssec_in_journal(ns4, zone)
 
     # Add CDNSKEY RRset.
-    newprops = [f"ksk unlimited {default_algorithm.number} {default_algorithm.bits}"]
+    newprops = [
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} sep"
+    ]
     extra = isctest.kasp.policy_to_properties(ttl=TTL, keys=newprops)
     extra[0].private = False
     extra[0].legacy = True
@@ -735,7 +739,7 @@ def test_multisigner_bad_dsync(ns3, ns4):
 def test_multisigner_secondary(ns2, ns3, ns4, ns5, default_algorithm):
     zone = "model2.secondary"
     keyprops = [
-        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
         f"zsk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
 
@@ -794,7 +798,9 @@ def test_multisigner_secondary(ns2, ns3, ns4, ns5, default_algorithm):
     check_no_dnssec_in_journal(ns4, zone)
 
     # Add CDNSKEY RRset.
-    newprops = [f"ksk unlimited {default_algorithm.number} {default_algorithm.bits}"]
+    newprops = [
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} sep"
+    ]
     extra = isctest.kasp.policy_to_properties(ttl=TTL, keys=newprops)
     extra[0].private = False
     extra[0].legacy = True

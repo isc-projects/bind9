@@ -35,7 +35,7 @@ def test_nsec3_case(ns3, default_algorithm):
         "zone": "nsec3-fails-to-load.kasp",
         "policy": "nsec3",
         "key-properties": [
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
         ],
     }
     zone = params["zone"]

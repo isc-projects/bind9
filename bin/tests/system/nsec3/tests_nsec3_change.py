@@ -96,7 +96,7 @@ def test_nsec3_case(ns3):
             "salt-length": 8,
         },
         "key-properties": [
-            f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            f"csk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
         ],
     }
     zone = params["zone"]

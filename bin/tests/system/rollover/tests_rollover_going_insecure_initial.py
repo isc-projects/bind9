@@ -55,7 +55,7 @@ def test_going_insecure_initial(zone, ns3, default_algorithm):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
+            f"ksk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']} sep",
             f"zsk {DURATION['P60D']} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{-DURATION['P10D']}",
         ],
         "nextev": None,
