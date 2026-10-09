@@ -176,8 +176,6 @@ static struct tbl secprotos[] = { SECPROTONAMES };
 static struct tbl hashalgs[] = { HASHALGNAMES };
 static struct tbl dsdigests[] = { DSDIGESTNAMES };
 static struct tbl dsyncschemes[] = { DSYNCSCHEMES };
-static struct tbl privatednss[] = { PRIVATEDNSS SENTINEL };
-static struct tbl privateoids[] = { PRIVATEOIDS SENTINEL };
 static struct tbl dstalgorithms[] = { PRIVATEDNSS PRIVATEOIDS SECALGNAMES };
 
 static struct keyflag {
@@ -377,64 +375,6 @@ dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
 	cp[isc_buffer_usedlength(&b)] = 0;
 	if (result != ISC_R_SUCCESS) {
 		cp[0] = 0;
-	}
-}
-
-isc_result_t
-dst_privatedns_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
-	unsigned int value;
-	RETERR(dns_mnemonic_fromtext(&value, source, privatednss, 0));
-	*dstalgp = value;
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t
-dns_privatedns_totext(dst_algorithm_t alg, isc_buffer_t *target) {
-	return dns_mnemonic_totext(alg, target, privatednss);
-}
-
-void
-dns_privatedns_format(dst_algorithm_t alg, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	REQUIRE(cp != NULL && size > 0);
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_privatedns_totext(alg, &b);
-	isc_buffer_usedregion(&b, &r);
-	cp[r.length] = 0;
-	if (result != ISC_R_SUCCESS) {
-		r.base[0] = 0;
-	}
-}
-
-isc_result_t
-dst_privateoid_fromtext(dst_algorithm_t *dstalgp, isc_textregion_t *source) {
-	unsigned int value;
-	RETERR(dns_mnemonic_fromtext(&value, source, privateoids, 0));
-	*dstalgp = value;
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t
-dns_privateoid_totext(dst_algorithm_t alg, isc_buffer_t *target) {
-	return dns_mnemonic_totext(alg, target, privateoids);
-}
-
-void
-dns_privateoid_format(dst_algorithm_t alg, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	REQUIRE(cp != NULL && size > 0);
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_privateoid_totext(alg, &b);
-	isc_buffer_usedregion(&b, &r);
-	cp[r.length] = 0;
-	if (result != ISC_R_SUCCESS) {
-		r.base[0] = 0;
 	}
 }
 
