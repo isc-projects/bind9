@@ -10,9 +10,9 @@ dnssec-policy "test" {
 	};
 	dnskey-ttl 3600;
 	keys {
-		ksk key-directory lifetime P1Y algorithm 13 tag-range 0 32767;
-		zsk lifetime P30D algorithm 13;
-		csk key-store "hsm" lifetime P30D algorithm 8 2048;
+		ksk key-directory lifetime P1Y algorithm 13 tag-range 0 32767 flags sep adt;
+		zsk lifetime P30D algorithm 13 tag-range 0 100;
+		csk key-store "hsm" lifetime P30D algorithm 8 2048 flags adt sep;
 	};
 	manual-mode no;
 	max-zone-ttl 86400;

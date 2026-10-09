@@ -635,7 +635,7 @@ static cfg_type_t cfg_type_lifetime = { "lifetime",	   parse_keyvalue,
 					print_keyvalue,	   doc_keyvalue,
 					&cfg_rep_duration, &lifetime_kw };
 /*
- *
+ * Keytag range.
  */
 static void
 print_tagrange(cfg_printer_t *pctx, const cfg_obj_t *obj) {
@@ -695,6 +695,30 @@ static cfg_type_t cfg_type_optional_tagrange = {
 	doc_optionaltagrange, &cfg_rep_tuple,	      &tagrange_kw
 };
 
+/*
+ * Key flags.
+ */
+static const char *keyflag_enums[] = { "sep", "adt", NULL };
+
+static cfg_type_t cfg_type_keyflag = { "keyflag",	  cfg_parse_enum,
+				       cfg_print_ustring, cfg_doc_enum,
+				       &cfg_rep_string,	  keyflag_enums };
+
+static cfg_type_t cfg_type_keyflaglist = {
+	"keyflaglist",	   cfg_parse_spacelist, cfg_print_spacelist,
+	cfg_doc_enum_list, &cfg_rep_list,	&cfg_type_keyflag
+};
+
+static keyword_type_t keyflags_kw = { "flags", &cfg_type_keyflaglist };
+
+static cfg_type_t cfg_type_optional_keyflags = {
+	"optional_keyflags",   parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_list,		&keyflags_kw
+};
+
+/*
+ * KASP key.
+ */
 static cfg_tuplefielddef_t kaspkey_fields[] = {
 	{ "role", &cfg_type_dnsseckeyrole, 0 },
 	{ "keystorage", &cfg_type_optional_keystore, 0 },
@@ -702,6 +726,7 @@ static cfg_tuplefielddef_t kaspkey_fields[] = {
 	{ "algorithm", &cfg_type_algorithm, 0 },
 	{ "tag-range", &cfg_type_optional_tagrange, 0 },
 	{ "length", &cfg_type_optional_uint32, 0 },
+	{ "flags", &cfg_type_optional_keyflags, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_kaspkey = { "kaspkey",	cfg_parse_tuple,
@@ -3388,6 +3413,9 @@ doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, " ]");
 }
 
+/*
+ * NOTIFY.
+ */
 static const char *notify_enums[] = { "explicit", "master-only", "primary-only",
 				      NULL };
 static isc_result_t

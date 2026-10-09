@@ -494,6 +494,12 @@ dns_kasp_key_zsk(dns_kasp_key_t *key) {
 }
 
 uint16_t
+dns_kasp_key_flags(dns_kasp_key_t *key) {
+	REQUIRE(key != NULL);
+	return key->flags;
+}
+
+uint16_t
 dns_kasp_key_tagmin(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 	return key->tag_min;

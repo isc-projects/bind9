@@ -475,6 +475,9 @@ cfg_print_bracketed_list(cfg_printer_t *pctx, const cfg_obj_t *obj);
 void
 cfg_doc_bracketed_list(cfg_printer_t *pctx, const cfg_type_t *type);
 
+void
+cfg_doc_enum_list(cfg_printer_t *pctx, const cfg_type_t *type);
+
 isc_result_t
 cfg_parse_spacelist(cfg_parser_t *pctx, const cfg_type_t *type,
 		    cfg_obj_t **ret);

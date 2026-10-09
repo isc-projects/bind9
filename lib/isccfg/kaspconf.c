@@ -151,6 +151,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
 	const cfg_obj_t *tagrange = NULL;
+	const cfg_obj_t *keyflags = NULL;
 	uint32_t min_lifetime = UINT32_MAX;
 
 	/* Create a new key reference. */
@@ -163,6 +164,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		key->lifetime = 0; /* unlimited */
 		key->algorithm = DST_ALG_ECDSA256;
 		key->length = -1;
+		key->flags = DNS_KEYOWNER_ZONE | DNS_KEYFLAG_KSK;
 		CHECK(dns_keystorelist_find(keystorelist,
 					    DNS_KEYSTORE_KEYDIRECTORY,
 					    &key->keystore));
@@ -365,6 +367,28 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			}
 
 			key->length = size;
+		}
+
+		key->flags = DNS_KEYOWNER_ZONE;
+		keyflags = cfg_tuple_get(config, "flags");
+		if (cfg_obj_islist(keyflags)) {
+			const cfg_listelt_t *element = NULL;
+
+			for (element = cfg_list_first(keyflags);
+			     element != NULL; element = cfg_list_next(element))
+			{
+				const cfg_obj_t *flagobj =
+					cfg_listelt_value(element);
+				const char *flag = cfg_obj_asstring(flagobj);
+
+				if (strcasecmp(flag, "sep") == 0) {
+					key->flags |= DNS_KEYFLAG_KSK;
+				} else if (strcasecmp(flag, "adt") == 0) {
+					key->flags |= DNS_KEYFLAG_ADT;
+				}
+			}
+		} else if ((key->role & DNS_KASP_KEY_ROLE_KSK) != 0) {
+			key->flags |= DNS_KEYFLAG_KSK;
 		}
 
 		tagrange = cfg_tuple_get(config, "tag-range");
@@ -835,6 +859,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 			new_key->lifetime = dns_kasp_key_lifetime(key);
 			new_key->algorithm = dns_kasp_key_algorithm(key);
 			new_key->length = dns_kasp_key_size(key);
+			new_key->flags = dns_kasp_key_flags(key);
 			result = dns_keystorelist_find(
 				keystorelist, DNS_KEYSTORE_KEYDIRECTORY,
 				&new_key->keystore);
