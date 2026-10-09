@@ -159,7 +159,7 @@ lifetime = {
         pytest.param(
             {
                 "zone": "csk-nosep.kasp",
-                "policy": "default",
+                "policy": "csk-nosep",
                 "server": "ns3",
                 "config": default_config,
                 "offset": 0,
