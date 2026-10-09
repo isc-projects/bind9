@@ -240,9 +240,9 @@ class KeyProperties:
         return result
 
     def role_full(self) -> str:
-        if self.flags == 256:
-            return "zone-signing"
-        return "key-signing"
+        if (self.flags & KEYFLAG_SEP) != 0:
+            return "key-signing"
+        return "zone-signing"
 
     def Ipub(self, config):
         ipub = timedelta(0)
