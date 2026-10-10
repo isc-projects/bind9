@@ -655,6 +655,31 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
             id="ed448.kasp",
             marks=isctest.mark.with_algorithm("ED448"),
         ),
+        pytest.param(
+            {
+                "zone": "adt.kasp",
+                "policy": "adt",
+                "config": kasp_config,
+                "key-properties": [
+                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep adt",
+                    f"zsk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured",
+                ],
+            },
+            id="adt.kasp",
+        ),
+        pytest.param(
+            {
+                "zone": "crazy-flags.kasp",
+                "policy": "crazy-flags",
+                "config": kasp_config,
+                "key-properties": [
+                    f"ksk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+                    f"zsk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured sep",
+                    f"zsk 0 {Algorithm.default().number} {Algorithm.default().bits} goal:omnipresent dnskey:rumoured zrrsig:rumoured adt",
+                ],
+            },
+            id="crazy-flags.kasp",
+        ),
     ],
 )
 def test_kasp_case(servers, ns3, params):
@@ -1372,7 +1397,7 @@ def test_kasp_dnssec_keygen():
         f"csk {lifetime['P1Y']} 13 256 sep",
         f"ksk {lifetime['P1Y']} 8 2048 sep",
         f"zsk {lifetime['P30D']} 8 2048",
-        f"zsk {lifetime['P6M']} 8 3072",
+        f"zsk {lifetime['P6M']} 8 3072 adt",
     ]
     keydir = "keys"
     out = keygen("kasp", "kasp", keydir)

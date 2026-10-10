@@ -50,6 +50,20 @@ zone "unlimited.kasp" {
 	dnssec-policy "unlimited";
 };
 
+/* DELEG-aware, key flags have ADT bit set. */
+zone "adt.kasp" {
+	type primary;
+	file "adt.kasp.db";
+	dnssec-policy "adt";
+};
+
+/* KSK no SEP, ZSK with SEP. Crazy. */
+zone "crazy-flags.kasp" {
+	type primary;
+	file "crazy-flags.kasp.db";
+	dnssec-policy "crazy-flags";
+};
+
 /* A zone that inherits dnssec-policy. */
 zone "inherit.kasp" {
 	type primary;
