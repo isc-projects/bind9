@@ -19,17 +19,17 @@ key "keyforview2" {
 
 key-store "hsm" {
 	directory ".";
-	pkcs11-uri "pkcs11:token=softhsm2-enginepkcs11;pin-value=1234";
+	pkcs11-uri "pkcs11:token=kryoptic-enginepkcs11;pin-value={%- include "_common/hsm_pin" -%}";
 };
 
 key-store "hsm2" {
 	directory "keys";
-	pkcs11-uri "pkcs11:token=softhsm2-enginepkcs11;pin-value=1234";
+	pkcs11-uri "pkcs11:token=kryoptic-enginepkcs11;pin-value={%- include "_common/hsm_pin" -%}";
 };
 
 key-store "pin" {
 	directory ".";
-	pkcs11-uri "pkcs11:token=softhsm2-enginepkcs11;pin-source=pin";
+	pkcs11-uri "pkcs11:token=kryoptic-enginepkcs11;pin-source=@pin_path@";
 };
 
 key-store "disk" {

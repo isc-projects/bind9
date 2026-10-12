@@ -38,33 +38,6 @@ Prerequisites
 See the documentation provided by the HSM vendor for information about
 installing, initializing, testing, and troubleshooting the HSM.
 
-Building SoftHSMv2
-^^^^^^^^^^^^^^^^^^
-
-SoftHSMv2, the latest development version of SoftHSM, is available from
-https://github.com/softhsm/SoftHSMv2. It is a software library
-developed by the OpenDNSSEC project (https://www.opendnssec.org) which
-provides a PKCS#11 interface to a virtual HSM, implemented in the form
-of an SQLite3 database on the local filesystem. It provides less security
-than a true HSM, but it allows users to experiment with native PKCS#11
-when an HSM is not available. SoftHSMv2 can be configured to use either
-OpenSSL or the Botan library to perform cryptographic functions, but
-when using it for native PKCS#11 in BIND, OpenSSL is required.
-
-By default, the SoftHSMv2 configuration file is ``prefix/etc/softhsm2.conf``
-(where ``prefix`` is configured at compile time). This location can be
-overridden by the SOFTHSM2_CONF environment variable. The SoftHSMv2
-cryptographic store must be installed and initialized before using it
-with BIND.
-
-::
-
-   $  cd SoftHSMv2
-   $  configure --with-crypto-backend=openssl --prefix=/opt/pkcs11/usr
-   $  make
-   $  make install
-   $  /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2
-
 OpenSSL 3 With pkcs11-provider
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

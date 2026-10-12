@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from re import compile as Re
+from pathlib import Path
+from typing import Any
 
 import hashlib
 import os
@@ -22,7 +23,7 @@ from isctest.util import param
 import isctest.mark
 
 pytestmark = [
-    isctest.mark.softhsm2_environment,
+    isctest.mark.kryoptic_environment,
     pytest.mark.extra_artifacts(
         [
             "*.example.db",
@@ -30,62 +31,88 @@ pytestmark = [
             "K*",
             "dsset-*",
             "keyfromlabel.out.*",
-            "pin",
             "pkcs11-tool.out.*",
             "signer.out.*",
+            "kryoptic.db",
+            "kryoptic.toml",
+            "openssl.cnf",
         ],
     ),
 ]
 
+HSMPIN = None
+SOPIN = None
 
-EMPTY_OPENSSL_CONF_ENV = {**os.environ, "OPENSSL_CONF": ""}
 
-HSMPIN = "1234"
+def bootstrap() -> dict[str, Any]:
+    global HSMPIN  # pylint: disable=global-statement
+    HSMPIN = (
+        Path.cwd().parent.joinpath("_common", "hsm_pin").read_text(encoding="utf-8")
+    )
+
+    global SOPIN  # pylint: disable=global-statement
+    SOPIN = Path.cwd().parent.joinpath("_common", "so_pin").read_text(encoding="utf-8")
+
+    templates = isctest.template.TemplateEngine(".")
+
+    database = Path.cwd() / "kryoptic.db"
+    templates.render("kryoptic.toml", {"database": str(database)})
+
+    templates.render(
+        "openssl.cnf",
+        {
+            "pkcs11_module_path": os.environ["BIND9_TEST_KRYOPTIC_MODULE"],
+            "pin_path": Path.cwd().parent.joinpath("_common", "hsm_pin").resolve(),
+        },
+    )
+
+    return {}
 
 
 @pytest.fixture(autouse=True)
 def token_init_and_cleanup():
-
-    # Create pin file for the $KEYFRLAB command
-    with open("pin", "w", encoding="utf-8") as pinfile:
-        pinfile.write(HSMPIN)
+    token_env = {
+        **os.environ,
+        "OPENSSL_CONF": "",
+        "KRYOPTIC_CONF": Path.cwd().joinpath("kryoptic.toml").as_posix(),
+    }
 
     token_init_command = [
-        "softhsm2-util",
+        "pkcs11-tool",
+        "--module",
+        os.environ["BIND9_TEST_KRYOPTIC_MODULE"],
         "--init-token",
-        "--free",
+        "--label",
+        "kryoptic-keyfromlabel",
+        "--so-pin",
+        SOPIN,
+    ]
+
+    token_pin_init_command = [
+        "pkcs11-tool",
+        "--module",
+        os.environ["BIND9_TEST_KRYOPTIC_MODULE"],
+        "--init-pin",
+        "--login",
+        "--login-type",
+        "so",
+        "--so-pin",
+        SOPIN,
         "--pin",
         HSMPIN,
-        "--so-pin",
-        HSMPIN,
-        "--label",
-        "softhsm2-keyfromlabel",
     ]
 
-    token_cleanup_command = [
-        "softhsm2-util",
-        "--delete-token",
-        "--token",
-        "softhsm2-keyfromlabel",
-    ]
-
-    isctest.run.cmd(
-        token_cleanup_command,
-        env=EMPTY_OPENSSL_CONF_ENV,
-        raise_on_exception=False,
-    )
+    database = Path.cwd() / "kryoptic.db"
 
     try:
-        cmd = isctest.run.cmd(token_init_command, env=EMPTY_OPENSSL_CONF_ENV)
-        assert "The token has been initialized and is reassigned to slot" in cmd.out
+        cmd = isctest.run.cmd(token_init_command, env=token_env)
+        assert "Token successfully initialized" in cmd.out
+        cmd = isctest.run.cmd(token_pin_init_command, env=token_env)
+        assert "User PIN successfully initialized" in cmd.out
+        assert database.exists()
         yield
     finally:
-        cmd = isctest.run.cmd(
-            token_cleanup_command,
-            env=EMPTY_OPENSSL_CONF_ENV,
-            raise_on_exception=False,
-        )
-        assert Re("Found token (.*) with matching token label") in cmd.out
+        database.unlink(missing_ok=True)
 
 
 @pytest.mark.parametrize(
@@ -116,6 +143,11 @@ def token_init_and_cleanup():
     ],
 )
 def test_keyfromlabel(alg_name, alg_type, alg_bits):
+    test_env = {
+        **os.environ,
+        "OPENSSL_CONF": Path.cwd().joinpath("openssl.cnf").as_posix(),
+        "KRYOPTIC_CONF": Path.cwd().joinpath("kryoptic.toml").as_posix(),
+    }
 
     def keygen(alg_type, alg_bits, label):
         p11_id = hashlib.sha1(label.encode("utf-8")).hexdigest()
@@ -123,9 +155,9 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
         pkcs11_command = [
             "pkcs11-tool",
             "--module",
-            os.environ.get("SOFTHSM2_MODULE"),
+            os.environ.get("BIND9_TEST_KRYOPTIC_MODULE"),
             "--token-label",
-            "softhsm2-keyfromlabel",
+            "kryoptic-keyfromlabel",
             "-l",
             "-k",
             "--key-type",
@@ -138,7 +170,7 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
             HSMPIN,
         ]
 
-        cmd = isctest.run.cmd(pkcs11_command, env=EMPTY_OPENSSL_CONF_ENV)
+        cmd = isctest.run.cmd(pkcs11_command, env=test_env)
 
         assert "Key pair generated" in cmd.out
 
@@ -151,12 +183,12 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
             alg_name,
             "-y",
             "-l",
-            f"pkcs11:token=softhsm2-keyfromlabel;object={label};pin-source=pin",
+            f"pkcs11:token=kryoptic-keyfromlabel;object={label};pin-source=../_common/hsm_pin",
             *key_flag,
             zone,
         ]
 
-        cmd = isctest.run.cmd(keyfrlab_command, raise_on_exception=False)
+        cmd = isctest.run.cmd(keyfrlab_command, env=test_env, raise_on_exception=False)
         if cmd.rc != 0 and "already exists" in cmd.err:
             return None
         assert cmd.rc == 0
@@ -208,6 +240,6 @@ def test_keyfromlabel(alg_name, alg_type, alg_bits):
         zone,
         zone_file,
     ]
-    isctest.run.cmd(signer_command)
+    isctest.run.cmd(signer_command, env=test_env)
 
     assert os.path.exists(f"{zone_file}.signed")

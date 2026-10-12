@@ -261,7 +261,7 @@ EOF
   n=$((n + 1))
   ret=0
   echo_i "Test dnssec-keygen for $zone ($n)"
-  $KEYGEN -k $alg -l named.conf $zone >keygen.out.$zone.$n 2>/dev/null || ret=1
+  OPENSSL_CONF="../openssl_pin.cnf" KRYOPTIC_CONF="kryoptic.toml" $KEYGEN -k $alg -l named.conf $zone >keygen.out.$zone.$n || ret=1
   check_keys $zone 2 || ret=1
   status=$((status + ret))
 
