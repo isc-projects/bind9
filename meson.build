@@ -881,7 +881,7 @@ endif
 ## DNS-over-QUIC (DoQ) [IN PROGRESS, DEVELOPER MODE ONLY]
 ngtcp2_dep = null_dep
 if developer_mode and config.get('HAVE_OPENSSL_QUIC_INTEGRATION')
-    ngtcp2_dep = dependency('libngtcp2', version: '>=1.11.0', required: false)
+    ngtcp2_dep = dependency('libngtcp2', version: '>=1.17.0', required: false)
     config.set('HAVE_LIBNGTCP2', ngtcp2_dep.found())
 endif
 
