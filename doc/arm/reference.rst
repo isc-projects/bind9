@@ -5610,7 +5610,8 @@ Response Rate Limiting
 NXDOMAIN Redirection
 ^^^^^^^^^^^^^^^^^^^^
 
-:iscman:`named` supports NXDOMAIN redirection via two methods:
+:iscman:`named` allows NXDOMAIN redirection via two methods. Note that
+both methods are deprecated, and will be removed in a future release.
 
 -  :any:`Redirect zone <type redirect>`
 -  Redirect namespace
@@ -5625,7 +5626,7 @@ the normal namespace. All the redirect information is contained in the
 zone; there are no delegations.
 
 .. namedconf:statement:: nxdomain-redirect
-   :tags: query
+   :tags: query, deprecated
    :short: Appends the specified suffix to the original query name, when replacing an NXDOMAIN with a redirect namespace.
 
    With a redirect namespace (``option { nxdomain-redirect <suffix> };``),
@@ -7093,7 +7094,7 @@ Zone Types
    globally, re-specify the global forwarders.
 
 .. namedconf:statement:: type redirect
-   :tags: zone
+   :tags: zone, deprecated
    :short: Contains information to answer queries when normal resolution would return NXDOMAIN.
 
    Redirect zones are used to provide answers to queries when normal
@@ -7128,6 +7129,8 @@ Zone Types
    redirect zone configured as a secondary, use :option:`rndc retransfer -redirect <rndc retransfer>`.
    When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
+
+   Redirect zones are deprecated, and will be removed in a future release.
 
 .. namedconf:statement:: in-view
    :tags: view, zone
