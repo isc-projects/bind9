@@ -11,3 +11,7 @@ ns      IN A    10.53.0.2
 
 insecure       IN NS   ns.insecure.parent.
 ns.insecure    IN A    10.53.0.2
+
+alias          IN CNAME target.parent.
+primed         IN CNAME target.parent.
+target         IN A    192.0.2.2
