@@ -9,14 +9,20 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+from typing import Any
+
 import os
 
 import pytest
 
 import isctest.mark
+import isctest.template
 
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
+        "openssl.cnf",
+        "openssl_pin.cnf",
         "dig.out.*",
         "dsset-*",
         "keyfromlabel.err.*",
@@ -30,13 +36,14 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
         "ns*/update.cmd.*",
         "ns*/update.log.*",
         "ns*/verify.out.*",
-        "ns*/pin",
         "ns*/zone.*.jbk",
         "ns*/zone.*.jnl",
         "ns*/*.kskid1",
         "ns*/*.kskid2",
         "ns*/*.zskid1",
         "ns*/*.zskid2",
+        "ns*/kryoptic.toml",
+        "ns*/kryoptic.db",
         "ns1/keys",
         "ns1/named.args",
         "ns1/*.example.db",
@@ -56,17 +63,40 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
 
 pytestmark = [
     isctest.mark.with_pkcs11_provider,
-    isctest.mark.softhsm2_environment,
+    isctest.mark.kryoptic_environment,
     EXTRA_ARTIFACTS,
 ]
 
 
-def bootstrap():
+def bootstrap() -> dict[str, Any]:
+    templates = isctest.template.TemplateEngine(".")
+
+    pin_path = Path.cwd().parent.joinpath("_common", "hsm_pin").resolve()
+
+    database = Path.cwd().joinpath("ns1", "kryoptic.db").resolve()
+    templates.render("ns1/kryoptic.toml", {"database": str(database)})
+
+    database = Path.cwd().joinpath("ns2", "kryoptic.db").resolve()
+    templates.render("ns2/kryoptic.toml", {"database": str(database)})
+
+    templates.render(
+        "openssl.cnf",
+        {"pkcs11_module_path": os.environ["BIND9_TEST_KRYOPTIC_MODULE"]},
+    )
+
+    templates.render(
+        "openssl_pin.cnf",
+        {
+            "pkcs11_module_path": os.environ["BIND9_TEST_KRYOPTIC_MODULE"],
+            "pin_path": pin_path,
+        },
+    )
+
     return {
         "ENGINE_ARG": os.getenv("ENGINE_ARG", ""),
+        "pin_path": pin_path,
     }
 
 
-@pytest.mark.flaky(max_runs=5)  # GL#4605
 def test_enginepkcs11(run_tests_sh):
     run_tests_sh()

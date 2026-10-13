@@ -341,7 +341,7 @@ Pytest marks control test collection and setup:
   listed servers have loaded all zones.
 - `isctest.mark` has skip-unless conditions for environment prerequisites,
   e.g. `isctest.mark.with_dnstap`, `isctest.mark.with_lmdb`,
-  `isctest.mark.live_internet_test`.
+  `isctest.mark.live_internet_test`, `isctest.mark.kryoptic_environment`.
 
 ### Parametrization
 

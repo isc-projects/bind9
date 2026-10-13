@@ -17,18 +17,18 @@ from .. import log
 
 OPENSSL_VARS = {
     "OPENSSL_CONF": os.getenv("OPENSSL_CONF", None),
-    "SOFTHSM2_CONF": os.getenv("SOFTHSM2_CONF", None),
-    "SOFTHSM2_MODULE": None,
-    "ENGINE_ARG": None,
+    "ENGINE_ARG": os.getenv("ENGINE_ARG", ""),
+    "BIND9_TEST_KRYOPTIC_MODULE": os.getenv("BIND9_TEST_KRYOPTIC_MODULE", None),
 }
 
 
 def parse_openssl_config(path: str | None):
+    # An explicitly set module takes precedence over the OpenSSL config.
+    if OPENSSL_VARS["BIND9_TEST_KRYOPTIC_MODULE"] is not None:
+        return
     if path is None or not os.path.exists(path):
         OPENSSL_VARS["ENGINE_ARG"] = None
-        OPENSSL_VARS["SOFTHSM2_MODULE"] = None
         os.environ.pop("ENGINE_ARG", None)
-        os.environ.pop("SOFTHSM2_MODULE", None)
         return
     assert os.path.isfile(path), f"{path} exists, but it's not a file"
 
@@ -45,8 +45,8 @@ def parse_openssl_config(path: str | None):
                     os.environ["ENGINE_ARG"] = f"-E {val}"
                     log.debug("ENGINE_ARG set to {OPENSSL_VARS['ENGINE_ARG']}")
                 elif key in ["MODULE_PATH", "pkcs11-module-path"]:
-                    OPENSSL_VARS["SOFTHSM2_MODULE"] = val
-                    os.environ["SOFTHSM2_MODULE"] = val
+                    OPENSSL_VARS["BIND9_TEST_KRYOPTIC_MODULE"] = val
+                    os.environ["BIND9_TEST_KRYOPTIC_MODULE"] = val
                     log.debug(
-                        "SOFTHSM2_MODULE set to {OPENSSL_VARS['SOFTHSM2_MODULE']}"
+                        f"BIND9_TEST_KRYOPTIC_MODULE set to {OPENSSL_VARS['BIND9_TEST_KRYOPTIC_MODULE']}"
                     )

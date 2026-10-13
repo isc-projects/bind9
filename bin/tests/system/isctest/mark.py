@@ -164,19 +164,31 @@ dnsrps_enabled = pytest.mark.skipif(
     not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
 
-softhsm2_environment = pytest.mark.skipif(
-    not (
-        os.getenv("SOFTHSM2_CONF")
-        and os.getenv("SOFTHSM2_MODULE")
-        and shutil.which("pkcs11-tool")
-        and shutil.which("softhsm2-util")
-    ),
-    reason="SOFTHSM2_CONF and SOFTHSM2_MODULE environmental variables must be set and pkcs11-tool and softhsm2-util tools present",
+
+def _openssl_provider_available(provider: str) -> bool:
+    dylib = f".{os.environ.get('DYLIB', 'so')}"
+    try:
+        moduledir = subprocess.run(
+            ["openssl", "info", "-modulesdir"],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.strip()
+
+        return Path(moduledir).joinpath(provider).with_suffix(dylib).resolve().is_file()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+kryoptic_environment = pytest.mark.skipif(
+    os.getenv("BIND9_TEST_KRYOPTIC_MODULE") is None
+    or shutil.which("pkcs11-tool") is None,
+    reason="BIND9_TEST_KRYOPTIC_MODULE environmental variable must be set and the pkcs11-tool tool present",
 )
 
 with_pkcs11_provider = pytest.mark.skipif(
-    os.path.basename(os.getenv("OPENSSL_CONF") or "") != "openssl-provider.cnf",
-    reason="pkcs11-provider not enabled",
+    not _openssl_provider_available("pkcs11"),
+    reason="pkcs11-provider not available in default OpenSSL module path",
 )
 
 
