@@ -150,11 +150,11 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *	with "file:", then dnstap logs are sent to a file instead of a
  *	socket.
  *
- *\li	'*foptp' set the options for fstrm_iothr_init(). '*foptp' must have
- *	have had the number of input queues set and this should be set
- *	to the number of worker threads.  Additionally the queue model
- *	should also be set.  Other options may be set if desired.
- *	If dns_dt_create succeeds the *foptp is set to NULL.
+ *\li	'*foptp' set the options for fstrm_iothr_init().  The number of
+ *	input queues is set by dns_dt_create() itself: one per event loop
+ *	plus one shared by the threads that run outside the loops, which
+ *	calls for the MPSC queue model.  Other options may be set if
+ *	desired.  If dns_dt_create succeeds the *foptp is set to NULL.
  *
  *\li	'loop' needs to be set to the loop in which
  *	dns_dt_reopen() will be called.  This is not an optional parameter:
@@ -203,7 +203,7 @@ dns_dt_setupfile(dns_dtenv_t *env, uint64_t max_size, int rolls,
 isc_result_t
 dns_dt_reopen(dns_dtenv_t *env, int roll);
 /*%<
- * Reopens files established by dns_dt_create2().
+ * Reopens files established by dns_dt_create().
  *
  * If 'roll' is non-negative and 'env->mode' is dns_dtmode_file,
  * then the file is automatically rolled over before reopening.
@@ -211,11 +211,15 @@ dns_dt_reopen(dns_dtenv_t *env, int roll);
  * keep.  If 'roll' is negative, or if 'env->mode' is dns_dtmode_unix,
  * then the channel is simply reopened.
  *
- * Note: dns_dt_reopen() uses task-exclusive mode and must be run in the
- * context of env->reopen_task.
+ * Note: dns_dt_reopen() must be called on the loop that was given to
+ * dns_dt_create() and never concurrently with itself.  It does not stop
+ * the senders on the other loops: the data frames they produce while the
+ * output is being closed and reopened are dropped and counted as such in
+ * the dnstap statistics.
  *
  * Requires:
  *\li	'env' is a valid dnstap environment.
+ *\li	The current loop is 'env->loop' (unless that is NULL).
  */
 
 isc_result_t
