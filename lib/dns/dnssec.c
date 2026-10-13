@@ -1698,7 +1698,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
 				dst_algorithm_format(dst_key_alg(dnskey),
 						     algbuf, sizeof(algbuf));
 				snprintf(filename, sizeof(filename) - 1,
-					 "key file for %s/%s/%d", namebuf,
+					 "key file for %s/%s/%hu", namebuf,
 					 algbuf, dst_key_id(dnskey));
 			}
 
@@ -1844,7 +1844,7 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 
 	dst_algorithm_format(dst_key_alg(key->key), alg, sizeof(alg));
 	dns_name_format(dst_key_name(key->key), namebuf, sizeof(namebuf));
-	report("Removing %s key %s/%d/%s from DNSKEY RRset.", reason, namebuf,
+	report("Removing %s key %s/%hu/%s from DNSKEY RRset.", reason, namebuf,
 	       dst_key_id(key->key), alg);
 
 	CHECK(dns_dnssec_make_dnskey(key->key, buf, sizeof(buf), &dnskey));
@@ -2385,7 +2385,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 					DNS_LOGCATEGORY_DNSSEC,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"DNSKEY %s (%s) is now revoked; "
-					"new ID is %05d",
+					"new ID is %05hu",
 					keystr2,
 					key2->ksk ? (key2->zsk ? "CSK" : "KSK")
 						  : "ZSK",

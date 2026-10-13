@@ -128,7 +128,7 @@ sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 
 	dns_name_format(&sig->signer, namestr, sizeof(namestr));
 	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
-	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
+	snprintf(cp, size, "%s/%s/%hu", namestr, algstr, sig->keyid);
 }
 
 void
@@ -474,13 +474,13 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 
 	if (min != max) {
 		if (id < min || id > max) {
-			fprintf(stderr, "Key ID %d outside of [%u..%u]\n", id,
+			fprintf(stderr, "Key ID %hu outside of [%u..%u]\n", id,
 				min, max);
 			return true;
 		}
 		if (rid < min || rid > max) {
 			fprintf(stderr,
-				"Revoked Key ID %d (for tag %d) outside of "
+				"Revoked Key ID %u (for tag %hu) outside of "
 				"[%u..%u]\n",
 				rid, id, min, max);
 			return true;
@@ -515,14 +515,14 @@ again:
 			if (id != oldid) {
 				if (verbose > 1) {
 					fprintf(stderr,
-						"Key ID %d could "
-						"collide with %d\n",
+						"Key ID %hu could "
+						"collide with %hu\n",
 						id, oldid);
 				}
 			} else {
 				SET_IF_NOT_NULL(exact, true);
 				if (verbose > 1) {
-					fprintf(stderr, "Key ID %d exists\n",
+					fprintf(stderr, "Key ID %hu exists\n",
 						id);
 				}
 			}

@@ -374,7 +374,7 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 		}
 
 		dst_algorithm_format(alg, algbuf, sizeof(algbuf));
-		snprintf(keybuf, sizeof(keybuf), "key %d/%s", keyid, algbuf);
+		snprintf(keybuf, sizeof(keybuf), "key %hu/%s", keyid, algbuf);
 		isc_buffer_putstr(buf, keybuf);
 	} else {
 		return ISC_R_NOTFOUND;

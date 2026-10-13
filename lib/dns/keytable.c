@@ -619,7 +619,7 @@ keynode_dslist_totext(dns_keynode_t *keynode, isc_buffer_t *text) {
 		dns_secalg_format(ds.algorithm, algbuf, sizeof(algbuf));
 
 		RWLOCK(&keynode->rwlock, isc_rwlocktype_read);
-		snprintf(obuf, sizeof(obuf), "%s/%s/%d ; %s%s\n", namebuf,
+		snprintf(obuf, sizeof(obuf), "%s/%s/%hu ; %s%s\n", namebuf,
 			 algbuf, ds.key_tag,
 			 keynode->initial ? "initializing " : "",
 			 keynode->managed ? "managed" : "static");
