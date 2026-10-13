@@ -11,15 +11,9 @@ administrators, not engineers.
 
 ## Security framing: bug vs vulnerability
 
-Local-filesystem misbehavior is a BUG, not a vulnerability. BIND treats
-the local filesystem as trusted: no "privilege escalation", "local
-attacker", "exploit", "vulnerability", or CVE/severity language for
-symlink-following, local TOCTOU, or service-account issues. Describe it
-operationally ("X followed symlinks and could overwrite the wrong
-file"). Reserve security framing for remote or protocol surfaces:
-network input, DNS message parsing, configuration from an untrusted
-publisher, signed-zone integrity. Defensive code (lstat/O_NOFOLLOW,
-mkstemp) remains the right fix — only the framing changes.
+Follow doc/arm/threat-model.inc.rst to decide if the change fixes a
+vulnerability or fixes a bug. Defensive coding is also desired for ordinary
+bug fixes.
 
 ## Title
 
