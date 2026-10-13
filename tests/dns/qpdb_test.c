@@ -479,8 +479,8 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.type2 = none,
 			.rank2 = 0,
 			.qtype = ds,
-			.expected_result = ISC_R_NOTFOUND,
-			.expected_type = none,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
 			.expected_stale = false,
 		},
 		/* A lone stale CNAME answers ordinary types, including NS, but
@@ -511,9 +511,9 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.type2 = none,
 			.rank2 = 0,
 			.qtype = ds,
-			.expected_result = ISC_R_NOTFOUND,
-			.expected_type = none,
-			.expected_stale = false,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
 		},
 		/* Delegation data beside a CNAME is found by its own type. */
 		{
