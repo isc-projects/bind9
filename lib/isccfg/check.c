@@ -677,15 +677,21 @@ check_dns64(cfg_aclconfctx_t *aclctx, const cfg_obj_t *voptions,
 		}                                                         \
 	} while (0)
 
-#define CHECK_RRL_RATE(rate, def, max_rate, clause, name)                  \
-	do {                                                               \
-		obj = NULL;                                                \
-		mresult = cfg_map_get(map, clause, &obj);                  \
-		if (mresult == ISC_R_SUCCESS) {                            \
-			rate = cfg_obj_asuint32(obj);                      \
-			CHECK_RRL(rate <= max_rate, name " %d > %d", rate, \
-				  max_rate);                               \
-		}                                                          \
+#define CHECK_RRL_RATE(rate, def, max_rate, clause)                           \
+	do {                                                                  \
+		obj = NULL;                                                   \
+		mresult = cfg_map_get(map, clause, &obj);                     \
+		if (mresult == ISC_R_SUCCESS) {                               \
+			rate = cfg_obj_asuint32(obj);                         \
+			if (!(rate <= max_rate)) {                            \
+				cfg_obj_log(obj, ISC_LOG_ERROR, "%s %d > %d", \
+					    cfg_clause_as_string[clause],     \
+					    rate, max_rate);                  \
+				if (result == ISC_R_SUCCESS) {                \
+					result = ISC_R_RANGE;                 \
+				}                                             \
+			}                                                     \
+		}                                                             \
 	} while (0)
 
 static isc_result_t
@@ -739,25 +745,21 @@ check_ratelimit(cfg_aclconfctx_t *aclctx, const cfg_obj_t *voptions,
 	}
 
 	CHECK_RRL_RATE(responses_per_second, 0, DNS_RRL_MAX_RATE,
-		       CFG_CLAUSE_RESPONSES_PER_SECOND, "responses-per-second");
+		       CFG_CLAUSE_RESPONSES_PER_SECOND);
 
 	CHECK_RRL_RATE(referrals_per_second, responses_per_second,
-		       DNS_RRL_MAX_RATE, CFG_CLAUSE_REFERRALS_PER_SECOND,
-		       "referrals-per-second");
+		       DNS_RRL_MAX_RATE, CFG_CLAUSE_REFERRALS_PER_SECOND);
 	CHECK_RRL_RATE(nodata_per_second, responses_per_second,
-		       DNS_RRL_MAX_RATE, CFG_CLAUSE_NODATA_PER_SECOND,
-		       "nodata-per-second");
+		       DNS_RRL_MAX_RATE, CFG_CLAUSE_NODATA_PER_SECOND);
 	CHECK_RRL_RATE(nxdomains_per_second, responses_per_second,
-		       DNS_RRL_MAX_RATE, CFG_CLAUSE_NXDOMAINS_PER_SECOND,
-		       "nxdomains-per-second");
+		       DNS_RRL_MAX_RATE, CFG_CLAUSE_NXDOMAINS_PER_SECOND);
 	CHECK_RRL_RATE(errors_per_second, responses_per_second,
-		       DNS_RRL_MAX_RATE, CFG_CLAUSE_ERRORS_PER_SECOND,
-		       "errors-per-second");
+		       DNS_RRL_MAX_RATE, CFG_CLAUSE_ERRORS_PER_SECOND);
 
 	CHECK_RRL_RATE(all_per_second, 0, DNS_RRL_MAX_RATE,
-		       CFG_CLAUSE_ALL_PER_SECOND, "all-per-second");
+		       CFG_CLAUSE_ALL_PER_SECOND);
 
-	CHECK_RRL_RATE(slip, 2, DNS_RRL_MAX_SLIP, CFG_CLAUSE_SLIP, "slip");
+	CHECK_RRL_RATE(slip, 2, DNS_RRL_MAX_SLIP, CFG_CLAUSE_SLIP);
 
 	obj = NULL;
 	mresult = cfg_map_get(map, CFG_CLAUSE_WINDOW, &obj);
