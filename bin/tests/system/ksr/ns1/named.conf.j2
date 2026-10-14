@@ -23,6 +23,14 @@ dnssec-policy "csk" {
 	};
 };
 
+dnssec-policy "privateoid" {
+	offline-ksk yes;
+	keys {
+		ksk lifetime unlimited algorithm RSASHA256OID 2048;
+		zsk lifetime P6M algorithm RSASHA256OID 2048;
+	};
+};
+
 dnssec-policy "unlimited" {
 	offline-ksk yes;
 	keys {

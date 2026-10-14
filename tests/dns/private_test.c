@@ -45,10 +45,11 @@ static dns_rdatatype_t privatetype = 65534;
 
 typedef struct {
 	dst_algorithm_t alg;
+	dns_secalg_t secalg;
 	dns_keytag_t keyid;
 	bool remove;
 	bool complete;
-	const char *result;
+	const char *result; /* NULL: expect ISC_R_NOTFOUND */
 } signing_testcase_t;
 
 typedef struct {
@@ -75,7 +76,7 @@ make_private(dns_rdata_t *private, unsigned char *buf, size_t len) {
 static void
 make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 	     unsigned char *buf, size_t len) {
-	buf[0] = dst_algorithm_tosecalg(testcase->alg);
+	buf[0] = testcase->secalg;
 	buf[1] = (testcase->keyid & 0xff00) >> 8;
 	buf[2] = (testcase->keyid & 0xff);
 	buf[3] = testcase->remove;
@@ -143,16 +144,19 @@ ISC_RUN_TEST_IMPL(private_signing_totext) {
 	size_t i;
 
 	signing_testcase_t testcases[] = {
-		{ DST_ALG_RSASHA512, 12345, 0, 0,
+		{ DST_ALG_RSASHA512, DNS_KEYALG_RSASHA512, 12345, 0, 0,
 		  "Signing with key 12345/RSASHA512" },
-		{ DST_ALG_RSASHA256, 54321, 1, 0,
+		{ DST_ALG_RSASHA256, DNS_KEYALG_RSASHA256, 54321, 1, 0,
 		  "Removing signatures for key 54321/RSASHA256" },
-		{ DST_ALG_NSEC3RSASHA1, 22222, 0, 1,
+		{ DST_ALG_NSEC3RSASHA1, DNS_KEYALG_NSEC3RSASHA1, 22222, 0, 1,
 		  "Done signing with key 22222/NSEC3RSASHA1" },
-		{ DST_ALG_RSASHA1, 33333, 1, 1,
+		{ DST_ALG_RSASHA1, DNS_KEYALG_RSASHA1, 33333, 1, 1,
 		  "Done removing signatures for key 33333/RSASHA1" },
-		{ DST_ALG_RSASHA256PRIVATEOID, 4444, 0, 0,
-		  "Signing with key 4444/RSASHA256OID" }
+		{ DST_ALG_RSASHA256PRIVATEOID, DNS_KEYALG_PRIVATEOID, 4444, 0,
+		  0, "Signing with key 4444/RSASHA256OID" },
+		/* DNSSEC algorithm octet inconsistent with DST algorithm */
+		{ DST_ALG_RSASHA256PRIVATEOID, DNS_KEYALG_PRIVATEDNS, 4444, 0,
+		  0, NULL }
 	};
 	UNUSED(state);
 
@@ -175,8 +179,12 @@ ISC_RUN_TEST_IMPL(private_signing_totext) {
 		isc_buffer_init(&buf, output, sizeof(output));
 		make_signing(&testcases[i], &private, data, 7);
 		result = dns_private_totext(&private, &buf);
-		assert_int_equal(result, ISC_R_SUCCESS);
-		assert_string_equal(output, testcases[i].result);
+		if (testcases[i].result != NULL) {
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_string_equal(output, testcases[i].result);
+		} else {
+			assert_int_equal(result, ISC_R_NOTFOUND);
+		}
 	}
 }
 
@@ -277,7 +285,8 @@ ISC_RUN_TEST_IMPL(private_chains) {
 
 	{
 		/* Old form signing record, signing in progress. */
-		signing_testcase_t testcase = { DST_ALG_RSASHA256, 12345, 0,
+		signing_testcase_t testcase = { DST_ALG_RSASHA256,
+						DNS_KEYALG_RSASHA256, 12345, 0,
 						0 };
 		unsigned char data[5];
 		dns_rdata_t private;

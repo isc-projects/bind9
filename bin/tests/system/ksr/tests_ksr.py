@@ -36,6 +36,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ksk-roll.test.*",
         "last-bundle.test.*",
         "past.test.*",
+        "privateoid.test.*",
         "two-tone.test.*",
         "unlimited.test.*",
         "invalid-skr.test.*",
@@ -1565,3 +1566,54 @@ def test_ksr_oversize(ns1):
 
     # - check if named is still running
     ns1.rndc("status")
+
+
+def test_ksr_privateoid():
+    # A policy with a PRIVATEOID based algorithm: key files and error
+    # messages must use the full 16-bit DST algorithm, which used to be
+    # truncated to the 8-bit DNSSEC algorithm octet.
+    zone = "privateoid.test"
+    policy = "privateoid"
+    alg = 256  # DST_ALG_RSASHA256PRIVATEOID
+    size = 2048
+    n = 1
+
+    # create ksk
+    kskdir = "ns1/offline"
+    cmd = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
+    ksks = isctest.kasp.keystr_to_keylist(cmd.out, kskdir)
+    assert len(ksks) == 1
+    check_keys(ksks, None, CONFIG, alg=alg, size=size)
+
+    # check that 'dnssec-ksr keygen' pregenerates right amount of keys
+    zskdir = "ns1"
+    cmd = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
+    zsks = isctest.kasp.keystr_to_keylist(cmd.out, zskdir)
+    assert len(zsks) == 2
+    lifetime = timedelta(days=31 * 6)
+    check_keys(zsks, lifetime, CONFIG, alg=alg, size=size)
+
+    # check that 'dnssec-ksr request' creates correct ksr
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365)
+    ksr_fname = f"{zone}.ksr.{n}"
+    ksr(
+        zone,
+        policy,
+        "request",
+        options=f"-K {zskdir} -i {now} -e +1y",
+        to_file=ksr_fname,
+    )
+    check_keysigningrequest(ksr_fname, zsks, now, until)
+
+    # check that 'dnssec-ksr request' errors if there are not enough
+    # keys, naming the private algorithm mnemonic
+    cmd = ksr(
+        zone,
+        policy,
+        "request",
+        options=f"-K {zskdir} -i {now} -e +2y",
+        raise_on_exception=False,
+    )
+    errmsg = f"dnssec-ksr: fatal: no {zone}/RSASHA256OID zsk key pair found for bundle"
+    assert errmsg in cmd.err

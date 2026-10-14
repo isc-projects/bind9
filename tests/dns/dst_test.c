@@ -100,6 +100,88 @@ ISC_RUN_TEST_IMPL(algorithm_fromdata) {
 	}
 }
 
+ISC_RUN_TEST_IMPL(algorithm_format) {
+	struct {
+		dst_algorithm_t alg;
+		const char *text;
+	} totext[] = {
+		{ DST_ALG_RSASHA256, "RSASHA256" },
+		{ DST_ALG_RSASHA512, "RSASHA512" },
+		/* Private algorithms are 16-bit values with own mnemonics. */
+		{ DST_ALG_RSASHA256PRIVATEOID, "RSASHA256OID" },
+		{ DST_ALG_RSASHA512PRIVATEOID, "RSASHA512OID" },
+		/* Unknown algorithms fall back to the numeric form. */
+		{ 511, "511" },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(totext); i++) {
+		char algstr[DST_ALG_FORMATSIZE];
+
+		dst_algorithm_format(totext[i].alg, algstr, sizeof(algstr));
+		assert_string_equal(algstr, totext[i].text);
+	}
+}
+
+ISC_RUN_TEST_IMPL(algorithm_totext) {
+	/*
+	 * Checks that DST_ALG_FORMATSIZE is big enough
+	 * by asserting ISC_R_SUCCESS.  Subtract 1 to allow
+	 * for terminating NUL added in dst_algorithm_format.
+	 */
+	char algstr[DST_ALG_FORMATSIZE - 1];
+	isc_buffer_t b;
+	isc_result_t result;
+
+	/* Assigned range. */
+	for (dst_algorithm_t i = 0; i < DST_MAX_ALGS; i++) {
+		isc_buffer_init(&b, algstr, sizeof(algstr));
+		result = dst_algorithm_totext(i, &b);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	/* Maximum possible value. */
+	isc_buffer_init(&b, algstr, sizeof(algstr));
+	result = dst_algorithm_totext((dst_algorithm_t)~0, &b);
+	assert_int_equal(result, ISC_R_SUCCESS);
+}
+
+ISC_RUN_TEST_IMPL(key_format) {
+	isc_result_t result;
+	dst_key_t *key = NULL;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	char keystr[DST_KEY_FORMATSIZE];
+	char expected[DST_KEY_FORMATSIZE];
+
+	/*
+	 * The identifier buffer must fit any name plus any algorithm
+	 * mnemonic and key id.
+	 */
+	assert_true(DST_KEY_FORMATSIZE >=
+		    DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE + sizeof("65535"));
+
+	if (!dst_algorithm_supported(DST_ALG_RSASHA256PRIVATEOID)) {
+		skip();
+		return;
+	}
+
+	dns_test_namefromstring("example.", &fname);
+	name = dns_fixedname_name(&fname);
+
+	result = dst_key_generate(name, DST_ALG_RSASHA256PRIVATEOID, 2048, 0,
+				  DNS_KEYOWNER_ZONE, DNS_KEYPROTO_DNSSEC,
+				  dns_rdataclass_in, NULL, isc_g_mctx, &key,
+				  NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dst_key_format(key, keystr, sizeof(keystr));
+	snprintf(expected, sizeof(expected), "example/RSASHA256OID/%d",
+		 dst_key_id(key));
+	assert_string_equal(keystr, expected);
+
+	dst_key_free(&key);
+}
+
 /* Read sig in file at path to buf. Check signature ineffability */
 static isc_result_t
 sig_fromfile(const char *path, isc_buffer_t *buf) {
@@ -541,6 +623,9 @@ ISC_RUN_TEST_IMPL(ecdsa_determinism_test) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(algorithm_fromdata)
+ISC_TEST_ENTRY(algorithm_format)
+ISC_TEST_ENTRY(algorithm_totext)
+ISC_TEST_ENTRY(key_format)
 ISC_TEST_ENTRY(sig_test)
 ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_ENTRY(ecdsa_determinism_test)

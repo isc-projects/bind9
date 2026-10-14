@@ -995,7 +995,14 @@ dst_key_setprivateformat(dst_key_t *key, int major, int minor);
  *	"key" is a valid key.
  */
 
-#define DST_KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + 7)
+/*%
+ * Buffer size for dst_algorithm_format(): the longest mnemonic in the
+ * DST algorithm table is 15 characters and unassigned values are
+ * printed as up to five decimal digits.
+ */
+#define DST_ALG_FORMATSIZE 20
+
+#define DST_KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE + 7)
 
 void
 dst_key_format(const dst_key_t *key, char *cp, unsigned int size);
@@ -1267,24 +1274,6 @@ dst_algorithm_tosecalg(dst_algorithm_t dst_alg);
  *
  * Zero is returned when there is no mapping.
  */
-
-isc_result_t
-dst_privatedns_fromtext(dst_algorithm_t *algp, isc_textregion_t *source);
-
-isc_result_t
-dns_privatedns_totext(dst_algorithm_t alg, isc_buffer_t *b);
-
-void
-dns_privatedns_format(dst_algorithm_t alg, char *buf, unsigned int size);
-
-isc_result_t
-dst_privateoid_fromtext(dst_algorithm_t *algp, isc_textregion_t *source);
-
-isc_result_t
-dns_privateoid_totext(dst_algorithm_t alg, isc_buffer_t *b);
-
-void
-dns_privateoid_format(dst_algorithm_t alg, char *buf, unsigned int size);
 
 dst_algorithm_t
 dst_algorithm_fromdata(dns_secalg_t algorithm, unsigned char *data,

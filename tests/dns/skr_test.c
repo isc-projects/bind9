@@ -103,7 +103,7 @@ static dns_name_t *dname = NULL;
 #define LIFETIME 864000
 
 #define SIG_FORMATSIZE \
-	(DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + sizeof("65535"))
+	(DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE + sizeof("65535"))
 
 static void
 print_rdata(FILE *fp, dns_rdata_t *rdata) {

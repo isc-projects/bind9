@@ -5118,8 +5118,7 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char filename[DNS_NAME_FORMATSIZE +
-				      DNS_SECALG_FORMATSIZE +
+			char filename[DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE +
 				      sizeof("key file for //65535")];
 			isc_result_t result2;
 			isc_buffer_t buf;
@@ -5133,14 +5132,14 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				NULL, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
-				char algbuf[DNS_SECALG_FORMATSIZE];
+				char algbuf[DST_ALG_FORMATSIZE];
 
 				dns_name_format(dst_key_name(pubkey), namebuf,
 						sizeof(namebuf));
-				dns_secalg_format(dst_key_alg(pubkey), algbuf,
-						  sizeof(algbuf));
+				dst_algorithm_format(dst_key_alg(pubkey),
+						     algbuf, sizeof(algbuf));
 				snprintf(filename, sizeof(filename) - 1,
-					 "key file for %s/%s/%d", namebuf,
+					 "key file for %s/%s/%hu", namebuf,
 					 algbuf, dst_key_id(pubkey));
 			}
 
@@ -5572,13 +5571,13 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 */
 				if (zone->log_key_expired_timer <= now) {
 					char origin[DNS_NAME_FORMATSIZE];
-					char algbuf[DNS_NAME_FORMATSIZE];
+					char algbuf[DST_ALG_FORMATSIZE];
 					dns_name_format(&zone->origin, origin,
 							sizeof(origin));
 					dst_algorithm_format(algorithm, algbuf,
 							     sizeof(algbuf));
 					dns_zone_log(zone, ISC_LOG_WARNING,
-						     "Key %s/%s/%d "
+						     "Key %s/%s/%hu "
 						     "missing or inactive "
 						     "and has no replacement: "
 						     "retaining signatures.",
@@ -9144,7 +9143,7 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 
 			dnssec_log(zone, ISC_LOG_DEBUG(3),
 				   "Verifying DNSKEY set for zone "
-				   "'%s' using DS %d/%d: %s",
+				   "'%s' using DS %hu/%d: %s",
 				   namebuf, sig.keyid, sig.algorithm,
 				   isc_result_totext(result));
 
@@ -9234,7 +9233,7 @@ anchors_done:
 				deletekey = true;
 			} else if (keydata.addhd > now) {
 				dnssec_log(zone, ISC_LOG_INFO,
-					   "Pending key %d for zone %s "
+					   "Pending key %hu for zone %s "
 					   "unexpectedly missing from DNSKEY "
 					   "RRset: restarting 30-day "
 					   "acceptance timer",
@@ -9246,7 +9245,7 @@ anchors_done:
 				keydata.refresh = refresh_time(fetch, false);
 			} else if (keydata.removehd == 0) {
 				dnssec_log(zone, ISC_LOG_INFO,
-					   "Active key %d for zone %s "
+					   "Active key %hu for zone %s "
 					   "unexpectedly missing from DNSKEY "
 					   "RRset",
 					   keytag, namebuf);
@@ -9255,7 +9254,7 @@ anchors_done:
 				deletekey = true;
 				dnssec_log(
 					zone, ISC_LOG_INFO,
-					"Revoked key %d for zone %s no longer "
+					"Revoked key %hu for zone %s no longer "
 					"present in DNSKEY RRset: deleting "
 					"from managed keys database",
 					keytag, namebuf);
@@ -9282,7 +9281,7 @@ anchors_done:
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_WARNING,
 					   "dns_rdata_fromstruct failed: "
-					   "KEYDATA %d: %s",
+					   "KEYDATA %hu: %s",
 					   keytag, isc_result_totext(result));
 				continue;
 			}
@@ -9374,7 +9373,7 @@ anchors_done:
 					 */
 					deletekey = true;
 					dnssec_log(zone, ISC_LOG_INFO,
-						   "Pending key %d for "
+						   "Pending key %hu for "
 						   "zone %s is now revoked: "
 						   "deleting from the "
 						   "managed keys database",
@@ -9398,7 +9397,7 @@ anchors_done:
 					}
 
 					dnssec_log(zone, ISC_LOG_INFO,
-						   "Trusted key %d for "
+						   "Trusted key %hu for "
 						   "zone %s is now revoked",
 						   keytag, namebuf);
 				} else if (keydata.removehd < now) {
@@ -9406,7 +9405,7 @@ anchors_done:
 					deletekey = true;
 
 					dnssec_log(zone, ISC_LOG_INFO,
-						   "Revoked key %d for "
+						   "Revoked key %hu for "
 						   "zone %s removal timer "
 						   "complete: deleting from "
 						   "the managed keys database",
@@ -9414,7 +9413,7 @@ anchors_done:
 				}
 			} else if (revoked && keydata.removehd == 0) {
 				dnssec_log(zone, ISC_LOG_WARNING,
-					   "Active key %d for zone "
+					   "Active key %hu for zone "
 					   "%s is revoked but "
 					   "did not self-sign; "
 					   "ignoring",
@@ -9436,7 +9435,7 @@ anchors_done:
 							dns_zone_mkey_month;
 
 					dnssec_log(zone, ISC_LOG_INFO,
-						   "Revoked key %d for "
+						   "Revoked key %hu for "
 						   "zone %s has returned: "
 						   "starting 30-day "
 						   "acceptance timer",
@@ -9450,7 +9449,7 @@ anchors_done:
 				if (keydata.addhd <= now) {
 					trustkey = true;
 					dnssec_log(zone, ISC_LOG_INFO,
-						   "Key %d for zone %s "
+						   "Key %hu for zone %s "
 						   "is now trusted (%s)",
 						   keytag, namebuf,
 						   initial ? "initializing key "
@@ -9466,7 +9465,7 @@ anchors_done:
 				pending++;
 				keydata.addhd = now + dns_zone_mkey_month;
 				dnssec_log(zone, ISC_LOG_INFO,
-					   "Pending key %d "
+					   "Pending key %hu "
 					   "for zone %s was "
 					   "not validated: restarting "
 					   "30-day acceptance timer",
@@ -9492,14 +9491,14 @@ anchors_done:
 				dnssec_log(zone, ISC_LOG_WARNING,
 					   "Initializing automatic trust "
 					   "anchor management for zone '%s'; "
-					   "DNSKEY ID %d is now trusted, "
+					   "DNSKEY ID %hu is now trusted, "
 					   "waiving the normal 30-day "
 					   "waiting period.",
 					   namebuf, keytag);
 				trustkey = true;
 			} else {
 				dnssec_log(zone, ISC_LOG_INFO,
-					   "New key %d observed "
+					   "New key %hu observed "
 					   "for zone '%s': "
 					   "starting 30-day "
 					   "acceptance timer",
@@ -9531,7 +9530,7 @@ anchors_done:
 			if (result != ISC_R_SUCCESS) {
 				dnssec_log(zone, ISC_LOG_WARNING,
 					   "dns_rdata_fromstruct failed: "
-					   "KEYDATA %d: %s",
+					   "KEYDATA %hu: %s",
 					   keytag, isc_result_totext(result));
 				continue;
 			}
@@ -13873,7 +13872,7 @@ cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
 					   sizeof(cdsbuf), &cdsrdata);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "dns_ds_buildrdata(keytag=%d, algo=%d, "
+				     "dns_ds_buildrdata(keytag=%hu, algo=%d, "
 				     "digest=%d) failed: %s",
 				     cds.key_tag, cds.algorithm,
 				     cds.digest_type,
@@ -19294,11 +19293,11 @@ zone_rekey(dns_zone_t *zone) {
 	ISC_LIST_FOREACH(dnskeys, key, link) {
 		if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 			/* This debug log is used in the kasp system test */
-			char algbuf[DNS_SECALG_FORMATSIZE];
-			dns_secalg_format(dst_key_alg(key->key), algbuf,
-					  sizeof(algbuf));
+			char algbuf[DST_ALG_FORMATSIZE];
+			dst_algorithm_format(dst_key_alg(key->key), algbuf,
+					     sizeof(algbuf));
 			dnssec_log(zone, ISC_LOG_DEBUG(3),
-				   "zone_rekey done: key %d/%s",
+				   "zone_rekey done: key %hu/%s",
 				   dst_key_id(key->key), algbuf);
 		}
 		ISC_LIST_UNLINK(dnskeys, key, link);

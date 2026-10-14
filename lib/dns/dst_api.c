@@ -1331,12 +1331,12 @@ dst_key_setflags(dst_key_t *key, uint32_t flags) {
 void
 dst_key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
-	char algstr[DNS_NAME_FORMATSIZE];
+	char algstr[DST_ALG_FORMATSIZE];
 	dst_algorithm_t algorithm = dst_key_alg(key);
 
 	dns_name_format(dst_key_name(key), namestr, sizeof(namestr));
 	dst_algorithm_format(algorithm, algstr, sizeof(algstr));
-	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
+	snprintf(cp, size, "%s/%s/%hu", namestr, algstr, dst_key_id(key));
 }
 
 isc_result_t
@@ -1879,7 +1879,8 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 
 	/* Write key state */
 	if ((type & DST_TYPE_KEY) == 0) {
-		fprintf(fp, "; This is the state of key %d, for ", key->key_id);
+		fprintf(fp, "; This is the state of key %hu, for ",
+			key->key_id);
 		result = dns_name_print(key->key_name, fp);
 		if (result != ISC_R_SUCCESS) {
 			return dst_key_cleanup(tmpname, fp);
@@ -1988,7 +1989,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	/* Write key information in comments */
 	if ((type & DST_TYPE_KEY) == 0) {
-		fprintf(fp, "; This is a %s%s-signing key, keyid %d, for ",
+		fprintf(fp, "; This is a %s%s-signing key, keyid %hu, for ",
 			(key->key_flags & DNS_KEYFLAG_REVOKE) != 0 ? "revoked "
 								   : "",
 			(key->key_flags & DNS_KEYFLAG_KSK) != 0 ? "key"
@@ -2078,7 +2079,7 @@ buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 	isc_buffer_putstr(out, "K");
 	RETERR(dns_name_tofilenametext(name, false, out));
 
-	return isc_buffer_printf(out, "+%03d+%05d%s", alg, id, suffix);
+	return isc_buffer_printf(out, "+%03d+%05hu%s", alg, id, suffix);
 }
 
 static isc_result_t

@@ -35,7 +35,6 @@
 #include <dns/lib.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/secalg.h>
 
 #include <dst/dst.h>
 
@@ -521,8 +520,8 @@ main(int argc, char **argv) {
 	switch (alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1: {
-		char algstr[DNS_SECALG_FORMATSIZE];
-		dns_secalg_format(alg, algstr, sizeof(algstr));
+		char algstr[DST_ALG_FORMATSIZE];
+		dst_algorithm_format(alg, algstr, sizeof(algstr));
 		fprintf(stderr,
 			"WARNING: DNSKEY algorithm '%s' is deprecated. Please "
 			"migrate to another algorithm\n",
@@ -553,9 +552,9 @@ main(int argc, char **argv) {
 
 	if (result != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];
-		char algstr[DNS_SECALG_FORMATSIZE];
+		char algstr[DST_ALG_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
-		dns_secalg_format(alg, algstr, sizeof(algstr));
+		dst_algorithm_format(alg, algstr, sizeof(algstr));
 		fatal("failed to get key %s/%s: %s", namestr, algstr,
 		      isc_result_totext(result));
 		UNREACHABLE();

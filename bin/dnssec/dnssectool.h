@@ -69,7 +69,7 @@ version(const char *program);
 void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size);
 #define SIG_FORMATSIZE \
-	(DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + sizeof("65535"))
+	(DNS_NAME_FORMATSIZE + DST_ALG_FORMATSIZE + sizeof("65535"))
 
 void
 setup_logging(void);

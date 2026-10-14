@@ -549,7 +549,7 @@ dns_kasp_key_format(dns_kasp_key_t *key, char *cp, unsigned int size) {
 	REQUIRE(key != NULL);
 	REQUIRE(cp != NULL);
 
-	char algstr[DNS_NAME_FORMATSIZE];
+	char algstr[DST_ALG_FORMATSIZE];
 	bool csk = dns_kasp_key_ksk(key) && dns_kasp_key_zsk(key);
 	const char *rolestr = (csk ? "csk"
 				   : (dns_kasp_key_ksk(key) ? "ksk" : "zsk"));
