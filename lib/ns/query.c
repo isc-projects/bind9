@@ -11388,8 +11388,7 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 			     DNS_RDATATYPEATTR_NOTQUESTION) != 0)
 			{
 				dns_ede_add(&client->edectx,
-					    DNS_EDE_INVALIDQTYPE,
-					    "Invalid Query Type");
+					    DNS_EDE_INVALIDQTYPE, NULL);
 			}
 			query_error(client, DNS_R_FORMERR, __LINE__);
 			return;
