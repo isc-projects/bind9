@@ -918,15 +918,6 @@ dns_zone_getmctx(dns_zone_t *zone);
  * \li	'zone' to be a valid zone.
  */
 
-dns_zonemgr_t *
-dns_zone_getmgr(dns_zone_t *zone);
-/*%<
- *	If 'zone' is managed return the zone manager otherwise NULL.
- *
- * Requires:
- * \li	'zone' to be a valid zone.
- */
-
 void
 dns_zone_setsigvalidityinterval(dns_zone_t *zone, uint32_t interval);
 /*%<

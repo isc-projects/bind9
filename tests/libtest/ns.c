@@ -87,6 +87,16 @@ scan_interfaces(void *arg) {
 	ns_interfacemgr_scan(interfacemgr, true, false);
 }
 
+static void
+setup_zone_services(void *arg ISC_ATTR_UNUSED) {
+	dns_test_setupzonemgr();
+}
+
+static void
+shutdown_zone_services(void *arg ISC_ATTR_UNUSED) {
+	dns_test_closezonemgr();
+}
+
 int
 setup_server(void **state) {
 	isc_result_t result;
@@ -99,7 +109,9 @@ setup_server(void **state) {
 	CHECK(ns_interfacemgr_create(isc_g_mctx, sctx, dispatchmgr, NULL,
 				     &interfacemgr));
 
+	isc_loop_setup(isc_loop_main(), setup_zone_services, NULL);
 	isc_loop_setup(isc_loop_main(), scan_interfaces, NULL);
+	isc_loop_teardown(isc_loop_main(), shutdown_zone_services, NULL);
 
 	return 0;
 
@@ -129,15 +141,22 @@ teardown_server(void **state) {
 	}
 
 	teardown_managers(state);
+	dns_test_destroyzonemgr();
 	return 0;
 }
 
 static dns_zone_t *served_zone = NULL;
 
+static void
+free_test_zone_hooks(isc_mem_t *mctx ISC_ATTR_UNUSED, void **tablep) {
+	/* Test hook tables are allocated from isc_g_mctx, not the zone pool. */
+	ns_hooktable_free(isc_g_mctx, tablep);
+}
+
 void
 ns_test_serve_zone_sethooktab(ns_hooktable_t *hooktab) {
 	static const dns_zone_ops_t ops = {
-		.hooktable_free = ns_hooktable_free,
+		.hooktable_free = free_test_zone_hooks,
 	};
 
 	dns_zone_setops(served_zone, &ops);
@@ -150,23 +169,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
-	/*
-	 * Prepare zone structure for further processing.
-	 */
 	RETERR(dns_test_makezone(zonename, &served_zone, view, false));
-
-	/*
-	 * Start zone manager.
-	 */
-	dns_test_setupzonemgr();
-
-	/*
-	 * Add the zone to the zone manager.
-	 */
-	result = dns_test_managezone(served_zone);
-	if (result != ISC_R_SUCCESS) {
-		goto close_zonemgr;
-	}
 
 	view->nocookieudp = 512;
 
@@ -194,19 +197,15 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	return ISC_R_SUCCESS;
 
 release_zone:
-	dns_test_releasezone(served_zone);
-close_zonemgr:
-	dns_test_closezonemgr();
-	dns_zone_detach(&served_zone);
+	if (served_zone != NULL) {
+		dns_zone_detach(&served_zone);
+	}
 
 	return result;
 }
 
 void
 ns_test_cleanup_zone(void) {
-	dns_test_releasezone(served_zone);
-	dns_test_closezonemgr();
-
 	dns_zone_detach(&served_zone);
 }
 

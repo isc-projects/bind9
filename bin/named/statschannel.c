@@ -4133,17 +4133,66 @@ named_statschannels_shutdown(named_server_t *server) {
 	}
 }
 
+static isc_result_t
+dump_zone_query_stats(dns_zone_t *zone, void *arg) {
+	FILE *fp = arg;
+	isc_stats_t *zonestats;
+	dns_view_t *view;
+	char zonename[DNS_NAME_FORMATSIZE];
+	uint64_t values[ns_statscounter_max];
+
+	if (dns_zone_getstatlevel(zone) != dns_zonestat_full ||
+	    (zonestats = dns_zone_getrequeststats(zone)) == NULL ||
+	    (view = dns_zone_getview(zone)) == NULL)
+	{
+		return ISC_R_SUCCESS;
+	}
+	dns_name_format(dns_zone_getorigin(zone), zonename, sizeof(zonename));
+	fprintf(fp, "[%s", zonename);
+	if (strcmp(view->name, "_default") != 0) {
+		fprintf(fp, " (view: %s)", view->name);
+	}
+	fprintf(fp, "]\n");
+	(void)dump_stats(zonestats, isc_statsformat_file, fp, NULL,
+			 nsstats_desc, ns_statscounter_max, nsstats_index,
+			 values, 0);
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+dump_zone_glue_stats(dns_zone_t *zone, void *arg) {
+	FILE *fp = arg;
+	isc_stats_t *gluecachestats;
+	dns_view_t *view;
+	char zonename[DNS_NAME_FORMATSIZE];
+	uint64_t values[dns_gluecachestatscounter_max];
+
+	if (dns_zone_getstatlevel(zone) != dns_zonestat_full ||
+	    (gluecachestats = dns_zone_getgluecachestats(zone)) == NULL ||
+	    (view = dns_zone_getview(zone)) == NULL)
+	{
+		return ISC_R_SUCCESS;
+	}
+	dns_name_format(dns_zone_getorigin(zone), zonename, sizeof(zonename));
+	fprintf(fp, "[%s", zonename);
+	if (strcmp(view->name, "_default") != 0) {
+		fprintf(fp, " (view: %s)", view->name);
+	}
+	fprintf(fp, "]\n");
+	(void)dump_stats(gluecachestats, isc_statsformat_file, fp, NULL,
+			 gluecachestats_desc, dns_gluecachestatscounter_max,
+			 gluecachestats_index, values, 0);
+	return ISC_R_SUCCESS;
+}
+
 isc_result_t
 named_stats_dump(named_server_t *server, FILE *fp) {
-	isc_result_t result;
-	dns_zone_t *zone, *next;
 	stats_dumparg_t dumparg;
 	uint64_t nsstat_values[ns_statscounter_max];
 	uint64_t resstat_values[dns_resstatscounter_max];
 	uint64_t adbstat_values[dns_adbstats_max];
 	uint64_t zonestat_values[dns_zonestatscounter_max];
 	uint64_t sockstat_values[isc_sockstatscounter_max];
-	uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 	isc_stdtime_t now = isc_stdtime_now();
 
 	isc_once_do(&once, init_desc);
@@ -4291,75 +4340,12 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 			 sockstats_index, sockstat_values, 0);
 
 	fprintf(fp, "++ Per Zone Query Statistics ++\n");
-	zone = NULL;
-	for (result = dns_zonemgr_first_zone(server->zonemgr, &zone);
-	     result == ISC_R_SUCCESS; next = NULL,
-	    result = dns_zonemgr_next_zone(zone, &next), zone = next)
-	{
-		if (dns_zone_getstatlevel(zone) != dns_zonestat_full) {
-			continue;
-		}
-
-		isc_stats_t *zonestats = dns_zone_getrequeststats(zone);
-
-		if (zonestats != NULL) {
-			char zonename[DNS_NAME_FORMATSIZE];
-			dns_view_t *view = dns_zone_getview(zone);
-			if (view == NULL) {
-				continue;
-			}
-
-			dns_name_format(dns_zone_getorigin(zone), zonename,
-					sizeof(zonename));
-			fprintf(fp, "[%s", zonename);
-			if (strcmp(view->name, "_default") != 0) {
-				fprintf(fp, " (view: %s)", view->name);
-			}
-			fprintf(fp, "]\n");
-
-			(void)dump_stats(zonestats, isc_statsformat_file, fp,
-					 NULL, nsstats_desc,
-					 ns_statscounter_max, nsstats_index,
-					 nsstat_values, 0);
-		}
-	}
+	RETERR(named_server_applyzones(server, dump_zone_query_stats, fp));
 
 	fprintf(fp, "++ Per Zone Glue Cache Statistics ++\n");
-	zone = NULL;
-	for (result = dns_zonemgr_first_zone(server->zonemgr, &zone);
-	     result == ISC_R_SUCCESS; next = NULL,
-	    result = dns_zonemgr_next_zone(zone, &next), zone = next)
-	{
-		if (dns_zone_getstatlevel(zone) != dns_zonestat_full) {
-			continue;
-		}
-
-		isc_stats_t *gluecachestats = dns_zone_getgluecachestats(zone);
-
-		if (gluecachestats != NULL) {
-			char zonename[DNS_NAME_FORMATSIZE];
-			dns_view_t *view = dns_zone_getview(zone);
-			if (view == NULL) {
-				continue;
-			}
-
-			dns_name_format(dns_zone_getorigin(zone), zonename,
-					sizeof(zonename));
-			fprintf(fp, "[%s", zonename);
-			if (strcmp(view->name, "_default") != 0) {
-				fprintf(fp, " (view: %s)", view->name);
-			}
-			fprintf(fp, "]\n");
-
-			(void)dump_stats(gluecachestats, isc_statsformat_file,
-					 fp, NULL, gluecachestats_desc,
-					 dns_gluecachestatscounter_max,
-					 gluecachestats_index,
-					 gluecachestats_values, 0);
-		}
-	}
+	RETERR(named_server_applyzones(server, dump_zone_glue_stats, fp));
 
 	fprintf(fp, "--- Statistics Dump --- (%lu)\n", (unsigned long)now);
 
-	return ISC_R_SUCCESS; /* this function currently always succeeds */
+	return ISC_R_SUCCESS;
 }

@@ -265,9 +265,8 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, dns_view_t *view,
 	if (view != NULL) {
 		dns_view_attach(view, &dctx->view);
 	}
-	if (zmgr != NULL) {
-		dns_zonemgr_attach(zmgr, &dctx->zmgr);
-	}
+	/* The runtime keeps the manager alive through module cleanup. */
+	dctx->zmgr = zmgr;
 
 	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->magic = DNS_DYNDBCTX_MAGIC;
@@ -288,9 +287,6 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 
 	if (dctx->view != NULL) {
 		dns_view_detach(&dctx->view);
-	}
-	if (dctx->zmgr != NULL) {
-		dns_zonemgr_detach(&dctx->zmgr);
 	}
 
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(*dctx));

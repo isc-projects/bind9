@@ -24,6 +24,7 @@
 #include <dns/stats.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+#include <dns/zonemgr.h>
 #include <dns/zoneproperties.h>
 
 #include "zone_p.h"
@@ -588,13 +589,6 @@ dns_zone_getmctx(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return zone->mctx;
-}
-
-dns_zonemgr_t *
-dns_zone_getmgr(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return zone->zmgr;
 }
 
 void
@@ -2123,7 +2117,8 @@ dns_zone_getrequesttransporttype(dns_zone_t *zone) {
 
 dns_keystorelist_t *
 dns_zone_getkeystores(dns_zone_t *zone) {
-	return zone->zmgr->keystores;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return dns_g_zonemgr->keystores;
 }
 
 isc_stats_t *

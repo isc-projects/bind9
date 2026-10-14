@@ -356,6 +356,15 @@ dns_zone_markdirty(dns_zone_t *zone);
  */
 
 void
+dns_zone_forcemaint(dns_zone_t *zone);
+/*%<
+ * Reconsider the maintenance timer of a configured zone.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
 dns_zone_refresh(dns_zone_t *zone);
 /*%<
  *	Initiate zone up to date checks.  The zone must already be being
@@ -594,6 +603,17 @@ dns_zone_prepare_shutdown(dns_zone_t *zone);
  *
  * Requires:
  *\li	'zone' to be a valid initialised zone.
+ */
+
+unsigned int
+dns_zone_getcount(dns_zone_t *zone, dns_zonestate_t state);
+/*%<
+ * Return this zone's contribution to a non-transfer status count.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ *\li	'state' is DNS_ZONESTATE_XFERFIRSTREFRESH, DNS_ZONESTATE_SOAQUERY,
+ *	DNS_ZONESTATE_ANY, or DNS_ZONESTATE_AUTOMATIC.
  */
 
 isc_result_t

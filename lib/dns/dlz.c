@@ -71,6 +71,7 @@
 #include <dns/master.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>
+#include <dns/zonemgr.h>
 #include <dns/zoneproperties.h>
 
 #include "dlz_p.h"
@@ -423,7 +424,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	INSIST(dupzone == NULL);
 
 	/* Create it */
-	dns_zone_create(&zone, view->mctx, 0);
+	CHECK(dns_zonemgr_createzone(dns_g_zonemgr, &zone));
 	dns_zone_setorigin(zone, origin);
 	dns_zone_setview(zone, view);
 

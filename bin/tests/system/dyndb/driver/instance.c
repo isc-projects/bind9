@@ -133,7 +133,7 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
 	}
 
 	dns_view_attach(dctx->view, &inst->view);
-	dns_zonemgr_attach(dctx->zmgr, &inst->zmgr);
+	inst->zmgr = dctx->zmgr;
 
 	/* Register new DNS DB implementation. */
 	result = dns_db_register(db_name, create_db, inst, mctx, &inst->db_imp);
@@ -221,7 +221,6 @@ destroy_sample_instance(sample_instance_t **instp) {
 	}
 
 	dns_view_detach(&inst->view);
-	dns_zonemgr_detach(&inst->zmgr);
 
 	isc_mem_putanddetach(&inst->mctx, inst, sizeof(*inst));
 }

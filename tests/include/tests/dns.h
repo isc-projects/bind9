@@ -73,14 +73,13 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 void
 dns_test_setupzonemgr(void);
 
-isc_result_t
-dns_test_managezone(dns_zone_t *zone);
-
-void
-dns_test_releasezone(dns_zone_t *zone);
-
+/* Stop services while the event loops are running. */
 void
 dns_test_closezonemgr(void);
+
+/* Destroy services after the event loops have drained. */
+void
+dns_test_destroyzonemgr(void);
 
 void
 dns_test_nap(uint32_t usec);

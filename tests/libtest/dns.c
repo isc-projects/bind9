@@ -112,7 +112,11 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Create the zone structure.
 	 */
-	dns_zone_create(&zone, isc_g_mctx, 0);
+	if (zonemgr != NULL) {
+		RETERR(dns_zonemgr_createzone(zonemgr, &zone));
+	} else {
+		dns_zone_create(&zone, isc_g_mctx, 0);
+	}
 
 	/*
 	 * Set zone type and origin.
@@ -164,27 +168,18 @@ dns_test_setupzonemgr(void) {
 	dns_zonemgr_create(isc_g_mctx, &zonemgr);
 }
 
-isc_result_t
-dns_test_managezone(dns_zone_t *zone) {
-	isc_result_t result;
-	REQUIRE(zonemgr != NULL);
-
-	result = dns_zonemgr_managezone(zonemgr, zone);
-	return result;
-}
-
-void
-dns_test_releasezone(dns_zone_t *zone) {
-	REQUIRE(zonemgr != NULL);
-	dns_zonemgr_releasezone(zonemgr, zone);
-}
-
 void
 dns_test_closezonemgr(void) {
 	REQUIRE(zonemgr != NULL);
 
 	dns_zonemgr_shutdown(zonemgr);
-	dns_zonemgr_detach(&zonemgr);
+}
+
+void
+dns_test_destroyzonemgr(void) {
+	if (zonemgr != NULL) {
+		dns_zonemgr_destroy(&zonemgr);
+	}
 }
 
 /*

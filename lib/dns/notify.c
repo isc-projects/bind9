@@ -26,6 +26,7 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
+#include <dns/zonemgr.h>
 #include <dns/zoneproperties.h>
 
 #include "zone_p.h"
@@ -339,7 +340,7 @@ notify_send_toaddr(void *arg) {
 	dns__zone_lock(notify->zone);
 
 	notifyctx = dns__zone_getnotifyctx(notify->zone, notify->type);
-	zmgr = dns_zone_getmgr(notify->zone);
+	zmgr = dns_g_zonemgr;
 	view = dns_zone_getview(notify->zone);
 	loop = dns_zone_getloop(notify->zone);
 	result = dns_zone_getdb(notify->zone, &zonedb);
@@ -526,7 +527,7 @@ notify_queue(dns_notify_t *notify, bool startup, bool dequeue) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
 	isc_loop_t *loop = dns_zone_getloop(notify->zone);
-	dns_zonemgr_t *zmgr = dns_zone_getmgr(notify->zone);
+	dns_zonemgr_t *zmgr = dns_g_zonemgr;
 	isc_ratelimiter_t *notifyrl = NULL;
 	isc_ratelimiter_t *startupnotifyrl = NULL;
 

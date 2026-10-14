@@ -68,20 +68,11 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 
 	zone_argv[0] = inst->db_name;
 
-	dns_zone_create(&raw, inst->mctx, 0); /* FIXME: all zones are assigned
-						 to loop 0 */
+	CHECK(dns_zonemgr_createzone(inst->zmgr, &raw));
 	dns_zone_setorigin(raw, name);
 	dns_zone_setclass(raw, dns_rdataclass_in);
 	dns_zone_settype(raw, dns_zone_primary);
 	dns_zone_setdbtype(raw, 1, zone_argv);
-
-	result = dns_zonemgr_managezone(inst->zmgr, raw);
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "create_zone: dns_zonemgr_managezone -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
 
 	/* This is completely insecure - use some sensible values instead! */
 	dns_acl_any(inst->mctx, &acl_any);
@@ -98,9 +89,6 @@ cleanup:
 	log_error_r("failed to create new zone '%s'", zone_name);
 
 	if (raw != NULL) {
-		if (dns_zone_getmgr(raw) != NULL) {
-			dns_zonemgr_releasezone(inst->zmgr, raw);
-		}
 		dns_zone_detach(&raw);
 	}
 

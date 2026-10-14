@@ -397,8 +397,6 @@ ISC_LOOP_TEST_IMPL(find_zone_keys_overflow) {
 	dns_zonemgr_create(isc_g_mctx, &mgr);
 	result = dns_test_makezone("example", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_zonemgr_managezone(mgr, zone);
-	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_zone_setkeydirectory(zone, keydir);
 
 	result = find_zone_keys(zone, isc_g_mctx, DNS_MAXZONEKEYS, keys,
@@ -415,16 +413,21 @@ ISC_LOOP_TEST_IMPL(find_zone_keys_overflow) {
 		dst_key_free(&keys[i]);
 	}
 
-	dns_zonemgr_releasezone(mgr, zone);
 	dns_zone_detach(&zone);
 	dns_zonemgr_shutdown(mgr);
-	dns_zonemgr_detach(&mgr);
 
 	cleanup_keydir(keydir);
 
 	isc_mem_checkdestroyed(stderr);
 
 	isc_loopmgr_shutdown();
+}
+
+static int
+teardown_zone_services(void **state) {
+	teardown_managers(state);
+	dns_zonemgr_destroy(&dns_g_zonemgr);
+	return 0;
 }
 
 ISC_TEST_LIST_START
@@ -441,7 +444,7 @@ ISC_TEST_ENTRY_CUSTOM(past_to_date, setup_test, NULL)
 ISC_TEST_ENTRY_CUSTOM(now_to_date, setup_test, NULL)
 ISC_TEST_ENTRY_CUSTOM(future_to_date, setup_test, NULL)
 ISC_TEST_ENTRY_CUSTOM(find_zone_keys_overflow, setup_managers,
-		      teardown_managers)
+		      teardown_zone_services)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

@@ -1735,7 +1735,6 @@ dlzconfigure_callback(dns_view_t *view, dns_dlzdb_t *dlzdb, dns_zone_t *zone) {
 	dns_rdataclass_t zclass = view->rdclass;
 
 	dns_zone_setclass(zone, zclass);
-	RETERR(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
 	dns_zone_setstats(zone, named_g_server->zonestats);
 
@@ -1791,10 +1790,9 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	isc_buffer_constinit(&b, reverse, strlen(reverse));
 	isc_buffer_add(&b, strlen(reverse));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0));
-	dns_zone_create(&zone, mctx, 0);
+	CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 	dns_zone_setorigin(zone, name);
 	dns_zone_setview(zone, view);
-	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_primary);
 	dns_zone_setstats(zone, named_g_server->zonestats);
@@ -3166,7 +3164,6 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	if (pzone == NULL) {
 		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 		dns_zone_setorigin(zone, name);
-		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		if (db == NULL) {
 			dns_zone_setdbtype(zone, empty_dbtypec, empty_dbtype);
 		}
@@ -3237,7 +3234,7 @@ cleanup:
 
 static isc_result_t
 create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
-		     const dns_name_t *name, const char *type, isc_mem_t *mctx,
+		     const dns_name_t *name, const char *type,
 		     const char *server, const char *contact) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	const char *dbtype[4] = { "_builtin", NULL, "@", "." };
@@ -3273,9 +3270,8 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		/*
 		 * Create the actual zone.
 		 */
-		dns_zone_create(&zone, mctx, 0);
+		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 		dns_zone_setorigin(zone, name);
-		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_primary);
 		dns_zone_setstats(zone, named_g_server->zonestats);
@@ -5371,7 +5367,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 			CHECK(create_ipv4only_zone(zone, view, name,
 						   zones[ipv4only_zone].type,
-						   mctx, server, contact));
+						   server, contact));
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 			}
@@ -6124,8 +6120,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 						     &zone));
 			dns_zone_setorigin(zone, origin);
 			dns_zone_setview(zone, view);
-			CHECK(dns_zonemgr_managezone(named_g_server->zonemgr,
-						     zone));
 			dns_zone_setstats(zone, named_g_server->zonestats);
 		}
 		CHECK(named_zone_configure(config, vconfig, zconfig, aclctx,
@@ -6226,7 +6220,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 		dns_zone_setorigin(zone, origin);
 		dns_zone_setview(zone, view);
-		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setstats(zone, named_g_server->zonestats);
 	}
 	if (rpz_num != DNS_RPZ_INVALID_NUM) {
@@ -6402,8 +6395,6 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_key);
 	dns_zone_setclass(zone, view->rdclass);
-
-	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
 	dns_acl_none(mctx, &none);
 	dns_zone_setqueryacl(zone, none);
@@ -8995,6 +8986,9 @@ cleanup:
 	return result;
 }
 
+static isc_result_t
+force_zone_maintenance(dns_zone_t *zone, void *arg);
+
 static void
 destroy_zoneload(zoneload_t *zl) {
 	isc_result_t result;
@@ -9040,8 +9034,10 @@ destroy_zoneload(zoneload_t *zl) {
 	 * so that we know when we need to force AXFR of
 	 * secondary zones whose master files are missing.
 	 */
-	CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
-		   "forcing zone maintenance");
+	CHECKFATAL(
+		named_server_applyzones(server, force_zone_maintenance, NULL),
+		"forcing zone maintenance");
+	dns_zonemgr_resumexfrs(server->zonemgr);
 
 	named_os_started();
 
@@ -9058,6 +9054,100 @@ destroy_zoneload(zoneload_t *zl) {
 
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 		      ISC_LOG_NOTICE, "running");
+}
+
+typedef struct applyzones_arg {
+	dns_view_t *view;
+	dns_zone_t *managed_keys;
+	dns_zone_t *redirect;
+	isc_result_t (*action)(dns_zone_t *, void *);
+	void *arg;
+} applyzones_arg_t;
+
+static isc_result_t
+apply_zone_and_raw(dns_zone_t *zone, applyzones_arg_t *aza) {
+	dns_zone_t *raw = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	RETERR(aza->action(zone, aza->arg));
+
+	dns_zone_getraw(zone, &raw);
+	if (raw != NULL) {
+		result = aza->action(raw, aza->arg);
+		dns_zone_detach(&raw);
+	}
+	return result;
+}
+
+static isc_result_t
+apply_view_zone(dns_zone_t *zone, void *arg) {
+	applyzones_arg_t *aza = arg;
+
+	/* In-view zones may also be mounted in another view's table. */
+	if (dns_zone_getview(zone) != aza->view || zone == aza->managed_keys ||
+	    zone == aza->redirect)
+	{
+		return ISC_R_SUCCESS;
+	}
+
+	return apply_zone_and_raw(zone, aza);
+}
+
+isc_result_t
+named_server_applyzones(named_server_t *server,
+			isc_result_t (*action)(dns_zone_t *, void *),
+			void *arg) {
+	REQUIRE(NAMED_SERVER_VALID(server));
+	REQUIRE(action != NULL);
+
+	ISC_LIST_FOREACH(server->viewlist, view, link) {
+		applyzones_arg_t aza = {
+			.view = view,
+			.managed_keys = view->managed_keys,
+			.redirect = view->redirect,
+			.action = action,
+			.arg = arg,
+		};
+		RETERR(dns_view_apply(view, true, NULL, apply_view_zone, &aza));
+		if (view->managed_keys != NULL &&
+		    dns_zone_getview(view->managed_keys) == view)
+		{
+			RETERR(apply_zone_and_raw(view->managed_keys, &aza));
+		}
+		if (view->redirect != NULL &&
+		    dns_zone_getview(view->redirect) == view &&
+		    view->redirect != view->managed_keys)
+		{
+			RETERR(apply_zone_and_raw(view->redirect, &aza));
+		}
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+typedef struct zonecounts {
+	unsigned int any;
+	unsigned int xferfirstrefresh;
+	unsigned int soaquery;
+	unsigned int automatic;
+} zonecounts_t;
+
+static isc_result_t
+count_zone_states(dns_zone_t *zone, void *arg) {
+	zonecounts_t *counts = arg;
+
+	counts->any += dns_zone_getcount(zone, DNS_ZONESTATE_ANY);
+	counts->xferfirstrefresh +=
+		dns_zone_getcount(zone, DNS_ZONESTATE_XFERFIRSTREFRESH);
+	counts->soaquery += dns_zone_getcount(zone, DNS_ZONESTATE_SOAQUERY);
+	counts->automatic += dns_zone_getcount(zone, DNS_ZONESTATE_AUTOMATIC);
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+force_zone_maintenance(dns_zone_t *zone, void *arg ISC_ATTR_UNUSED) {
+	dns_zone_forcemaint(zone);
+	return ISC_R_SUCCESS;
 }
 ISC_REFCOUNT_STATIC_IMPL(zoneload, destroy_zoneload);
 
@@ -9573,7 +9663,8 @@ named_server_destroy(named_server_t **serverp) {
 	clearhostname(server);
 
 	if (server->zonemgr != NULL) {
-		dns_zonemgr_detach(&server->zonemgr);
+		/* All zone activity has drained before server destruction. */
+		dns_zonemgr_destroy(&server->zonemgr);
 	}
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
@@ -11625,6 +11716,7 @@ named_server_status(named_server_t *server, isc_buffer_t *text) {
 	char configtime[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char line[1024], hostname[256];
 	named_reload_t reload_status;
+	zonecounts_t zonecounts = { 0 };
 
 	REQUIRE(text != NULL);
 
@@ -11637,17 +11729,15 @@ named_server_status(named_server_t *server, isc_buffer_t *text) {
 			alt = (char *)named_g_server->version.base;
 		}
 	}
-	zonecount = dns_zonemgr_getcount(server->zonemgr, DNS_ZONESTATE_ANY);
+	CHECK(named_server_applyzones(server, count_zone_states, &zonecounts));
+	zonecount = zonecounts.any;
 	xferrunning = dns_zonemgr_getcount(server->zonemgr,
 					   DNS_ZONESTATE_XFERRUNNING);
 	xferdeferred = dns_zonemgr_getcount(server->zonemgr,
 					    DNS_ZONESTATE_XFERDEFERRED);
-	xferfirstrefresh = dns_zonemgr_getcount(server->zonemgr,
-						DNS_ZONESTATE_XFERFIRSTREFRESH);
-	soaqueries = dns_zonemgr_getcount(server->zonemgr,
-					  DNS_ZONESTATE_SOAQUERY);
-	automatic = dns_zonemgr_getcount(server->zonemgr,
-					 DNS_ZONESTATE_AUTOMATIC);
+	xferfirstrefresh = zonecounts.xferfirstrefresh;
+	soaqueries = zonecounts.soaquery;
+	automatic = zonecounts.automatic;
 
 	isc_time_formathttptimestamp(&named_g_boottime, boottime,
 				     sizeof(boottime));

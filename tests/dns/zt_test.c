@@ -46,6 +46,13 @@ static dns_db_t *db = NULL;
 static FILE *zonefile, *origfile;
 static dns_view_t *view = NULL;
 
+static int
+teardown_test(void **state) {
+	teardown_managers(state);
+	dns_test_destroyzonemgr();
+	return 0;
+}
+
 static isc_result_t
 count_zone(dns_zone_t *zone, void *uap) {
 	int *nzones = (int *)uap;
@@ -78,13 +85,6 @@ ISC_LOOP_TEST_IMPL(apply) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 
-	/* These steps are necessary so the zone can be detached properly */
-	dns_test_setupzonemgr();
-	result = dns_test_managezone(zone);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_test_releasezone(zone);
-	dns_test_closezonemgr();
-
 	/* The view was left attached in dns_test_makezone() */
 	dns_view_detach(&view);
 	dns_zone_detach(&zone);
@@ -105,7 +105,6 @@ load_done_last(void *uap) {
 		dns_db_detach(&db);
 	}
 
-	dns_test_releasezone(zone);
 	dns_test_closezonemgr();
 
 	dns_zone_detach(&zone);
@@ -156,6 +155,7 @@ load_done_first(void *uap) {
 
 /* asynchronous zone load */
 ISC_LOOP_TEST_IMPL(asyncload_zone) {
+	dns_test_setupzonemgr();
 	isc_result_t result;
 	int n;
 	dns_zone_t *zone = NULL;
@@ -163,10 +163,6 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	char buf[4096];
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	dns_test_setupzonemgr();
-	result = dns_test_managezone(zone);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	view = dns_zone_getview(zone);
@@ -212,9 +208,6 @@ all_done(void *arg ISC_ATTR_UNUSED) {
 		dns_db_detach(&db);
 	}
 
-	dns_test_releasezone(zone3);
-	dns_test_releasezone(zone2);
-	dns_test_releasezone(zone1);
 	dns_test_closezonemgr();
 
 	dns_zone_detach(&zone1);
@@ -232,6 +225,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	dns_zt_t *zt = NULL;
 	atomic_bool done;
 
+	dns_test_setupzonemgr();
 	atomic_init(&done, false);
 
 	result = dns_test_makezone("foo", &zone1, NULL, true);
@@ -256,14 +250,6 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	rcu_read_unlock();
 	assert_non_null(zt);
 
-	dns_test_setupzonemgr();
-	result = dns_test_managezone(zone1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_test_managezone(zone2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_test_managezone(zone3);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
 	assert_false(dns__zone_loadpending(zone1));
 	assert_false(dns__zone_loadpending(zone2));
 	assert_false(atomic_load(&done));
@@ -275,9 +261,9 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(apply, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(asyncload_zone, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(asyncload_zt, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(apply, setup_managers, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(asyncload_zone, setup_managers, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(asyncload_zt, setup_managers, teardown_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

@@ -28,7 +28,8 @@
  * initializer, log context, etc.  The structure doesn't persist
  * beyond configuring the dyndb module. The module's register function
  * should attach to all reference-counted variables and its destroy
- * function should detach from them.
+ * function should detach from them. The zone manager is borrowed: the runtime
+ * keeps it alive until all modules and their outstanding zone activity finish.
  */
 struct dns_dyndbctx {
 	unsigned int   magic;
@@ -51,7 +52,7 @@ struct dns_dyndbctx {
  * if not, set DNS_DYNDB_AGE to 0.
  */
 #ifndef DNS_DYNDB_VERSION
-#define DNS_DYNDB_VERSION 3
+#define DNS_DYNDB_VERSION 4
 #define DNS_DYNDB_AGE	  0
 #endif /* ifndef DNS_DYNDB_VERSION */
 
