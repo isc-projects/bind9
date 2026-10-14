@@ -18,34 +18,47 @@
 #include <dns/message.h>
 
 /*%< EDNS0 extended DNS errors */
-#define DNS_EDE_OTHER		     0	/*%< Other Error */
-#define DNS_EDE_DNSKEYALG	     1	/*%< Unsupported DNSKEY Algorithm */
-#define DNS_EDE_DSDIGESTTYPE	     2	/*%< Unsupported DS Digest Type */
-#define DNS_EDE_STALEANSWER	     3	/*%< Stale Answer */
-#define DNS_EDE_FORGEDANSWER	     4	/*%< Forged Answer */
-#define DNS_EDE_DNSSECINDETERMINATE  5	/*%< DNSSEC Indeterminate */
-#define DNS_EDE_DNSSECBOGUS	     6	/*%< DNSSEC Bogus */
-#define DNS_EDE_SIGNATUREEXPIRED     7	/*%< Signature Expired */
-#define DNS_EDE_SIGNATURENOTYETVALID 8	/*%< Signature Not Yet Valid */
-#define DNS_EDE_DNSKEYMISSING	     9	/*%< DNSKEY Missing */
-#define DNS_EDE_RRSIGSMISSING	     10 /*%< RRSIGs Missing */
-#define DNS_EDE_NOZONEKEYBITSET	     11 /*%< No Zone Key Bit Set */
-#define DNS_EDE_NSECMISSING	     12 /*%< NSEC Missing */
-#define DNS_EDE_CACHEDERROR	     13 /*%< Cached Error */
-#define DNS_EDE_NOTREADY	     14 /*%< Not Ready */
-#define DNS_EDE_BLOCKED		     15 /*%< Blocked */
-#define DNS_EDE_CENSORED	     16 /*%< Censored */
-#define DNS_EDE_FILTERED	     17 /*%< Filtered */
-#define DNS_EDE_PROHIBITED	     18 /*%< Prohibited */
-#define DNS_EDE_STALENXANSWER	     19 /*%< Stale NXDomain Answer */
-#define DNS_EDE_NOTAUTH		     20 /*%< Not Authoritative */
-#define DNS_EDE_NOTSUPPORTED	     21 /*%< Not Supported */
-#define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
-#define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
-#define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
-#define DNS_EDE_NTA		     33 /*%< Negative Trust Anchor */
+enum {
+	DNS_EDE_OTHER = 0,		  /*%< Other Error */
+	DNS_EDE_DNSKEYALG = 1,		  /*%< Unsupported DNSKEY Algorithm */
+	DNS_EDE_DSDIGESTTYPE = 2,	  /*%< Unsupported DS Digest Type */
+	DNS_EDE_STALEANSWER = 3,	  /*%< Stale Answer */
+	DNS_EDE_FORGEDANSWER = 4,	  /*%< Forged Answer */
+	DNS_EDE_DNSSECINDETERMINATE = 5,  /*%< DNSSEC Indeterminate */
+	DNS_EDE_DNSSECBOGUS = 6,	  /*%< DNSSEC Bogus */
+	DNS_EDE_SIGNATUREEXPIRED = 7,	  /*%< Signature Expired */
+	DNS_EDE_SIGNATURENOTYETVALID = 8, /*%< Signature Not Yet Valid */
+	DNS_EDE_DNSKEYMISSING = 9,	  /*%< DNSKEY Missing */
+	DNS_EDE_RRSIGSMISSING = 10,	  /*%< RRSIGs Missing */
+	DNS_EDE_NOZONEKEYBITSET = 11,	  /*%< No Zone Key Bit Set */
+	DNS_EDE_NSECMISSING = 12,	  /*%< NSEC Missing */
+	DNS_EDE_CACHEDERROR = 13,	  /*%< Cached Error */
+	DNS_EDE_NOTREADY = 14,		  /*%< Not Ready */
+	DNS_EDE_BLOCKED = 15,		  /*%< Blocked */
+	DNS_EDE_CENSORED = 16,		  /*%< Censored */
+	DNS_EDE_FILTERED = 17,		  /*%< Filtered */
+	DNS_EDE_PROHIBITED = 18,	  /*%< Prohibited */
+	DNS_EDE_STALENXANSWER = 19,	  /*%< Stale NXDomain Answer */
+	DNS_EDE_NOTAUTH = 20,		  /*%< Not Authoritative */
+	DNS_EDE_NOTSUPPORTED = 21,	  /*%< Not Supported */
+	DNS_EDE_NOREACHABLEAUTH = 22,	  /*%< No Reachable Authority */
+	DNS_EDE_NETWORKERROR = 23,	  /*%< Network Error */
+	DNS_EDE_INVALIDDATA = 24,	  /*%< Invalid Data */
+	DNS_EDE_BEFOREVALID = 25,	  /*%< Signature Expired before Valid */
+	DNS_EDE_TOOEARLY = 26,		  /*%< Too Early*/
+	DNS_EDE_BADITERATIONS = 27,   /*%< Unsupported NSEC3 Iterations Value */
+	DNS_EDE_POLICYUNABLE = 28,    /*%< Unable to conform to policy */
+	DNS_EDE_SYNTHESIZED = 29,     /*%< Synthesized */
+	DNS_EDE_INVALIDQTYPE = 30,    /*%< Invalid Query Type */
+	DNS_EDE_RATELIMITED = 31,     /*%< Rate Limited */
+	DNS_EDE_QUOTA = 32,	      /*%< Over Quota */
+	DNS_EDE_NTA = 33,	      /*%< Negative Trust Anchor */
+	DNS_EDE_DELEGONLY = 34,	      /*%< New Delegation Only */
+	DNS_EDE_BLOCKEDUPSTREAM = 35, /*%< Blocked by Upstream DNS Server */
 
-#define DNS_EDE_MAX_CODE DNS_EDE_NTA
+	DNS_EDE_MAX_CODE,
+	DNS_EDE_ENFORCE = UINT16_MAX, /*%< Enforce uint16_t size */
+};
 
 /*
  * From RFC 8914:

@@ -2359,8 +2359,7 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	 * once per fetch.
 	 */
 	if (nta && edectx != NULL) {
-		dns_ede_add(edectx, DNS_EDE_NTA,
-			    "Negative Trust Anchor applied (RFC 7646)");
+		dns_ede_add(edectx, DNS_EDE_NTA, NULL);
 	}
 
 	SET_IF_NOT_NULL(ntap, nta);
