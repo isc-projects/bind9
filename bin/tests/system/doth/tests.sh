@@ -22,24 +22,6 @@ msg_peer_verification_failed=";; TLS peer certificate verification"
 
 ca_file="./CA/CA.pem"
 
-OPENSSL_VERSION=$("$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/get_openssl_version.py")
-OPENSSL_VERSION_MAJOR=$(echo "$OPENSSL_VERSION" | cut -d ' ' -f 1)
-OPENSSL_VERSION_MINOR=$(echo "$OPENSSL_VERSION" | cut -d ' ' -f 2)
-
-# A server hostname is matched against SubjectAltName only; the Subject
-# Common Name is never consulted, for DoT (RFC 8310, Section 8.1) and
-# for DoH (RFC 9525) alike, so a certificate without SubjectAltName must
-# be rejected on both transports.
-#
-# OpenSSL releases older than 1.1 lack the flag that enforces this, so
-# the checks for a missing SubjectAltName are skipped on such platforms
-# (e.g. RHEL 7).
-if [ $OPENSSL_VERSION_MAJOR -gt 1 ]; then
-  run_san_tests=1
-elif [ $OPENSSL_VERSION_MAJOR -eq 1 ] && [ $OPENSSL_VERSION_MINOR -ge 1 ]; then
-  run_san_tests=1
-fi
-
 dig_with_tls_opts() {
   # shellcheck disable=SC2086
   "$DIG" +tls $common_dig_options -p "${TLSPORT}" "$@"
@@ -96,18 +78,16 @@ fi
 if test $ret != 0; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -n "$run_san_tests" ]; then
-  n=$((n + 1))
-  echo_i "testing incoming XoT functionality (from the first secondary, no SubjectAltName, failure expected) ($n)"
-  ret=0
-  if retry_quiet 10 wait_for_tls_xfer 2 example3; then
-    ret=1
-  else
-    echo_i "timed out waiting for zone transfer"
-  fi
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
+n=$((n + 1))
+echo_i "testing incoming XoT functionality (from the first secondary, no SubjectAltName, failure expected) ($n)"
+ret=0
+if retry_quiet 10 wait_for_tls_xfer 2 example3; then
+  ret=1
+else
+  echo_i "timed out waiting for zone transfer"
 fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via implicit IP) ($n)"
@@ -681,26 +661,24 @@ grep "$msg_peer_verification_failed" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -n "$run_san_tests" ]; then
-  # SubjectAltName is required for DoT as according to RFC 8310, Subject
-  # field MUST NOT be inspected when verifying hostname for DoT.
-  n=$((n + 1))
-  echo_i "checking DoT query (with TLS verification enabled when SubjectAltName is not set, failure expected) ($n)"
-  ret=0
-  dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" @10.53.0.1 . SOA >dig.out.test$n || ret=1
-  grep "$msg_peer_verification_failed" dig.out.test$n >/dev/null || ret=1
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
+# SubjectAltName is required for DoT as according to RFC 8310, Subject
+# field MUST NOT be inspected when verifying hostname for DoT.
+n=$((n + 1))
+echo_i "checking DoT query (with TLS verification enabled when SubjectAltName is not set, failure expected) ($n)"
+ret=0
+dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" @10.53.0.1 . SOA >dig.out.test$n || ret=1
+grep "$msg_peer_verification_failed" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
-  n=$((n + 1))
-  echo_i "checking DoT XFR over a TLS port where SubjectAltName is not set (failure expected) ($n)"
-  ret=0
-  # shellcheck disable=SC2086
-  dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT2}" +comm @10.53.0.1 . AXFR >dig.out.test$n || ret=1
-  grep "$msg_peer_verification_failed" dig.out.test$n >/dev/null || ret=1
-  if [ $ret != 0 ]; then echo_i "failed"; fi
-  status=$((status + ret))
-fi
+n=$((n + 1))
+echo_i "checking DoT XFR over a TLS port where SubjectAltName is not set (failure expected) ($n)"
+ret=0
+# shellcheck disable=SC2086
+dig_with_tls_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT2}" +comm @10.53.0.1 . AXFR >dig.out.test$n || ret=1
+grep "$msg_peer_verification_failed" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 # The Subject Common Name is not consulted for DoH either (RFC 9525), so
 # a certificate without SubjectAltName must be rejected here as well.
