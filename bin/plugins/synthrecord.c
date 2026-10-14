@@ -182,11 +182,12 @@ synthrecord_respond(synthrecord_t *inst, query_ctx_t *qctx, void *rdata,
 static bool
 synthrecord_parseforward(synthrecord_t *inst, const dns_name_t *name,
 			 isc_netaddr_t *addr) {
-	dns_name_t label;
+	dns_fixedname_t fixed;
+	dns_name_t n = DNS_NAME_INITEMPTY;
+	dns_name_t *tmp = dns_fixedname_initname(&fixed);
 	char bdata[DNS_NAME_FORMATSIZE];
 	isc_buffer_t b;
 	size_t labelcount = dns_name_countlabels(name);
-	dns_name_t subname;
 
 	/*
 	 * A forward name last label is `prefix-<encoded ip>`.<origin>
@@ -195,9 +196,8 @@ synthrecord_parseforward(synthrecord_t *inst, const dns_name_t *name,
 		return false;
 	}
 
-	dns_name_init(&subname);
-	dns_name_getlabelsequence(name, 1, labelcount - 1, &subname);
-	if (!dns_name_equal(&subname, &inst->origin)) {
+	dns_name_getlabelsequence(name, 1, labelcount - 1, &n);
+	if (!dns_name_equal(&n, &inst->origin)) {
 		return false;
 	}
 
@@ -205,12 +205,11 @@ synthrecord_parseforward(synthrecord_t *inst, const dns_name_t *name,
 	 * First, extract the first label which contains the prefix (which
 	 * should match) and the encoded address.
 	 */
-	dns_name_init(&label);
-	dns_name_getlabelsequence(name, 0, 1, &label);
-	dns_name_downcase(&label, &label);
+	dns_name_getlabelsequence(name, 0, 1, &n);
+	dns_name_downcase(&n, tmp);
 
 	isc_buffer_init(&b, bdata, sizeof(bdata));
-	dns_name_totext(&label, DNS_NAME_OMITFINALDOT, &b);
+	dns_name_totext(tmp, DNS_NAME_OMITFINALDOT, &b);
 
 	/*
 	 * Buffer is `DNS_NAME_FORMATSIZE` which is the maximum length of

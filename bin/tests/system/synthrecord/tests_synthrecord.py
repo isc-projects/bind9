@@ -119,6 +119,8 @@ def test_synthrecord_forward(qname, qtype, rname, rtype, ttl):
     assert len(res.answer) == 1
     assert res.answer[0].ttl == ttl
     assert res.answer[0] == dns.rrset.from_text(qname, ttl, "IN", rtype, rname)
+    # regression test for #6403: response qname must match exactly
+    assert qname == str(res.question[0].name)
 
 
 @pytest.mark.parametrize(
