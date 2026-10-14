@@ -117,12 +117,12 @@ class LameExampleOrgDelegation(DelegationHandler):
 
 
 class LargeReferralHandler(StaticResponseHandler):
-    matcher = Qname("large-referral.example.net.") & Qtype(dns.rdatatype.NS)
+    matcher = Qname("large-referral.example.net.")
     authority = [
         rrset_from_list(
             matcher.of(Qname).qnames[0],
             dns.rdatatype.NS,
-            [f"ns{i}.fake.redirect.com." for i in range(1, 1000)],
+            [f"ns{i}.fake.large-referral.com." for i in range(1, 1000)],
         )
     ]
 
