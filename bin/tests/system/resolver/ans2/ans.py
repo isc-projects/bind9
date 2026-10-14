@@ -136,7 +136,7 @@ class Ns4Delegation(DelegationHandler):
 
 class Ns6Delegation(DelegationHandler):
     domains = [
-        "redirect.com.",
+        "large-referral.com.",
         "tld1.",
     ]
     server_number = 6
