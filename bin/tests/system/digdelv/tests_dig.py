@@ -429,7 +429,7 @@ def test_nxname_returns_formerr(dig, ns3):
     checking dig NXNAME returns FORMERR.
     """
     result = dig(f"@{ns3.ip} +qr NXNAME a.example")
-    assert Re(r"^; EDE: 30: \(Invalid Query Type\)") in result.out
+    assert Re(r"^; EDE: 30 \(Invalid Query Type\)") in result.out
     assert Re(r"^;a\.example\.\s+IN\sNXNAME$") in result.out
     assert "FORMERR" in result.out
 
@@ -649,8 +649,12 @@ def test_keepalive_yaml(dig, ns1):
     "payload,expected",
     [
         param("ede:0000666f6f", "; EDE: 0 (Other): (foo)", id="first-defined-code"),
-        param("ede:0018", "; EDE: 24 (Invalid Data)", id="last-defined-code"),
-        param("ede:0019666f6f", "; EDE: 25: (foo)", id="undefined-code"),
+        param(
+            "ede:0023",
+            "; EDE: 35 (Blocked by Upstream DNS Server)",
+            id="last-defined-code",
+        ),
+        param("ede:0040666f6f", "; EDE: 64: (foo)", id="undefined-code"),
         param("ede", "; EDE:", id="empty"),
         param("ede:00", '; EDE: 00 (".")', id="too-short"),
     ],
@@ -668,8 +672,13 @@ def test_ednsopt_ede(dig, ns3, payload, expected):
     "payload,info_code,extra_text",
     [
         param("ede:0000666f6f", "0 (Other)", "foo", id="first-defined-code"),
-        param("ede:0018", "24 (Invalid Data)", None, id="last-defined-code"),
-        param("ede:0019666f6f", 25, "foo", id="undefined-code"),
+        param(
+            "ede:0023",
+            "35 (Blocked by Upstream DNS Server)",
+            None,
+            id="last-defined-code",
+        ),
+        param("ede:0040666f6f", 64, "foo", id="undefined-code"),
     ],
 )
 def test_ednsopt_ede_yaml(dig, ns3, payload, info_code, extra_text):

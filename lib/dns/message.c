@@ -148,31 +148,44 @@ static const char *opcodetext[] = { "QUERY",	  "IQUERY",	"STATUS",
 				    "RESERVED12", "RESERVED13", "RESERVED14",
 				    "RESERVED15" };
 
-static const char *edetext[] = { "Other",
-				 "Unsupported DNSKEY Algorithm",
-				 "Unsupported DS Digest Type",
-				 "Stale Answer",
-				 "Forged Answer",
-				 "DNSSEC Indeterminate",
-				 "DNSSEC Bogus",
-				 "Signature Expired",
-				 "Signature Not Yet Valid",
-				 "DNSKEY Missing",
-				 "RRSIGs Missing",
-				 "No Zone Key Bit Set",
-				 "NSEC Missing",
-				 "Cached Error",
-				 "Not Ready",
-				 "Blocked",
-				 "Censored",
-				 "Filtered",
-				 "Prohibited",
-				 "Stale NXDOMAIN Answer",
-				 "Not Authoritative",
-				 "Not Supported",
-				 "No Reachable Authority",
-				 "Network Error",
-				 "Invalid Data" };
+static const char *edetext[] = {
+	[DNS_EDE_OTHER] = "Other",
+	[DNS_EDE_DNSKEYALG] = "Unsupported DNSKEY Algorithm",
+	[DNS_EDE_DSDIGESTTYPE] = "Unsupported DS Digest Type",
+	[DNS_EDE_STALEANSWER] = "Stale Answer",
+	[DNS_EDE_FORGEDANSWER] = "Forged Answer",
+	[DNS_EDE_DNSSECINDETERMINATE] = "DNSSEC Indeterminate",
+	[DNS_EDE_DNSSECBOGUS] = "DNSSEC Bogus",
+	[DNS_EDE_SIGNATUREEXPIRED] = "Signature Expired",
+	[DNS_EDE_SIGNATURENOTYETVALID] = "Signature Not Yet Valid",
+	[DNS_EDE_DNSKEYMISSING] = "DNSKEY Missing",
+	[DNS_EDE_RRSIGSMISSING] = "RRSIGs Missing",
+	[DNS_EDE_NOZONEKEYBITSET] = "No Zone Key Bit Set",
+	[DNS_EDE_NSECMISSING] = "NSEC Missing",
+	[DNS_EDE_CACHEDERROR] = "Cached Error",
+	[DNS_EDE_NOTREADY] = "Not Ready",
+	[DNS_EDE_BLOCKED] = "Blocked",
+	[DNS_EDE_CENSORED] = "Censored",
+	[DNS_EDE_FILTERED] = "Filtered",
+	[DNS_EDE_PROHIBITED] = "Prohibited",
+	[DNS_EDE_STALENXANSWER] = "Stale NXDOMAIN Answer",
+	[DNS_EDE_NOTAUTH] = "Not Authoritative",
+	[DNS_EDE_NOTSUPPORTED] = "Not Supported",
+	[DNS_EDE_NOREACHABLEAUTH] = "No Reachable Authority",
+	[DNS_EDE_NETWORKERROR] = "Network Error",
+	[DNS_EDE_INVALIDDATA] = "Invalid Data",
+	[DNS_EDE_BEFOREVALID] = "Signature Expired before Valid",
+	[DNS_EDE_TOOEARLY] = "Too Early",
+	[DNS_EDE_BADITERATIONS] = "Unsupported NSEC3 Iterations Value",
+	[DNS_EDE_POLICYUNABLE] = "Unable to conform to policy",
+	[DNS_EDE_SYNTHESIZED] = "Synthesized",
+	[DNS_EDE_INVALIDQTYPE] = "Invalid Query Type",
+	[DNS_EDE_RATELIMITED] = "Rate Limited",
+	[DNS_EDE_QUOTA] = "Over Quota",
+	[DNS_EDE_NTA] = "Negative Trust Anchor",
+	[DNS_EDE_DELEGONLY] = "New Delegation Only",
+	[DNS_EDE_BLOCKEDUPSTREAM] = "Blocked by Upstream DNS Server",
+};
 
 /*%
  * "helper" type, which consists of a block of some type, and is linkable.
@@ -3812,7 +3825,9 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 					ede = isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u", ede);
 					ADD_STRING(target, buf);
-					if (ede < ARRAY_SIZE(edetext)) {
+					if (ede < ARRAY_SIZE(edetext) &&
+					    edetext[ede] != NULL)
+					{
 						ADD_STRING(target, " (");
 						ADD_STRING(target,
 							   edetext[ede]);
@@ -4235,7 +4250,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 					ede = isc_buffer_getuint16(&optbuf);
 					snprintf(buf, sizeof(buf), " %u", ede);
 					ADD_STRING(target, buf);
-					if (ede < ARRAY_SIZE(edetext)) {
+					if (ede < ARRAY_SIZE(edetext) &&
+					    edetext[ede] != NULL)
+					{
 						ADD_STRING(target, " (");
 						ADD_STRING(target,
 							   edetext[ede]);
