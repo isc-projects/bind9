@@ -377,9 +377,7 @@ notify_send_toaddr(void *arg) {
 	CHECK(notify_createmessage(notify, &message));
 
 	if (notify->key != NULL) {
-		/* Transfer ownership of key */
-		key = notify->key;
-		notify->key = NULL;
+		dns_tsigkey_attach(notify->key, &key);
 	} else {
 		result = dns_view_getpeertsig(view, &dstip, &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
