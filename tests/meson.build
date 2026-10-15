@@ -29,6 +29,7 @@ libtest = shared_library(
     dependencies: [
         libdns_dep,
         libisc_dep,
+        libisccc_dep,
         libisccfg_dep,
         libns_dep,
     ],
@@ -59,5 +60,6 @@ check_test_registration = [python, files('../util/check_test_registration.py')]
 subdir('bench')
 subdir('dns')
 subdir('isc')
+subdir('isccc')
 subdir('isccfg')
 subdir('ns')
