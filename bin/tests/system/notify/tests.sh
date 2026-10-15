@@ -229,9 +229,15 @@ test_end
 # above, which should time out at some point; we need to wait for them to
 # appear in the logs in case the tests run faster than the notify timeouts
 
+check_tsig_retry() {
+  awk '/retrying over TCP/ { after=1; next} after' ns3/named.run \
+    | grep -q 'sending notify .*: TSIG (test)'
+}
+
 test_start "checking notify to retry over TCP within 45 seconds"
 nextpartreset ns3/named.run
 wait_for_log 45 'retrying over TCP' ns3/named.run || ret=1
+retry 10 check_tsig_retry || ret=1
 test_end
 
 # the TCP timeout is set to 15 seconds, double that for some leeway
