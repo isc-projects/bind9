@@ -419,3 +419,32 @@ def test_ns_cookie(delv, option, expect_cookie):
     )
     assert ("; COOKIE:" in result.out) == expect_cookie
     assert "; fully validated" in result.out
+
+
+@pytest.mark.parametrize(
+    "option,ok",
+    [
+        param("+restarts=0", False),
+        param("+restarts=100", True),
+        param("+restarts=256", False),
+        param("+restarts=65535", False),
+        param("+maxqueries=0", False),
+        param("+maxqueries=256", True),
+        param("+maxqueries=4294967295", True),
+        param("+maxqueries=4294967296", False),
+        param("+maxtotalqueries=0", False),
+        param("+maxtotalqueries=256", True),
+        param("+maxtotalqueries=4294967295", True),
+        param("+maxtotalqueries=4294967296", False),
+    ],
+)
+@pytest.mark.usefixtures("ns1")
+def test_delv_param_range(delv, option, ok):
+    """
+    Check parameter range checks
+    """
+    result = delv(
+        f"-a ns1/anchor.dnskey +root +ns +hint=root.hint {option} a a.example",
+        raise_on_exception=False,
+    )
+    assert (result.rc == 0) == ok
