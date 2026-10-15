@@ -175,7 +175,7 @@ set.
 
 Each test module is executed inside a unique temporary directory which contains
 all the artifacts from the test run. If the tests succeed, they are deleted by
-default. To override this behaviour, pass `--noclean` to pytest.
+default. To override this behavior, pass `--noclean` to pytest.
 
 The directory name starts with the system test name, followed by `-tmp-XXXXXX`,
 i.e. `dns64-tmp-r07vei9s` for `dns64` test run. Since this name changes each
@@ -649,7 +649,7 @@ ARM.  The presence of a file called `named.<flag>` in the "nsN" directory adds
 - it is only the presence that counts).  The recognized flags are:
 
 ```
-dropedns         Recognise EDNS options in messages, but drop messages
+dropedns         Recognize EDNS options in messages, but drop messages
                  containing them.
 
 ednsformerr, ednsnotimp, ednsrefused
