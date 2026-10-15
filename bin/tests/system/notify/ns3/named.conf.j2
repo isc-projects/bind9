@@ -29,12 +29,17 @@ options {
 
 {% include "_common/root.hint.conf" %}
 
+key "test" {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
 zone "example" {
 	type secondary;
 	primaries { 10.53.0.2; };
 	file "example.bk";
 	# non-responsive notify recipient (no reply, no ICMP errors)
-	also-notify { 10.53.10.53; };
+	also-notify { 10.53.10.53 key test; };
 };
 
 zone "notify-source-port-test" {
