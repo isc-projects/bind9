@@ -18,6 +18,4 @@ zone "f044.test" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	f044.test. static-key 257 3 13 "@PARENT_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
