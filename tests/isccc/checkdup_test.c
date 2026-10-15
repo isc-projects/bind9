@@ -1,0 +1,147 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * SPDX-License-Identifier: MPL-2.0
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+#include <inttypes.h>
+#include <sched.h> /* IWYU pragma: keep */
+#include <setjmp.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/buffer.h>
+#include <isc/log.h>
+#include <isc/mem.h>
+#include <isc/symtab.h>
+#include <isc/types.h>
+#include <isc/util.h>
+
+#include <isccc/alist.h>
+#include <isccc/cc.h>
+#include <isccc/sexpr.h>
+#include <isccc/symtab.h>
+
+#include <tests/isc.h>
+
+static isc_logcategory_t categories[] = { { "", 0 },
+					  { "client", 0 },
+					  { "network", 0 },
+					  { "update", 0 },
+					  { "queries", 0 },
+					  { "unmatched", 0 },
+					  { "update-security", 0 },
+					  { "query-errors", 0 },
+					  { NULL, 0 } };
+
+ISC_SETUP_TEST_IMPL(group) {
+	isc_result_t result;
+	isc_logdestination_t destination;
+	isc_logconfig_t *logconfig = NULL;
+
+	isc_log_create(mctx, &lctx, &logconfig);
+	isc_log_registercategories(lctx, categories);
+	isc_log_setcontext(lctx);
+
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.maximum_size = 0;
+	isc_log_createchannel(logconfig, "stderr", ISC_LOG_TOFILEDESC,
+			      ISC_LOG_DYNAMIC, &destination, 0);
+	result = isc_log_usechannel(logconfig, "stderr", NULL, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		return -1;
+	}
+
+	return 0;
+}
+
+ISC_TEARDOWN_TEST_IMPL(group) {
+	if (lctx == NULL) {
+		return -1;
+	}
+
+	isc_log_setcontext(NULL);
+	isc_log_destroy(&lctx);
+
+	return 0;
+}
+
+/* test isccc_cc_checkdup() */
+ISC_RUN_TEST_IMPL(checkdup) {
+	isccc_symtab_t *symtab = NULL;
+	const isc_stdtime_t start = isc_stdtime_now();
+	const uint32_t lifetime = 5;
+	const uint32_t serial = 0xdeadcafe;
+	bool first = true;
+
+	isccc_cc_createsymtab(&symtab);
+
+	while (true) {
+		isc_stdtime_t now = isc_stdtime_now();
+		isccc_sexpr_t *request = isccc_alist_create();
+		isc_result_t result;
+
+		assert_non_null(request);
+
+		isccc_sexpr_t *_ctrl = isccc_alist_create();
+		assert_non_null(_ctrl);
+		assert_non_null(isccc_alist_define(request, "_ctrl", _ctrl));
+		assert_non_null(isccc_cc_defineuint32(_ctrl, "_ser", serial));
+		assert_non_null(isccc_cc_defineuint32(_ctrl, "_tim", start));
+
+		isccc_cc_cleansymtab(symtab, now);
+		result = isccc_cc_checkdup(symtab, request, now + lifetime);
+
+		isccc_sexpr_free(&request);
+
+		if (first) {
+			first = false;
+			/* First one should go in successfully. */
+			assert_true(result == ISC_R_SUCCESS);
+		} else if (now - start < lifetime) {
+			/*
+			 * Until the lifetime of the inserted entry has passed,
+			 * it should live and no new entry should enter.
+			 */
+			assert_true(result == ISC_R_EXISTS);
+		} else {
+			/*
+			 * When lifetime has passed, the isccc_cc_cleansymtab()
+			 * call above should have cleaned up the entry, so the
+			 * new one should enter successfully again, and the test
+			 * is over.
+			 */
+			assert_true(result == ISC_R_SUCCESS);
+			break;
+		}
+
+		uv_sleep(10);
+	}
+
+	isccc_symtab_destroy(&symtab);
+}
+
+ISC_TEST_LIST_START
+
+ISC_TEST_ENTRY(checkdup)
+
+ISC_TEST_LIST_END
+
+ISC_TEST_MAIN_CUSTOM(setup_test_group, teardown_test_group)
