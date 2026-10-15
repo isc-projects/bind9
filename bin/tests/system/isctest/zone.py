@@ -459,14 +459,15 @@ class Zone:
         """
         return self.directory / self.filepath_signed
 
-    def add_keys(self, ksk: bool = True, zsk: bool = True) -> None:
+    def add_keys(self, ksk: bool = True, zsk: bool = True, adt: bool = False) -> None:
         """
         Generate KSK and/or ZSK via dnssec-keygen and append to self.keys.
         """
+        adtopt = "-f ADT" if adt else ""
         if ksk:
-            self.keys.append(FileZoneKey.generate(self, "-f KSK"))
+            self.keys.append(FileZoneKey.generate(self, f"-f KSK {adtopt}"))
         if zsk:
-            self.keys.append(FileZoneKey.generate(self))
+            self.keys.append(FileZoneKey.generate(self, adtopt))
 
     def copy_dssets(self) -> None:
         """
@@ -537,6 +538,7 @@ class Zone:
         template: str | None = None,
         sign_params: str = "",
         csk: bool = False,
+        adt: bool = False,
     ) -> None:
         """
         Perform full zone setup: copy DS sets, generate keys, render, sign.
@@ -557,7 +559,7 @@ class Zone:
         self._configured = True
         self.copy_dssets()
         if self.signed:
-            self.add_keys(ksk=True, zsk=not csk)
+            self.add_keys(ksk=True, zsk=not csk, adt=adt)
         self.render(template)
         if self.signed:
             if csk:
