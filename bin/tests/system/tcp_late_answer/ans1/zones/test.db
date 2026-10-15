@@ -1,0 +1,9 @@
+$TTL 300
+test.			IN SOA	ns.test. hostmaster.test. 1 600 600 1200 600
+test.			NS	ns.test.
+ns.test.		A	10.53.0.1
+late.test.		A	10.0.0.1
+swept.test.		A	10.0.0.2
+victim.test.		A	10.0.0.3
+canceled.test.		A	10.0.0.4
+sibling.test.		A	10.0.0.5
