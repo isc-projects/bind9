@@ -14,6 +14,7 @@ import pytest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "awk.out.*",
+        "dhparam3072.pem",
         "dig.out.*",
         "ns2/change-ns.db",
         "ns2/change-ns.db.jnl",

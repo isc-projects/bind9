@@ -29,6 +29,7 @@ pytestmark = [
     pytest.mark.extra_artifacts(
         [
             "*.out",
+            "dhparam3072.pem",
             "ns*/*.db",
             "ns*/*.db.infile",
             "ns*/*.db.signed",

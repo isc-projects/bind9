@@ -13,6 +13,12 @@
 
 . ../conf.sh
 
+if $FEATURETEST --have-openssl-1.0.x; then
+  cp dhparam3072.openssl_1.0.x.pem.in dhparam3072.pem
+else
+  cp dhparam3072.pem.in dhparam3072.pem
+fi
+
 cp -f ns2/example1.db ns2/example.db
 cp -f ns2/generic.db ns2/x21.db
 cp -f ns2/generic.db ns2/change-ns.db

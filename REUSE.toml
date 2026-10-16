@@ -16,6 +16,7 @@ path = [
 	"**/**.key.j2",
 	"**/**.keytab",
 	"**/**.pem",
+	"**/**.pem.in",
 	"**/**.private",
 	"**/**.private.j2",
 	"**/**.raw",

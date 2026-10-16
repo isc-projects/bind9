@@ -20,6 +20,7 @@ EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
         "Kxxx*",
         "authsock.out.*",
         "authsock.pid",
+        "dhparam3072.pem",
         "dig.out.*",
         "nextpart.out.*",
         "nsupdate.*out*",
