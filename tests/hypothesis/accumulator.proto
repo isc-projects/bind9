@@ -1,0 +1,16 @@
+// Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+// SPDX-License-Identifier: MPL-2.0
+syntax = "proto2";
+package accumulator;
+
+message Request {
+  oneof command {
+    uint64 reset = 1;
+    uint32 add = 2;
+    uint32 subtract = 3;
+  }
+}
+
+message Response {
+  required uint64 value = 1;
+}

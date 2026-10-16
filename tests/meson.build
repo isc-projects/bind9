@@ -48,6 +48,8 @@ libtest_qp_dep = declare_dependency(
     include_directories: test_inc,
 )
 
+subdir('hypothesis')
+
 if not cmocka_dep.found()
     subdir_done()
 endif
