@@ -734,8 +734,7 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *tls) {
 isc_result_t
 isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 				    isc_tls_cert_store_t *store,
-				    const char *hostname,
-				    bool hostname_ignore_subject) {
+				    const char *hostname) {
 	int ret = 0;
 	REQUIRE(tlsctx != NULL);
 	REQUIRE(store != NULL);
@@ -761,26 +760,18 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 			return ISC_R_FAILURE;
 		}
 
-#ifdef X509_CHECK_FLAG_NEVER_CHECK_SUBJECT
 		/*
-		 * According to the RFC 8310, Section 8.1, Subject field MUST
-		 * NOT be inspected when verifying a hostname when using
-		 * DoT. Only SubjectAltName must be checked instead. That is
-		 * not the case for HTTPS, though.
+		 * Match the hostname against SubjectAltName only and never
+		 * fall back to the Subject Common Name.  RFC 8310, Section
+		 * 8.1, requires this for DoT, RFC 9525 has since retired the
+		 * Common Name for all TLS connections, overreaching to DoH as
+		 * well.
 		 *
-		 * Unfortunately, some quite old versions of OpenSSL (< 1.1.1)
-		 * might lack the functionality to implement that. It should
-		 * have very little real-world consequences, as most of the
-		 * production-ready certificates issued by real CAs will have
-		 * SubjectAltName set. In such a case, the Subject field is
-		 * ignored.
+		 * OpenSSL 4.1 stops consulting CN by default; setting the flag
+		 * explicitly makes the outcome the same on every supported
+		 * OpenSSL version.
 		 */
-		if (hostname_ignore_subject) {
-			hostflags |= X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
-		}
-#else
-		UNUSED(hostname_ignore_subject);
-#endif
+		hostflags |= X509_CHECK_FLAG_NEVER_CHECK_SUBJECT;
 		X509_VERIFY_PARAM_set_hostflags(param, hostflags);
 	}
 

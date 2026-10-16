@@ -429,7 +429,6 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 			dns_transport_get_always_verify_remote(transport);
 		char peer_addr_str[INET6_ADDRSTRLEN] = { 0 };
 		isc_netaddr_t peer_netaddr = { 0 };
-		bool hostname_ignore_subject;
 
 		/*
 		 * So, no context exists. Let's create one using the
@@ -490,15 +489,8 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 				hostname = peer_addr_str;
 			}
 
-			/*
-			 * According to RFC 8310, Subject field MUST NOT
-			 * be inspected when verifying hostname for DoT.
-			 * Only SubjectAltName must be checked.
-			 */
-			hostname_ignore_subject = true;
 			CHECK(isc_tlsctx_enable_peer_verification(
-				tlsctx, false, store, hostname,
-				hostname_ignore_subject));
+				tlsctx, false, store, hostname));
 
 			/*
 			 * Let's load client certificate and enable

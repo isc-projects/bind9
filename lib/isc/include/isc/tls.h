@@ -244,15 +244,22 @@ isc_tlsctx_enable_dot_server_alpn(isc_tlsctx_t *ctx);
 isc_result_t
 isc_tlsctx_enable_peer_verification(isc_tlsctx_t *ctx, const bool is_server,
 				    isc_tls_cert_store_t *store,
-				    const char		 *hostname,
-				    bool hostname_ignore_subject);
-/*%<
- * Enable peer certificate and, optionally, hostname (for client contexts)
- * verification.
+				    const char		 *hostname);
+/**<
+ * \brief
+ * Enable peer certificate and, optionally, hostname verification for client
+ * contexts.
  *
- * Requires:
- *\li	'ctx' is not NULL;
- *\li	'store' is not NULL.
+ * \note
+ * Per RFC 9525, the hostname is only matches against the SubjectAltName
+ * extension.
+ *
+ * \par Requires:
+ * \li `ctx != NULL`
+ * \li `store != NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_FAILURE on opaque OpenSSL failure
  */
 
 isc_result_t

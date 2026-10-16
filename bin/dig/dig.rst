@@ -718,6 +718,9 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    This option makes :program:`dig` use the provided hostname during remote
    server TLS certificate verification. Otherwise, the DNS server name
    is used. This option has no effect if :option:`+tls-ca` is not specified.
+   The name is matched against the Subject Alternative Name extension of
+   the server certificate only; the Common Name in the Subject field is
+   not consulted, for DNS over HTTPS as well as for DNS over TLS.
 
 .. option:: +trace, +notrace
 

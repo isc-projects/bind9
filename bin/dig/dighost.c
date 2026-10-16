@@ -2746,7 +2746,6 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 					: AF_INET;
 	isc_tlsctx_cache_transport_t transport =
 		is_https ? isc_tlsctx_cache_https : isc_tlsctx_cache_tls;
-	const bool hostname_ignore_subject = !is_https;
 	isc_tlsctx_client_session_cache_t *sess_cache = NULL,
 					  *found_sess_cache = NULL;
 
@@ -2774,15 +2773,8 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 
 		if (store != NULL) {
 			const char *hostname = get_tls_sni_hostname(query);
-			/*
-			 * According to RFC 8310, Subject field MUST NOT be
-			 * inspected when verifying hostname for DoT. Only
-			 * SubjectAltName must be checked. That is NOT the case
-			 * for HTTPS.
-			 */
 			CHECK(isc_tlsctx_enable_peer_verification(
-				ctx, false, store, hostname,
-				hostname_ignore_subject));
+				ctx, false, store, hostname));
 		}
 
 		if (query->lookup->tls_key_file_set &&

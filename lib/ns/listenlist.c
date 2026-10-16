@@ -93,7 +93,7 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 				}
 
 				result = isc_tlsctx_enable_peer_verification(
-					sslctx, true, store, NULL, false);
+					sslctx, true, store, NULL);
 				if (result != ISC_R_SUCCESS) {
 					goto tls_error;
 				}
