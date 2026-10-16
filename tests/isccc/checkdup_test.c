@@ -138,9 +138,74 @@ ISC_RUN_TEST_IMPL(checkdup) {
 	isccc_symtab_destroy(&symtab);
 }
 
+/*
+ * Model control_recvmessage duplicate detection using a
+ * smaller clock skew (5 seconds).
+ */
+ISC_RUN_TEST_IMPL(model_duplicate_protection) {
+	isccc_symtab_t *symtab = NULL;
+	isccc_sexpr_t *request = isccc_alist_create();
+	isccc_sexpr_t *_ctrl = isccc_alist_create();
+	isc_stdtime_t now = isc_stdtime_now();
+	const uint32_t lifetime = 5;
+	const isc_stdtime_t sent = now + lifetime + 1;
+	const isc_stdtime_t end = now + 2 * lifetime + 3;
+	const uint32_t serial = 0xdeadcafe;
+	bool accepted = false;
+
+	isccc_cc_createsymtab(&symtab);
+
+	/*
+	 * Create a synthetic request that will be replayed.
+	 */
+	assert_non_null(request);
+	assert_non_null(_ctrl);
+	assert_non_null(isccc_alist_define(request, "_ctrl", _ctrl));
+	assert_non_null(isccc_cc_defineuint32(_ctrl, "_ser", serial));
+	assert_non_null(isccc_cc_defineuint32(_ctrl, "_tim", sent));
+
+	while (now < end) {
+		isc_result_t result;
+
+		if ((sent + lifetime) < now || (sent - lifetime) > now) {
+			if (debug) {
+				fprintf(stderr, "# clock skew\n");
+			}
+			goto again;
+		}
+
+		isccc_cc_cleansymtab(symtab, now);
+		result = isccc_cc_checkdup(symtab, request,
+					   now + 2 * lifetime + 1);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * Check if we haven't already accepted this
+			 * request.
+			 */
+			assert_false(accepted);
+			accepted = true;
+		} else if (debug) {
+			fprintf(stderr, "# duplicate\n");
+		}
+
+	again:
+		uv_sleep(10);
+		now = isc_stdtime_now();
+	}
+
+	/*
+	 * Check that we accepted a request.
+	 */
+	assert_true(accepted);
+
+	isccc_symtab_destroy(&symtab);
+	isccc_sexpr_free(&request);
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(checkdup)
+ISC_TEST_ENTRY(model_duplicate_protection)
 
 ISC_TEST_LIST_END
 
