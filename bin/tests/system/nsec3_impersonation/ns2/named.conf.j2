@@ -14,6 +14,4 @@ zone "tld.test" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	tld.test. static-key 257 3 13 "@TLD_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
