@@ -474,11 +474,9 @@ main(int argc, char **argv) {
 		} else if ((rawver = isc_string_casestripprefix(
 				    outputformatstr, "raw=")) != NULL)
 		{
-			char *end;
-
 			outputformat = dns_masterformat_raw;
-			rawversion = strtol(rawver, &end, 10);
-			if (end == rawver || *end != '\0' || rawversion > 1U) {
+			result = isc_parse_uint32(&rawversion, rawver, 10);
+			if (result != ISC_R_SUCCESS || rawversion > 1U) {
 				fprintf(stderr, "unknown raw format version\n");
 				exit(EXIT_FAILURE);
 			}

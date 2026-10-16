@@ -25,6 +25,7 @@
 #include <isc/hash.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -66,7 +67,6 @@ main(int argc, char **argv) {
 	char *dir = NULL;
 	char newname[1024], oldname[1024];
 	char keystr[DST_KEY_FORMATSIZE];
-	char *endp;
 	int ch;
 	dst_key_t *key = NULL;
 	uint32_t flags;
@@ -106,8 +106,10 @@ main(int argc, char **argv) {
 			id = true;
 			break;
 		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			if (isc_parse_signed_number(&verbose,
+						    isc_commandline_argument,
+						    0) != ISC_R_SUCCESS)
+			{
 				fatal("-v must be followed by a number");
 			}
 			break;

@@ -25,6 +25,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -370,7 +371,7 @@ int
 main(int argc, char **argv) {
 	char *classname = NULL;
 	char *filename = NULL, *dir = NULL, *namestr;
-	char *endp, *arg1;
+	char *arg1;
 	int ch;
 	bool cds = false;
 	bool usekeyset = false;
@@ -430,8 +431,9 @@ main(int argc, char **argv) {
 			ttl = strtottl(isc_commandline_argument);
 			break;
 		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("-v must be followed by a number");
 			}
 			break;

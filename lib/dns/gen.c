@@ -751,6 +751,7 @@ main(int argc, char **argv) {
 
 		printf("#include <stdbool.h>\n");
 		printf("#include <isc/result.h>\n\n");
+		printf("#include <isc/parseint.h>\n\n");
 		printf("#include <dns/name.h>\n\n");
 
 		for (tt = types; tt != NULL; tt = tt->next) {

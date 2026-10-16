@@ -23,6 +23,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -297,7 +298,6 @@ int
 main(int argc, char **argv) {
 	char *classname = NULL;
 	char *filename = NULL, *dir = NULL, *namestr;
-	char *endp = NULL;
 	int ch;
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -370,8 +370,10 @@ main(int argc, char **argv) {
 			filename = isc_commandline_argument;
 			break;
 		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			if (isc_parse_signed_number(&verbose,
+						    isc_commandline_argument,
+						    0) != ISC_R_SUCCESS)
+			{
 				fatal("-v must be followed by a number");
 			}
 			break;

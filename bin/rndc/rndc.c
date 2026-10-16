@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netmgr.h>
+#include <isc/parseint.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
@@ -846,6 +847,7 @@ int
 main(int argc, char **argv) {
 	bool show_final_mem = false;
 	isc_logconfig_t *logconfig = NULL;
+	isc_result_t result;
 	cfg_obj_t *config = NULL;
 	const char *keyname = NULL;
 	struct in_addr in;
@@ -937,8 +939,11 @@ main(int argc, char **argv) {
 			break;
 
 		case 't':
-			timeout = strtol(isc_commandline_argument, &p, 10);
-			if (*p != '\0' || timeout < 0 || timeout > 86400) {
+			result = isc_parse_signed_number(
+				&timeout, isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS || timeout < 0 ||
+			    timeout > 86400)
+			{
 				fatal("invalid timeout '%s'",
 				      isc_commandline_argument);
 			}

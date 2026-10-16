@@ -24,9 +24,7 @@ static isc_result_t
 fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned char alg, labels;
-	long i;
 	dns_rdatatype_t covered;
-	char *e = NULL;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	uint32_t time_signed, time_expire;
@@ -47,14 +45,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 				      false));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
-		i = strtol(DNS_AS_STR(token), &e, 10);
-		if (i < 0 || i > 65535) {
-			RETTOK(ISC_R_RANGE);
-		}
-		if (*e != 0) {
-			RETTOK(result);
-		}
-		covered = (dns_rdatatype_t)i;
+		RETTOK(isc_parse_uint16(&covered, DNS_AS_STR(token), 10));
 	}
 	RETERR(uint16_tobuffer(covered, target));
 
@@ -92,18 +83,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (token.value.as_textregion.length <= 10U &&
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+')
 	{
-		char *end;
-		unsigned long u;
-		uint64_t u64;
-
-		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
-		if (u == ULONG_MAX || *end != 0) {
-			RETTOK(DNS_R_SYNTAX);
-		}
-		if (u64 > 0xffffffffUL) {
-			RETTOK(ISC_R_RANGE);
-		}
-		time_expire = u;
+		RETTOK(isc_parse_uint32(&time_expire, DNS_AS_STR(token), 10));
 	} else {
 		RETTOK(dns_time32_fromregion(token.value.as_textregion,
 					     &time_expire));
@@ -118,18 +98,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	if (token.value.as_textregion.length <= 10U &&
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+')
 	{
-		char *end;
-		unsigned long u;
-		uint64_t u64;
-
-		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
-		if (u == ULONG_MAX || *end != 0) {
-			RETTOK(DNS_R_SYNTAX);
-		}
-		if (u64 > 0xffffffffUL) {
-			RETTOK(ISC_R_RANGE);
-		}
-		time_signed = u;
+		RETTOK(isc_parse_uint32(&time_signed, DNS_AS_STR(token), 10));
 	} else {
 		RETTOK(dns_time32_fromregion(token.value.as_textregion,
 					     &time_signed));

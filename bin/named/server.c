@@ -11282,9 +11282,8 @@ cleanup:
 
 isc_result_t
 named_server_setdebuglevel(named_server_t *server, isc_lex_t *lex) {
+	typeof(named_g_debuglevel) newlevel;
 	char *ptr;
-	char *endp;
-	long newlevel;
 
 	UNUSED(server);
 
@@ -11301,11 +11300,11 @@ named_server_setdebuglevel(named_server_t *server, isc_lex_t *lex) {
 			named_g_debuglevel++;
 		}
 	} else {
-		newlevel = strtol(ptr, &endp, 10);
-		if (*endp != '\0' || newlevel < 0 || newlevel > 99) {
+		RETERR(isc_parse_unsigned_number(&newlevel, ptr, 10));
+		if (newlevel > 99) {
 			return ISC_R_RANGE;
 		}
-		named_g_debuglevel = (unsigned int)newlevel;
+		named_g_debuglevel = newlevel;
 	}
 	isc_log_setdebuglevel(named_g_debuglevel);
 	isc_log_write(NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,

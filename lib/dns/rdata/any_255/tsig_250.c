@@ -23,8 +23,6 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	uint64_t sigtime;
 	isc_buffer_t buffer;
 	dns_rcode_t rcode;
-	long i;
-	char *e;
 
 	REQUIRE(type == dns_rdatatype_tsig);
 	REQUIRE(rdclass == dns_rdataclass_any);
@@ -49,10 +47,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
-	sigtime = strtoull(DNS_AS_STR(token), &e, 10);
-	if (*e != 0) {
-		RETTOK(DNS_R_SYNTAX);
-	}
+	RETTOK(isc_parse_uint64(&sigtime, DNS_AS_STR(token), 10));
 	if ((sigtime >> 48) != 0) {
 		RETTOK(ISC_R_RANGE);
 	}
@@ -102,14 +97,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion) !=
 	    ISC_R_SUCCESS)
 	{
-		i = strtol(DNS_AS_STR(token), &e, 10);
-		if (*e != 0) {
-			RETTOK(DNS_R_UNKNOWN);
-		}
-		if (i < 0 || i > 0xffff) {
-			RETTOK(ISC_R_RANGE);
-		}
-		rcode = (dns_rcode_t)i;
+		RETTOK(isc_parse_uint16(&rcode, DNS_AS_STR(token), 10));
 	}
 	RETERR(uint16_tobuffer(rcode, target));
 

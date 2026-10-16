@@ -53,6 +53,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
+#include <isc/parseint.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
@@ -3289,7 +3290,6 @@ main(int argc, char *argv[]) {
 	char *serialformatstr = NULL;
 	char *dskeyfile[MAXDSKEYS];
 	int ndskeys = 0;
-	char *endp;
 	isc_time_t timer_start, timer_finish;
 	isc_time_t sign_start, sign_finish;
 	isc_result_t result, vresult;
@@ -3431,8 +3431,9 @@ main(int argc, char *argv[]) {
 				no_max_check = true;
 				break;
 			}
-			nsec3iter = strtoul(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_unsigned_number(
+				&nsec3iter, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("iterations must be numeric");
 			}
 			if (nsec3iter > 0xffffU) {
@@ -3445,18 +3446,18 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'i':
-			endp = NULL;
-			cycle = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0' || cycle < 0) {
+			result = isc_parse_signed_number(
+				&cycle, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS || cycle < 0) {
 				fatal("cycle period must be numeric and "
 				      "positive");
 			}
 			break;
 
 		case 'j':
-			endp = NULL;
-			jitter = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0' || jitter < 0) {
+			result = isc_parse_signed_number(
+				&jitter, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS || jitter < 0) {
 				fatal("jitter must be numeric and positive");
 			}
 			break;
@@ -3478,9 +3479,9 @@ main(int argc, char *argv[]) {
 
 		case 'L':
 			snset = true;
-			endp = NULL;
-			serialnum = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_unsigned_number(
+				&serialnum, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "source serial number "
 						"must be numeric");
 				exit(EXIT_FAILURE);
@@ -3488,10 +3489,10 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'M':
-			endp = NULL;
 			set_maxttl = true;
-			maxttl = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_unsigned_number(
+				&maxttl, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "maximum TTL "
 						"must be numeric");
 				exit(EXIT_FAILURE);
@@ -3506,9 +3507,9 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'n':
-			endp = NULL;
-			nloops = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0' || nloops > INT32_MAX) {
+			result = isc_parse_unsigned_number(
+				&nloops, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS || nloops > INT32_MAX) {
 				fatal("number of cpus must be numeric");
 			}
 			break;
@@ -3550,7 +3551,6 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'T':
-			endp = NULL;
 			set_keyttl = true;
 			keyttl = strtottl(isc_commandline_argument);
 			break;
@@ -3568,9 +3568,9 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'v':
-			endp = NULL;
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			result = isc_parse_signed_number(
+				&verbose, isc_commandline_argument, 0);
+			if (result != ISC_R_SUCCESS) {
 				fatal("verbose level must be numeric");
 			}
 			break;
@@ -3721,11 +3721,9 @@ main(int argc, char *argv[]) {
 		} else if ((rawver = isc_string_casestripprefix(
 				    outputformatstr, "raw=")) != NULL)
 		{
-			char *end;
-
 			outputformat = dns_masterformat_raw;
-			rawversion = strtol(rawver, &end, 10);
-			if (end == rawver || *end != '\0' || rawversion > 1U) {
+			result = isc_parse_uint32(&rawversion, rawver, 10);
+			if (result != ISC_R_SUCCESS || rawversion > 1U) {
 				fprintf(stderr, "unknown raw format version\n");
 				exit(EXIT_FAILURE);
 			}

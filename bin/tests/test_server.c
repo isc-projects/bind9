@@ -25,6 +25,7 @@
 #include <isc/netaddr.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
+#include <isc/parseint.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -51,14 +52,15 @@ send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg);
 
 static isc_result_t
 parse_port(const char *input) {
-	char *endptr = NULL;
-	long val = strtol(input, &endptr, 10);
+	isc_result_t result;
+	typeof(port) value;
 
-	if ((*endptr != '\0') || (val <= 0) || (val >= 65536)) {
+	result = isc_parse_unsigned_number(&value, input, 10);
+	if (result != ISC_R_SUCCESS || (value == 0)) {
 		return ISC_R_BADNUMBER;
 	}
 
-	port = (in_port_t)val;
+	port = value;
 
 	return ISC_R_SUCCESS;
 }
@@ -93,16 +95,16 @@ parse_address(const char *input) {
 	return ISC_R_BADADDRESSFORM;
 }
 
-static int
+static isc_result_t
 parse_workers(const char *input) {
-	char *endptr = NULL;
-	long val = strtol(input, &endptr, 10);
+	typeof(workers) value;
 
-	if ((*endptr != '\0') || (val <= 0) || (val >= 128)) {
+	RETERR(isc_parse_signed_number(&value, input, 10));
+	if (value == 0 || value >= 128) {
 		return ISC_R_BADNUMBER;
 	}
 
-	workers = val;
+	workers = value;
 
 	return ISC_R_SUCCESS;
 }

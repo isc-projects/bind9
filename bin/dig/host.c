@@ -24,6 +24,7 @@
 #include <isc/lib.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
+#include <isc/parseint.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -675,9 +676,8 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			    NULL)
 			{
 				rdtype = dns_rdatatype_ixfr;
-				/* XXXMPA add error checking */
-				serial = strtoul(ixfrserial, NULL, 10);
-				result = ISC_R_SUCCESS;
+				result = isc_parse_uint32(&serial, ixfrserial,
+							  10);
 			} else {
 				tr.base = isc_commandline_argument;
 				tr.length = strlen(isc_commandline_argument);

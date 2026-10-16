@@ -28,6 +28,7 @@
 #include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -185,7 +186,6 @@ main(int argc, char **argv) {
 	const char *filename = NULL;
 	char *directory = NULL;
 	char keystr[DST_KEY_FORMATSIZE];
-	char *endp;
 	const char *p, *tail;
 	int ch;
 	const char *predecessor = NULL;
@@ -522,10 +522,13 @@ main(int argc, char **argv) {
 			/* Does not return. */
 			version(isc_commandline_progname);
 		case 'v':
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0') {
+			if (isc_parse_signed_number(&verbose,
+						    isc_commandline_argument,
+						    0) != ISC_R_SUCCESS)
+			{
 				fatal("-v must be followed by a number");
 			}
+
 			break;
 		case 'z':
 			if (setzrrsig) {

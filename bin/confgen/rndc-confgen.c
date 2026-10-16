@@ -34,6 +34,7 @@
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/parseint.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -85,6 +86,7 @@ Usage:\n\
 int
 main(int argc, char **argv) {
 	bool show_final_mem = false;
+	isc_result_t result;
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -92,9 +94,8 @@ main(int argc, char **argv) {
 	const char *serveraddr = NULL;
 	dns_secalg_t alg;
 	const char *algname;
-	char *p;
 	int ch;
-	int port;
+	uint16_t port;
 	int keysize = -1;
 	struct in_addr addr4_dummy;
 	struct in6_addr addr6_dummy;
@@ -130,8 +131,9 @@ main(int argc, char **argv) {
 			}
 			break;
 		case 'b':
-			keysize = strtol(isc_commandline_argument, &p, 10);
-			if (*p != '\0' || keysize < 0) {
+			result = isc_parse_signed_number(
+				&keysize, isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS || keysize < 0) {
 				fatal("-b requires a non-negative number");
 			}
 			break;
@@ -153,8 +155,9 @@ main(int argc, char **argv) {
 			show_final_mem = true;
 			break;
 		case 'p':
-			port = strtol(isc_commandline_argument, &p, 10);
-			if (*p != '\0' || port < 0 || port > 65535) {
+			result = isc_parse_unsigned_number(
+				&port, isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS) {
 				fatal("port '%s' out of range",
 				      isc_commandline_argument);
 			}

@@ -27,6 +27,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/parseint.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/thread.h>
@@ -348,8 +349,10 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 			if (tail != NULL) {
 				s = tail;
 			}
-			i = strtol(s, NULL, 10);
-			return match_int(&value, i);
+			if (isc_parse_signed_number(&i, s, 10) == ISC_R_SUCCESS)
+			{
+				return match_int(&value, i);
+			}
 		}
 		break;
 

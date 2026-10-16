@@ -1496,8 +1496,6 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	    strncasecmp("type", source->base, 4) == 0)
 	{
 		char buf[sizeof("65000")];
-		char *endp;
-		unsigned int val;
 
 		/*
 		 * source->base is not required to be NUL terminated.
@@ -1505,11 +1503,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		 */
 		snprintf(buf, sizeof(buf), "%.*s", (int)(source->length - 4),
 			 source->base + 4);
-		val = strtoul(buf, &endp, 10);
-		if (*endp == '\0' && val <= 0xffff) {
-			*typep = (dns_rdatatype_t)val;
-			return ISC_R_SUCCESS;
-		}
+		RETERR(isc_parse_unsigned_number(typep, buf, 10));
+		return ISC_R_SUCCESS;
 	}
 
 	return DNS_R_UNKNOWN;
