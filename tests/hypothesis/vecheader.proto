@@ -1,0 +1,76 @@
+// Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+// SPDX-License-Identifier: MPL-2.0
+syntax = "proto2";
+package vec;
+
+message Header {
+  repeated bytes records = 1;
+  repeated bool offline = 2;
+  optional bytes owner = 3;
+  optional uint32 ttl = 4 [default = 300];
+  optional uint32 trust = 5 [default = 0];
+  optional uint32 serial = 6 [default = 0];
+  optional bool resign = 7 [default = false];
+  optional int64 resign_time = 8 [default = 0];
+}
+message Construct {
+  required uint32 type = 1;
+  required Header header = 2;
+  optional uint32 limit = 3 [default = 0];
+}
+message Merge {
+  required uint32 type = 1;
+  required Header left = 2;
+  required Header right = 3;
+  optional uint32 flags = 4 [default = 0];
+  optional uint32 limit = 5 [default = 0];
+}
+message Subtract {
+  required uint32 type = 1;
+  required Header left = 2;
+  required Header right = 3;
+  optional uint32 flags = 4 [default = 0];
+}
+message Copy {
+  required uint32 type = 1;
+  required Header header = 2;
+}
+message SetOwnerCase {
+  required uint32 type = 1;
+  required Header header = 2;
+  required bytes owner = 3;
+}
+message Request {
+  oneof command {
+    Construct construct = 1;
+    Merge merge = 2;
+    Subtract subtract = 3;
+    Copy copy = 4;
+    SetOwnerCase set_owner_case = 5;
+  }
+}
+enum Result {
+  SUCCESS = 0;
+  TOO_MANY_RECORDS = 1;
+  NOT_EXACT = 2;
+  UNCHANGED = 3;
+  SINGLETON = 4;
+  NXRRSET = 5;
+  NO_SPACE = 6;
+  FAILURE = 7;
+}
+
+message Response {
+  required Result result = 1;
+  optional Header header = 2;
+  optional uint32 count = 3;
+  optional uint32 raw_length = 4;
+  optional uint32 size = 5;
+  optional uint32 header_size = 6;
+  optional uint32 type = 7;
+  optional bool case_set = 8;
+  optional bool case_lower = 9;
+  optional bytes bitmap = 10;
+  optional bytes applied_owner = 11;
+  optional uint32 covers = 12;
+}

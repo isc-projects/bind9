@@ -82,6 +82,8 @@ struct dns_vecheader {
 	_Atomic(dns_trust_t) trust;
 
 	dns_typepair_t typepair;
+	uint16_t       count;
+	uint32_t       raw_length;
 
 	isc_refcount_t references;
 
@@ -126,7 +128,6 @@ struct dns_vecheader {
 };
 
 enum {
-	DNS_VECHEADERATTR_NONEXISTENT = 1 << 0,
 	DNS_VECHEADERATTR_IGNORE = 1 << 1,
 	DNS_VECHEADERATTR_RESIGN = 1 << 2,
 	DNS_VECHEADERATTR_OPTOUT = 1 << 3,

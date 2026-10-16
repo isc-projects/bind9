@@ -1011,7 +1011,7 @@ static dns_vecheader_t *
 first_existing_header(dns_vectop_t *top, uint32_t serial) {
 	ISC_SLIST_FOREACH(header, top->headers, next_header) {
 		if (header->serial <= serial && !IGNORE(header)) {
-			if (EXISTS(header)) {
+			if (header->count != 0) {
 				return header;
 			}
 			break;
@@ -1893,16 +1893,18 @@ recordsize(dns_vecheader_t *header, unsigned int namelen) {
 static void
 maybe_update_recordsandsize(bool add, qpz_version_t *version,
 			    dns_vecheader_t *header, unsigned int namelen) {
-	if (!EXISTS(header)) {
+	unsigned int count = header->count;
+
+	if (count == 0) {
 		return;
 	}
 
 	RWLOCK(&version->rwlock, isc_rwlocktype_write);
 	if (add) {
-		version->records += dns_rdatavec_count(header);
+		version->records += count;
 		version->xfrsize += recordsize(header, namelen);
 	} else {
-		version->records -= dns_rdatavec_count(header);
+		version->records -= count;
 		version->xfrsize -= recordsize(header, namelen);
 	}
 	RWUNLOCK(&version->rwlock, isc_rwlocktype_write);
@@ -1971,7 +1973,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 		 * we'll try to create a new rdataset that is the union
 		 * of 'newheader' and 'header'.
 		 */
-		if (merge && EXISTS(header)) {
+		if (merge && header->count != 0) {
 			unsigned int flags = 0;
 			INSIST(version->serial >= header->serial);
 			merged = NULL;
@@ -2091,7 +2093,7 @@ add(qpzonedb_t *qpdb, qpznode_t *node, const dns_name_t *nodename,
 		 *
 		 * If we're trying to delete the type, don't bother.
 		 */
-		if (!EXISTS(newheader)) {
+		if (newheader->count == 0) {
 			dns_vecheader_unref(newheader);
 			return DNS_R_UNCHANGED;
 		}
@@ -5128,7 +5130,7 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 			}
 		}
 	}
-	if (header != NULL && EXISTS(header)) {
+	if (header != NULL && header->count != 0) {
 		unsigned int flags = 0;
 		subresult = NULL;
 		result = ISC_R_SUCCESS;
@@ -5188,8 +5190,6 @@ qpzone_subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 			newheader = dns_vecheader_new(db->mctx);
 			newheader->ttl = 0;
 			newheader->typepair = foundtop->typepair;
-			atomic_init(&newheader->attributes,
-				    DNS_VECHEADERATTR_NONEXISTENT);
 			newheader->serial = version->serial;
 		} else {
 			LOCK(&qpdb->heap->lock);
@@ -5276,7 +5276,6 @@ qpzone_deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode,
 	newheader = dns_vecheader_new(db->mctx);
 	newheader->typepair = DNS_TYPEPAIR_VALUE(type, covers);
 	newheader->ttl = 0;
-	atomic_init(&newheader->attributes, DNS_VECHEADERATTR_NONEXISTENT);
 	newheader->serial = version->serial;
 
 	dns_name_copy(&node->name, nodename);

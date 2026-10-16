@@ -102,6 +102,44 @@ create_rdataset_from_vecheader(dns_vecheader_t *header,
 	rdataset->vec.header = header;
 }
 
+ISC_RUN_TEST_IMPL(zero_count_vecheader) {
+	isc_mem_t *mctx = isc_g_mctx;
+	dns_vecheader_t *empty = NULL, *header = NULL, *merged = NULL;
+	isc_result_t result;
+
+	UNUSED(state);
+
+	empty = dns_vecheader_new(mctx);
+	empty->typepair = DNS_TYPEPAIR_VALUE(dns_rdatatype_a,
+					     dns_rdatatype_none);
+
+	assert_int_equal(dns_rdatavec_count(empty), 0);
+	assert_int_equal(dns_rdatavec_size(empty), sizeof(dns_vecheader_t));
+
+	CHECK(create_vecheader(mctx, dns_rdatatype_a, dns_rdataclass_in, 300,
+			       "192.0.2.1", &header));
+	CHECK(dns_rdatavec_merge(empty, header, mctx, dns_rdataclass_in,
+				 dns_rdatatype_a, 0, 0, &merged));
+	assert_int_equal(dns_rdatavec_count(merged), 1);
+	dns_vecheader_unref(merged);
+	merged = NULL;
+
+	result = dns_rdatavec_subtract(header, empty, mctx, dns_rdataclass_in,
+				       dns_rdatatype_a, 0, &merged);
+	assert_int_equal(result, DNS_R_UNCHANGED);
+
+cleanup:
+	if (empty != NULL) {
+		dns_vecheader_unref(empty);
+	}
+	if (header != NULL) {
+		dns_vecheader_unref(header);
+	}
+	if (merged != NULL) {
+		dns_vecheader_unref(merged);
+	}
+}
+
 /* Test merging two headers */
 ISC_RUN_TEST_IMPL(merge_headers) {
 	isc_mem_t *mctx = isc_g_mctx;
@@ -135,7 +173,7 @@ ISC_RUN_TEST_IMPL(merge_headers) {
 
 	/* Test: merged size should be first_size + second_size - sizeof(header)
 	 * - count_field_size */
-	expected_size = size1 + size2 - sizeof(dns_vecheader_t) - 2;
+	expected_size = size1 + size2 - sizeof(dns_vecheader_t);
 	assert_int_equal(merged_size, expected_size);
 
 	/* Test: merged count should be first_count + second_count */
@@ -550,6 +588,7 @@ cleanup:
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY_CUSTOM(zero_count_vecheader, setup_mctx, teardown_mctx)
 ISC_TEST_ENTRY_CUSTOM(merge_headers, setup_mctx, teardown_mctx)
 ISC_TEST_ENTRY_CUSTOM(merge_case_preservation, setup_mctx, teardown_mctx)
 ISC_TEST_ENTRY_CUSTOM(setcase_size_consistency, setup_mctx, teardown_mctx)

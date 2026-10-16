@@ -23,9 +23,6 @@
 #define CASESET(header)                                \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_CASESET) != 0)
-#define EXISTS(header)                                 \
-	((atomic_load_acquire(&(header)->attributes) & \
-	  DNS_VECHEADERATTR_NONEXISTENT) == 0)
 #define IGNORE(header)                                 \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  DNS_VECHEADERATTR_IGNORE) != 0)
