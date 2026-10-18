@@ -337,20 +337,10 @@ client_senddone(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			isc_histomulti_detach(&hmpin);
 		}
 	} else {
-		if (!client->inner.tcp && result == ISC_R_MAXSIZE) {
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-				      "send exceeded maximum size: truncating");
-			client->query.answered = false;
-			client->inner.rcode_override = dns_rcode_noerror;
-			ns_client_error(client, ISC_R_MAXSIZE);
-		} else {
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-				      "send failed: %s",
-				      isc_result_totext(result));
-			isc_nm_bad_request(handle);
-		}
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "send failed: %s", isc_result_totext(result));
+		isc_nm_bad_request(handle);
 	}
 
 	isc_nmhandle_detach(&handle);
@@ -857,7 +847,6 @@ void
 ns_client_error(ns_client_t *client, isc_result_t result) {
 	dns_message_t *message = NULL;
 	dns_rcode_t rcode;
-	bool trunc = false;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -869,10 +858,6 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		rcode = dns_result_torcode(result);
 	} else {
 		rcode = (dns_rcode_t)(client->inner.rcode_override & 0xfff);
-	}
-
-	if (result == ISC_R_MAXSIZE) {
-		trunc = true;
 	}
 
 #if NS_CLIENT_DROPPORT
@@ -976,9 +961,6 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	}
 
 	message->rcode = rcode;
-	if (trunc) {
-		message->flags |= DNS_MESSAGEFLAG_TC;
-	}
 
 	if (rcode == dns_rcode_formerr) {
 		/*
