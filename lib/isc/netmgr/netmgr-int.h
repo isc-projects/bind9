@@ -50,10 +50,14 @@
  */
 #if HAVE_DECL_UV_UDP_MMSG_CHUNK
 /*
- * The value 20 here is UV__MMSG_MAXWIDTH taken from the current libuv source,
- * libuv will not receive more that 20 datagrams in a single recvmmsg call.
+ * libuv splits the receive buffer into chunks of UV__UDP_DGRAM_MAXSIZE
+ * (64 * 1024) bytes and will not receive more than UV__MMSG_MAXWIDTH (20)
+ * datagrams in a single recvmmsg call; both values are taken from the
+ * current libuv source.  The buffer size must be a multiple of the chunk
+ * size, otherwise the remainder is wasted: 20 * UINT16_MAX would only fit
+ * 19 chunks.
  */
-#define ISC_NETMGR_UDP_RECVBUF_SIZE (20 * UINT16_MAX)
+#define ISC_NETMGR_UDP_RECVBUF_SIZE (20 * (64 * 1024))
 #else
 /*
  * A single DNS message size
