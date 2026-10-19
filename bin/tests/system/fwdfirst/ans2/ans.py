@@ -17,6 +17,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS3
 
 
 class PoisonReferralForwarder(SingleResponseHandler):
@@ -28,7 +29,7 @@ class PoisonReferralForwarder(SingleResponseHandler):
     ]
     additional = [
         dns.rrset.from_text(
-            "ns.fwd.hack.", 300, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.3"
+            "ns.fwd.hack.", 300, dns.rdataclass.IN, dns.rdatatype.A, ANS3.ip
         )
     ]
     rcode = dns.rcode.NOERROR

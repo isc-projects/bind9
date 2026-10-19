@@ -22,6 +22,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.template import ANS3
 
 
 def rrset(
@@ -36,13 +37,13 @@ def rrset(
 class RootNsHandler(SingleResponseHandler):
     matcher = Qname(".") & Qtype(dns.rdatatype.NS)
     answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
-    additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
+    additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, ANS3.ip)]
 
 
 class ExampleNsHandler(SingleResponseHandler):
     matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
     answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
-    additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
+    additional = [rrset("ns.example.", dns.rdatatype.A, ANS3.ip)]
 
 
 class ExampleCookieHandler(ResponseHandler):

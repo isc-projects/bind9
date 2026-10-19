@@ -31,6 +31,7 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS4
 
 
 class ChainNameGenerator:
@@ -218,7 +219,7 @@ class FinalRecordGenerator(RecordGenerator):
 
     def generate_rrsets(self) -> tuple[list[dns.rrset.RRset], list[dns.rrset.RRset]]:
         owner = self._name_generator.current_name
-        response = self.create_rrset(owner, dns.rdatatype.A, "10.53.0.4")
+        response = self.create_rrset(owner, dns.rdatatype.A, ANS4.ip)
         signature = self.create_rrset_signature(owner, response.rdtype)
         return [response], [signature]
 
@@ -442,7 +443,7 @@ class ChainResponseHandler(ResponseHandler):
     def _non_chain_answer(self, qctx: QueryContext) -> list[dns.rrset.RRset]:
         owner = qctx.qname
         return [
-            RecordGenerator.create_rrset(owner, dns.rdatatype.A, "10.53.0.4"),
+            RecordGenerator.create_rrset(owner, dns.rdatatype.A, ANS4.ip),
             RecordGenerator.create_rrset_signature(owner, dns.rdatatype.A),
         ]
 
@@ -457,10 +458,8 @@ class ChainResponseHandler(ResponseHandler):
     def _additional_rrsets(self) -> list[dns.rrset.RRset]:
         owner = dns.name.from_text("ns1.domain.nil.")
         return [
-            RecordGenerator.create_rrset(owner, dns.rdatatype.A, "10.53.0.4"),
-            RecordGenerator.create_rrset(
-                owner, dns.rdatatype.AAAA, "fd92:7065:b8e:ffff::4"
-            ),
+            RecordGenerator.create_rrset(owner, dns.rdatatype.A, ANS4.ip),
+            RecordGenerator.create_rrset(owner, dns.rdatatype.AAAA, ANS4.ip6),
         ]
 
 

@@ -18,6 +18,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.template import NS3, NS4
 
 
 def rrset(
@@ -45,12 +46,12 @@ class FooForeignGlueReferralHandler(SingleResponseHandler):
         ns("foo.test.", "ns.test2."),
     ]
     additional = [
-        a("ns.foo.test.", "10.53.0.3"),
+        a("ns.foo.test.", NS3.ip),
         # These glues don't belong, as they're outside the
         # delegated domain. However, only the latest will be
         # ignored by the resolver (the former, being a sibling
         # glue, is still used.)
-        a("ns.bar.test.", "10.53.0.3"),
+        a("ns.bar.test.", NS3.ip),
         a("ns.test2.", "10.10.10.10"),
     ]
 
@@ -66,8 +67,8 @@ class BarForeignNsReferralHandler(SingleResponseHandler):
         ns("bar.test2.", "ns.test2."),
     ]
     additional = [
-        a("ns.bar.test.", "10.53.0.3"),
-        a("ns2.foo.test.", "10.53.0.4"),
+        a("ns.bar.test.", NS3.ip),
+        a("ns2.foo.test.", NS4.ip),
         # The glue is then ignored as well, as it doesn't match
         # any of the valid NS above.
         a("ns.test2.", "10.10.10.10"),

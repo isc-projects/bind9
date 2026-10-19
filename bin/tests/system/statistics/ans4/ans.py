@@ -19,6 +19,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import IgnoreAllQueries
 from isctest.asyncserver.matchers import Qname
+from isctest.template import NS3
 
 
 class FooInfoHandler(IgnoreAllQueries):
@@ -35,7 +36,7 @@ class FallbackHandler(ResponseHandler):
             name, 300, qctx.qclass, dns.rdatatype.NS, ns_name
         )
         a_rrset = dns.rrset.from_text(
-            ns_name, 300, qctx.qclass, dns.rdatatype.A, "10.53.0.3"
+            ns_name, 300, qctx.qclass, dns.rdatatype.A, NS3.ip
         )
         qctx.response.authority.append(ns_rrset)
         qctx.response.additional.append(a_rrset)

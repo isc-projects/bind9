@@ -29,6 +29,7 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import LabelCount, LeftmostLabel, Protocol, Qtype
 from isctest.name import prepend_label
+from isctest.template import ANS9, ANS10
 from isctest.vars.algorithms import ALG_VARS
 
 KEYRING = dns.tsigkeyring.from_text(
@@ -79,13 +80,11 @@ def _ns(qctx: QueryContext) -> dns.rrset.RRset:
 
 
 def _legit_a(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(qctx.qname, 1, qctx.qclass, dns.rdatatype.A, "10.53.0.9")
+    return dns.rrset.from_text(qctx.qname, 1, qctx.qclass, dns.rdatatype.A, ANS9.ip)
 
 
 def _spoofed_a(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        qctx.qname, 1, qctx.qclass, dns.rdatatype.A, "10.53.0.10"
-    )
+    return dns.rrset.from_text(qctx.qname, 1, qctx.qclass, dns.rdatatype.A, ANS10.ip)
 
 
 class _SpoofableHandler(ResponseHandler, abc.ABC):

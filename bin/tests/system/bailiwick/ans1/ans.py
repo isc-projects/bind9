@@ -16,10 +16,11 @@ import dns.rrset
 
 from isctest.asyncserver import QueryContext
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.template import ANS3
 
 from ..bailiwick_ans import ResponseSpoofer, spoofing_server
 
-ATTACKER_IP = "10.53.0.3"
+ATTACKER_IP = ANS3.ip
 TTL = 3600
 
 

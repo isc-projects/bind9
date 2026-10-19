@@ -35,6 +35,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseAction
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import ForwarderHandler, ResponseHandlerWrapper
 from isctest.asyncserver.matchers import Always, Qtype
+from isctest.template import NS6
 from isctest.zone import FileZoneKey
 
 # The malicious proxy relays every query to the real signed authoritative
@@ -180,7 +181,7 @@ class RelayForwarder(ForwarderHandler):
     real authoritative server for evil.test.
     """
 
-    target = "10.53.0.6"
+    target = NS6.ip
 
     def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
         super().__init__()

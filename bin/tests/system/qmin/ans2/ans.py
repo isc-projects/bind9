@@ -19,6 +19,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS3, ANS4
 
 from ..qmin_ans import (
     DelayedResponseHandler,
@@ -85,9 +86,9 @@ class StaleHandler(ResponseHandler):
         a_b_stale = dns.name.from_text("a.b.stale.")
         b_stale = dns.name.from_text("b.stale.")
         if qctx.qname.is_subdomain(a_b_stale):
-            yield send_delegation(qctx, a_b_stale, "10.53.0.3")
+            yield send_delegation(qctx, a_b_stale, ANS3.ip)
         elif qctx.qname.is_subdomain(b_stale):
-            yield send_delegation(qctx, b_stale, "10.53.0.4")
+            yield send_delegation(qctx, b_stale, ANS4.ip)
 
 
 def main() -> None:

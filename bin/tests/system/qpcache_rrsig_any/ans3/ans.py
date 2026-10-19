@@ -21,6 +21,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname
+from isctest.template import ANS3
 
 
 def rrsig_covering(
@@ -42,9 +43,7 @@ def address(owner: dns.name.Name | str) -> dns.rrset.RRset:
     recursive ANY queries are rejected before any fetch is made), so every
     answer carries an address record for the RRSIGs to ride along with.
     """
-    return dns.rrset.from_text(
-        owner, 3600, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.3"
-    )
+    return dns.rrset.from_text(owner, 3600, dns.rdataclass.IN, dns.rdatatype.A, ANS3.ip)
 
 
 class RrsigCoversRrsigHandler(SingleResponseHandler):

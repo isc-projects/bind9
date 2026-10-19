@@ -22,6 +22,7 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS11
 
 
 class ExtraAnswersHandler(ResponseHandler):
@@ -40,7 +41,7 @@ class ExtraAnswersHandler(ResponseHandler):
             )
             qctx.response.answer.append(ns_rrset)
             a_rrset = dns.rrset.from_text(
-                "local.net3.", 300, qctx.qclass, dns.rdatatype.A, "10.53.0.11"
+                "local.net3.", 300, qctx.qclass, dns.rdatatype.A, ANS11.ip
             )
             qctx.response.additional.append(a_rrset)
 

@@ -20,6 +20,7 @@ import dns.rrset
 from isctest.asyncserver import ResponseHandler
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Always, Qname, Qtype
+from isctest.template import ANS2
 
 
 def rrset(
@@ -125,7 +126,7 @@ def a_handler(
     name_prefix: str,
     owner: str,
     ttl: int = 300,
-    address: str = "10.53.0.2",
+    address: str = ANS2.ip,
 ) -> ResponseHandler:
     return StaticHandler(
         f"{name_prefix}AHandler",
@@ -141,7 +142,7 @@ def ns_handler(
     target: str,
     ttl: int = 300,
     glue_ttl: int = 300,
-    address: str = "10.53.0.2",
+    address: str = ANS2.ip,
     in_answer: bool = False,
 ) -> ResponseHandler:
     ns_rrsets = [ns(owner, target, ttl=ttl)]

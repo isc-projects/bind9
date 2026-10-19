@@ -18,6 +18,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer
 from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.template import ANS11
 
 ZONE = "sigaxfr.nil."
 NS_NAME = f"ns.{ZONE}"
@@ -73,7 +74,7 @@ class SigAxfrHandler(AxfrHandler):
     initial_soa = soa()
     zone_contents = [
         rrset(ZONE, dns.rdatatype.NS, NS_NAME),
-        rrset(NS_NAME, dns.rdatatype.A, "10.53.0.11"),
+        rrset(NS_NAME, dns.rdatatype.A, ANS11.ip),
         sig(),
     ]
     final_soa = soa()

@@ -11,10 +11,11 @@
 
 from isctest.asyncserver import AsyncDnsServer
 from isctest.asyncserver.handlers import ForwarderHandler
+from isctest.template import NS2
 
 
 class DelayedForwarder(ForwarderHandler):
-    target = "10.53.0.2"
+    target = NS2.ip
     delay = 0.5
 
 

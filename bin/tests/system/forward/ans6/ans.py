@@ -26,6 +26,7 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
 from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.template import NS2
 
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
@@ -38,11 +39,11 @@ def rrset(
 
 
 def a(owner: dns.name.Name | str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.A, "10.53.0.2")
+    return rrset(owner, dns.rdatatype.A, NS2.ip)
 
 
 def aaaa(owner: dns.name.Name | str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.AAAA, "fd92:7065:b8e:ffff::2")
+    return rrset(owner, dns.rdatatype.AAAA, NS2.ip6)
 
 
 def ns(owner: dns.name.Name | str) -> dns.rrset.RRset:

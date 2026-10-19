@@ -18,6 +18,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qtype
+from isctest.template import ANS5
 
 
 class AHandler(ResponseHandler):
@@ -27,7 +28,7 @@ class AHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         a_rrset = dns.rrset.from_text(
-            qctx.qname, 300, qctx.qclass, dns.rdatatype.A, "10.53.0.5"
+            qctx.qname, 300, qctx.qclass, dns.rdatatype.A, ANS5.ip
         )
         qctx.response.answer.append(a_rrset)
         yield DnsResponseSend(qctx.response)
