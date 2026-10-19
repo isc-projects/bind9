@@ -41,32 +41,17 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-class ReclimitStateHandler(ResponseHandler):
+class ReclimitState:
     """
-    Handler for the "count." and "reset." queries that also holds the state
-    shared by all the handlers in one server.
+    Query counter, query limit and the referral-or-answer switch shared by
+    all the handlers of one server.
     """
-
-    matcher = Qname("count.", "reset.")
 
     def __init__(self, indirect_send_response_default: bool = True) -> None:
         self._indirect_send_response_default = indirect_send_response_default
         self.count = 0
         self.limit = 0
         self.indirect_send_response = indirect_send_response_default
-        super().__init__()
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        if f"{qctx.qname}" == "count.":
-            self.count += 1
-            count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self.count}", ttl=0)
-            qctx.response.answer.append(count_rrset)
-            yield DnsResponseSend(qctx.response, authoritative=True)
-        elif f"{qctx.qname}" == "reset.":
-            self.reset()
-            yield DnsResponseSend(qctx.response, authoritative=False)
 
     def reset(self) -> None:
         self.count = 0
@@ -81,8 +66,8 @@ class ReclimitHandler(ResponseHandler, abc.ABC):
     response generation to the `_get_counted_responses()` method.
     """
 
-    def __init__(self, state_handler: ReclimitStateHandler) -> None:
-        self._state = state_handler
+    def __init__(self, state: ReclimitState) -> None:
+        self._state = state
         super().__init__()
 
     @final
@@ -100,11 +85,28 @@ class ReclimitHandler(ResponseHandler, abc.ABC):
         yield DnsResponseSend(qctx.response)
 
 
+class CountAndResetHandler(ReclimitHandler):
+    matcher = Qname("count.", "reset.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if f"{qctx.qname}" == "count.":
+            count_rrset = rrset(
+                "count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0
+            )
+            qctx.response.answer.append(count_rrset)
+            yield DnsResponseSend(qctx.response, authoritative=True)
+        elif f"{qctx.qname}" == "reset.":
+            self._state.reset()
+            yield DnsResponseSend(qctx.response, authoritative=False)
+
+
 class LimitControlCommand(ControlCommand):
     control_subdomain = "limit"
 
-    def __init__(self, state_handler: ReclimitStateHandler) -> None:
-        self._state_handler = state_handler
+    def __init__(self, state: ReclimitState) -> None:
+        self._state = state
         super().__init__()
 
     def handle(
@@ -118,7 +120,7 @@ class LimitControlCommand(ControlCommand):
         except ValueError:
             return "Expected an integer"
 
-        self._state_handler.limit = limit
+        self._state.limit = limit
         return f"Limit set to {limit}"
 
 
@@ -137,11 +139,9 @@ def ns(owner: str | dns.name.Name, target: str | dns.name.Name) -> dns.rrset.RRs
 class DirectExampleHandler(ReclimitHandler):
     matcher = Qname("direct.example.org", "direct.example.net")
 
-    def __init__(
-        self, state_handler: ReclimitStateHandler, local_ns_number: int
-    ) -> None:
+    def __init__(self, state: ReclimitState, local_ns_number: int) -> None:
         self._local_ns_number = local_ns_number
-        super().__init__(state_handler)
+        super().__init__(state)
 
     async def _get_counted_responses(
         self, qctx: QueryContext
@@ -154,11 +154,9 @@ class DirectExampleHandler(ReclimitHandler):
 class IndirectExampleOrgHandler(ReclimitHandler):
     matcher = Qname(*[f"indirect{i}.example.org" for i in range(1, 9)])
 
-    def __init__(
-        self, state_handler: ReclimitStateHandler, local_ns_number: int
-    ) -> None:
+    def __init__(self, state: ReclimitState, local_ns_number: int) -> None:
         self._local_ns_number = local_ns_number
-        super().__init__(state_handler)
+        super().__init__(state)
 
     async def _get_counted_responses(
         self, qctx: QueryContext
@@ -194,9 +192,9 @@ class Ns1Example(Matcher):
 
 
 class Ns1ExampleOrgHandler(ReclimitHandler):
-    def __init__(self, state_handler: ReclimitStateHandler) -> None:
+    def __init__(self, state: ReclimitState) -> None:
         self._second_query_events: dict[dns.name.Name, asyncio.Event] = {}
-        super().__init__(state_handler)
+        super().__init__(state)
 
     matcher = Ns1Example("org") & Qtype(dns.rdatatype.A, dns.rdatatype.AAAA)
 
