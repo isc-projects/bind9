@@ -1557,6 +1557,106 @@ class ExtraAnswersHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 ```
 
+### A transfer is declared by its parts
+
+An AXFR is served by an `AxfrHandler` stating `initial_soa`,
+`zone_contents` and `final_soa`; an IXFR by a `SingleResponseHandler`
+whose `answer` is the diff sequence.  Hand-building the transfer
+messages is right only when the test is about the framing itself: a
+transfer cut short, a connection closed, an SOA at the wrong place, a
+TC bit set.
+
+#### Examples
+
+A transfer stated as its three parts, `nsupdate/ans11/ans.py` as of
+79ba163482:
+
+```python
+# nsupdate/ans11/ans.py:65-80 as of 79ba163482
+class SigAxfrHandler(AxfrHandler):
+    """
+    Serve an AXFR carrying two legacy SIG (24) rdatas at one owner whose
+    body "covered type" fields differ (A, MX); per RFC 3755 SIG has no
+    covered-type semantics, so the transferring secondary must store both
+    in a single opaque rdataset.
+    """
+
+    matcher = Qname(ZONE) & Qtype(dns.rdatatype.AXFR)
+    initial_soa = soa()
+    zone_contents = [
+        rrset(ZONE, dns.rdatatype.NS, NS_NAME),
+        rrset(NS_NAME, dns.rdatatype.A, ANS11.ip),
+        sig(),
+    ]
+    final_soa = soa()
+```
+
+An IXFR declared as its diff sequence, `ixfr/ans2/ans.py` as of
+79ba163482:
+
+```python
+# ixfr/ans2/ans.py:91-92 as of 79ba163482
+class IxfrHandler(SingleResponseHandler, abc.ABC):
+    matcher = Qtype(dns.rdatatype.IXFR)
+
+# ixfr/ans2/ans.py:95-107 as of 79ba163482
+class SuccessfulIxfrHandler(IxfrHandler):
+    answer = (
+        soa(3),
+        soa(1),
+        a("10.0.0.61", owner="a.nil."),
+        txt("initial AXFR"),
+        soa(2),
+        txt("successful IXFR"),
+        a("10.0.1.61", owner="a.nil."),
+        soa(2),
+        soa(3),
+        soa(3),
+    )
+```
+
+#### Negative examples
+
+A transfer whose framing is what the test drives, cut short or not
+answered on command, `digdelv/ans5/ans.py` as of 79ba163482:
+
+```python
+# digdelv/ans5/ans.py:40-72 as of 79ba163482
+class ErraticAxfrHandler(ResponseHandler):
+    allowed_actions = ["no-response", "partial-axfr", "complete-axfr"]
+
+    def __init__(self, actions: list[str]) -> None:
+        self.actions = actions
+        self.counter = 0
+        for action in actions:
+            assert action in self.allowed_actions
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[CloseConnection | DnsResponseSend, None]:
+        action = self.actions[self.counter % len(self.actions)]
+        self.counter += 1
+
+        logging.info("current response action: %s", action)
+
+        if action == "no-response":
+            yield CloseConnection()
+            return
+
+        soa_rr = rrset(qctx.qname, dns.rdatatype.SOA, ". . 0 0 0 0 300")
+        ns_rr = rrset(qctx.qname, dns.rdatatype.NS, ".")
+
+        qctx.response.answer.append(soa_rr)
+        qctx.response.answer.append(ns_rr)
+
+        if action == "partial-axfr":
+            yield DnsResponseSend(qctx.response)
+        elif action == "complete-axfr":
+            qctx.response.answer.append(soa_rr)
+            yield DnsResponseSend(qctx.response)
+        yield CloseConnection()
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
