@@ -11,39 +11,13 @@
 
 from collections.abc import AsyncGenerator
 
-import dns.name
-import dns.rdataclass
-import dns.rdatatype
-import dns.rrset
-
 from isctest.asyncserver import QueryContext
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.template import ANS3
 
-from ..bailiwick_ans import ResponseSpoofer, spoofing_server
+from ..bailiwick_ans import ResponseSpoofer, a, ns, spoofing_server, txt
 
 ATTACKER_IP = ANS3.ip
-
-
-def rrset(
-    owner: str | dns.name.Name,
-    rdtype: dns.rdatatype.RdataType,
-    rdata: str,
-    ttl: int = 3600,
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
-
-
-def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.A, address)
-
-
-def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.NS, target)
-
-
-def txt(owner: str | dns.name.Name, text: str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.TXT, f'"{text}"')
 
 
 class SiblingNsSpoofer(ResponseSpoofer, mode="sibling-ns"):

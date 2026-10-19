@@ -11,8 +11,11 @@
 
 import abc
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 
 from isctest.asyncserver import (
     ControlCommand,
@@ -22,6 +25,35 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.matchers import Protocol, Qname, Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 3600,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
+def txt(owner: str | dns.name.Name, text: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.TXT, f'"{text}"')
+
+
+def cname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.CNAME, target)
+
+
+def dname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.DNAME, target)
 
 
 class ResponseSpoofer(ResponseHandler, abc.ABC):

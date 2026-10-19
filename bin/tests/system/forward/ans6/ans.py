@@ -13,7 +13,6 @@ from collections.abc import AsyncGenerator
 
 import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -28,14 +27,10 @@ from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
 from isctest.template import NS2
 
+from ..forward_ans import rrset
+
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
-
-
-def rrset(
-    owner: dns.name.Name | str, rdtype: dns.rdatatype.RdataType, rdata: str
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, 300, dns.rdataclass.IN, rdtype, rdata)
 
 
 def a(owner: dns.name.Name | str) -> dns.rrset.RRset:

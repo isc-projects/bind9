@@ -11,33 +11,15 @@
 
 from collections.abc import AsyncGenerator
 
-import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qtype
 from isctest.template import ANS6
 
-
-def rrset(
-    owner: str | dns.name.Name,
-    rdtype: dns.rdatatype.RdataType,
-    rdata: str,
-    ttl: int = 300,
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
-
-
-def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.A, address)
-
-
-def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.NS, target)
+from ..rpzrecurse_ans import a, ns
 
 
 class AHandler(ResponseHandler):

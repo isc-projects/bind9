@@ -11,10 +11,7 @@
 
 from collections.abc import AsyncGenerator
 
-import dns.name
-import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
@@ -26,14 +23,7 @@ from isctest.asyncserver.commands import ToggleResponsesCommand
 from isctest.asyncserver.matchers import Domain
 from isctest.template import ANS11
 
-
-def rrset(
-    owner: str | dns.name.Name,
-    rdtype: dns.rdatatype.RdataType,
-    rdata: str,
-    ttl: int = 300,
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+from ..forward_ans import rrset
 
 
 class ExtraAnswersHandler(ResponseHandler):
