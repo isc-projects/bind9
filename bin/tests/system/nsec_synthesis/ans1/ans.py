@@ -15,7 +15,6 @@ import dns.rcode
 import dns.rdatatype
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
 from isctest.asyncserver.matchers import Flags, Qname, Qtype
 
 from ..nsec_synthesis_ans import AttackNsecHandler
@@ -47,21 +46,12 @@ class AttackNodataNsecHandler(AttackNsecHandler):
     key_tag = 9999
 
 
-class RefusedNsecHandler(StaticResponseHandler):
-    matcher = Qname("attacker.f004.test.", "victim.f004.test.") & Qtype(
-        dns.rdatatype.NSEC
-    )
-    rcode = dns.rcode.REFUSED
-    authoritative = True
-
-
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
         AttackCoveringNsecHandler(),
         AttackNodataNsecHandler(),
     )
-    server.install_response_handlers(RefusedNsecHandler())
     server.run()
 
 
