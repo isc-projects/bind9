@@ -318,3 +318,193 @@ class SoaHandler(SerialCounted):
     matcher = Qtype(dns.rdatatype.SOA)
     ...
 ```
+
+### No wall of constants
+
+A value used once lives at its use site; a value that is an input of a
+helper is its default argument; a parameter read by one class is a class
+constant on that class; what the zone already says is read from the
+zone; what the framework already names is imported from it.  A module
+constant is for what several places in the module share, or for a value
+whose name says what the literal cannot, as `KEY_WITH_BAD_DATA` does.
+
+#### Examples
+
+A proxy that opened with a block of module constants, 0bd39806aa.  Before:
+the listening address the framework provides, a zone file path, and
+the NSEC3 parameters copied by hand from the signed zone:
+
+```python
+# nsec3/ans7/ans.py:56-73 before 0bd39806aa
+IP = sys.argv[1]
+PORT = int(sys.argv[2])
+TARGET_NEXT_LENGTH = 200
+ZONE_FILE = "../ns6/evil.test.db.signed"
+
+# NSEC3 params: alg=1(SHA1), flags=1(opt-out), iterations=10, salt=DEADBEEF
+NSEC3_ALG = 1
+NSEC3_FLAGS = 1
+NSEC3_ITERATIONS = 10
+NSEC3_SALT = bytes.fromhex("DEADBEEF")
+NSEC3_TTL = 86400
+
+# RRSIG timing: computed dynamically for portability
+NOW = int(time.time())
+RRSIG_LABELS = 3
+RRSIG_ORIG_TTL = 86400
+RRSIG_INCEPTION = NOW - 3600  # 1 hour ago
+RRSIG_EXPIRATION = NOW + 30 * 86400  # 30 days from now
+```
+
+After, the values the attack needs are constants of the class that
+performs it, and the NSEC3 parameters come from the record being
+tampered with:
+
+```python
+# nsec3/ans7/ans.py:67-78 at 0bd39806aa
+    ZONE = "evil.test."
+    NSEC3_TTL = 86400
+
+    # Crafted NSEC3 next-hash length; exceeds the validator's 155-byte buffer.
+    CRAFTED_NEXT_LENGTH = 200
+    # Crafted NSEC3 type bitmap.
+    CRAFTED_WINDOWS = Bitmap.from_text(dns.tokenizer.Tokenizer("A RRSIG")).windows
+
+    # RRSIG validity window, computed at startup for portability.
+    _NOW = int(time.time())
+    RRSIG_INCEPTION = _NOW - 3600
+    RRSIG_EXPIRATION = _NOW + 30 * 86400
+
+# nsec3/ans7/ans.py:141-150 at 0bd39806aa
+        return NSEC3(
+            nsec3.rdclass,
+            nsec3.rdtype,
+            nsec3.algorithm,
+            nsec3.flags,
+            nsec3.iterations,
+            nsec3.salt,
+            padded_next,
+            tuple(nsec3.windows if windows is None else windows),
+        )
+```
+
+Names spelled next to the zone they belong to, d1b8282fdf.  Before:
+
+```python
+# nsupdate/ans11/ans.py:22-24 before d1b8282fdf
+ZONE = "sigaxfr.nil."
+NS_NAME = "ns.sigaxfr.nil."
+HOST = "host.sigaxfr.nil."
+
+# nsupdate/ans11/ans.py:51-57 before d1b8282fdf
+def sig() -> dns.rrset.RRset:
+    return dns.rrset.from_rdata(
+        HOST,
+        600,
+        sig_rdata(dns.rdatatype.A),
+        sig_rdata(dns.rdatatype.MX),
+    )
+```
+
+After, the name server's name is derived from the zone instead of
+spelled a second time, and the SIG(0) owner is the default argument
+of its builder:
+
+```python
+# nsupdate/ans11/ans.py:22-23 at d1b8282fdf
+ZONE = "sigaxfr.nil."
+NS_NAME = f"ns.{ZONE}"
+
+# nsupdate/ans11/ans.py:50-56 at d1b8282fdf
+def sig(owner: str = f"host.{ZONE}") -> dns.rrset.RRset:
+    return dns.rrset.from_rdata(
+        owner,
+        600,
+        sig_rdata(dns.rdatatype.A),
+        sig_rdata(dns.rdatatype.MX),
+    )
+```
+
+Values read by one class each, a8b8712ff3.  Before, three zone names
+and two DNSKEY blobs at module level:
+
+```python
+# xfer/ans9/ans.py:34-43 before a8b8712ff3
+RECONFIG_ZONE = "xfr-and-reconfig."
+RETRY_ZONE = "retry-too-big."
+OVERRUN_ZONE = "private-dns-overrun."
+
+# The malformed DNSKEY's algorithm identifier finishes on a 00 byte in the
+# record that follows it in the same message.  That following record, the
+# well-formed DNSKEY, starts with a compression pointer followed by the type,
+# which starts with 00.
+OVERRUN_DNSKEY = "\\# 12 00 00 00 fd 09 00 00 00 00 00 00 00"
+WELL_FORMED_DNSKEY = "\\# 12 00 00 00 fd 06 00 00 00 00 00 00 00"
+
+# xfer/ans9/ans.py:145-150 before a8b8712ff3
+class OverrunAxfrHandler(ZoneAxfrHandler):
+    """
+    Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
+    """
+
+    zone = OVERRUN_ZONE
+```
+
+After, each handler carries its own, and the comment sits with the
+values it explains:
+
+```python
+# xfer/ans9/ans.py:134-146 at a8b8712ff3
+class OverrunAxfrHandler(ZoneAxfrHandler):
+    """
+    Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
+    """
+
+    zone = "private-dns-overrun."
+
+    # The malformed DNSKEY's algorithm identifier finishes on a 00 byte in the
+    # record that follows it in the same message.  That following record, the
+    # well-formed DNSKEY, starts with a compression pointer followed by the
+    # type, which starts with 00.
+    OVERRUN_DNSKEY = "\\# 12 00 00 00 fd 09 00 00 00 00 00 00 00"
+    WELL_FORMED_DNSKEY = "\\# 12 00 00 00 fd 06 00 00 00 00 00 00 00"
+```
+
+Addresses spelled by number, de201c80d8; `NS3.ip` and `ANS11.ip` are
+`isctest.template`'s, and the address that is nobody's stays a
+literal.  Before:
+
+```python
+# cyclic_glue/ans5/ans.py:47-55 before de201c80d8
+    additional = [
+        a("ns.foo.test.", "10.53.0.3"),
+        # These glues don't belong, as they're outside the
+        # delegated domain. However, only the latest will be
+        # ignored by the resolver (the former, being a sibling
+        # glue, is still used.)
+        a("ns.bar.test.", "10.53.0.3"),
+        a("ns.test2.", "10.10.10.10"),
+    ]
+```
+
+After:
+
+```python
+# cyclic_glue/ans5/ans.py:48-56 at de201c80d8
+    additional = [
+        a("ns.foo.test.", NS3.ip),
+        # These glues don't belong, as they're outside the
+        # delegated domain. However, only the latest will be
+        # ignored by the resolver (the former, being a sibling
+        # glue, is still used.)
+        a("ns.bar.test.", NS3.ip),
+        a("ns.test2.", "10.10.10.10"),
+    ]
+
+# nsupdate/ans11/ans.py:75-79 at de201c80d8
+    zone_contents = [
+        rrset(ZONE, dns.rdatatype.NS, NS_NAME),
+        rrset(NS_NAME, dns.rdatatype.A, ANS11.ip),
+        sig(),
+    ]
+```
