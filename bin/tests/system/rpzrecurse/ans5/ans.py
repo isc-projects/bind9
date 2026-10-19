@@ -9,42 +9,30 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import dns.rcode
-import dns.rdatatype
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Qtype
+from isctest.asyncserver import AsyncDnsServer
 from isctest.template import ANS5
 
-from ..rpzrecurse_ans import a, ns
+from ..rpzrecurse_ans import AHandler, DelayedNsHandler
 
 
-class AHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.A)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(a(qctx.qname, ANS5.ip))
-        yield DnsResponseSend(qctx.response)
+class FooChildDelegationHandler(DelayedNsHandler):
+    owner = "foo.child.example.tld."
+    nameserver = "ns5.foo."
+    delay = 3
 
 
-class DelayedNsHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.NS)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(ns("foo.child.example.tld.", "ns5.foo."))
-        yield DnsResponseSend(qctx.response, delay=3)
+class Ns5FooAHandler(AHandler):
+    address = ANS5.ip
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(AHandler(), DelayedNsHandler())
+    server.install_response_handlers(
+        FooChildDelegationHandler(),
+        Ns5FooAHandler(),
+    )
     server.run()
 
 

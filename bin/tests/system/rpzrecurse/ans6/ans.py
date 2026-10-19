@@ -9,42 +9,30 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import dns.rcode
-import dns.rdatatype
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Qtype
+from isctest.asyncserver import AsyncDnsServer
 from isctest.template import ANS6
 
-from ..rpzrecurse_ans import a, ns
+from ..rpzrecurse_ans import AHandler, DelayedNsHandler
 
 
-class AHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.A)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(a(qctx.qname, ANS6.ip))
-        yield DnsResponseSend(qctx.response)
+class WwwBarDelegationHandler(DelayedNsHandler):
+    owner = "www.bar."
+    nameserver = "ns6.foo."
+    delay = 1
 
 
-class DelayedNsHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.NS)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(ns("www.bar.", "ns6.foo."))
-        yield DnsResponseSend(qctx.response, delay=1)
+class Ns6FooAHandler(AHandler):
+    address = ANS6.ip
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(AHandler(), DelayedNsHandler())
+    server.install_response_handlers(
+        WwwBarDelegationHandler(),
+        Ns6FooAHandler(),
+    )
     server.run()
 
 

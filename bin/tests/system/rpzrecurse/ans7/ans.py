@@ -18,17 +18,12 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
 
-from ..rpzrecurse_ans import a, rrset
+from ..rpzrecurse_ans import AHandler, rrset
 
 
-class ReplyA(ResponseHandler):
+class ReplyA(AHandler):
     matcher = Qname("trigger.cve-2026-97313.test.") & Qtype(dns.rdatatype.A)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(a(qctx.qname, "10.53.0.99"))
-        yield DnsResponseSend(qctx.response)
+    address = "10.53.0.99"
 
 
 class ReplyDefault(ResponseHandler):
