@@ -36,6 +36,8 @@ F004_ZONE = "f004.test."
 F004_VICTIM = f"victim.{F004_ZONE}"
 F004_VICTIM_A = "203.0.113.1"
 
+F023_ZONE = "f023.test."
+
 
 def f004_bootstrap():
     zone = isctest.zone.Zone(F004_ZONE, isctest.template.ANS1, signed=True)
@@ -70,6 +72,6 @@ def check_nsec(response, section, owner, next_name, signer):
     return rrsig
 
 
-def check_forged_nsec(response, section, owner, next_name, zone, key_tag):
+def check_forged_nsec(response, section, owner, next_name, zone, key_tags):
     rrsig = check_nsec(response, section, owner, next_name, zone)
-    assert rrsig[0].key_tag == key_tag, response.to_text()
+    assert rrsig[0].key_tag not in key_tags, response.to_text()

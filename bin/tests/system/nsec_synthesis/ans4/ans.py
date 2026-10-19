@@ -27,7 +27,6 @@ class AttackChildNsecHandler(AttackNsecHandler):
 
     matcher = Qname("0.evil.f023.test.") & Qtype(dns.rdatatype.NSEC)
     nsec = "zzz.f023.test. A RRSIG NSEC"
-    key_tag = 12345
 
 
 def main() -> None:

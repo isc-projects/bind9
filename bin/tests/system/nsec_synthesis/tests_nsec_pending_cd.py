@@ -34,7 +34,7 @@ def bootstrap():
     return f004_bootstrap()
 
 
-def test_pending_trust_nsec_cd_cache_poisoning():
+def test_pending_trust_nsec_cd_cache_poisoning(f004_key_tags):
     """
     Reproducer for #5872:
     F-004 Cache Poisoning via Pending-Trust NSEC in Aggressive Cache
@@ -50,7 +50,9 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     )
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
-    check_forged_nsec(poison, poison.answer, ATTACKER, POISON_NEXT, F004_ZONE, 9999)
+    check_forged_nsec(
+        poison, poison.answer, ATTACKER, POISON_NEXT, F004_ZONE, f004_key_tags
+    )
 
     # Step 3: Exploit Against Victim Domain
     response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), RESOLVER)

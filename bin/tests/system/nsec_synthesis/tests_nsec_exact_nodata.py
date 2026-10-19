@@ -33,7 +33,7 @@ def bootstrap():
     return f004_bootstrap()
 
 
-def test_pending_exact_nodata_nsec_cache_poisoning():
+def test_pending_exact_nodata_nsec_cache_poisoning(f004_key_tags):
     """
     Companion to #5872 that covers the query_coveringnsec() trust check on
     the exact-match NODATA branch (the `if (exists)` path in ns/query.c),
@@ -56,7 +56,9 @@ def test_pending_exact_nodata_nsec_cache_poisoning():
     )
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
-    check_forged_nsec(poison, poison.answer, F004_VICTIM, POISON_NEXT, F004_ZONE, 9999)
+    check_forged_nsec(
+        poison, poison.answer, F004_VICTIM, POISON_NEXT, F004_ZONE, f004_key_tags
+    )
 
     # Query the victim's A record. The pending NSEC must not be used to
     # synthesize a NODATA; the resolver fetches and validates the real A.
