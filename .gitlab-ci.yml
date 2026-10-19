@@ -1425,6 +1425,35 @@ unit:gcc:trixie:amd64:
     - job: gcc:trixie:amd64
       artifacts: true
 
+# Jobs for GCC builds against OpenSSL 1.0.2, the oldest supported
+# version, which the base image provides in /opt/openssl-1.0.2.
+
+gcc:openssl-1.0.2:trixie:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    LDFLAGS: "-Wl,-rpath,/opt/openssl-1.0.2/lib"
+    EXTRA_CONFIGURE: "--with-openssl=/opt/openssl-1.0.2 --with-libidn2 ${WITH_READLINE_LIBEDIT} PKG_CONFIG_PATH=/opt/openssl-1.0.2/lib/pkgconfig"
+  <<: *base_image
+  <<: *build_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+
+system:gcc:openssl-1.0.2:trixie:amd64:
+  <<: *base_image
+  <<: *system_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:openssl-1.0.2:trixie:amd64
+      artifacts: true
+
+unit:gcc:openssl-1.0.2:trixie:amd64:
+  <<: *base_image
+  <<: *unit_test_job
+  <<: *api_pipelines_schedules_tags_triggers_web_triggering_rules
+  needs:
+    - job: gcc:openssl-1.0.2:trixie:amd64
+      artifacts: true
+
 # Build job for cross-compiled GCC builds on 64-bit Debian 13 "trixie"
 # (amd64) with 32-bit BIND 9.
 
