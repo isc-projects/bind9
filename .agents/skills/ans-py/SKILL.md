@@ -164,6 +164,189 @@ stood at a commit that did not change it, and `(synthetic)` where no
 code in the tree shows it.  "Negative examples" show code the rule does
 not cover, which stays as it is.
 
+### Share code through `<test>_ans.py`
+
+When two servers of one test need the same handler or helper, keep one
+copy in the test directory's `<test>_ans.py`, parametrized by what
+differs, and build each server in its own `ans.py` from it.  The
+record builders follow the same rule: in `<test>_ans.py` when more
+than one server of the test builds records, in the server otherwise.
+Lift what is duplicated, not what merely looks alike: when each
+server subclasses a shared base with its own values, the sharing has
+already happened, and the subclasses stay in the servers.
+What servers of several tests keep rewriting belongs in
+`isctest.asyncserver`, in a change of its own that QA reviews.
+
+#### Examples
+
+Two servers that answered the same way with different data, 9cfe470c07.
+Before, each server had its own copy with the data inside:
+
+```python
+# rpzrecurse/ans5/ans.py:35-42 before 9cfe470c07 (ans6 the same, other values)
+class DelayedNsHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.NS)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.answer.append(ns("foo.child.example.tld.", "ns5.foo."))
+        yield DnsResponseSend(qctx.response, delay=3)
+```
+
+After, one copy holds the behavior and each server subclasses it
+with its own data:
+
+```python
+# rpzrecurse/rpzrecurse_ans.py:52-62 at 9cfe470c07
+class DelayedNsHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.NS)
+    owner: str
+    nameserver: str
+    delay: float
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.answer.append(ns(self.owner, self.nameserver))
+        yield DnsResponseSend(qctx.response, delay=self.delay)
+
+# rpzrecurse/ans5/ans.py:20-35 at 9cfe470c07
+class FooChildDelegationHandler(DelayedNsHandler):
+    owner = "foo.child.example.tld."
+    nameserver = "ns5.foo."
+    delay = 3
+
+
+class Ns5FooAHandler(AHandler):
+    address = ANS5.ip
+
+
+def main() -> None:
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(
+        FooChildDelegationHandler(),
+        Ns5FooAHandler(),
+    )
+```
+
+A builder three servers had each written, 58c7826269.  Before, three
+definitions that differed only in where the TTL went:
+
+```python
+# xfer/ans5/ans.py:154-166 before 58c7826269
+def rrset(
+    owner: str | dns.name.Name,
+    ttl: int,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+) -> dns.rrset.RRset:
+    ...
+
+# xfer/ans9/ans.py:35-38 before 58c7826269
+def rrset(
+    owner: str | dns.name.Name, rdtype: dns.rdatatype.RdataType, rdata: str
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, TTL, dns.rdataclass.IN, rdtype, rdata)
+
+# xfer/ans11/ans.py:38-41 before 58c7826269
+def rrset(
+    owner: str, ttl: int, rdtype: dns.rdatatype.RdataType, rdata: str
+) -> dns.rrset.RRset:
+    ...
+```
+
+After, one definition imported by all three:
+
+```python
+# xfer/xfer_ans.py:18-24 at 58c7826269
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+# xfer/ans9/ans.py:31 at 58c7826269
+from ..xfer_ans import rrset
+```
+
+The same builders in both servers of a test, e4506be134.  Before:
+
+```python
+# bailiwick/ans1/ans.py:41-42 before e4506be134
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+# bailiwick/ans2/ans.py:41-42 before e4506be134
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+```
+
+After, one copy in the shared module:
+
+```python
+# bailiwick/bailiwick_ans.py:43-44 at e4506be134
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+# bailiwick/ans2/ans.py:18 at e4506be134
+from ..bailiwick_ans import ResponseSpoofer, a, cname, dname, ns, spoofing_server, txt
+```
+
+`reclimit/reclimit_ans.py` as of 35ab0c255f: a stateful base, handlers
+parametrized by what each server answers, a control command, and ans2,
+ans4 and ans7 built from them.
+
+#### Negative examples
+
+Helpers that agree only in name.  Each of these bakes in its server's
+own SOA; a shared one would take every field as a parameter and each
+server would wrap it again:
+
+```python
+# xfer/ans5/ans.py:155-164 at 58c7826269
+def soa(
+    serial: int,
+    *,
+    owner: str = "nil.",
+    mname: str = "ns.nil.",
+    rname: str = "root.nil.",
+) -> dns.rrset.RRset:
+    return rrset(
+        owner, dns.rdatatype.SOA, f"{mname} {rname} {serial} 300 300 604800 300"
+    )
+
+# xfer/ans9/ans.py:34-35 at 58c7826269
+def soa(owner: str | dns.name.Name, serial: int) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.SOA, f". . {serial} 0 0 0 0")
+
+# xfer/ans11/ans.py:40-46 at 58c7826269
+def soa(serial: int) -> dns.rrset.RRset:
+    return rrset(
+        ZONE,
+        dns.rdatatype.SOA,
+        f"{NS_NAME} admin.{ZONE} {serial} 3600 900 604800 86400",
+        ttl=TTL,
+    )
+```
+
+Four servers subclassing one base with their own values; the shared
+part already lives in `srtt_ans.py`, and these stay where they are:
+
+```python
+# srtt/ans2/ans.py:20-22 at d6d8e53629
+class UndelayedHandler(DelayedQnameRangeHandler):
+    max_qname = 99
+    delay = 0.0
+
+# srtt/ans3/ans.py:20-22 at d6d8e53629
+class Delay30msHandler(DelayedQnameRangeHandler):
+    max_qname = 199
+    delay = 0.03
+```
+
 ### A handler's name says what it does
 
 Ideally the name gives a clear idea of what the handler does, so that
