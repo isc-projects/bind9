@@ -1198,6 +1198,74 @@ class IncrementARecordHandler(ResponseHandler):
     ...
 ```
 
+### `get_responses()` is annotated with what it yields
+
+`get_responses()` is annotated with the action it yields:
+`AsyncGenerator[DnsResponseSend, None]` for a handler that sends DNS
+messages, the union of what it really yields otherwise.  The base
+type, `ResponseAction`, belongs to the abstract method and to a
+handler that relays another handler's actions unchanged; a handler
+that yields one kind of action does not hide it behind the base type.
+
+#### Examples
+
+A handler annotated with the base type, 65dd953293.  Before:
+
+```python
+# digdelv/ans5/ans.py:40-65 before 65dd953293
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        ...
+            yield CloseConnection()
+        ...
+            yield DnsResponseSend(qctx.response)
+        ...
+            yield DnsResponseSend(qctx.response)
+        yield CloseConnection()
+```
+
+After, the two actions it yields:
+
+```python
+# digdelv/ans5/ans.py:39-64 at 65dd953293
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[CloseConnection | DnsResponseSend, None]:
+        ...
+            yield CloseConnection()
+        ...
+            yield DnsResponseSend(qctx.response)
+        ...
+            yield DnsResponseSend(qctx.response)
+        yield CloseConnection()
+```
+
+A handler sending raw bytes, `tsig/ans2/ans.py` as of 4e803f2d69:
+
+```python
+# tsig/ans2/ans.py:26-33 as of 4e803f2d69
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[BytesResponseSend, None]:
+        ...
+        yield BytesResponseSend(tc_response.to_wire()[:-1])
+```
+
+#### Negative examples
+
+A handler relaying whatever the wrapped handler yields keeps the base
+type, `serve_stale/ans9/ans.py` as of 4e803f2d69:
+
+```python
+# serve_stale/ans9/ans.py:89-97 as of 4e803f2d69
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[ResponseAction, None]:
+        ...
+                yield action
+```
+
 ### A handler that sends one response declares its parts
 
 When a handler sends one response whose parts it can state up front,
