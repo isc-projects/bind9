@@ -214,7 +214,7 @@ system test directories may contain the following standard files:
   captured in the file "named.run".
 
 - `ans<N>`: Like ns<N>, but these are mock name servers implemented in python
-  (`ans.py`), usually with the `isctest.asyncserver` module.  They are
+  (`ans.py`) with the `isctest.asyncserver` module.  They are
   generally programmed to misbehave in ways named would not, so as to exercise
   named's ability to interoperate with badly behaved name servers.
 
