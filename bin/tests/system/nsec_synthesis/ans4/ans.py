@@ -9,14 +9,30 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+
+import dns.rcode
+import dns.rdatatype
+
 from isctest.asyncserver import AsyncDnsServer
-from nsec_synthesis.ans4 import common, f023
+from isctest.asyncserver.matchers import Qname, Qtype
+
+from ..nsec_synthesis_ans import AttackNsecHandler
+
+
+class AttackChildNsecHandler(AttackNsecHandler):
+    """
+    An NSEC for a name in the insecure child zone evil.f023.test whose next
+    name reaches past target.f023.test in the signed parent.
+    """
+
+    matcher = Qname("0.evil.f023.test.") & Qtype(dns.rdatatype.NSEC)
+    nsec = "zzz.f023.test. A RRSIG NSEC"
+    key_tag = 12345
 
 
 def main() -> None:
-    keys = common.load_keys()
-    server = AsyncDnsServer(default_aa=True)
-    server.install_response_handler(f023.F023Handler(keys))
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(AttackChildNsecHandler())
     server.run()
 
 

@@ -25,7 +25,10 @@ SIGNED_ZONE_MARKS = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
+            "ans*/dsset-*",
             "ans*/keys.json",
+            "ans*/zones/*.db",
+            "ans*/zones/*.db.signed",
         ]
     ),
 ]
