@@ -423,6 +423,378 @@ family of names it answers for:
     server.install_response_handlers(FallbackHandler())
 ```
 
+### Dispatch with matchers, not with if-else in `get_responses()`
+
+Every `if` inside `get_responses()` is suspect.  A branch on anything
+the matcher could have decided, the query's type, name or protocol, a
+label of the name, an EDNS option, what the zone holds for the name,
+or how many queries came before, is dispatch, and dispatch is the
+matcher's job: each branch becomes its own handler with the criterion
+in its `matcher`, installed before the general one so that
+first-match-wins routes to it, and a branch that only passed the
+prepared response through is dropped and falls through to it.  What
+stays inside `get_responses()` is the shaping of the responses the
+handler sends.
+
+A criterion the library lacks is a `Matcher` local to the server:
+`match(qctx)` and a `__str__` for the log, its state on itself, nothing
+written to `qctx`.  A criterion several servers need goes into
+`matchers.py` instead.  Every handler builds its own matcher: handlers
+that match the same names share the list of names, never the matcher
+object, because a matcher may keep state from its last match.
+
+#### Examples
+
+A protocol branch, c369c61b0c.  Before, the handler decided inside:
+
+```python
+# dispatch/ans4/ans.py:23-30 before c369c61b0c
+class DropUdpHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
+        if qctx.protocol == DnsProtocol.UDP:
+            yield ResponseDrop()
+        else:
+            yield DnsResponseSend(qctx.response)
+```
+
+After, the matcher decides, the TCP case that only passed the
+prepared response through falls through to the server, and what is
+left is the framework's own `IgnoreAllQueries`, scoped to UDP:
+
+```python
+# dispatch/ans4/ans.py:17-18 at c369c61b0c
+class DropUdpHandler(IgnoreAllQueries):
+    matcher = Protocol(DnsProtocol.UDP)
+```
+
+A type branch in a fallback, 09dfef781d.  Before, one handler
+answering SOA in one section and everything else in another:
+
+```python
+# cookie/cookie_ans.py:172-181 before 09dfef781d
+class FallbackHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        add_cookie(qctx)
+        if qctx.qtype == dns.rdatatype.SOA:
+            qctx.response.answer.append(soa(qctx))
+        else:
+            qctx.response.authority.append(soa(qctx))
+        yield DnsResponseSend(qctx.response)
+```
+
+After, the SOA case is a handler of its own, installed ahead of the
+general one so that first-match-wins routes to it:
+
+```python
+# cookie/cookie_ans.py:190-198 at 09dfef781d
+class FallbackSoaHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.SOA)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        add_cookie(qctx)
+        qctx.response.answer.append(soa(qctx))
+        yield DnsResponseSend(qctx.response)
+
+# cookie/cookie_ans.py:201-207 at 09dfef781d
+class FallbackHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        add_cookie(qctx)
+        qctx.response.authority.append(soa(qctx))
+        yield DnsResponseSend(qctx.response)
+```
+
+```python
+# cookie/cookie_ans.py:223-224 at 09dfef781d
+    server.install_response_handlers(FallbackSoaHandler())
+    server.install_response_handlers(FallbackHandler())
+```
+
+A type test guarding the whole body, fa6e8c994a.  Before:
+
+```python
+# zero/ans5/ans.py:35-52 before fa6e8c994a
+class IncrementARecordHandler(ResponseHandler):
+    """
+    To test the TTL=0 behavior, increment the IPv4 address by one every
+    time we get queried.
+    """
+
+    def __init__(self):
+        self._ip_address = ipaddress.ip_address("192.0.2.0")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if qctx.qtype == dns.rdatatype.A:
+            a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
+            qctx.response.answer.append(a_rrset)
+            self._ip_address += 1
+
+        yield DnsResponseSend(qctx.response)
+```
+
+After, the type is the matcher and the body is the answer:
+
+```python
+# zero/ans5/ans.py:36-53 at fa6e8c994a
+class IncrementARecordHandler(ResponseHandler):
+    """
+    To test the TTL=0 behavior, increment the IPv4 address by one every
+    time we get queried.
+    """
+
+    matcher = Qtype(dns.rdatatype.A)
+
+    def __init__(self):
+        self._ip_address = ipaddress.ip_address("192.0.2.0")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
+        qctx.response.answer.append(a_rrset)
+        self._ip_address += 1
+        yield DnsResponseSend(qctx.response)
+```
+
+A name branch, c84e4f2683.  Before, one handler for two names:
+
+```python
+# reclimit/reclimit_ans.py:88-102 before c84e4f2683
+class CountAndResetHandler(ReclimitHandler):
+    matcher = Qname("count.", "reset.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if f"{qctx.qname}" == "count.":
+            count_rrset = rrset(
+                "count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0
+            )
+            qctx.response.answer.append(count_rrset)
+            yield DnsResponseSend(qctx.response, authoritative=True)
+        elif f"{qctx.qname}" == "reset.":
+            self._state.reset()
+            yield DnsResponseSend(qctx.response, authoritative=False)
+```
+
+After, one handler per name, over the same shared state:
+
+```python
+# reclimit/reclimit_ans.py:88-106 at c84e4f2683
+class CountHandler(ReclimitHandler):
+    matcher = Qname("count.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0)
+        qctx.response.answer.append(count_rrset)
+        yield DnsResponseSend(qctx.response, authoritative=True)
+
+
+class ResetHandler(ReclimitHandler):
+    matcher = Qname("reset.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        self._state.reset()
+        yield DnsResponseSend(qctx.response, authoritative=False)
+
+# reclimit/ans4/ans.py:33-40 at c84e4f2683
+    server.install_response_handlers(
+        CountHandler(state),
+        ResetHandler(state),
+        DirectExampleHandler(state, 4),
+        IndirectExampleOrgHandler(state, 4),
+        Ns1ExampleOrgHandler(state),
+        FallbackNxdomainHandler(state),
+    )
+```
+
+A branch on an EDNS option, 3287837aae.  Before, one handler looked for
+the cookie itself:
+
+```python
+# resend_loop/ans3/ans.py:57-81 before 3287837aae
+class ExampleCookieHandler(ResponseHandler):
+    matcher = Domain("example.")
+
+    def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
+        ...
+```
+
+After, a matcher that keeps the cookie it found picks the BADCOOKIE
+handler, and the rest get a declared SERVFAIL:
+
+```python
+# resend_loop/ans3/ans.py:57-79 at 3287837aae
+class WithCookie(Matcher):
+    """
+    Match queries carrying an EDNS COOKIE option; the option of the last
+    match is kept in `matched_cookie`.
+    """
+
+    def __init__(self) -> None:
+        ...
+
+# resend_loop/ans3/ans.py:82-97 at 3287837aae
+class BadCookieHandler(ResponseHandler):
+    """
+    Answer a query that carries a client cookie with BADCOOKIE and a server
+    cookie, to trigger the resend loop logic.
+    """
+
+    matcher = Domain("example.") & WithCookie()
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        cookie = self.matcher.of(WithCookie).matched_cookie
+        cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
+        qctx.response.use_edns(options=[cookie])
+        qctx.response.set_rcode(dns.rcode.BADCOOKIE)
+        yield DnsResponseSend(qctx.response)
+
+# resend_loop/ans3/ans.py:100-102 at 3287837aae
+class ExampleServfailHandler(SingleResponseHandler):
+    matcher = Domain("example.")
+    rcode = dns.rcode.SERVFAIL
+```
+
+A branch on a header flag, 1d516f3951.  Before, the handler tested
+the CD bit of each NSEC query itself:
+
+```python
+# nsec_synthesis/ans1/f004.py:108-121 before 1d516f3951
+        elif qctx.qname == self.attacker and qctx.qtype == dns.rdatatype.NSEC:
+            if qctx.query.flags & dns.flags.CD:
+                ...
+            else:
+                response.set_rcode(dns.rcode.REFUSED)
+        elif qctx.qname == self.victim and qctx.qtype == dns.rdatatype.NSEC:
+            if qctx.query.flags & dns.flags.CD:
+                ...
+            else:
+                response.set_rcode(dns.rcode.REFUSED)
+```
+
+After, the library's `Flags` is part of each attack handler's matcher,
+and the queries without CD fall through to the handler installed after
+them:
+
+```python
+# nsec_synthesis/ans1/ans.py:29-31 at 1d516f3951
+    matcher = (
+        Qname("attacker.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
+    )
+
+# nsec_synthesis/ans1/ans.py:43-45 at 1d516f3951
+    matcher = (
+        Qname("victim.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
+    )
+
+# nsec_synthesis/ans1/ans.py:60-64 at 1d516f3951
+    server.install_response_handlers(
+        AttackCoveringNsecHandler(),
+        AttackNodataNsecHandler(),
+    )
+    server.install_response_handlers(RefusedNsecHandler())
+```
+
+A branch on how many queries came before, 5a62d06c7d.  Before, the
+handler counted:
+
+```python
+# digdelv/ans7/ans.py:43-59 before 5a62d06c7d
+class SilentThenServfailHandler(ResponseHandler):
+    """
+    Handler that drops one query and response to the next one with SERVFAIL.
+    """
+
+    matcher = Domain("silent-then-servfail.example")
+    counter = 0
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
+        if self.counter % 2 == 0:
+            yield ResponseDrop()
+        else:
+            qctx.response.set_rcode(dns.rcode.SERVFAIL)
+            yield DnsResponseSend(qctx.response, authoritative=False)
+        self.counter += 1
+```
+
+After, the count is the matcher's, the handler only drops, and the
+server's default RCODE answers the rest:
+
+```python
+# digdelv/ans7/ans.py:43-60 at 5a62d06c7d
+class EverySecond(Matcher):
+    """
+    Match every second query the given matcher matches, the first one
+    included.
+    """
+
+    def __init__(self, matcher: Matcher) -> None:
+        ...
+
+# digdelv/ans7/ans.py:63-69 at 5a62d06c7d
+class SilentEverySecondQueryHandler(IgnoreAllQueries):
+    """
+    Handler that doesn't respond to every second query, so that the next
+    one gets the server's SERVFAIL.
+    """
+
+    matcher = EverySecond(Domain("silent-then-servfail.example"))
+```
+
+Matchers local to a server: a predicate the library lacks, and a
+library predicate given a name and a description:
+
+```python
+# reclimit/reclimit_ans.py:176-195 at c84e4f2683
+class Ns1Example(Matcher):
+    """
+    Match queries for ns1.<n>.example.<tld>.
+    """
+
+    def __init__(self, tld: str) -> None:
+        self.tld = tld.encode()
+
+    def match(self, qctx: QueryContext) -> bool:
+        labels = qctx.qname.labels
+        return (
+            len(labels) == 5
+            and labels[3] == self.tld
+            and labels[2] == b"example"
+            and labels[1].isdigit()
+            and labels[0] == b"ns1"
+        )
+
+    def __str__(self) -> str:
+        return f"QNAME is ns1.<n>.example.{self.tld.decode()}"
+
+# statschannel/ans5/ans.py:38-44 at 7c63549173
+class DelayLabel(LabelPredicate):
+    """
+    Match queries whose leftmost label is the delay in milliseconds.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(0, bytes.isdigit, "the delay in milliseconds")
+```
+
 ### Shared state is one object, read by a matcher, advanced in `get_responses()`
 
 State that several handlers of a server share is one plain object,
