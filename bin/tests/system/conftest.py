@@ -131,7 +131,9 @@ def pytest_ignore_collect(collection_path):
         isctest.log.warning("unexpected test path: %s (ignored)", collection_path)
         return True
     system_test_name = match.groups()[0]
-    return "-" in system_test_name
+    if "-" in system_test_name:
+        return True
+    return None
 
 
 def pytest_collection_modifyitems(items):
