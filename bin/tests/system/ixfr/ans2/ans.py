@@ -104,7 +104,7 @@ class IxfrHandler(ResponseHandler, abc.ABC):
         yield DnsResponseSend(qctx.response)
 
 
-class InitialAfxrHandler(AxfrHandler):
+class InitialAxfrHandler(AxfrHandler):
     initial_soa = soa(1)
     zone_contents = (
         ns(),
@@ -115,7 +115,7 @@ class InitialAfxrHandler(AxfrHandler):
     final_soa = soa(1)
 
 
-class SuccessfulIfxrHandler(IxfrHandler):
+class SuccessfulIxfrHandler(IxfrHandler):
     answer = (
         soa(3),
         soa(1),
@@ -201,11 +201,11 @@ def main() -> None:
         {
             "initial_axfr": (
                 SoaHandler(1),
-                InitialAfxrHandler(),
+                InitialAxfrHandler(),
             ),
             "successful_ixfr": (
                 SoaHandler(3),
-                SuccessfulIfxrHandler(),
+                SuccessfulIxfrHandler(),
             ),
             "not_exact": (
                 SoaHandler(4),

@@ -283,7 +283,7 @@ class WrongQnameInFinalSoa(ResponseHandlerWrapper):
         if self._messages_until_final_soa == 0:
             assert isinstance(
                 response_action, DnsResponseSend
-            ), "WrongQnameInFinalSoaAxfrHandler can only wrap handlers that yield DnsResponseSend from the final SOA response"
+            ), "WrongQnameInFinalSoa can only wrap handlers that yield DnsResponseSend from the final SOA response"
             response_action.response.question[0].name = dns.name.from_text("ns.wrong.")
         self._messages_until_final_soa -= 1
 
