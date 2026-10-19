@@ -1,6 +1,6 @@
 ---
 name: ans-py
-description: House rules for the custom mock DNS servers of the BIND 9 system tests (`ansN/ans.py` on `isctest.asyncserver`), each with the commit that applied it. Use whenever you create, edit, review or port an `ans.py`, a shared `<test>_ans.py`, or code under `bin/tests/system/isctest/asyncserver/`.
+description: House rules for the custom mock DNS servers of the BIND 9 system tests (`ansN/ans.py` on `isctest.asyncserver`), each with the commit that applied it, and how to verify a server rewrite with ans_diff. Use whenever you create, edit, review or port an `ans.py`, a shared `<test>_ans.py`, or code under `bin/tests/system/isctest/asyncserver/`.
 ---
 
 # Custom servers (`ans.py`) in the BIND 9 system tests
@@ -71,6 +71,44 @@ black $(git ls-files '*.py')
 pylint $(git ls-files '*.py')
 ruff check
 ```
+
+## Verifying a rewrite with ans_diff
+
+A rewritten server passes its test whether or not it still sends the
+same packets.  `ans_diff.py` (https://gitlab.isc.org/stepan/ans_diff.py,
+`main` at `9ae9e89` as of 2026-10-19) is the equivalence check: it
+builds two revisions of BIND, runs the system test on each with
+`tshark` capturing, and compares the DNS messages exchanged with the
+server.  `compare` runs the test on both revisions; `replay` runs it on
+the reference only and replays the captured queries to both servers,
+which is the mode to use when the set of queries the resolver sends
+differs from run to run, for example because of server selection.
+`capture` runs the test and keeps the PCAPs without comparing, printing a
+`wireshark` command per capture that is filtered to the server's traffic;
+given the same revision twice, it is the quick way to see what a new
+server exchanges with the resolver.  `ans_diff.py <subcommand> -h`
+documents the options; what the help does not say:
+
+- The tool never fetches, so `origin/main` is whatever its clone last
+  saw; `--merge-base` compares against the merge base of the two
+  revisions.
+- Scope the run with `-k` to the modules that use the server.  The
+  wiring is often indirect, through a forwarder or a delegation in an
+  `nsN` config, so grep for the server's address, not its name.
+- A server whose fixture generates keys needs `--ignore-dnssec-data`,
+  a `ControllableAsyncDnsServer` needs `--ignore-control-domain`, and
+  a replay needs `--packet-order none`; order differences under
+  `relaxed` come from parallel queries pairing up differently.
+- Splitting one server into several breaks the comparison, because the
+  reference has no server at the new address.  Build a scaffolding
+  reference: branch from the candidate, so the test wiring is
+  identical, and put the old server's code into both the old and the
+  new `ansN` directories.
+
+Report a run with the tool revision, the exact command, one line per
+non-default option saying why it is there, and the verdict.  When the
+result is not clean, say what differs, packet by packet when they are
+few, and why that is equivalence rather than regression.
 
 ## Updating this guide
 
