@@ -24,6 +24,7 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.matchers import LeftmostLabelPrefix, Matcher, Qtype
 
 
 def rrset(
@@ -35,17 +36,38 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-class MaybeDelayedAddressAnswerHandler(ResponseHandler):
+class AHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.A)
+    delay = 0.0
+
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
-            addr = "192.0.2.1" if qctx.qtype == dns.rdatatype.A else "2001:db8:beef::1"
-            answer_rrset = rrset(qctx.qname, qctx.qtype, addr)
-            qctx.response.answer.append(answer_rrset)
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, "192.0.2.1")
+        qctx.response.answer.append(a_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay)
 
-        delay = 0.05 if qctx.qname.labels[0].startswith(b"latency") else 0.00
-        yield DnsResponseSend(qctx.response, delay=delay)
+
+class AaaaHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.AAAA)
+    delay = 0.0
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        aaaa_rrset = rrset(qctx.qname, dns.rdatatype.AAAA, "2001:db8:beef::1")
+        qctx.response.answer.append(aaaa_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay)
+
+
+class DelayedAHandler(AHandler):
+    matcher = LeftmostLabelPrefix(b"latency") & Qtype(dns.rdatatype.A)
+    delay = 0.05
+
+
+class DelayedAaaaHandler(AaaaHandler):
+    matcher = LeftmostLabelPrefix(b"latency") & Qtype(dns.rdatatype.AAAA)
+    delay = 0.05
 
 
 def main() -> None:
@@ -53,7 +75,9 @@ def main() -> None:
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
     server.install_control_command(ToggleResponsesCommand())
-    server.install_response_handlers(MaybeDelayedAddressAnswerHandler())
+    server.install_response_handlers(
+        DelayedAHandler(), DelayedAaaaHandler(), AHandler(), AaaaHandler()
+    )
     server.run()
 
 
