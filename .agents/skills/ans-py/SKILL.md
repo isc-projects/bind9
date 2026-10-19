@@ -2110,6 +2110,39 @@ After:
     matcher = Domain("b.stale.", "a.b.stale.")
 ```
 
+### Construct the server before anything logs
+
+Nothing logs before `AsyncDnsServer` is constructed: its constructor
+is the one place `logging.basicConfig()` is called, and a `logging`
+call before it, from a module-level constant or from setup in
+`main()`, configures the root logger at WARNING first, after which
+every INFO line of the server, every query and response included, is
+dropped and `ans.run` stays empty.
+
+#### Examples
+
+Logging ahead of the server (synthetic).  Before:
+
+```python
+# ans2/ans.py, before (synthetic)
+def main() -> None:
+    logging.info("starting the spoofing server")
+    server = AsyncDnsServer()
+    server.install_response_handlers(SpoofHandler())
+    server.run()
+```
+
+After:
+
+```python
+# ans2/ans.py, after (synthetic)
+def main() -> None:
+    server = AsyncDnsServer()
+    logging.info("starting the spoofing server")
+    server.install_response_handlers(SpoofHandler())
+    server.run()
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
