@@ -1657,6 +1657,132 @@ class ErraticAxfrHandler(ResponseHandler):
         yield CloseConnection()
 ```
 
+### Build with the library, break the message last
+
+A response, a record or a signature is built with the normal objects:
+the prepared `qctx.response` or the query, the dnspython constructors,
+`dns.dnssec`, `dns.zone`, `isctest.zone`, and the framework's
+`qctx.sign()`, `qctx.get_rrsig()` and `qctx.nsecx`.  Hand-written key
+parsing, zone reading, signing, hashing, bitmap or wire building is a
+sign that a library call was missed: before keeping such a helper, name
+the DNS concept it computes and replace the helper with the library call
+for it, which changes no behavior.
+
+Build the valid message or record first and break it as the last step:
+the bytes go to `BytesResponseSend` only after the message was built,
+and a broken record is the valid RDATA with one field replaced, wrapped
+back into an RRset.  Everything not under attack is then right by
+construction and readable.
+
+#### Examples
+
+An RRSIG signed by hand, 0bd39806aa.  Before:
+
+```python
+# nsec3/ans7/ans.py:138-182 before 0bd39806aa
+def sign_rrset(
+    private_key,
+    key_tag,
+    rrset,
+    type_covered,
+    labels,
+    original_ttl,
+    expiration,
+    inception,
+    signer_name,
+):
+    ...
+    sig_rdata = struct.pack("!HBBI", type_covered, algorithm, labels, original_ttl)
+    sig_rdata += struct.pack("!II", expiration, inception)
+    sig_rdata += struct.pack("!H", key_tag)
+    ...
+    rrsig_rdata = dns.rdata.from_wire(
+        dns.rdataclass.IN,
+        dns.rdatatype.RRSIG,
+        full_rrsig_wire,
+        0,
+        len(full_rrsig_wire),
+        None,
+    )
+    return rrsig_rdata
+```
+
+After, the library signing with the zone's key:
+
+```python
+# nsec3/ans7/ans.py:112-128 at 0bd39806aa
+    def sign(
+        self,
+        rrset: dns.rrset.RRset,
+        signer_name: dns.name.Name = dns.name.from_text("evil.test."),
+    ) -> dns.rdata.Rdata:
+        """
+        Sign an RRset with the zone's ZSK and return the RRSIG rdata.
+        """
+        return dns.dnssec.sign(
+            rrset,
+            self._zsk.private_key,
+            signer_name,
+            self._zsk.dnskey[0],
+            inception=self.RRSIG_INCEPTION,
+            expiration=self.RRSIG_EXPIRATION,
+            verify=True,
+        )
+```
+
+Base32 decoded by hand to get at the NSEC3 hashes, same commit.
+Before:
+
+```python
+# nsec3/ans7/ans.py:109-112 before 0bd39806aa
+def b32_to_bytes(b32hex_str):
+    """Decode base32hex (RFC 4648) to bytes."""
+    padded = b32hex_str.upper() + "=" * ((8 - len(b32hex_str) % 8) % 8)
+    return base64.b32hexdecode(padded)
+```
+
+After, the zone object holds them decoded:
+
+```python
+# nsec3/ans7/ans.py:84-98 at 0bd39806aa
+    def _discover_nsec3_targets(
+        self, zone_file: str = "../ns6/evil.test.db.signed"
+    ) -> None:
+        """
+        Set the (name, NSEC3) inject and modify targets from the signed zone.
+        """
+        zone = dns.zone.from_file(zone_file, origin=self.ZONE, relativize=False)
+        records = sorted(
+            (name, cast(NSEC3, rdata))
+            for name, _, rdata in zone.iterate_rdatas(dns.rdatatype.NSEC3)
+        )
+        assert len(records) >= 2, f"need >= 2 NSEC3 records, found {len(records)}"
+        inject, modify, *_ = records
+        self._inject_name, self._inject_nsec3 = inject
+        self._modify_name, _ = modify
+```
+
+A message truncated by one byte after it was built, `tsig/ans2/ans.py`
+as of 7dfca66681:
+
+```python
+# tsig/ans2/ans.py:20-33 as of 7dfca66681
+class TruncatedWithLastByteDroppedHandler(ResponseHandler):
+    """
+    Return a TC=1 response with the final byte removed to make
+    dns_message_parse() return ISC_R_UNEXPECTEDEND.
+    """
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[BytesResponseSend, None]:
+        tc_response = qctx.query
+        tc_response.flags |= dns.flags.QR
+        tc_response.flags |= dns.flags.TC
+        tc_response.flags |= dns.flags.RA
+        yield BytesResponseSend(tc_response.to_wire()[:-1])
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
