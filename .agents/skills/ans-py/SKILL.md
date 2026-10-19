@@ -968,6 +968,47 @@ class AddNsecToTxtHandler(ResponseHandler):
 class AddRrsigToAHandler(ResponseHandler):
 ```
 
+### `Once` wraps the whole criterion
+
+A handler that answers one query and then leaves the rest to the general
+handler does not count in its body: its matcher is `Once(...)` around
+the whole criterion, `Once(Qname(...) & Qtype(...))`, and it is
+installed before the general handler so that later queries fall through
+to it.  `Once` around a part of the criterion means something else: an
+inner `Once(Qname(...))` is used up by the first query of that name,
+which the outer `& Qtype(...)` may then reject, and the handler is
+disarmed without having answered.
+
+#### Examples
+
+The one handler answering once, `filters/ans6/ans.py` as of e56a73a4ea,
+and its place in the install order, before the general AAAA handler:
+
+```python
+# filters/ans6/ans.py:63-72 as of e56a73a4ea
+class NodataOnceHandler(SingleResponseHandler):
+    """
+    Answer only the first AAAA query, with NODATA, so the DNS64 resolver looks
+    up an A record.  If the NODATA expires from the cache before the A answer
+    arrives, filter-a re-enters and re-queries AAAA (answered by AaaaHandler),
+    triggering the bug.
+    """
+
+    matcher = Once(Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA))
+    authority = [soa()]
+
+# filters/ans6/ans.py:92-100 as of e56a73a4ea
+    server.install_response_handlers(
+        IgnoreFirstTwoAHandler(),
+        NodataOnceHandler(),
+    )
+    server.install_response_handlers(
+        AHandler(),
+        AaaaHandler(),
+    )
+    server.install_response_handlers(FallbackHandler())
+```
+
 ### Shared state is one object, read by a matcher, advanced in `get_responses()`
 
 State that several handlers of a server share is one plain object,
