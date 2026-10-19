@@ -37,7 +37,7 @@ class PoisonReferralForwarder(SingleResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(PoisonReferralForwarder())
+    server.install_response_handlers(PoisonReferralForwarder())
     server.run()
 
 

@@ -35,7 +35,7 @@ class PoisonedAHandler(SingleResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handler(PoisonedAHandler())
+    server.install_response_handlers(PoisonedAHandler())
     server.run()
 
 

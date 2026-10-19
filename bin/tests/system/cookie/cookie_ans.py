@@ -191,5 +191,5 @@ def cookie_server(evil: bool) -> AsyncDnsServer:
         WithtsigUdpAHandler(),
         UdpAHandler(),
     )
-    server.install_response_handler(FallbackHandler())
+    server.install_response_handlers(FallbackHandler())
     return server

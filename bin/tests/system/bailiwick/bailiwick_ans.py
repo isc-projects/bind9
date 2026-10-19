@@ -84,7 +84,7 @@ class SetSpoofingModeCommand(ControlCommand):
 
         if self._current_handler:
             server.uninstall_response_handler(self._current_handler)
-        server.install_response_handler(spoofer)
+        server.install_response_handlers(spoofer)
         self._current_handler = spoofer
 
         return f"response spoofing enabled (mode: {mode})"

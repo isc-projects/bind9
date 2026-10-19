@@ -50,7 +50,7 @@ class ExtraAnswersHandler(ResponseHandler):
 def main() -> None:
     server = ControllableAsyncDnsServer()
     server.install_control_command(ToggleResponsesCommand())
-    server.install_response_handler(ExtraAnswersHandler())
+    server.install_response_handlers(ExtraAnswersHandler())
     server.run()
 
 

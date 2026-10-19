@@ -35,7 +35,7 @@ class TruncatedWithLastByteDroppedHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(keyring=False)
-    server.install_response_handler(TruncatedWithLastByteDroppedHandler())
+    server.install_response_handlers(TruncatedWithLastByteDroppedHandler())
     server.run()
 
 

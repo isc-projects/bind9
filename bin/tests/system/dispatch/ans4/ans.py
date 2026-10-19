@@ -32,7 +32,7 @@ class DropUdpHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(DropUdpHandler())
+    server.install_response_handlers(DropUdpHandler())
     server.run()
 
 

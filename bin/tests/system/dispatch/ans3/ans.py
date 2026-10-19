@@ -36,7 +36,7 @@ class TruncateOnUdpHandler(ResponseHandler):
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
     server.install_connection_handler(ConnectionReset(delay=1.0))
-    server.install_response_handler(TruncateOnUdpHandler())
+    server.install_response_handlers(TruncateOnUdpHandler())
     server.run()
 
 

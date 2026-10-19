@@ -313,7 +313,7 @@ class ChainSetupCommand(ControlCommand):
         answer_rrsets = self._prepare_answer(actions, selectors)
 
         self._current_handler = ChainResponseHandler(answer_rrsets)
-        server.install_response_handler(self._current_handler)
+        server.install_response_handlers(self._current_handler)
 
         return "chain response setup successful"
 

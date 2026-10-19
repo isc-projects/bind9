@@ -44,7 +44,7 @@ def main() -> None:
     server = ControllableAsyncDnsServer(
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
-    server.install_response_handler(DelayedAddressAnswerHandler())
+    server.install_response_handlers(DelayedAddressAnswerHandler())
     server.run()
 
 

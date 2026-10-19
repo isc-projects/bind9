@@ -459,7 +459,7 @@ class TruncateHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(TruncateHandler())
+    server.install_response_handlers(TruncateHandler())
     server.run()
 
 

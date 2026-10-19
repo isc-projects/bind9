@@ -84,7 +84,7 @@ class ResponseSequenceCommand(ControlCommand):
             server.uninstall_response_handler(self._current_handler)
 
         self._current_handler = ErraticAxfrHandler(actions)
-        server.install_response_handler(self._current_handler)
+        server.install_response_handlers(self._current_handler)
 
         msg = f"reponse sequence set to {actions}"
         logging.info(msg)

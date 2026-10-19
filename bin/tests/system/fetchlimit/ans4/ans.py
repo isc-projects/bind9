@@ -42,7 +42,7 @@ def main() -> None:
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
     server.install_control_command(ToggleResponsesCommand())
-    server.install_response_handler(MaybeDelayedAddressAnswerHandler())
+    server.install_response_handlers(MaybeDelayedAddressAnswerHandler())
     server.run()
 
 

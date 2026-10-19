@@ -134,7 +134,7 @@ def main() -> None:
         TcpalsoNoQuestionsHandler(),
         TruncatedNoQuestionsHandler(),
     )
-    server.install_response_handler(FallbackHandler())
+    server.install_response_handlers(FallbackHandler())
 
     server.run()
 

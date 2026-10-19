@@ -46,7 +46,7 @@ class MismatchedIdOnUdpHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(MismatchedIdOnUdpHandler())
+    server.install_response_handlers(MismatchedIdOnUdpHandler())
     server.run()
 
 

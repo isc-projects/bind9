@@ -45,7 +45,7 @@ class IncrementARecordHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handler(IncrementARecordHandler())
+    server.install_response_handlers(IncrementARecordHandler())
     server.run()
 
 

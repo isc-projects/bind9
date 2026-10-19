@@ -81,7 +81,7 @@ class ReleaseCommand(ControlCommand):
 
 def main() -> None:
     server = ControllableAsyncDnsServer()
-    server.install_response_handler(UntilReleased(HeldAddressHandler()))
+    server.install_response_handlers(UntilReleased(HeldAddressHandler()))
     server.install_control_command(ReleaseCommand())
     server.run()
 

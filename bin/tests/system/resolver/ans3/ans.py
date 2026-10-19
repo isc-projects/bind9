@@ -245,7 +245,7 @@ def main() -> None:
         WwwHandler(),
     )
 
-    server.install_response_handler(FallbackHandler())
+    server.install_response_handlers(FallbackHandler())
     server.run()
 
 
