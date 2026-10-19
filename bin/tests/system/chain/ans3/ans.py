@@ -123,8 +123,8 @@ def main() -> None:
     server = AsyncDnsServer(acknowledge_manual_dname_handling=True, default_aa=True)
     server.install_response_handlers(
         CnameThenDnameHandler(),
-        DnameOwnerWithoutAuthorityHandler(),
         CnameToDnameOwnerHandler(),
+        DnameOwnerWithoutAuthorityHandler(),
     )
     server.run()
 

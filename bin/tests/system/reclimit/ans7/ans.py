@@ -33,8 +33,8 @@ def main() -> None:
     server.install_response_handlers(
         CountHandler(state),
         ResetHandler(state),
-        FallbackRefusedHandler(state),
     )
+    server.install_response_handlers(FallbackRefusedHandler(state))
     server.run()
 
 

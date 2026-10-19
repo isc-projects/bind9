@@ -24,10 +24,8 @@ class Delay30msHandler(DelayedQnameRangeHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(
-        Delay30msHandler(),
-        IgnoreAllQueries(),
-    )
+    server.install_response_handlers(Delay30msHandler())
+    server.install_response_handlers(IgnoreAllQueries())
     server.run()
 
 

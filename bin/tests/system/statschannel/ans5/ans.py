@@ -95,7 +95,12 @@ def main() -> None:
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
     server.install_response_handlers(
-        DelayedAHandler(), DelayedAaaaHandler(), AHandler(), AaaaHandler()
+        DelayedAHandler(),
+        DelayedAaaaHandler(),
+    )
+    server.install_response_handlers(
+        AHandler(),
+        AaaaHandler(),
     )
     server.run()
 

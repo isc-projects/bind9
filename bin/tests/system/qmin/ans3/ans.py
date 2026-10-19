@@ -41,8 +41,8 @@ def main() -> None:
     server.install_response_handlers(
         QueryLogger(),
         ZoopBoingBadHandler(),
-        ZoopBoingUglyHandler(),
         ZoopBoingSlowHandler(),
+        ZoopBoingUglyHandler(),
     )
     server.run()
 

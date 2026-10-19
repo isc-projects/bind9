@@ -83,11 +83,11 @@ class IckyPtangZoopBoingSlowHandler(DelayedResponseHandler):
 def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handlers(
+        IckyPtangZoopBoingBadHandler(),
+        IckyPtangZoopBoingSlowHandler(),
+        IckyPtangZoopBoingUglyHandler(),
         QueryLogger(),
         StaleHandler(),
-        IckyPtangZoopBoingBadHandler(),
-        IckyPtangZoopBoingUglyHandler(),
-        IckyPtangZoopBoingSlowHandler(),
     )
     server.run()
 

@@ -206,16 +206,22 @@ class StuffedNxdomainHandler(SingleResponseHandler):
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(
-        InsecureApexCnameHandler(),
         ExampleMetatypeCnameHandler(),
-        NxdomainHandler(EXAMPLE),
-        NodataHandler(EXAMPLE),
-        SignedZoneHandler(EXAMPLE),
+        InsecureApexCnameHandler(),
         SecureDsCnameHandler(),
+    )
+    server.install_response_handlers(
+        NxdomainHandler(EXAMPLE),
         NxdomainHandler(SECURE),
-        NodataHandler(SECURE),
-        SignedZoneHandler(SECURE),
         StuffedNxdomainHandler(STUFFED),
+    )
+    server.install_response_handlers(
+        NodataHandler(EXAMPLE),
+        NodataHandler(SECURE),
+    )
+    server.install_response_handlers(
+        SignedZoneHandler(EXAMPLE),
+        SignedZoneHandler(SECURE),
         SignedZoneHandler(STUFFED),
     )
     server.run()

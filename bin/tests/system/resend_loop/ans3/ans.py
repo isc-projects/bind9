@@ -113,10 +113,10 @@ def main() -> None:
     server.install_response_handlers(
         RootNsHandler(),
         ExampleNsHandler(),
-        BadCookieHandler(),
-        ExampleServfailHandler(),
         TestDotComServFailHandler(),
     )
+    server.install_response_handlers(BadCookieHandler())
+    server.install_response_handlers(ExampleServfailHandler())
     server.run()
 
 

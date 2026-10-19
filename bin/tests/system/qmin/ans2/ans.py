@@ -109,13 +109,13 @@ class BStaleDelegationHandler(StaleDelegationHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
+    server.install_response_handlers(ABStaleDelegationHandler())
+    server.install_response_handlers(BStaleDelegationHandler())
     server.install_response_handlers(
-        ABStaleDelegationHandler(),
-        BStaleDelegationHandler(),
-        QueryLogger(),
         BadHandler(),
-        UglyHandler(),
+        QueryLogger(),
         SlowHandler(),
+        UglyHandler(),
     )
     server.run()
 

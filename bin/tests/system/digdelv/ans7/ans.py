@@ -73,8 +73,8 @@ def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.SERVFAIL)
     server.install_response_handlers(
         CloseHandler(),
-        SilentHandler(),
         SilentEverySecondQueryHandler(),
+        SilentHandler(),
     )
     server.run()
 

@@ -32,12 +32,12 @@ def main() -> None:
     state = ReclimitState()
     server.install_response_handlers(
         CountHandler(state),
-        ResetHandler(state),
         DirectExampleHandler(state, 4),
         IndirectExampleOrgHandler(state, 4),
         Ns1ExampleOrgHandler(state),
-        FallbackNxdomainHandler(state),
+        ResetHandler(state),
     )
+    server.install_response_handlers(FallbackNxdomainHandler(state))
     server.install_control_command(LimitControlCommand(state))
     server.run()
 

@@ -62,13 +62,13 @@ def main() -> None:
     state = ReclimitState(indirect_send_response_default=False)
     server.install_response_handlers(
         CountHandler(state),
-        ResetHandler(state),
         DirectExampleHandler(state, 2),
         IndirectExampleOrgHandler(state, 2),
-        Ns1ExampleOrgHandler(state),
         Ns1ExampleNetHandler(state),
-        FallbackNxdomainHandler(state),
+        Ns1ExampleOrgHandler(state),
+        ResetHandler(state),
     )
+    server.install_response_handlers(FallbackNxdomainHandler(state))
     server.install_control_command(LimitControlCommand(state))
     server.run()
 

@@ -199,8 +199,8 @@ def main() -> None:
     progress = TransferState()
     server.install_response_handlers(
         InitialSoaHandler(progress),
-        RefreshSoaHandler(progress),
         InitialAxfrHandler(progress),
+        RefreshSoaHandler(progress),
         TruncatedIxfrHandler(),
         RaceIxfrHandler(),
     )

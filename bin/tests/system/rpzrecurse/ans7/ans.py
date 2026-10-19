@@ -37,7 +37,8 @@ class ReplyDefault(SingleResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(ReplyA(), ReplyDefault())
+    server.install_response_handlers(ReplyA())
+    server.install_response_handlers(ReplyDefault())
     server.run()
 
 

@@ -94,11 +94,11 @@ def main() -> None:
     )
     server.install_control_command(ToggleResponsesCommand())
     server.install_response_handlers(
+        SldDelegationHandler(),
         Ns1AHandler(),
         Ns1AaaaHandler(),
-        SldDelegationHandler(),
-        NegativeSoaHandler(),
     )
+    server.install_response_handlers(NegativeSoaHandler())
     server.run()
 
 

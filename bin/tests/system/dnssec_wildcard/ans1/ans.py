@@ -77,8 +77,8 @@ class ParentWildcardHandler(ResponseHandler):
 def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handlers(
-        WildcardAdditionalHandler(),
         ParentWildcardHandler(),
+        WildcardAdditionalHandler(),
     )
     server.run()
 
