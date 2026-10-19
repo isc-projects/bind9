@@ -1111,6 +1111,107 @@ class ExtraAnswersHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 ```
 
+### Let the server carry the RCODE and the AA bit
+
+What every handler of a server sets the same way, or what equals the
+package's own default, is not set per handler: it goes to the
+constructor's `default_rcode` and `default_aa`, and a handler sets
+only what makes it differ.
+
+#### Examples
+
+An AA bit set where the server already has it so, 2b97cc9397.  Before:
+
+```python
+# fwdfirst/ans2/ans.py:22-27 before 2b97cc9397
+class PoisonReferralForwarder(SingleResponseHandler):
+    matcher = Domain("fwd.hack.")
+    authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
+    rcode = dns.rcode.NOERROR
+    authoritative = False
+
+# statistics/ans4/ans.py:45-48 before 2b97cc9397
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=False)
+    server.install_response_handlers(FooInfoHandler(), FallbackHandler())
+    server.run()
+```
+
+After:
+
+```python
+# fwdfirst/ans2/ans.py:22-26 at 2b97cc9397
+class PoisonReferralForwarder(SingleResponseHandler):
+    matcher = Domain("fwd.hack.")
+    authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
+    rcode = dns.rcode.NOERROR
+
+# statistics/ans4/ans.py:45-48 at 2b97cc9397
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(FooInfoHandler(), FallbackHandler())
+    server.run()
+```
+
+An RCODE set by the one handler that answered, 5a62d06c7d.  Before:
+
+```python
+# digdelv/ans7/ans.py:43-59 before 5a62d06c7d
+class SilentThenServfailHandler(ResponseHandler):
+    """
+    Handler that drops one query and response to the next one with SERVFAIL.
+    """
+
+    matcher = Domain("silent-then-servfail.example")
+    counter = 0
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
+        if self.counter % 2 == 0:
+            yield ResponseDrop()
+        else:
+            qctx.response.set_rcode(dns.rcode.SERVFAIL)
+            yield DnsResponseSend(qctx.response, authoritative=False)
+        self.counter += 1
+
+# digdelv/ans7/ans.py:62-69 before 5a62d06c7d
+def main() -> None:
+    server = AsyncDnsServer()
+    server.install_response_handlers(
+        CloseHandler(),
+        SilentHandler(),
+        SilentThenServfailHandler(),
+    )
+    server.run()
+```
+
+After, the server's default RCODE answers every query the handler
+does not drop:
+
+```python
+# digdelv/ans7/ans.py:63-69 at 5a62d06c7d
+class SilentEverySecondQueryHandler(IgnoreAllQueries):
+    """
+    Handler that doesn't respond to every second query, so that the next
+    one gets the server's SERVFAIL.
+    """
+
+    matcher = EverySecond(Domain("silent-then-servfail.example"))
+
+# digdelv/ans7/ans.py:72-79 at 5a62d06c7d
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.SERVFAIL)
+    server.install_response_handlers(
+        CloseHandler(),
+        SilentHandler(),
+        SilentEverySecondQueryHandler(),
+    )
+    server.run()
+```
+
 ### A handler's name says what it does
 
 Ideally the name gives a clear idea of what the handler does, so that
