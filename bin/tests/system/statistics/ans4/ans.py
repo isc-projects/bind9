@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
 
 import dns.name
 import dns.rcode
@@ -17,11 +16,12 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import IgnoreAllQueries
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import IgnoreAllQueries, SingleResponseHandler
 from isctest.asyncserver.matchers import Qname
 from isctest.template import NS3
+
+NAME = "below.www.example.com."
 
 
 def rrset(
@@ -37,17 +37,9 @@ class FooInfoHandler(IgnoreAllQueries):
     matcher = Qname("foo.info.")
 
 
-class FallbackHandler(ResponseHandler):
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        name = "below.www.example.com."
-        ns_name = f"ns.{name}"
-        ns_rrset = rrset(name, dns.rdatatype.NS, ns_name)
-        a_rrset = rrset(ns_name, dns.rdatatype.A, NS3.ip)
-        qctx.response.authority.append(ns_rrset)
-        qctx.response.additional.append(a_rrset)
-        yield DnsResponseSend(qctx.response)
+class FallbackHandler(SingleResponseHandler):
+    authority = [rrset(NAME, dns.rdatatype.NS, f"ns.{NAME}")]
+    additional = [rrset(f"ns.{NAME}", dns.rdatatype.A, NS3.ip)]
 
 
 def main() -> None:

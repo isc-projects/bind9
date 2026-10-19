@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator, Collection
+from collections.abc import Collection, Sequence
 
 import dns.message
 import dns.name
@@ -27,7 +27,11 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import SwitchControlCommand
-from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
+from isctest.asyncserver.handlers import (
+    AxfrHandler,
+    ResponseHandlerWrapper,
+    SingleResponseHandler,
+)
 from isctest.asyncserver.matchers import Edns, Qtype
 from isctest.vars.algorithms import ALG_VARS
 
@@ -164,17 +168,15 @@ def soa(
     )
 
 
-class SoaHandler(ResponseHandler):
+class SoaHandler(SingleResponseHandler):
     def __init__(self, serial: int = 1) -> None:
         self._serial = serial
 
     matcher = Qtype(dns.rdatatype.SOA)
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(soa(self._serial))
-        yield DnsResponseSend(qctx.response)
+    @property
+    def answer(self) -> Sequence[dns.rrset.RRset]:
+        return [soa(self._serial)]
 
 
 def ns() -> dns.rrset.RRset:
@@ -249,27 +251,21 @@ class WrongQnameInFinalSoa(ResponseHandlerWrapper):
         self._messages_until_final_soa -= 1
 
 
-class IxfrNotimpHandler(ResponseHandler):
+class IxfrNotimpHandler(SingleResponseHandler):
     matcher = Qtype(dns.rdatatype.IXFR)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.set_rcode(dns.rcode.NOTIMP)
-        yield DnsResponseSend(qctx.response)
+    rcode = dns.rcode.NOTIMP
 
 
-class AxfrEdnsRcodeHandler(ResponseHandler):
-    def __init__(self, rcode: dns.rcode.Rcode) -> None:
-        self._rcode = rcode
-
+class AxfrEdnsRcodeHandler(SingleResponseHandler):
     matcher = Qtype(dns.rdatatype.AXFR) & Edns()
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.set_rcode(self._rcode)
-        yield DnsResponseSend(qctx.response)
+
+class AxfrEdnsFormerrHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.FORMERR
+
+
+class AxfrEdnsNotimpHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.NOTIMP
 
 
 def main() -> None:
@@ -299,12 +295,12 @@ def main() -> None:
             ),
             "ednsformerr": (
                 SignResponses(SoaHandler()),
-                SignResponses(AxfrEdnsRcodeHandler(rcode=dns.rcode.FORMERR)),
+                SignResponses(AxfrEdnsFormerrHandler()),
                 SignResponses(XferAxfrHandler(txt_data="EDNS FORMERR")),
             ),
             "ednsnotimp": (
                 SignResponses(SoaHandler()),
-                SignResponses(AxfrEdnsRcodeHandler(rcode=dns.rcode.NOTIMP)),
+                SignResponses(AxfrEdnsNotimpHandler()),
                 SignResponses(XferAxfrHandler(txt_data="EDNS NOTIMP")),
             ),
             "goodaxfr": (

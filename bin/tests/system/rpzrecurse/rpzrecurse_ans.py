@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Sequence
 
 import dns.name
 import dns.rdataclass
@@ -18,6 +18,7 @@ import dns.rrset
 
 from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Matcher, Qtype
 
 
@@ -49,14 +50,11 @@ class AHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class DelayedNsHandler(ResponseHandler):
+class DelayedNsHandler(SingleResponseHandler):
     matcher = Qtype(dns.rdatatype.NS)
     owner: str
     nameserver: str
-    delay: float
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(ns(self.owner, self.nameserver))
-        yield DnsResponseSend(qctx.response, delay=self.delay)
+    @property
+    def answer(self) -> Sequence[dns.rrset.RRset]:
+        return [ns(self.owner, self.nameserver)]

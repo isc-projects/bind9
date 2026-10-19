@@ -9,13 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import dns.rcode
 import dns.rdatatype
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..rpzrecurse_ans import AHandler, rrset
@@ -26,18 +24,15 @@ class ReplyA(AHandler):
     address = "10.53.0.99"
 
 
-class ReplyDefault(ResponseHandler):
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        soa_rrset = rrset(
+class ReplyDefault(SingleResponseHandler):
+    authority = [
+        rrset(
             ".",
             dns.rdatatype.SOA,
             "a.root-servers.test. root.test. 1 3600 1200 604800 1",
             ttl=1,  # Important: this should be 1 so it expires early
         )
-        qctx.response.authority.append(soa_rrset)
-        yield DnsResponseSend(qctx.response)
+    ]
 
 
 def main() -> None:
