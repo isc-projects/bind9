@@ -968,6 +968,42 @@ class AddNsecToTxtHandler(ResponseHandler):
 class AddRrsigToAHandler(ResponseHandler):
 ```
 
+### A handler no query reached may still be needed
+
+A passing run shows one set of queries reaching the server.  A handler
+none of them hit is not dead for that reason: the resolution path may
+differ from run to run, and the build the test was written to catch may
+take paths the fixed build does not.  The handler nothing reached may be
+the one that makes the test fail on that build.
+
+Do not remove a handler because it did not fire.  Run the test on the
+unpatched build (see
+[Verifying a test against the unpatched build](#verifying-a-test-against-the-unpatched-build)):
+a handler the test needs in order to fail there stays, and one it
+fails without, for the same reason, can go.  So can a handler that the
+ones installed before it mask, on any build: every query it matches is
+already matched by one of them.
+
+#### Examples
+
+The only handler of the server reached by following the poison
+referral of `fwdfirst/ans2`.  On the fixed build no query reaches it;
+on the unpatched build the resolver follows the referral and the test
+fails on the poisoned address this handler serves.
+
+```python
+# fwdfirst/ans3/ans.py:24-32 as of fbb2cf75de
+class PoisonedAHandler(SingleResponseHandler):
+    matcher = Qname("victim.sibling.hack.") & Qtype(dns.rdatatype.A)
+    answer = [a(matcher.of(Qname).qname, POISON_ADDRESS)]
+
+
+def main() -> None:
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(PoisonedAHandler())
+    server.run()
+```
+
 ### `Once` wraps the whole criterion
 
 A handler that answers one query and then leaves the rest to the general
