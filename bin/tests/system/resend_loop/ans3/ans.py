@@ -54,6 +54,12 @@ class ExampleNsHandler(SingleResponseHandler):
     additional = [a(f"ns.{matcher.of(Qname).qname}", ANS3.ip)]
 
 
+class TestDotComServFailHandler(SingleResponseHandler):
+    matcher = Qname("test.com.")
+    authoritative = False
+    rcode = dns.rcode.SERVFAIL
+
+
 class WithCookie(Matcher):
     """
     Match queries carrying an EDNS COOKIE option; the option of the last
@@ -99,12 +105,6 @@ class BadCookieHandler(ResponseHandler):
 
 class ExampleServfailHandler(SingleResponseHandler):
     matcher = Domain("example.")
-    rcode = dns.rcode.SERVFAIL
-
-
-class TestDotComServFailHandler(SingleResponseHandler):
-    matcher = Qname("test.com.")
-    authoritative = False
     rcode = dns.rcode.SERVFAIL
 
 

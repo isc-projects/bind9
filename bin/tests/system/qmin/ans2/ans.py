@@ -39,25 +39,6 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-class QueryLogger(QueryLogHandler):
-    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.", "stale.")
-
-
-class BadHandler(EntRcodeChanger):
-    matcher = Domain("bad.")
-    rcode = dns.rcode.NXDOMAIN
-
-
-class UglyHandler(EntRcodeChanger):
-    matcher = Domain("ugly.")
-    rcode = dns.rcode.FORMERR
-
-
-class SlowHandler(DelayedResponseHandler):
-    matcher = Domain("slow.")
-    delay = 0.2
-
-
 def send_delegation(
     qctx: QueryContext, zone_cut: dns.name.Name, target_addr: str
 ) -> DnsResponseSend:
@@ -105,6 +86,25 @@ class ABStaleDelegationHandler(StaleDelegationHandler):
 class BStaleDelegationHandler(StaleDelegationHandler):
     matcher = Domain("b.stale.")
     address = ANS4.ip
+
+
+class BadHandler(EntRcodeChanger):
+    matcher = Domain("bad.")
+    rcode = dns.rcode.NXDOMAIN
+
+
+class QueryLogger(QueryLogHandler):
+    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.", "stale.")
+
+
+class SlowHandler(DelayedResponseHandler):
+    matcher = Domain("slow.")
+    delay = 0.2
+
+
+class UglyHandler(EntRcodeChanger):
+    matcher = Domain("ugly.")
+    rcode = dns.rcode.FORMERR
 
 
 def main() -> None:

@@ -49,18 +49,6 @@ def soa(owner: dns.name.Name | str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.SOA, ". . 0 0 0 0 0")
 
 
-class Ns1AHandler(SingleResponseHandler):
-    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
-    answer = [a(NS1)]
-    edns = None
-
-
-class Ns1AaaaHandler(SingleResponseHandler):
-    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
-    answer = [aaaa(NS1)]
-    edns = None
-
-
 class SldDelegationHandler(ResponseHandler):
     """
     Delegate every NS query at or below sld.tld. to ns1.sld.tld., copying the
@@ -77,6 +65,18 @@ class SldDelegationHandler(ResponseHandler):
         qctx.response.use_edns(None)
         qctx.response.answer.append(ns(qctx.qname))
         yield DnsResponseSend(qctx.response)
+
+
+class Ns1AHandler(SingleResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
+    answer = [a(NS1)]
+    edns = None
+
+
+class Ns1AaaaHandler(SingleResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
+    answer = [aaaa(NS1)]
+    edns = None
 
 
 class NegativeSoaHandler(ResponseHandler):

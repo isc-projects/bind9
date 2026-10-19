@@ -78,22 +78,6 @@ class CnameThenDnameHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class DnameOwnerWithoutAuthorityHandler(ResponseHandler):
-    """
-    Answer at the DNAME owner from zone data, with the authority section
-    stripped.
-    """
-
-    matcher = Qname("self.example.dname.")
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        del qctx.response.authority[:]
-        qctx.response.set_rcode(dns.rcode.NOERROR)
-        yield DnsResponseSend(qctx.response)
-
-
 class CnameToDnameOwnerHandler(ResponseHandler):
     """
     Attempt to trigger the resolver variant of CVE-2021-25215.  A `named`
@@ -116,6 +100,22 @@ class CnameToDnameOwnerHandler(ResponseHandler):
             qctx.qname, dns.rdatatype.CNAME, dname_owner.to_text(), ttl=60
         )
         qctx.response.answer.append(cname_rrset)
+        yield DnsResponseSend(qctx.response)
+
+
+class DnameOwnerWithoutAuthorityHandler(ResponseHandler):
+    """
+    Answer at the DNAME owner from zone data, with the authority section
+    stripped.
+    """
+
+    matcher = Qname("self.example.dname.")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        del qctx.response.authority[:]
+        qctx.response.set_rcode(dns.rcode.NOERROR)
         yield DnsResponseSend(qctx.response)
 
 

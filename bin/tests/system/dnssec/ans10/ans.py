@@ -30,6 +30,18 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
+class AddNsecToTxtHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.TXT)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        nsec = f"{qctx.qname.to_text()} A NS SOA RRSIG NSEC"
+        nsec_rrset = rrset(qctx.qname, dns.rdatatype.NSEC, nsec, ttl=1)
+        qctx.response.authority.append(nsec_rrset)
+        yield DnsResponseSend(qctx.response)
+
+
 class AddRrsigToAHandler(ResponseHandler):
     matcher = Qtype(dns.rdatatype.A)
 
@@ -42,18 +54,6 @@ class AddRrsigToAHandler(ResponseHandler):
         )
         rrsig_rrset = rrset(qctx.qname, dns.rdatatype.RRSIG, rrsig, ttl=1)
         qctx.response.answer.append(rrsig_rrset)
-        yield DnsResponseSend(qctx.response)
-
-
-class AddNsecToTxtHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.TXT)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        nsec = f"{qctx.qname.to_text()} A NS SOA RRSIG NSEC"
-        nsec_rrset = rrset(qctx.qname, dns.rdatatype.NSEC, nsec, ttl=1)
-        qctx.response.authority.append(nsec_rrset)
         yield DnsResponseSend(qctx.response)
 
 

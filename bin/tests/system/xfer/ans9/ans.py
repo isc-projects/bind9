@@ -103,28 +103,6 @@ class ZoneAxfrHandler(AxfrHandler, SerialCounted, abc.ABC):
         return soa(self.zone, self._serials.serial)
 
 
-class ReconfigAxfrHandler(ZoneAxfrHandler):
-    zone = "xfr-and-reconfig."
-
-    @property
-    def zone_contents(self) -> Collection[dns.rrset.RRset]:
-        return [
-            ns(self.zone),
-            txt(self.zone),
-        ]
-
-
-class RetryAxfrHandler(ZoneAxfrHandler):
-    zone = "retry-too-big."
-
-    @property
-    def zone_contents(self) -> Collection[dns.rrset.RRset]:
-        return [
-            ns(self.zone),
-            txt(self.zone),
-        ]
-
-
 class OverrunAxfrHandler(ZoneAxfrHandler):
     """
     Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
@@ -146,6 +124,28 @@ class OverrunAxfrHandler(ZoneAxfrHandler):
             txt(self.zone),
             dnskey(self.zone, self.OVERRUN_DNSKEY),
             dnskey(self.zone, self.WELL_FORMED_DNSKEY),
+        ]
+
+
+class ReconfigAxfrHandler(ZoneAxfrHandler):
+    zone = "xfr-and-reconfig."
+
+    @property
+    def zone_contents(self) -> Collection[dns.rrset.RRset]:
+        return [
+            ns(self.zone),
+            txt(self.zone),
+        ]
+
+
+class RetryAxfrHandler(ZoneAxfrHandler):
+    zone = "retry-too-big."
+
+    @property
+    def zone_contents(self) -> Collection[dns.rrset.RRset]:
+        return [
+            ns(self.zone),
+            txt(self.zone),
         ]
 
 

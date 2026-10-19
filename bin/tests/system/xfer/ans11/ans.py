@@ -127,14 +127,6 @@ class InitialSoaHandler(TransferHandler, SingleResponseHandler):
         self.matcher = Qtype(dns.rdatatype.SOA) & ~InitialAxfrServed(progress)
 
 
-class RefreshSoaHandler(TransferHandler, SingleResponseHandler):
-    answer = [soa(4)]
-
-    def __init__(self, progress: TransferState) -> None:
-        super().__init__(progress)
-        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
-
-
 class InitialAxfrHandler(TransferHandler, AxfrHandler):
     """
     Serve the initial zone (serial 1) and mark the transfer as done.
@@ -153,6 +145,14 @@ class InitialAxfrHandler(TransferHandler, AxfrHandler):
         self._progress.initial_axfr_served = True
         async for action in super().get_responses(qctx):
             yield action
+
+
+class RefreshSoaHandler(TransferHandler, SingleResponseHandler):
+    answer = [soa(4)]
+
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
 
 
 class TruncatedIxfrHandler(ResponseHandler):

@@ -59,6 +59,14 @@ class AHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response, delay=self.delay)
 
 
+class DelayedAHandler(AHandler):
+    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.A)
+
+    @property
+    def delay(self) -> float:
+        return int(self.matcher.of(DelayLabel).matched_label) / 1000
+
+
 class AaaaHandler(ResponseHandler):
     matcher: Matcher = Qtype(dns.rdatatype.AAAA)
 
@@ -72,14 +80,6 @@ class AaaaHandler(ResponseHandler):
         aaaa_rrset = rrset(qctx.qname, dns.rdatatype.AAAA, "2001:db8:beef::1")
         qctx.response.answer.append(aaaa_rrset)
         yield DnsResponseSend(qctx.response, delay=self.delay)
-
-
-class DelayedAHandler(AHandler):
-    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.A)
-
-    @property
-    def delay(self) -> float:
-        return int(self.matcher.of(DelayLabel).matched_label) / 1000
 
 
 class DelayedAaaaHandler(AaaaHandler):

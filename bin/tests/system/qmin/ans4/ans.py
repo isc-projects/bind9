@@ -26,6 +26,21 @@ from ..qmin_ans import (
 )
 
 
+class IckyPtangZoopBoingBadHandler(EntRcodeChanger):
+    matcher = Domain("icky.ptang.zoop.boing.bad.")
+    rcode = dns.rcode.NXDOMAIN
+
+
+class IckyPtangZoopBoingSlowHandler(DelayedResponseHandler):
+    matcher = Domain("icky.ptang.zoop.boing.slow.")
+    delay = 0.4
+
+
+class IckyPtangZoopBoingUglyHandler(EntRcodeChanger):
+    matcher = Domain("icky.ptang.zoop.boing.ugly.")
+    rcode = dns.rcode.FORMERR
+
+
 class QueryLogger(QueryLogHandler):
     matcher = Domain("1.1.1.1.8.2.6.0.1.0.0.2.ip6.arpa.", "icky.ptang.zoop.boing.good.")
 
@@ -63,21 +78,6 @@ class StaleHandler(ResponseHandler):
                     qctx.response.additional.append(glue_aaaa)
 
         yield DnsResponseSend(qctx.response)
-
-
-class IckyPtangZoopBoingBadHandler(EntRcodeChanger):
-    matcher = Domain("icky.ptang.zoop.boing.bad.")
-    rcode = dns.rcode.NXDOMAIN
-
-
-class IckyPtangZoopBoingUglyHandler(EntRcodeChanger):
-    matcher = Domain("icky.ptang.zoop.boing.ugly.")
-    rcode = dns.rcode.FORMERR
-
-
-class IckyPtangZoopBoingSlowHandler(DelayedResponseHandler):
-    matcher = Domain("icky.ptang.zoop.boing.slow.")
-    delay = 0.4
 
 
 def main() -> None:

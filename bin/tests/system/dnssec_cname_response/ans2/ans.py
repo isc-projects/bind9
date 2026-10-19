@@ -80,16 +80,16 @@ class ExampleMetatypeCnameHandler(CnameHandler):
     )
 
 
-class SecureDsCnameHandler(CnameHandler):
-    matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
-
-
 class InsecureApexCnameHandler(CnameHandler):
     """
     Synthesize an apex CNAME, which conflicts with SOA/NS in a zone file.
     """
 
     matcher = Qname("insecure.parent.") & Qtype(dns.rdatatype.A)
+
+
+class SecureDsCnameHandler(CnameHandler):
+    matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
 
 
 def soa_with_rrsig(zone: dns.zone.Zone) -> list[dns.rrset.RRset]:
@@ -112,6 +112,23 @@ class NoNameIn(Matcher):
         return f"no name in {self._zone.origin}"
 
 
+class NxdomainHandler(SingleResponseHandler):
+    """
+    Answer NXDOMAIN from a signed zone, with its SOA.
+    """
+
+    rcode = dns.rcode.NXDOMAIN
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin) & NoNameIn(zone)
+
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
+        return soa_with_rrsig(self._zone)
+
+
 class NoDataIn(Matcher):
     """
     Match queries the given zone holds no rdataset for.
@@ -130,9 +147,9 @@ class NoDataIn(Matcher):
         return f"no data in {self._zone.origin}"
 
 
-class NxdomainHandler(SingleResponseHandler):
+class StuffedNxdomainHandler(SingleResponseHandler):
     """
-    Answer NXDOMAIN from a signed zone, with its SOA.
+    Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
     """
 
     rcode = dns.rcode.NXDOMAIN
@@ -140,11 +157,15 @@ class NxdomainHandler(SingleResponseHandler):
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
         assert self._zone.origin
-        self.matcher = Domain(self._zone.origin) & NoNameIn(zone)
+        self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
 
     @property
     def authority(self) -> Sequence[dns.rrset.RRset]:
-        return soa_with_rrsig(self._zone)
+        assert self._zone.origin
+        authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
+        for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
+            authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
+        return authority
 
 
 class NodataHandler(SingleResponseHandler):
@@ -180,27 +201,6 @@ class SignedZoneHandler(ResponseHandler):
             rrset_with_rrsig(self._zone, qctx.qname, qctx.qtype)
         )
         yield DnsResponseSend(qctx.response)
-
-
-class StuffedNxdomainHandler(SingleResponseHandler):
-    """
-    Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
-    """
-
-    rcode = dns.rcode.NXDOMAIN
-
-    def __init__(self, zone: dns.zone.Zone) -> None:
-        self._zone = zone
-        assert self._zone.origin
-        self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
-
-    @property
-    def authority(self) -> Sequence[dns.rrset.RRset]:
-        assert self._zone.origin
-        authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
-        for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
-            authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
-        return authority
 
 
 def main() -> None:

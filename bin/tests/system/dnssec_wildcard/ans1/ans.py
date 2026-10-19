@@ -54,16 +54,6 @@ def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> 
     # from a wildcard record.
 
 
-class WildcardAdditionalHandler(ResponseHandler):
-    matcher = Qname("svc.f043.test.") & Qtype(dns.rdatatype.MX)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        append_forged_a_rrset_to_additional(qctx, "victim.f043.test.")
-        yield DnsResponseSend(qctx.response)
-
-
 class ParentWildcardHandler(ResponseHandler):
     matcher = Qname("q.f045.test.") & Qtype(dns.rdatatype.MX)
 
@@ -71,6 +61,16 @@ class ParentWildcardHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         append_forged_a_rrset_to_additional(qctx, "svc.child.f045.test.")
+        yield DnsResponseSend(qctx.response)
+
+
+class WildcardAdditionalHandler(ResponseHandler):
+    matcher = Qname("svc.f043.test.") & Qtype(dns.rdatatype.MX)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        append_forged_a_rrset_to_additional(qctx, "victim.f043.test.")
         yield DnsResponseSend(qctx.response)
 
 
