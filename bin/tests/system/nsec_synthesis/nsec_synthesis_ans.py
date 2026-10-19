@@ -59,4 +59,4 @@ class AttackNsecHandler(ResponseHandler):
             dns.rrset.from_rdata(nsec_rrset.name, nsec_rrset.ttl, rrsig)
         )
 
-        yield DnsResponseSend(qctx.response, authoritative=True)
+        yield DnsResponseSend(qctx.response)

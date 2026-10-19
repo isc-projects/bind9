@@ -49,7 +49,6 @@ class HeldAddressHandler(SingleResponseHandler):
     """
 
     matcher = Qname("nodata.example.") & Qtype(dns.rdatatype.A) & Flags(dns.flags.CD)
-    rcode = dns.rcode.NOERROR
     answer = [
         rrset(
             matcher.of(Qname).qname,
@@ -60,7 +59,6 @@ class HeldAddressHandler(SingleResponseHandler):
             "192.0.2.4",
         )
     ]
-    authoritative = True
 
 
 class UntilReleased(ResponseHandlerWrapper):
@@ -95,7 +93,9 @@ class ReleaseCommand(ControlCommand):
 
 
 def main() -> None:
-    server = ControllableAsyncDnsServer()
+    server = ControllableAsyncDnsServer(
+        default_aa=True, default_rcode=dns.rcode.NOERROR
+    )
     release = asyncio.Event()
     server.install_response_handlers(UntilReleased(HeldAddressHandler(), release))
     server.install_control_command(ReleaseCommand(release))

@@ -98,7 +98,7 @@ class CountHandler(ReclimitHandler):
             ttl=0,
         )
         qctx.response.answer.append(count_rrset)
-        yield DnsResponseSend(qctx.response, authoritative=True)
+        yield DnsResponseSend(qctx.response)
 
 
 class ResetHandler(ReclimitHandler):

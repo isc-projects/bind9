@@ -43,7 +43,7 @@ class FallbackHandler(SingleResponseHandler):
 
 
 def main() -> None:
-    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=False)
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(FooInfoHandler(), FallbackHandler())
     server.run()
 

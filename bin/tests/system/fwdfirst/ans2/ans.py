@@ -24,7 +24,6 @@ class PoisonReferralForwarder(SingleResponseHandler):
     authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
     additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
     rcode = dns.rcode.NOERROR
-    authoritative = False
 
 
 def main() -> None:

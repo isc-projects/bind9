@@ -262,7 +262,7 @@ class ProofBreaker(ResponseHandlerWrapper):
 
 
 def main() -> None:
-    server = AsyncDnsServer(default_aa=False, default_rcode=dns.rcode.NOERROR)
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
     server.install_response_handlers(
         DsInjector(RelayForwarder(dns.rdatatype.DS)),
         ProofBreaker(RelayForwarder(dns.rdatatype.A, dns.rdatatype.AAAA)),
