@@ -9,25 +9,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
-from isctest.asyncserver import (
-    AsyncDnsServer,
-    DnsProtocol,
-    QueryContext,
-    ResponseHandler,
-)
-from isctest.asyncserver.actions import DnsResponseSend, ResponseDrop
+from isctest.asyncserver import AsyncDnsServer, DnsProtocol
+from isctest.asyncserver.handlers import IgnoreAllQueries
+from isctest.asyncserver.matchers import Protocol
 
 
-class DropUdpHandler(ResponseHandler):
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
-        if qctx.protocol == DnsProtocol.UDP:
-            yield ResponseDrop()
-        else:
-            yield DnsResponseSend(qctx.response)
+class DropUdpHandler(IgnoreAllQueries):
+    matcher = Protocol(DnsProtocol.UDP)
 
 
 def main() -> None:
