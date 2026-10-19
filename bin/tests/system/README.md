@@ -427,10 +427,6 @@ log files (`ans.run`) in case a query is not matched by its intended handler.
 classes for distinct queries is strongly preferred over using a single handler
 containing an `if`/`elif`/`else` chain.
 
-**NOTE:** If you find yourself implementing an `__init__()` method in your
-handler subclass, it often indicates that you're approaching the problem at hand
-from the wrong side; contact QA for guidance in such a case.
-
 When a query is matched to a handler, the latter is expected to yield a response
 action through its `get_responses()` method, an async generator that inspects
 the query context and decides how the server should react:
