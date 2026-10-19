@@ -319,6 +319,163 @@ class SoaHandler(SerialCounted):
     ...
 ```
 
+### Records come from builders
+
+A server builds its records through helper builders, never through
+an inline `dns.rrset.from_text()` that spells the TTL and the class
+out at every call.
+
+The least is one generic builder, `rrset(owner, rdtype, rdata,
+ttl=...)`, that fixes the class and defaults the TTL.  A record type
+the server builds again and again with the same fields gets a builder
+of its own on top of it, taking only what varies; a builder used once
+is fine too, where the generic call would be long.
+
+A builder is named after the type it returns: `soa()`, `ns()`,
+`a()`, not `soa_rrset()`, since the suffix says nothing the return
+type does not.  No function in an `ans.py` or `<test>_ans.py` carries
+a leading underscore.
+
+At the call site, a per-type builder reads well as an argument,
+`append(a(owner, address))`.  A record of a type the server builds
+only once may be the generic call itself, in a class attribute as
+anywhere else: `zone_contents = [rrset(ZONE, dns.rdatatype.NS,
+NS_NAME), ...]`.  In `get_responses()`, a generic call is assigned to
+a variable named after the record first, `a_rrset = rrset(...)`, and
+the variable is appended.
+
+#### Examples
+
+Inline records replaced by builders, 98b812beaf.  Before, every
+record spelled the TTL and the class out:
+
+```python
+# bailiwick/ans1/ans.py:27-55 before 98b812beaf
+class SiblingNsSpoofer(ResponseSpoofer, mode="sibling-ns"):
+
+    qname = "trigger."
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        response = qctx.prepare_new_response(with_zone_data=False)
+
+        txt_rrset = dns.rrset.from_text(
+            qctx.qname,
+            TTL,
+            qctx.qclass,
+            dns.rdatatype.TXT,
+            '"spoofed answer with extra NS"',
+        )
+        response.answer.append(txt_rrset)
+
+        ns_rrset = dns.rrset.from_text(
+            "victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.attacker."
+        )
+        response.authority.append(ns_rrset)
+
+        a_rrset = dns.rrset.from_text(
+            "ns.attacker.", TTL, qctx.qclass, dns.rdatatype.A, ATTACKER_IP
+        )
+        response.additional.append(a_rrset)
+
+        yield DnsResponseSend(response, authoritative=True)
+```
+
+After, a builder for each record type the server builds, over the
+generic one:
+
+```python
+# bailiwick/ans1/ans.py:49-62 at 98b812beaf
+class SiblingNsSpoofer(ResponseSpoofer, mode="sibling-ns"):
+
+    qname = "trigger."
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        response = qctx.prepare_new_response(with_zone_data=False)
+
+        response.answer.append(txt(qctx.qname, "spoofed answer with extra NS"))
+        response.authority.append(ns("victim.", "ns.attacker."))
+        response.additional.append(a("ns.attacker.", ATTACKER_IP))
+
+        yield DnsResponseSend(response, authoritative=True)
+
+# bailiwick/ans1/ans.py:28-34 at 98b812beaf
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 3600,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+# bailiwick/ans1/ans.py:41-42 at 98b812beaf
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+```
+
+A generic call stays where one record of a type is built, same
+commit; it is assigned to a variable named after the record before
+the append:
+
+```python
+# zero/ans5/ans.py:33-43 before 98b812beaf
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if qctx.qtype == dns.rdatatype.A:
+            rrset = dns.rrset.from_text(
+                qctx.qname, 0, qctx.qclass, dns.rdatatype.A, str(self._ip_address)
+            )
+            qctx.response.answer.append(rrset)
+            self._ip_address += 1
+
+        yield DnsResponseSend(qctx.response)
+```
+
+```python
+# zero/ans5/ans.py:44-52 at 98b812beaf
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if qctx.qtype == dns.rdatatype.A:
+            a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
+            qctx.response.answer.append(a_rrset)
+            self._ip_address += 1
+
+        yield DnsResponseSend(qctx.response)
+```
+
+Builders named after the type they return, bc8a0746f2.  Before:
+
+```python
+# resolver/resolver_ans.py:45-46 before bc8a0746f2
+def soa_rrset(qname: dns.name.Name | str) -> dns.rrset.RRset:
+    return rrset(qname, dns.rdatatype.SOA, ". . 0 0 0 0 0")
+
+# chain/ans4/ans.py:106-109 before bc8a0746f2
+    @classmethod
+    def create_rrset_signature(
+        cls, owner: dns.name.Name, rrtype: dns.rdatatype.RdataType
+    ) -> dns.rrset.RRset:
+```
+
+After:
+
+```python
+# resolver/resolver_ans.py:45-46 at bc8a0746f2
+def soa(qname: dns.name.Name | str) -> dns.rrset.RRset:
+    return rrset(qname, dns.rdatatype.SOA, ". . 0 0 0 0 0")
+
+# chain/ans4/ans.py:106-109 at bc8a0746f2
+    @classmethod
+    def rrsig(
+        cls, owner: dns.name.Name, rrtype: dns.rdatatype.RdataType
+    ) -> dns.rrset.RRset:
+```
+
 ### No wall of constants
 
 A value used once lives at its use site; a value that is an input of a
