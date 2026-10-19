@@ -10,14 +10,13 @@
 # information regarding copyright ownership.
 
 from isctest.asyncserver import AsyncDnsServer
-from nsec_synthesis.ans1 import common, f004, f023
+from nsec_synthesis.ans1 import common, f004
 
 
 def main() -> None:
     keys = common.load_keys()
     server = AsyncDnsServer(default_aa=True)
     server.install_response_handler(f004.F004Handler(keys))
-    server.install_response_handler(f023.F023Handler(keys))
     server.run()
 
 
