@@ -181,17 +181,17 @@ class Nameserver:
 
     name: str
     num: int | None = None
-    ip: str | None = None
-    ip6: str | None = None
+    ip: str = ""
+    ip6: str = ""
 
     def __post_init__(self):
         if self.num is None:
             match = re.search(r"\d+", self.name)
             assert match
             self.num = int(match.group(0))
-        if self.ip is None:
+        if not self.ip:
             self.ip = f"10.53.0.{self.num}"
-        if self.ip6 is None:
+        if not self.ip6:
             self.ip6 = f"fd92:7065:b8e:ffff::{self.num}"
 
 
