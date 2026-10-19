@@ -17,7 +17,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import ControlCommand, ControllableAsyncDnsServer, QueryContext
-from isctest.asyncserver.handlers import ResponseHandlerWrapper, StaticResponseHandler
+from isctest.asyncserver.handlers import ResponseHandlerWrapper, SingleResponseHandler
 from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 
 NAME = "nodata.example."
@@ -34,7 +34,7 @@ class CdFlag(Matcher):
         return bool(qctx.query.flags & dns.flags.CD)
 
 
-class HeldAddressHandler(StaticResponseHandler):
+class HeldAddressHandler(SingleResponseHandler):
     """
     Answer a CD=1 A query for nodata.example with unsigned addresses, but
     only once the "release._control." command has been received.  CD=0

@@ -16,7 +16,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 ZONE = "sigaxfr.nil."
@@ -57,7 +57,7 @@ def sig() -> dns.rrset.RRset:
     )
 
 
-class SoaHandler(StaticResponseHandler):
+class SoaHandler(SingleResponseHandler):
     matcher = Qname(ZONE) & Qtype(dns.rdatatype.SOA)
     answer = [soa()]
 

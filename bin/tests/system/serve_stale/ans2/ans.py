@@ -14,7 +14,7 @@ import dns.rdatatype
 
 from isctest.asyncserver import ControllableAsyncDnsServer, ResponseHandler
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..serve_stale_ans import (
@@ -31,7 +31,7 @@ from ..serve_stale_ans import (
 )
 
 
-class NxdomainExampleHandler(StaticResponseHandler):
+class NxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
     authority = [soa("example.", ttl=2)]
@@ -40,18 +40,18 @@ class NxdomainExampleHandler(StaticResponseHandler):
 # A negative answer that stays fresh for the whole run of a test, so that a
 # resolver refreshing it can only be doing so because it wrongly considers
 # the cached entry stale.
-class LongttlNodataExampleHandler(StaticResponseHandler):
+class LongttlNodataExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nodata.example.")
     authority = [soa("example.", ttl=600, minimum=600)]
 
 
-class LongttlNxdomainExampleHandler(StaticResponseHandler):
+class LongttlNxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
     authority = [soa("example.", ttl=600, minimum=600)]
 
 
-class OthertypeExampleCaaHandler(StaticResponseHandler):
+class OthertypeExampleCaaHandler(SingleResponseHandler):
     matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
     answer = [
         rrset(
@@ -63,7 +63,7 @@ class OthertypeExampleCaaHandler(StaticResponseHandler):
     ]
 
 
-class SourceStaleFallbackHandler(StaticResponseHandler):
+class SourceStaleFallbackHandler(SingleResponseHandler):
     matcher = Qname("source.stale.")
 
 

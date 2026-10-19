@@ -18,7 +18,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import ResponseHandler
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Always, Qname, Qtype
 
 
@@ -56,7 +56,7 @@ def cname(owner: str, target: str, ttl: int) -> dns.rrset.RRset:
 Delay = float | Callable[[], float]
 
 
-class StaticHandler(StaticResponseHandler):
+class StaticHandler(SingleResponseHandler):
     """
     A response handler answering with statically configured content.
 

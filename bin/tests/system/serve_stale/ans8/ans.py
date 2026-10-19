@@ -13,7 +13,7 @@ import dns.rcode
 
 from isctest.asyncserver import ControllableAsyncDnsServer, ResponseHandler
 from isctest.asyncserver.commands import SwitchControlCommand
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname
 
 from ..serve_stale_ans import (
@@ -27,7 +27,7 @@ from ..serve_stale_ans import (
 ANS8_ADDR = "10.53.0.8"
 
 
-class TargetStaleFallbackHandler(StaticResponseHandler):
+class TargetStaleFallbackHandler(SingleResponseHandler):
     matcher = Qname("target.stale.")
 
 

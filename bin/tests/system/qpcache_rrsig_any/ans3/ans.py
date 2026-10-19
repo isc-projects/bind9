@@ -19,7 +19,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname
 
 
@@ -47,7 +47,7 @@ def address(owner: dns.name.Name | str) -> dns.rrset.RRset:
     )
 
 
-class RrsigCoversRrsigHandler(StaticResponseHandler):
+class RrsigCoversRrsigHandler(SingleResponseHandler):
     """
     An RRSIG covering RRSIG only trips the QP-cache RRSIG-pairing assertion when
     a second RRSIG header shares the owner name, so serve two ordinary RRSIGs

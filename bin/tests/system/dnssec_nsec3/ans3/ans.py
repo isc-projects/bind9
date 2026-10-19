@@ -18,7 +18,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..dnssec_nsec3_ans import minimal_covering_nsec3, rrset
@@ -28,7 +28,7 @@ def a(owner: str | dns.name.Name, address: str = "192.0.2.55") -> dns.rrset.RRse
     return rrset(owner, dns.rdatatype.A, address)
 
 
-class ControlAHandler(StaticResponseHandler):
+class ControlAHandler(SingleResponseHandler):
     """
     This handler imitates successfully spoofing an unsigned response to an
     "a.ctl.f055.test/A" query sent to a server authoritative for the
@@ -43,7 +43,7 @@ class ControlAHandler(StaticResponseHandler):
     answer = [a(matcher.of(Qname).qnames[0])]
 
 
-class AttackAHandler(StaticResponseHandler):
+class AttackAHandler(SingleResponseHandler):
     """
     This handler imitates successfully spoofing an unsigned response to an
     "a.cut.f055.test/A" query sent to a server authoritative for the

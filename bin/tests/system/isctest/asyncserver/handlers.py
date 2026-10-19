@@ -187,9 +187,9 @@ class _UnsetEdnsType:
     pass
 
 
-class StaticResponseHandler(ResponseHandler):
+class SingleResponseHandler(ResponseHandler):
     """
-    Base class used for deriving custom static response handlers.
+    Base class for handlers that send a single response.
 
     The derived class can specify the RRsets to be included in the answer,
     authority, and additional sections of the response, whether to set the AA
@@ -250,6 +250,7 @@ class StaticResponseHandler(ResponseHandler):
         """
         return _UnsetEdnsType()
 
+    @final
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:

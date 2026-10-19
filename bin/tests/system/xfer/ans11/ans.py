@@ -26,7 +26,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Matcher, Protocol, Qtype
 
 ZONE = "ixfr-race."
@@ -122,7 +122,7 @@ class TransferHandler(ResponseHandler, abc.ABC):
         self._progress = progress
 
 
-class InitialSoaHandler(TransferHandler, StaticResponseHandler):
+class InitialSoaHandler(TransferHandler, SingleResponseHandler):
     answer = [soa(1)]
 
     def __init__(self, progress: TransferState) -> None:
@@ -130,7 +130,7 @@ class InitialSoaHandler(TransferHandler, StaticResponseHandler):
         self.matcher = Qtype(dns.rdatatype.SOA) & ~InitialAxfrServed(progress)
 
 
-class RefreshSoaHandler(TransferHandler, StaticResponseHandler):
+class RefreshSoaHandler(TransferHandler, SingleResponseHandler):
     answer = [soa(4)]
 
     def __init__(self, progress: TransferState) -> None:

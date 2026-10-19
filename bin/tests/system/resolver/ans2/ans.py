@@ -19,7 +19,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import IgnoreAllQueries, StaticResponseHandler
+from isctest.asyncserver.handlers import IgnoreAllQueries, SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 from ..resolver_ans import (
@@ -34,7 +34,7 @@ from ..resolver_ans import (
 )
 
 
-class BadGoodDnameNsHandler(StaticResponseHandler):
+class BadGoodDnameNsHandler(SingleResponseHandler):
     matcher = Qname("baddname.example.org.", "gooddname.example.org.") & Qtype(
         dns.rdatatype.NS
     )
@@ -51,14 +51,14 @@ def _cname_rrsets(
     )
 
 
-class Cname1Handler(StaticResponseHandler):
+class Cname1Handler(SingleResponseHandler):
     matcher = Qname("cname1.example.com.")
     # Data for the "cname + other data / 1" test
     answer = _cname_rrsets(matcher.qnames[0])
     authoritative = False
 
 
-class Cname2Handler(StaticResponseHandler):
+class Cname2Handler(SingleResponseHandler):
     matcher = Qname("cname2.example.com.")
     # Data for the "cname + other data / 2" test: same RRs in opposite order
     answer = tuple(reversed(_cname_rrsets(matcher.qnames[0])))
@@ -161,7 +161,7 @@ class Ns7Delegation(DelegationHandler):
     server_number = 7
 
 
-class PartialFormerrHandler(StaticResponseHandler):
+class PartialFormerrHandler(SingleResponseHandler):
     matcher = Domain("partial-formerr.")
     authoritative = False
     rcode = dns.rcode.FORMERR

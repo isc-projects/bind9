@@ -20,7 +20,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
 
 
@@ -33,13 +33,13 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class RootNsHandler(StaticResponseHandler):
+class RootNsHandler(SingleResponseHandler):
     matcher = Qname(".") & Qtype(dns.rdatatype.NS)
     answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
     additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
 
 
-class ExampleNsHandler(StaticResponseHandler):
+class ExampleNsHandler(SingleResponseHandler):
     matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
     answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
     additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
@@ -72,7 +72,7 @@ class ExampleCookieHandler(ResponseHandler):
             yield DnsResponseSend(qctx.response)
 
 
-class TestDotComServFailHandler(StaticResponseHandler):
+class TestDotComServFailHandler(SingleResponseHandler):
     matcher = Qname("test.com.")
     authoritative = False
     rcode = dns.rcode.SERVFAIL

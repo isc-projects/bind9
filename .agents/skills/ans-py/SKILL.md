@@ -37,7 +37,7 @@ An `ansN/ans.py` is laid out top to bottom as:
    that handler bodies read as data.
 5. Handlers: one class per behavior, with a `matcher` declaring the
    queries it takes and either the fixed parts of a
-   `StaticResponseHandler` or a `get_responses()` generator.
+   `SingleResponseHandler` or a `get_responses()` generator.
 6. `main()`: construct the server, install the handlers (and control
    commands, if any) and call `run()`, under the usual
    `if __name__ == "__main__":` guard.

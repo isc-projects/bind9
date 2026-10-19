@@ -16,7 +16,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 
@@ -37,7 +37,7 @@ def a(owner: str, address: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.A, address)
 
 
-class BrokenFooHandler(StaticResponseHandler):
+class BrokenFooHandler(SingleResponseHandler):
     matcher = Qname("a.foo.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("foo.test.", "ns.foo.test."),
@@ -55,7 +55,7 @@ class BrokenFooHandler(StaticResponseHandler):
     ]
 
 
-class BrokenBarHandler(StaticResponseHandler):
+class BrokenBarHandler(SingleResponseHandler):
     matcher = Qname("a.bar.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("bar.test.", "ns.bar.test."),

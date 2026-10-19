@@ -15,7 +15,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 VICTIM = "victim.sibling.hack."
@@ -28,7 +28,7 @@ def a(name: str) -> dns.rrset.RRset:
     )
 
 
-class PoisonedAHandler(StaticResponseHandler):
+class PoisonedAHandler(SingleResponseHandler):
     matcher = Qname(VICTIM) & Qtype(dns.rdatatype.A)
     answer = [a(VICTIM)]
 

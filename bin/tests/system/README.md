@@ -491,9 +491,9 @@ signature with `qctx.get_rrsig(rrset)` and adds denial-of-existence records
 with the `qctx.nsecx.prove_*()` methods; see `isctest/asyncserver/dnssec.py`
 and the tests under `isctest/asyncserver/tests/dnssec/`.
 
-**NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
+**NOTE:** For returning static responses, subclassing `SingleResponseHandler` is
 strongly recommended instead of implementing the `get_responses()` generator
-manually; see `resolver/ans3/ans.py` for practical examples.
+manually; see `fwdfirst/ans3/ans.py` for a practical example.
 
 **NOTE:** Calling `yield` does **NOT** make `get_responses()` return!  This is
 by design: `get_responses()` can yield multiple DNS messages in response to a
@@ -536,9 +536,9 @@ To point a resolver at the mock, delegate to it from the test's root zone
 delegation pattern end to end.
 
 The existing mock servers are the best reference.  A grep for the matcher,
-base class or response action you need (`Qname`, `StaticResponseHandler`,
+base class or response action you need (`Qname`, `SingleResponseHandler`,
 `ResponseDrop`, ...), e.g.
-`git grep -l StaticResponseHandler -- '*/ans*/*.py' '*/*_ans.py'`, usually
+`git grep -l SingleResponseHandler -- '*/ans*/*.py' '*/*_ans.py'`, usually
 turns up a test already doing something similar.  The full toolbox lives in
 `isctest/asyncserver/` (query matching, TCP connection handling, TSIG
 keyrings).
