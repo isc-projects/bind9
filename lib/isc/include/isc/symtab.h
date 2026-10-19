@@ -112,7 +112,7 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
  * \li	'found' is either NULL or a pointer to isc_symvalue_t
  *
  * Returns:
- * \li	#ISC_R_SUCCESS	Symbol has been deleted from the symbol table
+ * \li	#ISC_R_SUCCESS	Symbol has been found in the symbol table
  * \li	#ISC_R_NOTFOUND	Symbol not found in the symbol table
  *
  * Note:
