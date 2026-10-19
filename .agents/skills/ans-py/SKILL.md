@@ -2776,6 +2776,124 @@ class ReferralHandler(SingleResponseHandler):
     additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
 ```
 
+### Handlers that differ only in fixed values are subclasses
+
+When several handlers differ only in a few fixed values, write a
+subclass for each and set the values as class attributes, rather
+than passing them to the constructor of one shared class.  A handler
+has an `__init__()` only for what a class attribute cannot hold:
+
+- the state object that several handlers share, taken by their base
+  handler;
+- values that exist only once the server runs, as those a control
+  command passes on;
+- the values of a handler the server creates many times over;
+- a matcher built from attributes that subclasses set, or from the
+  shared state;
+- state of its own that changes as it answers, such as a counter.
+
+#### Examples
+
+Handlers that differ in a few fixed values, a subclass each,
+`srtt/ans3/ans.py` at d6d8e53629:
+
+```python
+# srtt/ans3/ans.py:20-22 at d6d8e53629
+class Delay30msHandler(DelayedQnameRangeHandler):
+    max_qname = 199
+    delay = 0.03
+```
+
+The two zone cuts of `qmin/ans2`, 816d21d664:
+
+```python
+# qmin/ans2/ans.py:100-107 at 816d21d664
+class ABStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("a.b.stale.")
+    address = ANS3.ip
+
+
+class BStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("b.stale.")
+    address = ANS4.ip
+```
+
+A shared handler that each server subclasses with its own data,
+9cfe470c07:
+
+```python
+# rpzrecurse/ans5/ans.py:20-27 at 9cfe470c07
+class FooChildDelegationHandler(DelayedNsHandler):
+    owner = "foo.child.example.tld."
+    nameserver = "ns5.foo."
+    delay = 3
+
+
+class Ns5FooAHandler(AHandler):
+    address = ANS5.ip
+```
+
+Two RCODEs of one handler, ddc48a04e2:
+
+```python
+# xfer/ans5/ans.py:259-268 at ddc48a04e2
+class AxfrEdnsRcodeHandler(SingleResponseHandler):
+    matcher = Qtype(dns.rdatatype.AXFR) & Edns()
+
+
+class AxfrEdnsFormerrHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.FORMERR
+
+
+class AxfrEdnsNotimpHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.NOTIMP
+```
+
+#### Negative examples
+
+State that the handlers share, handed to each constructor,
+`reclimit/ans2/ans.py` as of 4deea5f7f1:
+
+```python
+# reclimit/ans2/ans.py:62-72 as of 4deea5f7f1
+    state = ReclimitState(indirect_send_response_default=False)
+    server.install_response_handlers(
+        CountHandler(state),
+        ResetHandler(state),
+        DirectExampleHandler(state, 2),
+        IndirectExampleOrgHandler(state, 2),
+        Ns1ExampleOrgHandler(state),
+        Ns1ExampleNetHandler(state),
+        FallbackNxdomainHandler(state),
+    )
+    server.install_control_command(LimitControlCommand(state))
+```
+
+A handler the server creates many times over with different values,
+`xfer/ans5/ans.py` as of 4deea5f7f1:
+
+```python
+# xfer/ans5/ans.py:279-295 as of 4deea5f7f1
+    switch_command = SwitchControlCommand(
+        {
+            "badkeydata": (
+                SignResponses(SoaHandler(serial := 3)),
+                SignResponses(
+                    XferAxfrHandler(soa_serial=serial, txt_data="bad keydata AXFR"),
+                    KEY_WITH_BAD_DATA,
+                ),
+            ),
+            "badmessageid": (
+                SignResponses(SoaHandler()),
+                SignResponses(
+                    Add50ToMessageIdFromSecondResponse(
+                        XferAxfrHandler(txt_data="bad message id")
+                    ),
+                ),
+            ),
+        ...
+```
+
 ### No wall of constants
 
 A value used once lives at its use site; a value that is an input of a
