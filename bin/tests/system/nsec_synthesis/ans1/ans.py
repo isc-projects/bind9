@@ -9,14 +9,59 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+
+import dns.flags
+import dns.rcode
+import dns.rdatatype
+
 from isctest.asyncserver import AsyncDnsServer
-from nsec_synthesis.ans1 import common, f004
+from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.matchers import Flags, Qname, Qtype
+
+from ..nsec_synthesis_ans import AttackNsecHandler
+
+
+class AttackCoveringNsecHandler(AttackNsecHandler):
+    """
+    An NSEC whose next name reaches past victim.f004.test, covering it.
+    """
+
+    matcher = (
+        Qname("attacker.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
+    )
+    nsec = "b.victim.f004.test. NS SOA RRSIG NSEC DNSKEY"
+    key_tag = 9999
+
+
+class AttackNodataNsecHandler(AttackNsecHandler):
+    """
+    An NSEC owned by victim.f004.test itself, whose type bitmap omits A but
+    includes the NSEC and RRSIG types query_coveringnsec() requires; if
+    trusted, it would prove a NODATA for victim/A and hide the real A record.
+    """
+
+    matcher = (
+        Qname("victim.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
+    )
+    nsec = "z.f004.test. TXT RRSIG NSEC"
+    key_tag = 9999
+
+
+class RefusedNsecHandler(StaticResponseHandler):
+    matcher = Qname("attacker.f004.test.", "victim.f004.test.") & Qtype(
+        dns.rdatatype.NSEC
+    )
+    rcode = dns.rcode.REFUSED
+    authoritative = True
 
 
 def main() -> None:
-    keys = common.load_keys()
-    server = AsyncDnsServer(default_aa=True)
-    server.install_response_handler(f004.F004Handler(keys))
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(
+        AttackCoveringNsecHandler(),
+        AttackNodataNsecHandler(),
+    )
+    server.install_response_handlers(RefusedNsecHandler())
     server.run()
 
 

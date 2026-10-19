@@ -9,10 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -20,13 +16,14 @@ import pytest
 
 import isctest
 import isctest.mark
+import isctest.template
+import isctest.zone
 
 SIGNED_ZONE_MARKS = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
             "ans*/dsset-*",
-            "ans*/keys.json",
             "ans*/zones/*.db",
             "ans*/zones/*.db.signed",
         ]
@@ -34,24 +31,15 @@ SIGNED_ZONE_MARKS = [
 ]
 
 
-def make_key(zone: str):
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-        "ds": ds.to_text(),
-    }
+F004_ZONE = "f004.test."
+F004_VICTIM = f"victim.{F004_ZONE}"
+F004_VICTIM_A = "203.0.113.1"
+
+
+def f004_bootstrap():
+    zone = isctest.zone.Zone(F004_ZONE, isctest.template.ANS1, signed=True)
+    zone.configure(csk=True)
+    return {"trust_anchors": zone.trust_anchors()}
 
 
 def has_a(response, owner, address):
