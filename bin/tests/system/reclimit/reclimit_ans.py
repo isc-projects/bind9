@@ -91,7 +91,12 @@ class CountHandler(ReclimitHandler):
     async def _get_counted_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0)
+        count_rrset = rrset(
+            self.matcher.of(Qname).qname,
+            dns.rdatatype.TXT,
+            f"{self._state.count}",
+            ttl=0,
+        )
         qctx.response.answer.append(count_rrset)
         yield DnsResponseSend(qctx.response, authoritative=True)
 

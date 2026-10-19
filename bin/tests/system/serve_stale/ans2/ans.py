@@ -34,7 +34,7 @@ from ..serve_stale_ans import (
 class NxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
-    authority = [soa("example.", ttl=2)]
+    authority = [soa(matcher.qname.parent(), ttl=2)]
 
 
 # A negative answer that stays fresh for the whole run of a test, so that a
@@ -42,18 +42,18 @@ class NxdomainExampleHandler(SingleResponseHandler):
 # the cached entry stale.
 class LongttlNodataExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nodata.example.")
-    authority = [soa("example.", ttl=600, minimum=600)]
+    authority = [soa(matcher.qname.parent(), ttl=600, minimum=600)]
 
 
 class LongttlNxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
-    authority = [soa("example.", ttl=600, minimum=600)]
+    authority = [soa(matcher.qname.parent(), ttl=600, minimum=600)]
 
 
 class OthertypeExampleCaaHandler(SingleResponseHandler):
     matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
-    answer = [caa("othertype.example.", '0 issue "ca1.example.net"', ttl=2)]
+    answer = [caa(matcher.of(Qname).qname, '0 issue "ca1.example.net"', ttl=2)]
 
 
 class SourceStaleFallbackHandler(SingleResponseHandler):

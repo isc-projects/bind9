@@ -24,7 +24,7 @@ from isctest.template import ANS2
 
 
 def rrset(
-    owner: str,
+    owner: str | dns.name.Name,
     ttl: int,
     rdtype: dns.rdatatype.RdataType,
     rdata: str,
@@ -32,7 +32,9 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-def soa(owner: str, ttl: int = 300, minimum: int = 300) -> dns.rrset.RRset:
+def soa(
+    owner: str | dns.name.Name, ttl: int = 300, minimum: int = 300
+) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.SOA, f". . 0 0 0 0 {minimum}")
 
 
@@ -48,7 +50,7 @@ def txt(owner: str, data: str, ttl: int = 2) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.TXT, f'"{data}"')
 
 
-def caa(owner: str, data: str, ttl: int = 300) -> dns.rrset.RRset:
+def caa(owner: str | dns.name.Name, data: str, ttl: int = 300) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.CAA, data)
 
 

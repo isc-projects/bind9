@@ -21,8 +21,8 @@ from ..fwdfirst_ans import a, ns
 
 class PoisonReferralForwarder(SingleResponseHandler):
     matcher = Domain("fwd.hack.")
-    authority = [ns("hack.", "ns.fwd.hack.")]
-    additional = [a("ns.fwd.hack.", ANS3.ip)]
+    authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
     rcode = dns.rcode.NOERROR
     authoritative = False
 

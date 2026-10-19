@@ -18,13 +18,12 @@ from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..fwdfirst_ans import a
 
-VICTIM = "victim.sibling.hack."
 POISON_ADDRESS = "6.6.6.6"
 
 
 class PoisonedAHandler(SingleResponseHandler):
-    matcher = Qname(VICTIM) & Qtype(dns.rdatatype.A)
-    answer = [a(VICTIM, POISON_ADDRESS)]
+    matcher = Qname("victim.sibling.hack.") & Qtype(dns.rdatatype.A)
+    answer = [a(matcher.of(Qname).qname, POISON_ADDRESS)]
 
 
 def main() -> None:

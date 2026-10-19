@@ -50,8 +50,8 @@ class RootNsHandler(SingleResponseHandler):
 
 class ExampleNsHandler(SingleResponseHandler):
     matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
-    answer = [ns("example.", "ns.example.")]
-    additional = [a("ns.example.", ANS3.ip)]
+    answer = [ns(matcher.of(Qname).qname, f"ns.{matcher.of(Qname).qname}")]
+    additional = [a(f"ns.{matcher.of(Qname).qname}", ANS3.ip)]
 
 
 class WithCookie(Matcher):

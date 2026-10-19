@@ -36,9 +36,10 @@ class ExtraAnswersHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        ns_rrset = rrset("net3.", dns.rdatatype.NS, "local.net3.")
+        parent = self.matcher.of(Domain).domain.parent()
+        ns_rrset = rrset(parent, dns.rdatatype.NS, f"local.{parent}")
         qctx.response.answer.append(ns_rrset)
-        a_rrset = rrset("local.net3.", dns.rdatatype.A, ANS11.ip)
+        a_rrset = rrset(f"local.{parent}", dns.rdatatype.A, ANS11.ip)
         qctx.response.additional.append(a_rrset)
         yield DnsResponseSend(qctx.response)
 

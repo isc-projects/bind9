@@ -27,8 +27,6 @@ from isctest.asyncserver import (
 from isctest.asyncserver.handlers import ResponseHandlerWrapper, SingleResponseHandler
 from isctest.asyncserver.matchers import Flags, Qname, Qtype
 
-NAME = "nodata.example."
-
 
 def rrset(
     owner: str | dns.name.Name,
@@ -50,10 +48,17 @@ class HeldAddressHandler(SingleResponseHandler):
     comparing the two does not stop at the record count.
     """
 
-    matcher = Qname(NAME) & Qtype(dns.rdatatype.A) & Flags(dns.flags.CD)
+    matcher = Qname("nodata.example.") & Qtype(dns.rdatatype.A) & Flags(dns.flags.CD)
     rcode = dns.rcode.NOERROR
     answer = [
-        rrset(NAME, dns.rdatatype.A, "192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4")
+        rrset(
+            matcher.of(Qname).qname,
+            dns.rdatatype.A,
+            "192.0.2.1",
+            "192.0.2.2",
+            "192.0.2.3",
+            "192.0.2.4",
+        )
     ]
     authoritative = True
 
