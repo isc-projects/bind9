@@ -1973,6 +1973,84 @@ def bootstrap():
         yield DnsResponseSend(qctx.response, authoritative=True)
 ```
 
+### A server never decides at startup which test it serves
+
+A conditional install keyed on which fixture files exist, or a
+handler that disarms itself when its key is missing, is two servers
+in one directory, or a fixture that is written for only one of them.
+`start.pl` starts every `ansN` of the directory for every module and
+fails the test if one does not write `ans.pid` within 90 seconds, so
+a server idle for the current module still starts.  Resolve it one
+of three ways: every module's fixture generates what every server
+needs, each scenario gets a server of its own, or the scenarios get
+test directories of their own.
+
+#### Examples
+
+An install keyed on the fixture file of the current module
+(synthetic).  Before:
+
+```python
+# ans1/ans.py, before (synthetic)
+def main() -> None:
+    server = AsyncDnsServer()
+    if Path("zones/f043.test.db.signed").exists():
+        server.install_response_handlers(WildcardAdditionalHandler())
+    if Path("zones/f045.test.db.signed").exists():
+        server.install_response_handlers(ParentWildcardHandler())
+    server.run()
+```
+
+After, every handler installed and both modules' zones signed by their
+fixtures, `dnssec_wildcard/ans1/ans.py` as of 49fded03e3:
+
+```python
+# dnssec_wildcard/ans1/ans.py:77-83 as of 49fded03e3
+def main() -> None:
+    server = AsyncDnsServer()
+    server.install_response_handlers(
+        ParentWildcardHandler(),
+        WildcardAdditionalHandler(),
+    )
+    server.run()
+```
+
+A handler that disarms itself when the module did not provision its
+key, 364d78222a.  Before, `ans1` installed two reproducers, each with
+a check like this one, and whichever module ran, one of them did
+nothing:
+
+```python
+# nsec_synthesis/ans1/f023.py:87-92 before 364d78222a
+    def __init__(self, keys: dict[str, Key]) -> None:
+        super().__init__()
+        self.keys = keys
+
+        if F023_ZONE not in keys:
+            return
+```
+
+After, `f023.test` has a server of its own and no handler checks for a
+key, `nsec_synthesis/ans4/ans.py` as of bf5257bf06:
+
+```python
+# nsec_synthesis/ans4/ans.py:22-35 as of bf5257bf06
+class AttackChildNsecHandler(AttackNsecHandler):
+    """
+    An NSEC for a name in the insecure child zone evil.f023.test whose next
+    name reaches past target.f023.test in the signed parent.
+    """
+
+    matcher = Qname("0.evil.f023.test.") & Qtype(dns.rdatatype.NSEC)
+    nsec = "zzz.f023.test. A RRSIG NSEC"
+
+
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(AttackChildNsecHandler())
+    server.run()
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
