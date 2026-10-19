@@ -9,20 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from isctest.template import TrustAnchor
-from nsec_synthesis.common import (
-    SIGNED_ZONE_MARKS,
-    check_forged_nsec,
-    get_nsec,
-    has_a,
-    make_key,
-)
+from nsec_synthesis.common import SIGNED_ZONE_MARKS, check_forged_nsec, get_nsec, has_a
 
 import isctest
+import isctest.template
+import isctest.zone
 
 F023_ZONE = "f023.test."
 EVIL = f"evil.{F023_ZONE}"
@@ -30,18 +21,18 @@ POISON = f"0.{EVIL}"
 POISON_NEXT = f"zzz.{F023_ZONE}"
 TARGET = f"target.{F023_ZONE}"
 TARGET_A = "192.0.2.77"
-AUTH = "10.53.0.4"
-RESOLVER = "10.53.0.2"
+AUTH = isctest.template.ANS4.ip
+RESOLVER = isctest.template.NS2.ip
 
 pytestmark = SIGNED_ZONE_MARKS
 
 
 def bootstrap():
-    keys = {F023_ZONE: make_key(F023_ZONE)}
-    Path("ans4/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    dnskey = keys[F023_ZONE]["dnskey"].split()
-    contents = f'{" ".join(dnskey[:3])} "{"".join(dnskey[3:])}"'
-    return {"trust_anchors": [TrustAnchor(F023_ZONE, "static-key", contents)]}
+    evil = isctest.zone.Zone(EVIL, isctest.template.ANS4)
+    zone = isctest.zone.Zone(F023_ZONE, isctest.template.ANS4, signed=True)
+    zone.delegations = [evil]
+    zone.configure(csk=True)
+    return {"trust_anchors": zone.trust_anchors()}
 
 
 def _prime_parent_for_aggressive_nsec():
