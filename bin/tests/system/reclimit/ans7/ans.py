@@ -16,7 +16,7 @@ import dns.rcode
 from isctest.asyncserver import AsyncDnsServer, QueryContext
 from isctest.asyncserver.actions import DnsResponseSend
 
-from ..reclimit_ans import CountAndResetHandler, ReclimitHandler, ReclimitState
+from ..reclimit_ans import CountHandler, ReclimitHandler, ReclimitState, ResetHandler
 
 
 class FallbackRefusedHandler(ReclimitHandler):
@@ -31,7 +31,8 @@ def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
     state = ReclimitState()
     server.install_response_handlers(
-        CountAndResetHandler(state),
+        CountHandler(state),
+        ResetHandler(state),
         FallbackRefusedHandler(state),
     )
     server.run()

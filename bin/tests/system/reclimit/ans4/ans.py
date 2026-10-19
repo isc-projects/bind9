@@ -14,13 +14,14 @@ import dns.rcode
 from isctest.asyncserver import ControllableAsyncDnsServer
 
 from ..reclimit_ans import (
-    CountAndResetHandler,
+    CountHandler,
     DirectExampleHandler,
     FallbackNxdomainHandler,
     IndirectExampleOrgHandler,
     LimitControlCommand,
     Ns1ExampleOrgHandler,
     ReclimitState,
+    ResetHandler,
 )
 
 
@@ -30,7 +31,8 @@ def main() -> None:
     )
     state = ReclimitState()
     server.install_response_handlers(
-        CountAndResetHandler(state),
+        CountHandler(state),
+        ResetHandler(state),
         DirectExampleHandler(state, 4),
         IndirectExampleOrgHandler(state, 4),
         Ns1ExampleOrgHandler(state),

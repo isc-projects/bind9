@@ -17,7 +17,7 @@ from isctest.asyncserver import ControllableAsyncDnsServer, QueryContext
 from isctest.asyncserver.actions import DnsResponseSend
 
 from ..reclimit_ans import (
-    CountAndResetHandler,
+    CountHandler,
     DirectExampleHandler,
     FallbackNxdomainHandler,
     IndirectExampleOrgHandler,
@@ -26,6 +26,7 @@ from ..reclimit_ans import (
     Ns1ExampleOrgHandler,
     ReclimitHandler,
     ReclimitState,
+    ResetHandler,
     a,
     ns,
 )
@@ -60,7 +61,8 @@ def main() -> None:
     )
     state = ReclimitState(indirect_send_response_default=False)
     server.install_response_handlers(
-        CountAndResetHandler(state),
+        CountHandler(state),
+        ResetHandler(state),
         DirectExampleHandler(state, 2),
         IndirectExampleOrgHandler(state, 2),
         Ns1ExampleOrgHandler(state),

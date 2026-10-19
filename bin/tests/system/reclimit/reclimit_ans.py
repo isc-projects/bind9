@@ -85,21 +85,25 @@ class ReclimitHandler(ResponseHandler, abc.ABC):
         yield DnsResponseSend(qctx.response)
 
 
-class CountAndResetHandler(ReclimitHandler):
-    matcher = Qname("count.", "reset.")
+class CountHandler(ReclimitHandler):
+    matcher = Qname("count.")
 
     async def _get_counted_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if f"{qctx.qname}" == "count.":
-            count_rrset = rrset(
-                "count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0
-            )
-            qctx.response.answer.append(count_rrset)
-            yield DnsResponseSend(qctx.response, authoritative=True)
-        elif f"{qctx.qname}" == "reset.":
-            self._state.reset()
-            yield DnsResponseSend(qctx.response, authoritative=False)
+        count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0)
+        qctx.response.answer.append(count_rrset)
+        yield DnsResponseSend(qctx.response, authoritative=True)
+
+
+class ResetHandler(ReclimitHandler):
+    matcher = Qname("reset.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        self._state.reset()
+        yield DnsResponseSend(qctx.response, authoritative=False)
 
 
 class LimitControlCommand(ControlCommand):
