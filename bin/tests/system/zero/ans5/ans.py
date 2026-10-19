@@ -21,6 +21,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Qtype
 
 
 def rrset(
@@ -38,17 +39,17 @@ class IncrementARecordHandler(ResponseHandler):
     time we get queried.
     """
 
+    matcher = Qtype(dns.rdatatype.A)
+
     def __init__(self):
         self._ip_address = ipaddress.ip_address("192.0.2.0")
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype == dns.rdatatype.A:
-            a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
-            qctx.response.answer.append(a_rrset)
-            self._ip_address += 1
-
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
+        qctx.response.answer.append(a_rrset)
+        self._ip_address += 1
         yield DnsResponseSend(qctx.response)
 
 
