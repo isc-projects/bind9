@@ -1442,6 +1442,44 @@ class RootNsHandler(SingleResponseHandler):
     additional = [a("a.root-servers.nil.", ANS3.ip)]
 ```
 
+### A handler declares only what its base class reads
+
+A handler's class body reads as a declaration of what it sends, so an
+attribute in it that nothing reads misleads: it looks like a part the
+framework sends, or a setting some code consults, and it is neither.
+The class body therefore holds only the attributes its base class reads:
+`matcher`, and for a `SingleResponseHandler` the parts of the response,
+`answer`, `authority`, `additional`, `rcode`, `authoritative`, `delay`
+and `edns`.  A base class of the server's own may read more, as a delay
+or a limit its subclasses set.  A value a part is built from is not an
+attribute of its own: it is spelled inline, as an f-string when it is
+derived from another, or it is a module constant or a builder's default
+when several handlers share it.
+
+#### Examples
+
+A handler keeping the name server's name it derives from its matcher
+in an attribute of its own, `ns_name` (synthetic).  Before:
+
+```python
+# ans2/ans.py, before (synthetic)
+class ReferralHandler(SingleResponseHandler):
+    matcher = Domain("sub.example.")
+    ns_name = prepend_label("ns", matcher.domain)
+    authority = [ns(matcher.domain, ns_name.to_text())]
+    additional = [a(ns_name, ANS3.ip)]
+```
+
+After, the derived name is spelled where it is used:
+
+```python
+# ans2/ans.py, after (synthetic)
+class ReferralHandler(SingleResponseHandler):
+    matcher = Domain("sub.example.")
+    authority = [ns(matcher.domain, f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
+```
+
 ### No wall of constants
 
 A value used once lives at its use site; a value that is an input of a
