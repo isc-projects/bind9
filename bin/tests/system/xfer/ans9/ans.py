@@ -15,7 +15,6 @@ import abc
 
 import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -29,13 +28,7 @@ from isctest.asyncserver.commands import ToggleResponsesCommand
 from isctest.asyncserver.handlers import AxfrHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
-TTL = 300
-
-
-def rrset(
-    owner: str | dns.name.Name, rdtype: dns.rdatatype.RdataType, rdata: str
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, TTL, dns.rdataclass.IN, rdtype, rdata)
+from ..xfer_ans import rrset
 
 
 def soa(owner: str | dns.name.Name, serial: int) -> dns.rrset.RRset:

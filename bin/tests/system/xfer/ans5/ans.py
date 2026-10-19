@@ -14,7 +14,6 @@ from collections.abc import AsyncGenerator, Collection
 import dns.message
 import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.tsig
@@ -31,6 +30,8 @@ from isctest.asyncserver.commands import SwitchControlCommand
 from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
 from isctest.asyncserver.matchers import Edns, Qtype
 from isctest.vars.algorithms import ALG_VARS
+
+from ..xfer_ans import rrset
 
 GOOD_KEY_DATA = "LSAnCU+Z"
 DEFAULT_KEY = dns.tsig.Key("tsig_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
@@ -151,21 +152,6 @@ class ClearTsig(ResponseHandlerWrapper):
         response_action.response.tsig = None
 
 
-def rrset(
-    owner: str | dns.name.Name,
-    ttl: int,
-    rdtype: dns.rdatatype.RdataType,
-    rdata: str,
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        owner,
-        ttl,
-        dns.rdataclass.IN,
-        rdtype,
-        rdata,
-    )
-
-
 def soa(
     serial: int,
     *,
@@ -174,10 +160,7 @@ def soa(
     rname: str = "root.nil.",
 ) -> dns.rrset.RRset:
     return rrset(
-        owner,
-        300,
-        dns.rdatatype.SOA,
-        f"{mname} {rname} {serial} 300 300 604800 300",
+        owner, dns.rdatatype.SOA, f"{mname} {rname} {serial} 300 300 604800 300"
     )
 
 
@@ -195,39 +178,19 @@ class SoaHandler(ResponseHandler):
 
 
 def ns() -> dns.rrset.RRset:
-    return rrset(
-        "nil.",
-        300,
-        dns.rdatatype.NS,
-        "ns.nil.",
-    )
+    return rrset("nil.", dns.rdatatype.NS, "ns.nil.")
 
 
 def txt(data: str) -> dns.rrset.RRset:
-    return rrset(
-        "nil.",
-        300,
-        dns.rdatatype.TXT,
-        f'"{data}"',
-    )
+    return rrset("nil.", dns.rdatatype.TXT, f'"{data}"')
 
 
 def a() -> dns.rrset.RRset:
-    return rrset(
-        "a.nil.",
-        60,
-        dns.rdatatype.A,
-        "10.0.0.61",
-    )
+    return rrset("a.nil.", dns.rdatatype.A, "10.0.0.61", ttl=60)
 
 
 def extra_a() -> dns.rrset.RRset:
-    return rrset(
-        "b.nil.",
-        60,
-        dns.rdatatype.A,
-        "10.0.0.62",
-    )
+    return rrset("b.nil.", dns.rdatatype.A, "10.0.0.62", ttl=60)
 
 
 class XferAxfrHandler(AxfrHandler):
@@ -266,7 +229,7 @@ class AboveApexAxfrHandler(XferAxfrHandler):
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
         # The root is the parent of the nil. zone.
-        above_apex_ns = rrset(".", 300, dns.rdatatype.NS, "ns.attacker.")
+        above_apex_ns = rrset(".", dns.rdatatype.NS, "ns.attacker.")
         return [*super().zone_contents, above_apex_ns]
 
 
