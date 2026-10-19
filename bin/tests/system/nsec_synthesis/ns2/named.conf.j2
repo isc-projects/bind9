@@ -30,8 +30,4 @@ zone "evil.f023.test" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	f004.test. static-key 257 3 13 "@DNSKEY@";
-	f007.test. static-key 257 3 13 "@DNSKEY@";
-	f023.test. static-key 257 3 13 "@DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
