@@ -347,6 +347,82 @@ class Delay30msHandler(DelayedQnameRangeHandler):
     delay = 0.03
 ```
 
+### A server shows a few behaviors and does not keep growing
+
+One `ansN` is one misbehavior or one small family of them, so that
+the file reads as the reproducer it is.  A new reproducer usually
+gets a new `ansN` with its own zone data rather than a handler
+appended to a server that happens to answer for the right zone:
+`ansN` instances are cheap, and a server that keeps accumulating
+unrelated handlers stops being readable and makes every addition a
+question of install order.  A handler that belongs to the family the
+server already shows goes into that server.
+
+`resolver/ans2`, `resolver/ans3` and `serve_stale/ans2` are the long
+servers of the tree.  They get no further handlers: a new reproducer
+for those tests gets a new `ansN`, and splitting them is a merge
+request of its own.
+
+#### Examples
+
+Two reproducers in one server, split, a417bade7f and 6a4ba15807.
+Before, `ans1` served the `f025.test` and the `f055.test` attack,
+which have nothing in common but the server:
+
+```python
+# dnssec_nsec3/ans1/ans.py:16-21 before a417bade7f
+def main() -> None:
+    keys = common.load_keys()
+    server = AsyncDnsServer(default_aa=True)
+    server.install_response_handler(f025.F025Handler(keys))
+    server.install_response_handler(f055.F055Handler(keys))
+    server.run()
+```
+
+After, `ans1` keeps the `f025.test` attack and `f055.test` gets `ans3`
+of its own:
+
+```python
+# dnssec_nsec3/ans1/ans.py:62-65 at 6a4ba15807
+def main() -> None:
+    server = AsyncDnsServer()
+    server.install_response_handlers(AncestorWildcardNsec3Handler())
+    server.run()
+
+# dnssec_nsec3/ans3/ans.py:89-96 at 6a4ba15807
+def main() -> None:
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
+    server.install_response_handlers(
+        ControlAHandler(),
+        AttackAHandler(),
+        AttackDsHandler(),
+    )
+    server.run()
+```
+
+A split moves a delegation: the `nsN` zone files and configs that
+pointed at the old server point at the new address, and the
+comparison needs the scaffolding reference from
+[Verifying a rewrite with ans_diff](#verifying-a-rewrite-with-ans_diff),
+because the reference revision has no server at that address.
+
+A server that is not to be made longer but split, one `ansN` per
+family of names it answers for:
+
+```python
+# resolver/ans3/ans.py:217-248 at a54bd67584
+    server.install_response_handlers(
+        ApexNSHandler(),
+        AttackDnameHandler(),
+        BadCnameHandler(),
+        ...
+        WwwGoodDnameHandler(),
+        WwwHandler(),
+    )
+
+    server.install_response_handlers(FallbackHandler())
+```
+
 ### A handler's name says what it does
 
 Ideally the name gives a clear idea of what the handler does, so that
