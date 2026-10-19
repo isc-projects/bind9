@@ -984,6 +984,133 @@ class IncrementARecordHandler(ResponseHandler):
     ...
 ```
 
+### A handler that sends one response declares its parts
+
+When a handler sends one response whose parts it can state up front,
+state them instead of writing code that assembles them: subclass
+`SingleResponseHandler` and set `answer`, `authority`, `additional`,
+`rcode`, `authoritative`, `delay` and `edns` as class attributes; there
+is no `get_responses()` to write.  A part that comes from the
+constructor, or from state the server keeps, is a property that returns
+it.
+
+#### Examples
+
+A fixed RCODE, ddc48a04e2.  Before:
+
+```python
+# xfer/ans5/ans.py:252-259 before ddc48a04e2
+class IxfrNotimpHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.IXFR)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.set_rcode(dns.rcode.NOTIMP)
+        yield DnsResponseSend(qctx.response)
+```
+
+After:
+
+```python
+# xfer/ans5/ans.py:254-256 at ddc48a04e2
+class IxfrNotimpHandler(SingleResponseHandler):
+    matcher = Qtype(dns.rdatatype.IXFR)
+    rcode = dns.rcode.NOTIMP
+```
+
+A fixed referral, same commit.  Before:
+
+```python
+# statistics/ans4/ans.py:40-50 before ddc48a04e2
+class FallbackHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        name = "below.www.example.com."
+        ns_name = f"ns.{name}"
+        ns_rrset = rrset(name, dns.rdatatype.NS, ns_name)
+        a_rrset = rrset(ns_name, dns.rdatatype.A, NS3.ip)
+        qctx.response.authority.append(ns_rrset)
+        qctx.response.additional.append(a_rrset)
+        yield DnsResponseSend(qctx.response)
+```
+
+After:
+
+```python
+# statistics/ans4/ans.py:24 at ddc48a04e2
+NAME = "below.www.example.com."
+
+# statistics/ans4/ans.py:40-42 at ddc48a04e2
+class FallbackHandler(SingleResponseHandler):
+    authority = [rrset(NAME, dns.rdatatype.NS, f"ns.{NAME}")]
+    additional = [rrset(f"ns.{NAME}", dns.rdatatype.A, NS3.ip)]
+```
+
+A part built from what the constructor was given, a property,
+`dnssec_cname_response/ans2/ans.py` as of ddc48a04e2:
+
+```python
+# dnssec_cname_response/ans2/ans.py:133-147 as of ddc48a04e2
+class NxdomainHandler(SingleResponseHandler):
+    """
+    Answer NXDOMAIN from a signed zone, with its SOA.
+    """
+
+    rcode = dns.rcode.NXDOMAIN
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin) & NoNameIn(zone)
+
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
+        return soa_with_rrsig(self._zone)
+```
+
+#### Negative examples
+
+A record owned by the query name is not a part the handler can state
+up front, so the handler keeps its `get_responses()`:
+
+```python
+# forward/ans6/ans.py:82-88 as of 9d77495155
+class NegativeSoaHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.use_edns(None)
+        qctx.response.authority.append(soa(qctx.qname))
+        yield DnsResponseSend(qctx.response)
+```
+
+A handler that keeps the zone data of the prepared response and adds
+to it is not a single response from parts either, however fixed the
+records it adds: `SingleResponseHandler` starts from an empty
+response.
+
+```python
+# forward/ans11/ans.py:29-44 as of 9d77495155
+class ExtraAnswersHandler(ResponseHandler):
+    """
+    Answer from zone data, inserting extra RRsets into responses to A queries.
+    """
+
+    matcher = Domain("attackSecureDomain.net3.") & Qtype(dns.rdatatype.A)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        parent = self.matcher.of(Domain).domain.parent()
+        ns_rrset = rrset(parent, dns.rdatatype.NS, f"local.{parent}")
+        qctx.response.answer.append(ns_rrset)
+        a_rrset = rrset(f"local.{parent}", dns.rdatatype.A, ANS11.ip)
+        qctx.response.additional.append(a_rrset)
+        yield DnsResponseSend(qctx.response)
+```
+
 ### A handler's name says what it does
 
 Ideally the name gives a clear idea of what the handler does, so that
