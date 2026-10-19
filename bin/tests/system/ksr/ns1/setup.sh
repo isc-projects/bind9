@@ -19,6 +19,7 @@ mkdir keydir
 
 # Zone files
 cp template.db.in common.test.db
+cp template.db.in adt.test.db
 cp template.db.in past.test.db
 cp template.db.in future.test.db
 cp template.db.in last-bundle.test.db
