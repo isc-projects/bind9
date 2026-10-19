@@ -2051,6 +2051,65 @@ def main() -> None:
     server.run()
 ```
 
+### dnspython types, and names converted on construction
+
+`dns.rdatatype.A` and `dns.rdataclass.IN`, not `"A"` and `"IN"`, in
+calls and in builder signatures, with the dnspython modules imported
+explicitly.  A helper or a constructor that takes a name accepts both a
+`str` and a `dns.name.Name`.  Module constants and the arguments a
+server hands to its handlers spell names as strings, which read better;
+a constructor converts them to `dns.name.Name` as soon as it receives
+them, so that the handler compares and builds with dnspython objects.
+A string literal that spells a domain name ends with a dot.  Without
+it, a record built with `dns.rrset.from_text()` gets a relative name,
+and the server fails when it renders the response.
+
+#### Examples
+
+A builder typed with dnspython's types, taking the owner as a string
+or a name, `bailiwick/bailiwick_ans.py` as of b76e60816d:
+
+```python
+# bailiwick/bailiwick_ans.py:30-36 as of b76e60816d
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 3600,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+# bailiwick/bailiwick_ans.py:43-44 as of b76e60816d
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+```
+
+A constructor that converts what it is given, the framework's own
+`Qname`, `isctest/asyncserver/matchers.py` as of b76e60816d:
+
+```python
+# isctest/asyncserver/matchers.py:148-152 as of b76e60816d
+    def __init__(self, *qnames: str | dns.name.Name) -> None:
+        self.qnames = [
+            name if isinstance(name, dns.name.Name) else dns.name.from_text(name)
+            for name in qnames
+        ]
+```
+
+A domain name spelled with its trailing dot, 27f822c444.  Before:
+
+```python
+# qmin/ans4/ans.py:59 before 27f822c444
+    matcher = Domain("b.stale", "a.b.stale")
+```
+
+After:
+
+```python
+# qmin/ans4/ans.py:59 at 27f822c444
+    matcher = Domain("b.stale.", "a.b.stale.")
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
