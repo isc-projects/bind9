@@ -110,6 +110,18 @@ non-default option saying why it is there, and the verdict.  When the
 result is not clean, say what differs, packet by packet when they are
 few, and why that is equivalence rather than regression.
 
+## Verifying a test against the unpatched build
+
+A passing test proves only that the fixed build passes it.  A test
+exists to fail on the bug it catches, and a rewritten server can stop
+provoking that failure without the test going red.  Find the fix a test
+function was written for (the merge request that added it, or the
+history of the test) and take it out of the source: by a revert, or by
+hand where a revert does not apply or is not enough.  Rebuild and run
+the test: that function must fail for the reason the issue describes,
+such as a wrong answer from `named` caught by an assertion, or a crash.
+After a rewrite it must still fail for the same reason.
+
 ## Updating this guide
 
 Where a rule here and the tree on `main` disagree, the guide may be
