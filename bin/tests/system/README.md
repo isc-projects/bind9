@@ -495,9 +495,9 @@ manually; see `fwdfirst/ans3/ans.py` for a practical example.
 by design: `get_responses()` can yield multiple DNS messages in response to a
 single query, so that it can also handle AXFR/IXFR queries, among others.  Be
 careful not to unintentionally cause multiple DNS messages to be returned for a
-single query.  If your handler's `get_responses()` method contains multiple
-`yield` statements, it might be a sign that it needs to be refactored into
-multiple separate handlers.
+single query.  A `get_responses()` that yields different responses from the
+branches of an `if`/`else` is dispatching, which is discouraged: give each
+branch a handler of its own, with its criterion in the matcher.
 
 A server whose behavior has to change while the test runs is a
 `ControllableAsyncDnsServer`.  It answers TXT queries for names under
