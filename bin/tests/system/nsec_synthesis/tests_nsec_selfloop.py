@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from isctest.run import EnvCmd
+from isctest.template import TrustAnchor
 from nsec_synthesis.common import check_nsec, get_nsec, has_a
 
 import isctest
@@ -78,11 +79,9 @@ victim A {VICTIM_A}
     signer(f"-o {PARENT} -f f007.test.db.signed f007.test.db", cwd="ns3")
 
     dnskey = str(isctest.kasp.Key(parent_ksk, keydir="ns3").dnskey).split()
-    ta = "".join(dnskey[7:])
+    contents = f'{" ".join(dnskey[4:7])} "{"".join(dnskey[7:])}"'
 
-    return {
-        "DNSKEY": ta,
-    }
+    return {"trust_anchors": [TrustAnchor(PARENT, "static-key", contents)]}
 
 
 def test_direct_child_self_loop_nsec_fixture():

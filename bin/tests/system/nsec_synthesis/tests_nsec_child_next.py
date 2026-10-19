@@ -13,6 +13,7 @@ from pathlib import Path
 
 import json
 
+from isctest.template import TrustAnchor
 from nsec_synthesis.common import (
     SIGNED_ZONE_MARKS,
     check_forged_nsec,
@@ -38,8 +39,9 @@ pytestmark = SIGNED_ZONE_MARKS
 def bootstrap():
     keys = {F023_ZONE: make_key(F023_ZONE)}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    dnskey = "".join(keys[F023_ZONE]["dnskey"].split()[3:])
-    return {"DNSKEY": dnskey}
+    dnskey = keys[F023_ZONE]["dnskey"].split()
+    contents = f'{" ".join(dnskey[:3])} "{"".join(dnskey[3:])}"'
+    return {"trust_anchors": [TrustAnchor(F023_ZONE, "static-key", contents)]}
 
 
 def _prime_parent_for_aggressive_nsec():
