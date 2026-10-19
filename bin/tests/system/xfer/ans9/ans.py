@@ -31,17 +31,6 @@ from isctest.asyncserver.matchers import Qname, Qtype
 
 TTL = 300
 
-RECONFIG_ZONE = "xfr-and-reconfig."
-RETRY_ZONE = "retry-too-big."
-OVERRUN_ZONE = "private-dns-overrun."
-
-# The malformed DNSKEY's algorithm identifier finishes on a 00 byte in the
-# record that follows it in the same message.  That following record, the
-# well-formed DNSKEY, starts with a compression pointer followed by the type,
-# which starts with 00.
-OVERRUN_DNSKEY = "\\# 12 00 00 00 fd 09 00 00 00 00 00 00 00"
-WELL_FORMED_DNSKEY = "\\# 12 00 00 00 fd 06 00 00 00 00 00 00 00"
-
 
 def rrset(
     owner: str | dns.name.Name, rdtype: dns.rdatatype.RdataType, rdata: str
@@ -121,7 +110,7 @@ class ZoneAxfrHandler(AxfrHandler, SerialCounted, abc.ABC):
 
 
 class ReconfigAxfrHandler(ZoneAxfrHandler):
-    zone = RECONFIG_ZONE
+    zone = "xfr-and-reconfig."
 
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
@@ -132,7 +121,7 @@ class ReconfigAxfrHandler(ZoneAxfrHandler):
 
 
 class RetryAxfrHandler(ZoneAxfrHandler):
-    zone = RETRY_ZONE
+    zone = "retry-too-big."
 
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
@@ -147,15 +136,22 @@ class OverrunAxfrHandler(ZoneAxfrHandler):
     Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
     """
 
-    zone = OVERRUN_ZONE
+    zone = "private-dns-overrun."
+
+    # The malformed DNSKEY's algorithm identifier finishes on a 00 byte in the
+    # record that follows it in the same message.  That following record, the
+    # well-formed DNSKEY, starts with a compression pointer followed by the
+    # type, which starts with 00.
+    OVERRUN_DNSKEY = "\\# 12 00 00 00 fd 09 00 00 00 00 00 00 00"
+    WELL_FORMED_DNSKEY = "\\# 12 00 00 00 fd 06 00 00 00 00 00 00 00"
 
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
         return [
             ns(self.zone),
             txt(self.zone),
-            dnskey(self.zone, OVERRUN_DNSKEY),
-            dnskey(self.zone, WELL_FORMED_DNSKEY),
+            dnskey(self.zone, self.OVERRUN_DNSKEY),
+            dnskey(self.zone, self.WELL_FORMED_DNSKEY),
         ]
 
 
