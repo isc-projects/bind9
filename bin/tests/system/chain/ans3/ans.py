@@ -20,7 +20,7 @@ import dns.zone
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Domain
+from isctest.asyncserver.matchers import Domain, LabelPredicate, Qname
 
 
 def rrset(
@@ -44,28 +44,53 @@ def get_dname_rrset_at_name(
     return dname_rrset
 
 
+class ThenDnameLabel(LabelPredicate):
+    """
+    Match queries whose label right under example.broken. ends with
+    "-then-dname".
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            -4,
+            lambda label: label.endswith(b"-then-dname"),
+            'ending with "-then-dname"',
+        )
+
+
 class CnameThenDnameHandler(ResponseHandler):
     """
     For certain trigger QNAMEs, insert a DNAME RRset after the CNAME chain
     prepared from zone data.
     """
 
-    matcher = Domain("example.broken.")
+    matcher = Domain("example.broken.") & ThenDnameLabel()
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         assert qctx.zone
-        assert qctx.zone.origin
+        last_cname = qctx.response.answer[-1]
+        assert last_cname.rdtype == dns.rdatatype.CNAME
+        dname_owner = last_cname.name.parent()
+        dname_rrset = get_dname_rrset_at_name(qctx.zone, dname_owner)
+        qctx.response.answer.append(dname_rrset)
+        yield DnsResponseSend(qctx.response)
 
-        relative_qname = qctx.qname.relativize(qctx.zone.origin)
-        if relative_qname.labels[-1].endswith(b"-then-dname"):
-            last_cname = qctx.response.answer[-1]
-            assert last_cname.rdtype == dns.rdatatype.CNAME
-            dname_owner = last_cname.name.parent()
-            dname_rrset = get_dname_rrset_at_name(qctx.zone, dname_owner)
-            qctx.response.answer.append(dname_rrset)
 
+class DnameOwnerWithoutAuthorityHandler(ResponseHandler):
+    """
+    Answer at the DNAME owner from zone data, with the authority section
+    stripped.
+    """
+
+    matcher = Qname("self.example.dname.")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        del qctx.response.authority[:]
+        qctx.response.set_rcode(dns.rcode.NOERROR)
         yield DnsResponseSend(qctx.response)
 
 
@@ -77,37 +102,29 @@ class CnameToDnameOwnerHandler(ResponseHandler):
     crash while answering the queries sent by the tested resolver.
     """
 
-    matcher = Domain("example.dname.")
+    matcher = Domain("self.example.dname.") & ~Qname("self.example.dname.")
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         assert qctx.zone
-        assert qctx.zone.origin
-
-        self_example_dname = dns.name.Name(["self"]).concatenate(qctx.zone.origin)
-        dname_rrset = get_dname_rrset_at_name(qctx.zone, self_example_dname)
-
-        relation, _, _ = qctx.qname.fullcompare(self_example_dname)
-
-        if relation in (dns.name.NameRelation.EQUAL, dns.name.NameRelation.SUBDOMAIN):
-            del qctx.response.authority[:]
-            qctx.response.set_rcode(dns.rcode.NOERROR)
-
-        if relation == dns.name.NameRelation.SUBDOMAIN:
-            qctx.response.answer.append(dname_rrset)
-            cname_rrset = rrset(
-                qctx.qname, dns.rdatatype.CNAME, self_example_dname.to_text(), ttl=60
-            )
-            qctx.response.answer.append(cname_rrset)
-
+        dname_owner = self.matcher.of(Domain).matched_domain
+        del qctx.response.authority[:]
+        qctx.response.set_rcode(dns.rcode.NOERROR)
+        qctx.response.answer.append(get_dname_rrset_at_name(qctx.zone, dname_owner))
+        cname_rrset = rrset(
+            qctx.qname, dns.rdatatype.CNAME, dname_owner.to_text(), ttl=60
+        )
+        qctx.response.answer.append(cname_rrset)
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = AsyncDnsServer(acknowledge_manual_dname_handling=True, default_aa=True)
     server.install_response_handlers(
-        CnameThenDnameHandler(), CnameToDnameOwnerHandler()
+        CnameThenDnameHandler(),
+        DnameOwnerWithoutAuthorityHandler(),
+        CnameToDnameOwnerHandler(),
     )
     server.run()
 
