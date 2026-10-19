@@ -23,6 +23,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Domain, LabelPredicate, Matcher, Qtype
 
 
 def rrset(
@@ -34,28 +35,64 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-class DelayedAddressAnswerHandler(ResponseHandler):
+class DelayLabel(LabelPredicate):
+    """
+    Match queries whose leftmost label is the delay in milliseconds.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(0, bytes.isdigit, "the delay in milliseconds")
+
+
+class AHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.A)
+
+    def delay(self, qctx: QueryContext) -> float:
+        return 0.0
+
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
-            addr = "192.0.2.1" if qctx.qtype == dns.rdatatype.A else "2001:db8:beef::1"
-            answer_rrset = rrset(qctx.qname, qctx.qtype, addr)
-            qctx.response.answer.append(answer_rrset)
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, "192.0.2.1")
+        qctx.response.answer.append(a_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay(qctx))
 
-        # <delay-in-ms>.<...>.latency...: any labels between the delay and
-        # "latency" are ignored; tests use them to bypass the resolver cache
-        delay = 0.0
-        if b"latency" in qctx.qname.labels[1:] and qctx.qname.labels[0].isdigit():
-            delay = int(qctx.qname.labels[0]) / 1000
-        yield DnsResponseSend(qctx.response, delay=delay)
+
+class AaaaHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.AAAA)
+
+    def delay(self, qctx: QueryContext) -> float:
+        return 0.0
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        aaaa_rrset = rrset(qctx.qname, dns.rdatatype.AAAA, "2001:db8:beef::1")
+        qctx.response.answer.append(aaaa_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay(qctx))
+
+
+class DelayedAHandler(AHandler):
+    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.A)
+
+    def delay(self, qctx: QueryContext) -> float:
+        return int(qctx.qname.labels[0]) / 1000
+
+
+class DelayedAaaaHandler(AaaaHandler):
+    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.AAAA)
+
+    def delay(self, qctx: QueryContext) -> float:
+        return int(qctx.qname.labels[0]) / 1000
 
 
 def main() -> None:
     server = ControllableAsyncDnsServer(
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
-    server.install_response_handlers(DelayedAddressAnswerHandler())
+    server.install_response_handlers(
+        DelayedAHandler(), DelayedAaaaHandler(), AHandler(), AaaaHandler()
+    )
     server.run()
 
 
