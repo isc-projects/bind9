@@ -531,49 +531,6 @@ compared to regular `named` instances.  If the number of `ansN` instances used
 in a given system test is becoming unwieldy, it usually indicates the need to
 start adding/moving code to a new system test directory.
 
-In some rare cases, it may be useful to reuse a common set of `nsN` server
-instances to reproduce a whole class of related issues, triggering which relies
-on some non-standard behavior and therefore needs a custom `ansN` server to be
-implemented.  If the logic necessary for reproducing each of these issues is
-complex and the amount of those issues makes it impractical to add a separate
-`ansN` server for each issue (as recommended in the previous paragraph), it is
-acceptable to split up the test logic for each issue into separate `ans_*.py`
-modules inside a single `ansN` directory and reduce `ans.py` itself to a loader
-that imports and installs handlers defined in those separate modules:
-
-```python
-from mytest.ans1 import ans_some_bug, ans_some_other_bug
-from isctest.asyncserver import AsyncDnsServer
-
-
-def main() -> None:
-    server = AsyncDnsServer()
-    server.install_response_handler(ans_some_bug.SomeBugHandler())
-    server.install_response_handler(ans_some_other_bug.SomeOtherBugHandler())
-    server.run()
-
-
-if __name__ == "__main__":
-    main()
-```
-
-However, in such a case it is particularly important to ensure consistency
-between the names of all the Python files related to a given issue - otherwise,
-chaos ensues.  Furthermore, avoid using cryptic file names (e.g. numeric bug
-identifiers).  The recommended naming scheme is:
-
-```
-mytest/
-├── ans1
-│   ├── ans.py
-│   ├── ans_some_bug.py
-│   └── ans_some_other_bug.py
-├── ns2
-│   └── ...
-├── tests_some_bug.py
-└── tests_some_other_bug.py
-```
-
 To point a resolver at the mock, delegate to it from the test's root zone
 (served by ns1) or list it as a forwarder; `cyclic_glue` shows the
 delegation pattern end to end.
