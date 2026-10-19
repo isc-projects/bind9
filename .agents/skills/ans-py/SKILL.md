@@ -1783,6 +1783,196 @@ class TruncatedWithLastByteDroppedHandler(ResponseHandler):
         yield BytesResponseSend(tc_response.to_wire()[:-1])
 ```
 
+### DNSSEC comes from the framework, not from the server
+
+A signed zone in `zones/` with its keys in `keys/`, both put there by
+the test's `bootstrap()` through `isctest.zone.Zone`, is served the way
+`named` serves a signed zone: the prepared response carries the RRSIGs,
+the DS records at delegations and the NSEC or NSEC3 proofs.  The fixture
+signs the zone before the server starts, and the server never signs it
+itself.  Every server of the directory starts for every module: a
+module's fixture provisions the zones of the servers that module
+queries, and a server it leaves alone starts without zone files and
+stays idle.  For anything beyond the zone data, a handler signs a record
+with `qctx.sign()`, reads a stored signature with `qctx.get_rrsig()` and
+proves non-existence with `qctx.nsecx`.  A server does not read key
+files or call `dns.dnssec.sign()` by hand: its keys reach it through
+`qctx.keys`, and its signatures come from these calls.
+
+Where the response can come from the zone, take the zone's data and edit
+it rather than building it by hand: the prepared response, or the zone's
+own records and signatures from `qctx.zone` and `qctx.get_rrsig()`, TTLs
+included, with only what the attack needs changed.  A record the zone
+does not hold is built and signed with `qctx.sign()`, with a key from
+`qctx.keys` when another zone's key must sign it, and `bogus=True` for a
+signature that must not verify.  A server whose behavior is the signed
+zone plus one wrong thing is a signed zone file and one handler that
+edits the prepared response.
+
+#### Examples
+
+The fixture signing the zone for the server,
+`dnssec_wildcard/tests_dnssec_wildcard_additional.py` as of 8594ab5b79:
+
+```python
+# dnssec_wildcard/tests_dnssec_wildcard_additional.py:41-45 as of 8594ab5b79
+def bootstrap():
+    zone = isctest.zone.Zone("f043.test.", isctest.template.ANS1, signed=True)
+    zone.configure(csk=True)
+
+    return {"trust_anchors": zone.trust_anchors()}
+```
+
+A forged wildcard answer built from the zone's own record and its
+stored signature, `dnssec_wildcard/ans1/ans.py` as of 8594ab5b79:
+
+```python
+# dnssec_wildcard/ans1/ans.py:23-54 as of 8594ab5b79
+def append_forged_a_rrset_to_additional(qctx: QueryContext, owner_name: str) -> None:
+    # Append a forged wildcard-synthesized record to the response.  The
+    # attacker does NOT control the contents of the A record - they have to
+    # match the contents of the actual wildcard record present in the zone or
+    # else the wildcard RRSIG (see below) won't validate, foiling the attack.
+    assert qctx.zone
+    wildcard_name = dns.name.from_text("*", origin=qctx.zone.origin)
+    wildcard_a_rrset = qctx.zone.get_rrset(wildcard_name, dns.rdatatype.A)
+    assert wildcard_a_rrset
+    forged_a_rrset = dns.rrset.from_rdata(
+        owner_name, wildcard_a_rrset.ttl, *wildcard_a_rrset
+    )
+    qctx.response.additional.append(forged_a_rrset)
+
+    # Get the RRSIG for the wildcard record from the zone that matched the
+    # query.
+    wildcard_rrsig = qctx.zone.get_rrset(
+        wildcard_name, dns.rdatatype.RRSIG, covers=dns.rdatatype.A
+    )
+    assert wildcard_rrsig
+
+    # Append the RRSIG for the wildcard record as the signature for the
+    # forged A record, making it look as if the A record was synthesized
+    # from the wildcard record.
+    forged_a_rrsig = dns.rrset.from_rdata(
+        owner_name, wildcard_rrsig.ttl, *wildcard_rrsig
+    )
+    qctx.response.additional.append(forged_a_rrsig)
+
+    # No proof-of-nonexistence is provided for the QNAME and yet a vulnerable
+    # resolver validates the forged A record as a secure response synthesized
+    # from a wildcard record.
+
+# dnssec_wildcard/ans1/ans.py:67-74 as of 8594ab5b79
+class WildcardAdditionalHandler(ResponseHandler):
+    matcher = Qname("svc.f043.test.") & Qtype(dns.rdatatype.MX)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        append_forged_a_rrset_to_additional(qctx, "victim.f043.test.")
+        yield DnsResponseSend(qctx.response)
+```
+
+A server that loaded its own keys and signed by hand, 9ba17f4acc.
+Before:
+
+```python
+# dnssec_parent_rrsig/ans1/ans.py:55-58 before 9ba17f4acc
+def load_keys() -> dict[str, Key]:
+    path = Path(__file__).resolve().parent / "keys.json"
+    with path.open(encoding="utf-8") as keys_file:
+        raw_keys = json.load(keys_file)
+    ...
+
+# dnssec_parent_rrsig/ans1/ans.py:82-94 before 9ba17f4acc
+def add_signed(
+    section: list[dns.rrset.RRset], covered: dns.rrset.RRset, signer: Key
+) -> None:
+    rrsig = dns.dnssec.sign(
+        covered,
+        signer.private_key,
+        signer.zone,
+        signer.dnskey,
+        lifetime=86400,
+        verify=True,
+    )
+    section.append(covered)
+    section.append(dns.rrset.from_rdata(covered.name, covered.ttl, rrsig))
+
+```
+
+After, a record the zone does not hold, signed with the zone's key,
+as of 8594ab5b79:
+
+```python
+# dnssec_parent_rrsig/ans1/ans.py:33-47 as of 8594ab5b79
+class AncestorAdditionalHandler(ResponseHandler):
+    matcher = Qname("q.f044.test.") & Qtype(dns.rdatatype.MX)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        # Append a forged record from the child zone to the response.
+        forged_a_rrset = rrset("svc.child.f044.test.", dns.rdatatype.A, "6.6.6.6")
+        qctx.response.additional.append(forged_a_rrset)
+
+        # Sign the forged child zone record using the parent zone's key.
+        forged_a_rrsig = qctx.sign(forged_a_rrset)
+        qctx.response.additional.append(forged_a_rrsig)
+
+        yield DnsResponseSend(qctx.response)
+```
+
+A record signed with another zone's key, from a fixture that signs a
+parent and its delegated child, `nsec3_impersonation` at
+d55c8fd8ab:
+
+```python
+# nsec3_impersonation/tests_nsec3_impersonation.py:39-52 at d55c8fd8ab
+def bootstrap():
+    parent_origin = "tld.test"
+    parent_nsec3_hash = dns.dnssec.nsec3_hash(parent_origin, None, 0, 1)
+
+    child_origin = f"{parent_nsec3_hash}.{parent_origin}"
+
+    child = isctest.zone.Zone(child_origin, isctest.template.ANS1, signed=True)
+    child.configure(csk=True)
+
+    parent = isctest.zone.Zone(parent_origin, isctest.template.ANS1, signed=True)
+    parent.delegations = [child]
+    parent.configure(csk=True, sign_params="-3 -")
+
+    return {"trust_anchors": parent.trust_anchors()}
+
+# nsec3_impersonation/ans1/ans.py:50-76 as of 8594ab5b79
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.prepare_new_response(with_zone_data=False)
+        qctx.response.set_rcode(dns.rcode.NXDOMAIN)
+
+        assert qctx.soa
+        qctx.response.authority.append(qctx.soa)
+        if soa_rrsig := qctx.get_rrsig(qctx.soa):
+            qctx.response.authority.append(soa_rrsig)
+
+        assert qctx.zone
+        assert qctx.zone.origin
+        parent_apex_hash = dns.dnssec.nsec3_hash(qctx.zone.origin, None, 0, 1)
+        child_origin = dns.name.from_text(parent_apex_hash, origin=qctx.zone.origin)
+        child_signing_key = qctx.keys[child_origin][0]
+
+        nsec3_rrset = rrset(
+            child_origin,
+            dns.rdatatype.NSEC3,
+            f"1 0 0 - {parent_apex_hash} NS SOA RRSIG DNSKEY NSEC3PARAM",
+        )
+        nsec3_rrsig = qctx.sign(nsec3_rrset, key=child_signing_key)
+        qctx.response.authority.append(nsec3_rrset)
+        qctx.response.authority.append(nsec3_rrsig)
+
+        yield DnsResponseSend(qctx.response, authoritative=True)
+```
+
 ### Let the server carry the RCODE and the AA bit
 
 What every handler of a server sets the same way, or what equals the
