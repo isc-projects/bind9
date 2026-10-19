@@ -290,6 +290,9 @@ class LabelPredicate(Matcher):
     """
     Match queries whose QNAME label at the given index passes the given test,
     described for the log; a QNAME without such a label does not match.
+
+    The label the last match passed is kept in `matched_label` for the
+    handler to read.
     """
 
     def __init__(
@@ -298,13 +301,22 @@ class LabelPredicate(Matcher):
         self._index = index
         self._test = test
         self._description = description
+        self._matched_label: bytes | None = None
+
+    @property
+    def matched_label(self) -> bytes:
+        assert self._matched_label is not None, f"{self} has not matched yet"
+        return self._matched_label
 
     def match(self, qctx: QueryContext) -> bool:
         try:
             label = qctx.qname.labels[self._index]
         except IndexError:
             return False
-        return self._test(label)
+        if not self._test(label):
+            return False
+        self._matched_label = label
+        return True
 
     def __str__(self) -> str:
         return f"label {self._index} {self._description}"
