@@ -9,38 +9,29 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from isctest.template import TrustAnchor
 from nsec_synthesis.common import (
+    F004_VICTIM,
+    F004_VICTIM_A,
+    F004_ZONE,
     SIGNED_ZONE_MARKS,
     check_forged_nsec,
+    f004_bootstrap,
     get_nsec,
     has_a,
-    make_key,
 )
 
 import isctest
+import isctest.template
 
-F004_ZONE = "f004.test."
 ATTACKER = f"attacker.{F004_ZONE}"
-VICTIM = f"victim.{F004_ZONE}"
-POISON_NEXT = f"b.{VICTIM}"
-VICTIM_A = "203.0.113.1"
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
+POISON_NEXT = f"b.{F004_VICTIM}"
+RESOLVER = isctest.template.NS2.ip
 
 pytestmark = SIGNED_ZONE_MARKS
 
 
 def bootstrap():
-    keys = {F004_ZONE: make_key(F004_ZONE)}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    dnskey = keys[F004_ZONE]["dnskey"].split()
-    contents = f'{" ".join(dnskey[:3])} "{"".join(dnskey[3:])}"'
-    return {"trust_anchors": [TrustAnchor(F004_ZONE, "static-key", contents)]}
+    return f004_bootstrap()
 
 
 def test_pending_trust_nsec_cd_cache_poisoning():
@@ -62,21 +53,21 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     check_forged_nsec(poison, poison.answer, ATTACKER, POISON_NEXT, F004_ZONE, 9999)
 
     # Step 3: Exploit Against Victim Domain
-    response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
-    assert has_a(response, VICTIM, VICTIM_A), response.to_text()
+    assert has_a(response, F004_VICTIM, F004_VICTIM_A), response.to_text()
     isctest.check.adflag(response)
     assert not get_nsec(response, response.authority, ATTACKER)
 
     # Step 4: Exploit Against Stub Client
     response = isctest.query.tcp(
-        isctest.query.create(VICTIM, "A", dnssec=False), RESOLVER
+        isctest.query.create(F004_VICTIM, "A", dnssec=False), RESOLVER
     )
     isctest.check.noerror(response)
-    assert has_a(response, VICTIM, VICTIM_A), response.to_text()
+    assert has_a(response, F004_VICTIM, F004_VICTIM_A), response.to_text()
     isctest.check.adflag(response)
     assert not get_nsec(response, response.authority, ATTACKER)
 
     # Step 5: Verify Upstream Queries
     with open("ans1/ans.run", "r", encoding="utf-8") as file:
-        assert f"Received {VICTIM.rstrip('.')}/IN/A" in file.read()
+        assert f"Received {F004_VICTIM.rstrip('.')}/IN/A" in file.read()

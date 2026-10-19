@@ -1,0 +1,4 @@
+{% include "_common/zones/soa.partial.db.j2" %}
+{% include "_common/zones/ns.partial.db.j2" %}
+
+victim	A	203.0.113.1
