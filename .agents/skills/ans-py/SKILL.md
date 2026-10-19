@@ -795,6 +795,179 @@ class DelayLabel(LabelPredicate):
         super().__init__(0, bytes.isdigit, "the delay in milliseconds")
 ```
 
+### One install call per dispatch group
+
+Handlers are tried in the order they are installed, and the first one
+whose matcher accepts the query answers it.  Handlers that never match
+the same query cannot shadow each other, so their order does not matter:
+they go in one `install_response_handlers()` call.  Where one handler
+must be tried before another, each group goes in a call of its own, in
+the order the groups are tried, so that every call boundary marks an
+order that is deliberate.  A call with two or more handlers puts each on
+its own line; a single handler stays on the line of the call.  A switch
+mapping's sequence cannot be split into calls, so it is listed in
+dispatch order.
+
+Within a call, handlers that follow the steps of the test are listed in
+that order, so that the server tells the test's story.  Handlers that
+tell no story, answering unrelated queries as in a rewritten server that
+had grown one handler per reproducer, are sorted alphabetically.  The
+handler classes are defined in the order they are installed, a base
+class before its subclasses, so that the file reads in dispatch order.
+
+#### Examples
+
+Two groups, the specific one first, e56a73a4ea.  Before:
+
+```python
+# fetchlimit/ans4/ans.py:78-80 before e56a73a4ea
+    server.install_response_handlers(
+        DelayedAHandler(), DelayedAaaaHandler(), AHandler(), AaaaHandler()
+    )
+```
+
+After:
+
+```python
+# fetchlimit/ans4/ans.py:78-85 at e56a73a4ea
+    server.install_response_handlers(
+        DelayedAHandler(),
+        DelayedAaaaHandler(),
+    )
+    server.install_response_handlers(
+        AHandler(),
+        AaaaHandler(),
+    )
+```
+
+Four stages of one server, same commit.  Before:
+
+```python
+# dnssec_cname_response/ans2/ans.py:206-221 before e56a73a4ea
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
+    server.install_response_handlers(
+        InsecureApexCnameHandler(),
+        ExampleMetatypeCnameHandler(),
+        NxdomainHandler(EXAMPLE),
+        NodataHandler(EXAMPLE),
+        SignedZoneHandler(EXAMPLE),
+        SecureDsCnameHandler(),
+        NxdomainHandler(SECURE),
+        NodataHandler(SECURE),
+        SignedZoneHandler(SECURE),
+        StuffedNxdomainHandler(STUFFED),
+        SignedZoneHandler(STUFFED),
+    )
+    server.run()
+```
+
+After:
+
+```python
+# dnssec_cname_response/ans2/ans.py:206-227 at e56a73a4ea
+def main() -> None:
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
+    server.install_response_handlers(
+        ExampleMetatypeCnameHandler(),
+        InsecureApexCnameHandler(),
+        SecureDsCnameHandler(),
+    )
+    server.install_response_handlers(
+        NxdomainHandler(EXAMPLE),
+        NxdomainHandler(SECURE),
+        StuffedNxdomainHandler(STUFFED),
+    )
+    server.install_response_handlers(
+        NodataHandler(EXAMPLE),
+        NodataHandler(SECURE),
+    )
+    server.install_response_handlers(
+        SignedZoneHandler(EXAMPLE),
+        SignedZoneHandler(SECURE),
+        SignedZoneHandler(STUFFED),
+    )
+    server.run()
+```
+
+A call in the order of the test's steps, same commit: the initial SOA
+and AXFR, then the refresh SOA, the IXFR truncated over UDP and the
+IXFR race over TCP:
+
+```python
+# xfer/ans11/ans.py:200-206 at e56a73a4ea
+    server.install_response_handlers(
+        InitialSoaHandler(progress),
+        InitialAxfrHandler(progress),
+        RefreshSoaHandler(progress),
+        TruncatedIxfrHandler(),
+        RaceIxfrHandler(),
+    )
+```
+
+Handlers that tell no story, alphabetized, same commit: each answers
+a name of its own for an unrelated test.  Before:
+
+```python
+# digdelv/ans7/ans.py:74-78 before e56a73a4ea
+    server.install_response_handlers(
+        CloseHandler(),
+        SilentHandler(),
+        SilentEverySecondQueryHandler(),
+    )
+```
+
+After:
+
+```python
+# digdelv/ans7/ans.py:74-78 at e56a73a4ea
+    server.install_response_handlers(
+        CloseHandler(),
+        SilentEverySecondQueryHandler(),
+        SilentHandler(),
+    )
+```
+
+A switch mapping's sequence in dispatch order, same commit: the EDNS
+RCODE handler before the general AXFR handler, and the SOA handler
+first, as the transfer starts with it:
+
+```python
+# xfer/ans5/ans.py:296-300 as of e56a73a4ea
+            "ednsformerr": (
+                SignResponses(SoaHandler()),
+                SignResponses(AxfrEdnsFormerrHandler()),
+                SignResponses(XferAxfrHandler(txt_data="EDNS FORMERR")),
+            ),
+```
+
+Handlers defined in install order, b5899c314a.  Before, the handler
+installed first was defined second:
+
+```python
+# dnssec/ans10/ans.py:33 before b5899c314a
+class AddRrsigToAHandler(ResponseHandler):
+
+# dnssec/ans10/ans.py:48 before b5899c314a
+class AddNsecToTxtHandler(ResponseHandler):
+
+# dnssec/ans10/ans.py:62-65 before b5899c314a
+    server.install_response_handlers(
+        AddNsecToTxtHandler(),
+        AddRrsigToAHandler(),
+    )
+```
+
+After:
+
+```python
+# dnssec/ans10/ans.py:33 at b5899c314a
+class AddNsecToTxtHandler(ResponseHandler):
+
+# dnssec/ans10/ans.py:45 at b5899c314a
+class AddRrsigToAHandler(ResponseHandler):
+```
+
 ### Shared state is one object, read by a matcher, advanced in `get_responses()`
 
 State that several handlers of a server share is one plain object,
