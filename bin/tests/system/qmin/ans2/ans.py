@@ -40,7 +40,7 @@ def rrset(
 
 
 class QueryLogger(QueryLogHandler):
-    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.")
+    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.", "stale.")
 
 
 class BadHandler(EntRcodeChanger):
@@ -78,37 +78,44 @@ def send_delegation(
     return DnsResponseSend(response, authoritative=False)
 
 
-class StaleHandler(ResponseHandler):
+class StaleDelegationHandler(ResponseHandler):
     """
     `a.b.stale` is a subdomain of `b.stale` and these two subdomains need to be
     delegated to different name servers.  Therefore, their delegations cannot
     be placed in the zone file because the zone cut at `b.stale` would occlude
-    the one at `a.b.stale`.  Generate these delegations dynamically depending
-    on the QNAME.
+    the one at `a.b.stale`, so each cut is delegated by a handler of its own.
     """
 
-    matcher = Domain("stale.")
+    address: str
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
-        a_b_stale = dns.name.from_text("a.b.stale.")
-        b_stale = dns.name.from_text("b.stale.")
-        if qctx.qname.is_subdomain(a_b_stale):
-            yield send_delegation(qctx, a_b_stale, ANS3.ip)
-        elif qctx.qname.is_subdomain(b_stale):
-            yield send_delegation(qctx, b_stale, ANS4.ip)
+        yield send_delegation(
+            qctx, self.matcher.of(Domain).matched_domain, self.address
+        )
+
+
+class ABStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("a.b.stale.")
+    address = ANS3.ip
+
+
+class BStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("b.stale.")
+    address = ANS4.ip
 
 
 def main() -> None:
     server = AsyncDnsServer()
     server.install_response_handlers(
+        ABStaleDelegationHandler(),
+        BStaleDelegationHandler(),
         QueryLogger(),
         BadHandler(),
         UglyHandler(),
         SlowHandler(),
-        StaleHandler(),
     )
     server.run()
 
