@@ -21,7 +21,7 @@ import dns.rrset
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.handlers import SingleResponseHandler
-from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.asyncserver.matchers import Domain, Matcher, Qname, Qtype
 from isctest.template import ANS3
 
 
@@ -54,31 +54,52 @@ class ExampleNsHandler(SingleResponseHandler):
     additional = [a("ns.example.", ANS3.ip)]
 
 
-class ExampleCookieHandler(ResponseHandler):
-    matcher = Domain("example.")
+class WithCookie(Matcher):
+    """
+    Match queries carrying an EDNS COOKIE option; the option of the last
+    match is kept in `matched_cookie`.
+    """
 
-    def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
-        for o in qctx.query.options:
-            if o.otype == dns.edns.OptionType.COOKIE:
-                cookie = o
-                cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
-                return cookie
+    def __init__(self) -> None:
+        self._matched_cookie: dns.edns.CookieOption | None = None
 
-        return None
+    @property
+    def matched_cookie(self) -> dns.edns.CookieOption:
+        assert self._matched_cookie is not None, f"{self} has not matched yet"
+        return self._matched_cookie
+
+    def match(self, qctx: QueryContext) -> bool:
+        for option in qctx.query.options:
+            if isinstance(option, dns.edns.CookieOption):
+                self._matched_cookie = option
+                return True
+        return False
+
+    def __str__(self) -> str:
+        return "with a COOKIE option"
+
+
+class BadCookieHandler(ResponseHandler):
+    """
+    Answer a query that carries a client cookie with BADCOOKIE and a server
+    cookie, to trigger the resend loop logic.
+    """
+
+    matcher = Domain("example.") & WithCookie()
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if cookie := self._get_cookie(qctx):
-            # If there is a client cookie, mock BADCOOKIE to trigger
-            # the resend loop logic.
-            qctx.response.use_edns(options=[cookie])
-            qctx.response.set_rcode(dns.rcode.BADCOOKIE)
-            yield DnsResponseSend(qctx.response)
-        else:
-            # If missing cookie entirely, just return SERVFAIL
-            qctx.response.set_rcode(dns.rcode.SERVFAIL)
-            yield DnsResponseSend(qctx.response)
+        cookie = self.matcher.of(WithCookie).matched_cookie
+        cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
+        qctx.response.use_edns(options=[cookie])
+        qctx.response.set_rcode(dns.rcode.BADCOOKIE)
+        yield DnsResponseSend(qctx.response)
+
+
+class ExampleServfailHandler(SingleResponseHandler):
+    matcher = Domain("example.")
+    rcode = dns.rcode.SERVFAIL
 
 
 class TestDotComServFailHandler(SingleResponseHandler):
@@ -92,7 +113,8 @@ def main() -> None:
     server.install_response_handlers(
         RootNsHandler(),
         ExampleNsHandler(),
-        ExampleCookieHandler(),
+        BadCookieHandler(),
+        ExampleServfailHandler(),
         TestDotComServFailHandler(),
     )
     server.run()
