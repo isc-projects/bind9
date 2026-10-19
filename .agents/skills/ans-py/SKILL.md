@@ -1296,6 +1296,152 @@ def soa(qname: dns.name.Name | str) -> dns.rrset.RRset:
     ) -> dns.rrset.RRset:
 ```
 
+### Read the matcher back instead of repeating its constant
+
+A handler whose answer carries the name or the type it matches takes
+it from its matcher instead of spelling it a second time, so that the
+two cannot drift apart.  A single-value matcher gives it back as
+`qname`, `qtype` or `domain` for the class body; what a query matched
+is `matched_domain` and `matched_label`, for `get_responses()`.  A
+name derived from the matched one, the name server under it or the
+zone above it, is derived from it too, with an f-string or
+`parent()`.  The root is spelled `"."`: the literal is the clearer of
+the two.
+
+#### Examples
+
+Single-response handlers that spelled the name they match again in
+the record, d524d6b475.  Before:
+
+```python
+# resend_loop/ans3/ans.py:51-54 before d524d6b475
+class ExampleNsHandler(SingleResponseHandler):
+    matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
+    answer = [ns("example.", "ns.example.")]
+    additional = [a("ns.example.", ANS3.ip)]
+
+# serve_stale/ans2/ans.py:54-56 before d524d6b475
+class OthertypeExampleCaaHandler(SingleResponseHandler):
+    matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
+    answer = [caa("othertype.example.", '0 issue "ca1.example.net"', ttl=2)]
+```
+
+After, the owner is the matcher's name, and the name server's name is
+derived from it:
+
+```python
+# resend_loop/ans3/ans.py:51-54 at d524d6b475
+class ExampleNsHandler(SingleResponseHandler):
+    matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
+    answer = [ns(matcher.of(Qname).qname, f"ns.{matcher.of(Qname).qname}")]
+    additional = [a(f"ns.{matcher.of(Qname).qname}", ANS3.ip)]
+
+# serve_stale/ans2/ans.py:54-56 at d524d6b475
+class OthertypeExampleCaaHandler(SingleResponseHandler):
+    matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
+    answer = [caa(matcher.of(Qname).qname, '0 issue "ca1.example.net"', ttl=2)]
+```
+
+The zone above the matched name, same commit.  Before:
+
+```python
+# fwdfirst/ans2/ans.py:22-25 before d524d6b475
+class PoisonReferralForwarder(SingleResponseHandler):
+    matcher = Domain("fwd.hack.")
+    authority = [ns("hack.", "ns.fwd.hack.")]
+    additional = [a("ns.fwd.hack.", ANS3.ip)]
+
+# serve_stale/ans2/ans.py:34-37 before d524d6b475
+class NxdomainExampleHandler(SingleResponseHandler):
+    matcher = Qname("nxdomain.example.")
+    rcode = dns.rcode.NXDOMAIN
+    authority = [soa("example.", ttl=2)]
+```
+
+After:
+
+```python
+# fwdfirst/ans2/ans.py:22-25 at d524d6b475
+class PoisonReferralForwarder(SingleResponseHandler):
+    matcher = Domain("fwd.hack.")
+    authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
+
+# serve_stale/ans2/ans.py:34-37 at d524d6b475
+class NxdomainExampleHandler(SingleResponseHandler):
+    matcher = Qname("nxdomain.example.")
+    rcode = dns.rcode.NXDOMAIN
+    authority = [soa(matcher.qname.parent(), ttl=2)]
+```
+
+The same in `get_responses()`, same commit.  Before:
+
+```python
+# reclimit/reclimit_ans.py:88-94 before d524d6b475
+class CountHandler(ReclimitHandler):
+    matcher = Qname("count.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self._state.count}", ttl=0)
+```
+
+After:
+
+```python
+# reclimit/reclimit_ans.py:88-99 at d524d6b475
+class CountHandler(ReclimitHandler):
+    matcher = Qname("count.")
+
+    async def _get_counted_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        count_rrset = rrset(
+            self.matcher.of(Qname).qname,
+            dns.rdatatype.TXT,
+            f"{self._state.count}",
+            ttl=0,
+        )
+```
+
+A value the matcher already checked, parsed from the name a second
+time, 4dc458ee47.  Before:
+
+```python
+# statschannel/ans5/ans.py:75-79 before 4dc458ee47
+class DelayedAHandler(AHandler):
+    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.A)
+
+    def delay(self, qctx: QueryContext) -> float:
+        return int(qctx.qname.labels[0]) / 1000
+```
+
+After, the predicate keeps the label it matched, and the handler reads
+it back:
+
+```python
+# statschannel/ans5/ans.py:77-82 at 4dc458ee47
+class DelayedAHandler(AHandler):
+    matcher = Domain("latency.example2.") & DelayLabel() & Qtype(dns.rdatatype.A)
+
+    @property
+    def delay(self) -> float:
+        return int(self.matcher.of(DelayLabel).matched_label) / 1000
+```
+
+#### Negative examples
+
+The root spelled as the literal it is:
+
+```python
+# resend_loop/ans3/ans.py:45-48 at d524d6b475
+class RootNsHandler(SingleResponseHandler):
+    matcher = Qname(".") & Qtype(dns.rdatatype.NS)
+    answer = [ns(".", "a.root-servers.nil.")]
+    additional = [a("a.root-servers.nil.", ANS3.ip)]
+```
+
 ### No wall of constants
 
 A value used once lives at its use site; a value that is an input of a
