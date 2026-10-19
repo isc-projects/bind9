@@ -72,6 +72,15 @@ pylint $(git ls-files '*.py')
 ruff check
 ```
 
+CI's `mypy` job covers `bin/tests/system/isctest/` only, so a server is
+never type-checked there.  Check it by hand, with the package on the
+path, and leave no error behind that was not there before:
+
+```sh
+MYPYPATH=bin/tests/system mypy --explicit-package-bases --namespace-packages \
+    bin/tests/system/<test>/ans<N>/ans.py
+```
+
 ## Verifying a rewrite with ans_diff
 
 A rewritten server passes its test whether or not it still sends the
