@@ -157,9 +157,9 @@ The goal: turn "issue #NNNN" into a failing test with minimal ceremony.
      setup recipe below.
 
 2. **Find the closest existing test and copy its shape.**  Good exemplars:
-   `cyclic_glue` (resolver + python mock server), `dnssec_py` (signed zones,
-   validator, multiple modules sharing one server set), `nsec3` (multi-module
-   family), `kasp`/`rollover_*` (key management state machines).
+   `cyclic_glue` (resolver + python mock server), `dnssec_wildcard` (signed
+   zones, validator, multiple modules sharing one server set), `nsec3`
+   (multi-module family), `kasp`/`rollover_*` (key management state machines).
 
 3. **Decide where the test lives.**  If an existing directory already has the
    server set you need, add a new `tests_*.py` module there; otherwise create
