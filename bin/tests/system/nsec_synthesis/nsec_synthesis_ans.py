@@ -12,6 +12,7 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -38,16 +39,24 @@ class AttackNsecHandler(ResponseHandler):
     """
 
     nsec: str
-    key_tag: int
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         qctx.prepare_new_response(with_zone_data=False)
+
         nsec_rrset = rrset(qctx.qname, dns.rdatatype.NSEC, self.nsec)
         qctx.response.answer.append(nsec_rrset)
-        rrsig = qctx.sign(nsec_rrset, bogus=True)[0].replace(key_tag=self.key_tag)
+
+        assert qctx.zone and qctx.zone.origin
+        dnskeys = qctx.zone.get_rrset(qctx.zone.origin, dns.rdatatype.DNSKEY)
+        assert dnskeys
+        zone_tags = {dns.dnssec.key_id(dnskey) for dnskey in dnskeys}
+        unknown_tag = next((tag for tag in range(65536) if tag not in zone_tags), 0)
+
+        rrsig = qctx.sign(nsec_rrset, bogus=True)[0].replace(key_tag=unknown_tag)
         qctx.response.answer.append(
             dns.rrset.from_rdata(nsec_rrset.name, nsec_rrset.ttl, rrsig)
         )
+
         yield DnsResponseSend(qctx.response, authoritative=True)

@@ -9,13 +9,18 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from nsec_synthesis.common import SIGNED_ZONE_MARKS, check_forged_nsec, get_nsec, has_a
+from nsec_synthesis.common import (
+    F023_ZONE,
+    SIGNED_ZONE_MARKS,
+    check_forged_nsec,
+    get_nsec,
+    has_a,
+)
 
 import isctest
 import isctest.template
 import isctest.zone
 
-F023_ZONE = "f023.test."
 EVIL = f"evil.{F023_ZONE}"
 POISON = f"0.{EVIL}"
 POISON_NEXT = f"zzz.{F023_ZONE}"
@@ -45,20 +50,24 @@ def _prime_parent_for_aggressive_nsec():
     isctest.check.adflag(nsec)
 
 
-def test_direct_insecure_child_nsec_next_fixture():
+def test_direct_insecure_child_nsec_next_fixture(f023_key_tags):
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), AUTH)
     isctest.check.noerror(poison)
     isctest.check.aaflag(poison)
-    check_forged_nsec(poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, 12345)
+    check_forged_nsec(
+        poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, f023_key_tags
+    )
 
 
-def test_resolver_does_not_synth_from_insecure_child_nsec():
+def test_resolver_does_not_synth_from_insecure_child_nsec(f023_key_tags):
     _prime_parent_for_aggressive_nsec()
 
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), RESOLVER)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
-    check_forged_nsec(poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, 12345)
+    check_forged_nsec(
+        poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, f023_key_tags
+    )
 
     response = isctest.query.tcp(isctest.query.create(TARGET, "A"), RESOLVER)
     isctest.check.noerror(response)

@@ -29,7 +29,6 @@ class AttackCoveringNsecHandler(AttackNsecHandler):
         Qname("attacker.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
     )
     nsec = "b.victim.f004.test. NS SOA RRSIG NSEC DNSKEY"
-    key_tag = 9999
 
 
 class AttackNodataNsecHandler(AttackNsecHandler):
@@ -43,7 +42,6 @@ class AttackNodataNsecHandler(AttackNsecHandler):
         Qname("victim.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
     )
     nsec = "z.f004.test. TXT RRSIG NSEC"
-    key_tag = 9999
 
 
 def main() -> None:
