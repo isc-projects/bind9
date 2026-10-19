@@ -98,13 +98,13 @@ class RecordGenerator(abc.ABC):
     """
 
     @classmethod
-    def create_rrset(
+    def rrset(
         cls, owner: dns.name.Name, rrtype: dns.rdatatype.RdataType, rdata: str
     ) -> dns.rrset.RRset:
         return dns.rrset.from_text(owner, 86400, dns.rdataclass.IN, rrtype, rdata)
 
     @classmethod
-    def create_rrset_signature(
+    def rrsig(
         cls, owner: dns.name.Name, rrtype: dns.rdatatype.RdataType
     ) -> dns.rrset.RRset:
         covers = dns.rdatatype.to_text(rrtype)
@@ -117,7 +117,7 @@ class RecordGenerator(abc.ABC):
         sigdata += "cevbGp6DKxFhlkLXNcw7k9o7DSw14OaRmgAjXdTFbrl4AiAa0zAttFko "
         sigdata += "Tso="
         rdata = f"{covers} 5 3 {ttl} {expiry} {inception} 12345 {domain} {sigdata}"
-        return cls.create_rrset(owner, dns.rdatatype.RRSIG, rdata)
+        return cls.rrset(owner, dns.rdatatype.RRSIG, rdata)
 
     def __init__(self, name_generator: ChainNameGenerator) -> None:
         self._name_generator = name_generator
@@ -172,8 +172,8 @@ class CnameRecordGenerator(RecordGenerator):
     def generate_rrsets(self) -> tuple[list[dns.rrset.RRset], list[dns.rrset.RRset]]:
         owner = self._name_generator.current_name
         target = self._name_generator.generate_next_name().to_text()
-        response = self.create_rrset(owner, dns.rdatatype.CNAME, target)
-        signature = self.create_rrset_signature(owner, response.rdtype)
+        response = self.rrset(owner, dns.rdatatype.CNAME, target)
+        signature = self.rrsig(owner, response.rdtype)
         return [response], [signature]
 
 
@@ -186,18 +186,10 @@ class DnameRecordGenerator(RecordGenerator):
         cname_owner = self._name_generator.current_name
         dname_target = self._name_generator.generate_next_sld().to_text()
         cname_target = self._name_generator.current_name.to_text()
-        dname_response = self.create_rrset(
-            dname_owner, dns.rdatatype.DNAME, dname_target
-        )
-        cname_response = self.create_rrset(
-            cname_owner, dns.rdatatype.CNAME, cname_target
-        )
-        dname_signature = self.create_rrset_signature(
-            dname_owner, dname_response.rdtype
-        )
-        cname_signature = self.create_rrset_signature(
-            cname_owner, cname_response.rdtype
-        )
+        dname_response = self.rrset(dname_owner, dns.rdatatype.DNAME, dname_target)
+        cname_response = self.rrset(cname_owner, dns.rdatatype.CNAME, cname_target)
+        dname_signature = self.rrsig(dname_owner, dname_response.rdtype)
+        cname_signature = self.rrsig(cname_owner, cname_response.rdtype)
         return [dname_response, cname_response], [dname_signature, cname_signature]
 
 
@@ -208,8 +200,8 @@ class XnameRecordGenerator(RecordGenerator):
     def generate_rrsets(self) -> tuple[list[dns.rrset.RRset], list[dns.rrset.RRset]]:
         owner = self._name_generator.current_name
         target = self._name_generator.generate_next_name_in_next_sld().to_text()
-        response = self.create_rrset(owner, dns.rdatatype.CNAME, target)
-        signature = self.create_rrset_signature(owner, response.rdtype)
+        response = self.rrset(owner, dns.rdatatype.CNAME, target)
+        signature = self.rrsig(owner, response.rdtype)
         return [response], [signature]
 
 
@@ -219,8 +211,8 @@ class FinalRecordGenerator(RecordGenerator):
 
     def generate_rrsets(self) -> tuple[list[dns.rrset.RRset], list[dns.rrset.RRset]]:
         owner = self._name_generator.current_name
-        response = self.create_rrset(owner, dns.rdatatype.A, ANS4.ip)
-        signature = self.create_rrset_signature(owner, response.rdtype)
+        response = self.rrset(owner, dns.rdatatype.A, ANS4.ip)
+        signature = self.rrsig(owner, response.rdtype)
         return [response], [signature]
 
 
@@ -443,23 +435,23 @@ class ChainResponseHandler(ResponseHandler):
     def _non_chain_answer(self, qctx: QueryContext) -> list[dns.rrset.RRset]:
         owner = qctx.qname
         return [
-            RecordGenerator.create_rrset(owner, dns.rdatatype.A, ANS4.ip),
-            RecordGenerator.create_rrset_signature(owner, dns.rdatatype.A),
+            RecordGenerator.rrset(owner, dns.rdatatype.A, ANS4.ip),
+            RecordGenerator.rrsig(owner, dns.rdatatype.A),
         ]
 
     @property
     def _authority_rrsets(self) -> list[dns.rrset.RRset]:
         owner = dns.name.from_text("domain.nil.")
         return [
-            RecordGenerator.create_rrset(owner, dns.rdatatype.NS, "ns1.domain.nil."),
+            RecordGenerator.rrset(owner, dns.rdatatype.NS, "ns1.domain.nil."),
         ]
 
     @property
     def _additional_rrsets(self) -> list[dns.rrset.RRset]:
         owner = dns.name.from_text("ns1.domain.nil.")
         return [
-            RecordGenerator.create_rrset(owner, dns.rdatatype.A, ANS4.ip),
-            RecordGenerator.create_rrset(owner, dns.rdatatype.AAAA, ANS4.ip6),
+            RecordGenerator.rrset(owner, dns.rdatatype.A, ANS4.ip),
+            RecordGenerator.rrset(owner, dns.rdatatype.AAAA, ANS4.ip6),
         ]
 
 

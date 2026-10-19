@@ -18,7 +18,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Edns, EdnsOptions
 
-from ..resolver_ans import rrset, soa_rrset
+from ..resolver_ans import rrset, soa
 
 
 class EdnsWithOptionsFormerrHandler(ResponseHandler):
@@ -44,9 +44,9 @@ class FallbackHandler(ResponseHandler):
             ns_rrset = rrset(qctx.qname, dns.rdatatype.NS, ".")
             qctx.response.answer.append(ns_rrset)
         elif qctx.qtype == dns.rdatatype.SOA:
-            qctx.response.answer.append(soa_rrset(qctx.qname))
+            qctx.response.answer.append(soa(qctx.qname))
         else:
-            qctx.response.authority.append(soa_rrset(qctx.qname))
+            qctx.response.authority.append(soa(qctx.qname))
 
         yield DnsResponseSend(qctx.response, authoritative=True)
 

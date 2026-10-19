@@ -30,7 +30,7 @@ from ..resolver_ans import (
     Gl6412Ns3Handler,
     rrset,
     setup_delegation,
-    soa_rrset,
+    soa,
 )
 
 
@@ -42,7 +42,7 @@ class BadGoodDnameNsHandler(SingleResponseHandler):
     authoritative = True
 
 
-def _cname_rrsets(
+def cname_rrsets(
     qname: dns.name.Name | str,
 ) -> tuple[dns.rrset.RRset, dns.rrset.RRset]:
     return (
@@ -54,14 +54,14 @@ def _cname_rrsets(
 class Cname1Handler(SingleResponseHandler):
     matcher = Qname("cname1.example.com.")
     # Data for the "cname + other data / 1" test
-    answer = _cname_rrsets(matcher.qnames[0])
+    answer = cname_rrsets(matcher.qnames[0])
     authoritative = False
 
 
 class Cname2Handler(SingleResponseHandler):
     matcher = Qname("cname2.example.com.")
     # Data for the "cname + other data / 2" test: same RRs in opposite order
-    answer = tuple(reversed(_cname_rrsets(matcher.qnames[0])))
+    answer = tuple(reversed(cname_rrsets(matcher.qnames[0])))
     authoritative = False
 
 
@@ -110,7 +110,7 @@ class ZoneVersionHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.authority.append(soa_rrset("."))
+        qctx.response.authority.append(soa("."))
         zoneversion_opt = dns.edns.GenericOption(19, bytes.fromhex("000101022304"))  # type: ignore
         qctx.response.use_edns(edns=0, options=[zoneversion_opt])
         yield DnsResponseSend(qctx.response, authoritative=False)

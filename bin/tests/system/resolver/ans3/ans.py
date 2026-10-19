@@ -28,7 +28,7 @@ from ..resolver_ans import (
     Gl6412Ns3Handler,
     rrset,
     rrset_from_list,
-    soa_rrset,
+    soa,
 )
 
 
@@ -60,7 +60,7 @@ class BadGoodDnameNsHandler(SingleResponseHandler):
     matcher = Qname("baddname.example.net.", "gooddname.example.net.") & Qtype(
         dns.rdatatype.NS
     )
-    authority = [soa_rrset("example.net.")]
+    authority = [soa("example.net.")]
 
 
 class CnameSubHandler(SingleResponseHandler):
