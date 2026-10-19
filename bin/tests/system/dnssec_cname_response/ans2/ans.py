@@ -182,31 +182,25 @@ class SignedZoneHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class StuffedNxdomainHandler(ResponseHandler):
+class StuffedNxdomainHandler(SingleResponseHandler):
     """
     Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
     """
+
+    rcode = dns.rcode.NXDOMAIN
 
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
         assert self._zone.origin
         self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
-        self._nsec3_authority = self._build_authority()
 
-    def _build_authority(self) -> list[dns.rrset.RRset]:
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
         assert self._zone.origin
         authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
         for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
             authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
         return authority
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.set_rcode(dns.rcode.NXDOMAIN)
-        qctx.response.authority.extend(self._nsec3_authority)
-        yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
