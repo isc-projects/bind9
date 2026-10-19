@@ -1266,6 +1266,170 @@ type, `serve_stale/ans9/ans.py` as of 4e803f2d69:
                 yield action
 ```
 
+### Edit the prepared response and yield it
+
+Before a handler runs, the server prepares `qctx.response`: the answer
+from the zone data on a server with zone files, an empty message
+carrying the server's defaults on one without.  The handler edits that
+message and yields it.  The message is rendered only when it is sent, so
+every change made before the yield reaches the wire, even one made after
+a `to_wire()` call, and nothing is invalidated or re-rendered by hand.
+
+Call `qctx.prepare_new_response()` only when a fresh message is needed:
+to replace the prepared answer on a server with zone files, or to start
+a second message after the first was yielded.  On a server without zone
+files the prepared message is already empty, and a call there as the
+handler's first statement discards nothing while reading as if it did.
+Build a message by hand, with `dns.message.make_response()` or from
+wire, only when the test needs one the prepared response cannot become,
+such as an upstream answer relayed as it came back.  `DnsResponseSend`
+refuses such a message, since it bypasses the server's RCODE and AA
+handling, unless it is sent with `acknowledge_hand_rolled_response=True`.
+
+A TSIG-signed response is the exception: once signed and rendered it
+is sent as it is, so a change made after the signing step is lost,
+and `authoritative=` on such a response raises for that reason.
+Finish the message, the AA bit included, then sign.
+
+#### Examples
+
+A message made by hand, 1fc206556b.  Before:
+
+```python
+# qmin/ans2/ans.py:69 before 1fc206556b
+    response = dns.message.make_response(qctx.query)
+```
+
+After:
+
+```python
+# qmin/ans2/ans.py:69 at 1fc206556b
+    response = qctx.prepare_new_response(with_zone_data=False)
+```
+
+A relayed upstream answer, which the prepared response cannot become,
+the framework's `ForwarderHandler`, `isctest/asyncserver/handlers.py`
+as of 1ff1a40935:
+
+```python
+# isctest/asyncserver/handlers.py:361-363 as of 1ff1a40935
+        try:
+            message = dns.message.from_wire(response.result(), keyring=False)
+            yield DnsResponseSend(message, acknowledge_hand_rolled_response=True)
+```
+
+A change after rendering reaches the wire, the package's own test,
+`isctest/asyncserver/tests/response_handling/ans1/ans.py` as of
+1ff1a40935:
+
+```python
+# isctest/asyncserver/tests/response_handling/ans1/ans.py:69-82 as of 1ff1a40935
+class RenderedBeforeSendHandler(ResponseHandler):
+    """
+    Render the response to wire before changing it, as a handler measuring
+    its size would; the changes must still reach the client.
+    """
+
+    matcher = Qname(f"rendered.{ZONE}")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.to_wire()
+        qctx.response.answer.append(txt(qctx.qname, "added after rendering"))
+        yield DnsResponseSend(qctx.response, authoritative=False)
+```
+
+The needless call on a server without zone files (synthetic).  Before:
+
+```python
+# ans2/ans.py, before (synthetic)
+class ServfailHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        response = qctx.prepare_new_response(with_zone_data=False)
+        response.set_rcode(dns.rcode.SERVFAIL)
+        yield DnsResponseSend(response)
+```
+
+After:
+
+```python
+# ans2/ans.py, after (synthetic)
+class ServfailHandler(ResponseHandler):
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.set_rcode(dns.rcode.SERVFAIL)
+        yield DnsResponseSend(qctx.response)
+```
+
+A server with zone files whose handler replaces the prepared answer,
+`dnssec_cname_response/ans2/ans.py` as of 1ff1a40935:
+
+```python
+# dnssec_cname_response/ans2/ans.py:61-72 as of 1ff1a40935
+class CnameHandler(ResponseHandler):
+    """
+    Answer with a CNAME instead of the real records.
+    """
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.prepare_new_response(with_zone_data=False)
+        target = f"cname-target.{qctx.qname.to_text()}"
+        qctx.response.answer.append(cname(qctx.qname, target))
+        yield DnsResponseSend(qctx.response)
+```
+
+A second message after the first was yielded, `xfer/ans11/ans.py` as
+of 1ff1a40935:
+
+```python
+# xfer/ans11/ans.py:172-194 as of 1ff1a40935
+class RaceIxfrHandler(ResponseHandler):
+    """
+    Reproduce the IXFR->AXFR use-after-free races (GL#5767 and GL#6114).
+
+    Over TCP, send two valid IXFR diffs.  The first starts the apply worker and
+    the second remains queued after that worker splices the first chunk.
+    Immediately follow them with a SERVFAIL response that makes
+    xfrin_recv_done() defer the AXFR retry until the worker finishes.  Cleanup
+    then has to detach the queued second chunk before freeing it.
+    """
+
+    matcher = Qtype(dns.rdatatype.IXFR) & Protocol(DnsProtocol.TCP)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        for rrset_ in ixfr_diffs():
+            qctx.response.answer.append(rrset_)
+        yield DnsResponseSend(qctx.response)
+
+        qctx.prepare_new_response(with_zone_data=False)
+        qctx.response.set_rcode(dns.rcode.SERVFAIL)
+        yield DnsResponseSend(qctx.response)
+```
+
+The signature goes on last, in a wrapper, `xfer/ans5/ans.py` as of
+1ff1a40935:
+
+```python
+# xfer/ans5/ans.py:72-80 as of 1ff1a40935
+    def _modify_response(
+        self, qctx: QueryContext, response_action: ResponseAction
+    ) -> None:
+        assert isinstance(
+            response_action, DnsResponseSend
+        ), "SignResponses can only wrap handlers that yield DnsResponseSend"
+        response_action.response.use_tsig(self._key)
+        if qctx.protocol == DnsProtocol.TCP:
+            self._apply_tsig_context(response_action.response)
+```
+
 ### A handler that sends one response declares its parts
 
 When a handler sends one response whose parts it can state up front,
