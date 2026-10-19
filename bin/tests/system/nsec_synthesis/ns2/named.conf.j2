@@ -22,12 +22,12 @@ zone "f007.test" {
 
 zone "f023.test" {
 	type static-stub;
-	server-addresses { 10.53.0.1; };
+	server-addresses { 10.53.0.4; };
 };
 
 zone "evil.f023.test" {
 	type static-stub;
-	server-addresses { 10.53.0.1; };
+	server-addresses { 10.53.0.4; };
 };
 
 {% include "_common/trusted.conf.j2" %}

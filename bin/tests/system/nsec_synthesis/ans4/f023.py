@@ -24,7 +24,7 @@ import dns.rrset
 from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain
-from nsec_synthesis.ans1.common import (
+from nsec_synthesis.ans4.common import (
     Key,
     add_signed,
     name,
