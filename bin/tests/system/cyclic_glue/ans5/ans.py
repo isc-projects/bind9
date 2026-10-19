@@ -37,7 +37,7 @@ def a(owner: str, address: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.A, address)
 
 
-class BrokenFooHandler(SingleResponseHandler):
+class FooForeignGlueReferralHandler(SingleResponseHandler):
     matcher = Qname("a.foo.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("foo.test.", "ns.foo.test."),
@@ -55,7 +55,7 @@ class BrokenFooHandler(SingleResponseHandler):
     ]
 
 
-class BrokenBarHandler(SingleResponseHandler):
+class BarForeignNsReferralHandler(SingleResponseHandler):
     matcher = Qname("a.bar.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("bar.test.", "ns.bar.test."),
@@ -76,7 +76,9 @@ class BrokenBarHandler(SingleResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(BrokenFooHandler(), BrokenBarHandler())
+    server.install_response_handlers(
+        FooForeignGlueReferralHandler(), BarForeignNsReferralHandler()
+    )
     server.run()
 
 

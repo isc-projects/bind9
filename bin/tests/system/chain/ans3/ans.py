@@ -60,7 +60,7 @@ class CnameThenDnameHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class Cve202125215(ResponseHandler):
+class CnameToDnameOwnerHandler(ResponseHandler):
     """
     Attempt to trigger the resolver variant of CVE-2021-25215.  A `named`
     instance cannot be used for serving the DNAME records returned by this
@@ -101,7 +101,9 @@ class Cve202125215(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(acknowledge_manual_dname_handling=True, default_aa=True)
-    server.install_response_handlers(CnameThenDnameHandler(), Cve202125215())
+    server.install_response_handlers(
+        CnameThenDnameHandler(), CnameToDnameOwnerHandler()
+    )
     server.run()
 
 

@@ -20,7 +20,7 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qtype
 
 
-class ReplyA(ResponseHandler):
+class AHandler(ResponseHandler):
     matcher = Qtype(dns.rdatatype.A)
 
     async def get_responses(
@@ -33,7 +33,7 @@ class ReplyA(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class DelayNs(ResponseHandler):
+class DelayedNsHandler(ResponseHandler):
     matcher = Qtype(dns.rdatatype.NS)
 
     async def get_responses(
@@ -52,7 +52,7 @@ class DelayNs(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(ReplyA(), DelayNs())
+    server.install_response_handlers(AHandler(), DelayedNsHandler())
     server.run()
 
 
