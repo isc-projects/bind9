@@ -109,6 +109,7 @@ struct named_controls {
 	bool shuttingdown;
 	isc_mutex_t symtab_lock;
 	isccc_symtab_t *symtab;
+	isc_stdtime_t last_cleanup_time;
 };
 
 static isc_result_t
@@ -147,7 +148,12 @@ ISC_REFCOUNT_DECL(controllistener);
 ISC_REFCOUNT_DECL(controlconnection);
 #endif
 
-#define CLOCKSKEW 300
+/*
+ * The tolerated clock skew (in seconds) for the incoming control channel
+ * commands. Also, the double amount of this value is used as a lifetime for
+ * the items in the duplicate commands list before they get cleaned up.
+ */
+ISC_CONSTEXPR uint32_t cc_clockskew = 300;
 
 static void
 free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
@@ -476,8 +482,8 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	}
 
 	if (isccc_cc_lookupuint32(conn->ctrl, "_tim", &sent) == ISC_R_SUCCESS) {
-		if ((sent + CLOCKSKEW) < conn->now ||
-		    (sent - CLOCKSKEW) > conn->now)
+		if (sent + cc_clockskew < conn->now ||
+		    sent - cc_clockskew > conn->now)
 		{
 			result = ISCCC_R_CLOCKSKEW;
 			goto cleanup;
@@ -501,9 +507,12 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	 * Duplicate suppression (required for UDP).
 	 */
 	LOCK(&listener->controls->symtab_lock);
-	isccc_cc_cleansymtab(listener->controls->symtab, conn->now);
+	if (conn->now > listener->controls->last_cleanup_time) {
+		isccc_cc_cleansymtab(listener->controls->symtab, conn->now);
+		listener->controls->last_cleanup_time = conn->now;
+	}
 	result = isccc_cc_checkdup(listener->controls->symtab, conn->request,
-				   conn->now);
+				   conn->now + 2 * cc_clockskew + 1);
 	UNLOCK(&listener->controls->symtab_lock);
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_EXISTS) {
