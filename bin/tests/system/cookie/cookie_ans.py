@@ -41,10 +41,6 @@ KEYRING = dns.tsigkeyring.from_text(
 )
 
 
-def first_label(qctx: QueryContext) -> str:
-    return qctx.qname.labels[0].decode("ascii")
-
-
 def add_cookie(qctx: QueryContext) -> None:
     for o in qctx.query.options:
         if o.otype == dns.edns.OptionType.COOKIE:
@@ -123,14 +119,25 @@ class GlueHandler(_SpoofableHandler):
         yield DnsResponseSend(qctx.response)
 
 
+class CookielessTcpAHandler(ResponseHandler):
+    matcher = (
+        Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.TCP) & LeftmostLabel(b"nocookie")
+    )
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.answer.append(legit_a(qctx))
+        yield DnsResponseSend(qctx.response)
+
+
 class TcpAHandler(ResponseHandler):
     matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.TCP)
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if first_label(qctx) != "nocookie":
-            add_cookie(qctx)
+        add_cookie(qctx)
         qctx.response.answer.append(legit_a(qctx))
         yield DnsResponseSend(qctx.response)
 
@@ -154,6 +161,21 @@ class WithtsigUdpAHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
+class SpoofedUdpAHandler(ResponseHandler):
+    matcher = (
+        Qtype(dns.rdatatype.A)
+        & Protocol(DnsProtocol.UDP)
+        & LeftmostLabel(b"nocookie", b"tcponly")
+    )
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        qctx.response.answer.append(legit_a(qctx))
+        qctx.response.answer.append(spoofed_a(qctx))
+        yield DnsResponseSend(qctx.response)
+
+
 class UdpAHandler(ResponseHandler):
     matcher = Qtype(dns.rdatatype.A) & Protocol(DnsProtocol.UDP)
 
@@ -161,11 +183,18 @@ class UdpAHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         qctx.response.answer.append(legit_a(qctx))
-        if first_label(qctx) not in ("nocookie", "tcponly"):
-            add_cookie(qctx)
-        else:
-            qctx.response.answer.append(spoofed_a(qctx))
+        add_cookie(qctx)
+        yield DnsResponseSend(qctx.response)
 
+
+class FallbackSoaHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.SOA)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        add_cookie(qctx)
+        qctx.response.answer.append(soa(qctx))
         yield DnsResponseSend(qctx.response)
 
 
@@ -174,10 +203,7 @@ class FallbackHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         add_cookie(qctx)
-        if qctx.qtype == dns.rdatatype.SOA:
-            qctx.response.answer.append(soa(qctx))
-        else:
-            qctx.response.authority.append(soa(qctx))
+        qctx.response.authority.append(soa(qctx))
         yield DnsResponseSend(qctx.response)
 
 
@@ -188,9 +214,12 @@ def cookie_server(evil: bool) -> AsyncDnsServer:
     server.install_response_handlers(
         NsHandler(evil),
         GlueHandler(evil),
+        CookielessTcpAHandler(),
         TcpAHandler(),
         WithtsigUdpAHandler(),
+        SpoofedUdpAHandler(),
         UdpAHandler(),
     )
+    server.install_response_handlers(FallbackSoaHandler())
     server.install_response_handlers(FallbackHandler())
     return server
