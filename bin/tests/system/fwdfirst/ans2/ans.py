@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import dns.name
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
@@ -20,18 +21,27 @@ from isctest.asyncserver.matchers import Domain
 from isctest.template import ANS3
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
 class PoisonReferralForwarder(SingleResponseHandler):
     matcher = Domain("fwd.hack.")
-    authority = [
-        dns.rrset.from_text(
-            "hack.", 300, dns.rdataclass.IN, dns.rdatatype.NS, "ns.fwd.hack."
-        )
-    ]
-    additional = [
-        dns.rrset.from_text(
-            "ns.fwd.hack.", 300, dns.rdataclass.IN, dns.rdatatype.A, ANS3.ip
-        )
-    ]
+    authority = [ns("hack.", "ns.fwd.hack.")]
+    additional = [a("ns.fwd.hack.", ANS3.ip)]
     rcode = dns.rcode.NOERROR
     authoritative = False
 

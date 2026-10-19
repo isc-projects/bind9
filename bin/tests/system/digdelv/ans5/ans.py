@@ -13,7 +13,9 @@ from collections.abc import AsyncGenerator
 
 import logging
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -24,6 +26,15 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import CloseConnection, DnsResponseSend
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class ErraticAxfrHandler(ResponseHandler):
@@ -47,10 +58,8 @@ class ErraticAxfrHandler(ResponseHandler):
             yield CloseConnection()
             return
 
-        soa_rr = dns.rrset.from_text(
-            qctx.qname, 300, qctx.qclass, dns.rdatatype.SOA, ". . 0 0 0 0 300"
-        )
-        ns_rr = dns.rrset.from_text(qctx.qname, 300, qctx.qclass, dns.rdatatype.NS, ".")
+        soa_rr = rrset(qctx.qname, dns.rdatatype.SOA, ". . 0 0 0 0 300")
+        ns_rr = rrset(qctx.qname, dns.rdatatype.NS, ".")
 
         qctx.response.answer.append(soa_rr)
         qctx.response.answer.append(ns_rr)

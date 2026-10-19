@@ -12,7 +12,9 @@
 import asyncio
 
 import dns.flags
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -23,6 +25,15 @@ from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 NAME = "nodata.example."
 
 RELEASE = asyncio.Event()
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    *rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, *rdata)
 
 
 class CdFlag(Matcher):
@@ -48,9 +59,7 @@ class HeldAddressHandler(SingleResponseHandler):
     matcher = Qname(NAME) & Qtype(dns.rdatatype.A) & CdFlag()
     rcode = dns.rcode.NOERROR
     answer = [
-        dns.rrset.from_text(
-            NAME, 300, "IN", "A", "192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4"
-        )
+        rrset(NAME, dns.rdatatype.A, "192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4")
     ]
     authoritative = True
 

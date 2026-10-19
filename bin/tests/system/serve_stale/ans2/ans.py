@@ -19,12 +19,12 @@ from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..serve_stale_ans import (
     a_handler,
+    caa,
     cname_a_handler,
     cname_handler,
     fallback_handler,
     ns_handler,
     other_types_handler,
-    rrset,
     soa,
     soa_handler,
     txt_handler,
@@ -53,14 +53,7 @@ class LongttlNxdomainExampleHandler(SingleResponseHandler):
 
 class OthertypeExampleCaaHandler(SingleResponseHandler):
     matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
-    answer = [
-        rrset(
-            "othertype.example.",
-            2,
-            dns.rdatatype.CAA,
-            '0 issue "ca1.example.net"',
-        )
-    ]
+    answer = [caa("othertype.example.", '0 issue "ca1.example.net"', ttl=2)]
 
 
 class SourceStaleFallbackHandler(SingleResponseHandler):

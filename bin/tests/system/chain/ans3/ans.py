@@ -23,6 +23,15 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
 def get_dname_rrset_at_name(
     zone: dns.zone.Zone, name: dns.name.Name
 ) -> dns.rrset.RRset:
@@ -30,9 +39,9 @@ def get_dname_rrset_at_name(
     assert node
     dname = node.get_rdataset(dns.rdataclass.IN, dns.rdatatype.DNAME)
     assert dname
-    rrset = dns.rrset.RRset(name, dname.rdclass, dname.rdtype)
-    rrset.update(dname)
-    return rrset
+    dname_rrset = dns.rrset.RRset(name, dname.rdclass, dname.rdtype)
+    dname_rrset.update(dname)
+    return dname_rrset
 
 
 class CnameThenDnameHandler(ResponseHandler):
@@ -87,12 +96,8 @@ class CnameToDnameOwnerHandler(ResponseHandler):
 
         if relation == dns.name.NameRelation.SUBDOMAIN:
             qctx.response.answer.append(dname_rrset)
-            cname_rrset = dns.rrset.from_text(
-                qctx.qname,
-                60,
-                qctx.qclass,
-                dns.rdatatype.CNAME,
-                self_example_dname.to_text(),
+            cname_rrset = rrset(
+                qctx.qname, dns.rdatatype.CNAME, self_example_dname.to_text(), ttl=60
             )
             qctx.response.answer.append(cname_rrset)
 

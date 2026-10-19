@@ -11,7 +11,9 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -23,14 +25,23 @@ from isctest.asyncserver import (
 from isctest.asyncserver.actions import DnsResponseSend
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
 class DelayedAddressAnswerHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         if qctx.qtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
             addr = "192.0.2.1" if qctx.qtype == dns.rdatatype.A else "2001:db8:beef::1"
-            rrset = dns.rrset.from_text(qctx.qname, 300, qctx.qclass, qctx.qtype, addr)
-            qctx.response.answer.append(rrset)
+            answer_rrset = rrset(qctx.qname, qctx.qtype, addr)
+            qctx.response.answer.append(answer_rrset)
 
         # <delay-in-ms>.<...>.latency...: any labels between the delay and
         # "latency" are ignored; tests use them to bypass the resolver cache

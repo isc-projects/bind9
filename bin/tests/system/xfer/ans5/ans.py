@@ -265,11 +265,9 @@ class XferAxfrHandler(AxfrHandler):
 class AboveApexAxfrHandler(XferAxfrHandler):
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
-        return [
-            *super().zone_contents,
-            # The root is the parent of the nil. zone.
-            rrset(".", 300, dns.rdatatype.NS, "ns.attacker."),
-        ]
+        # The root is the parent of the nil. zone.
+        above_apex_ns = rrset(".", 300, dns.rdatatype.NS, "ns.attacker.")
+        return [*super().zone_contents, above_apex_ns]
 
 
 class WrongQnameInFinalSoa(ResponseHandlerWrapper):

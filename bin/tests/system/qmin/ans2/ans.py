@@ -13,6 +13,7 @@ from collections.abc import AsyncGenerator
 
 import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -27,6 +28,15 @@ from ..qmin_ans import (
     QueryLogHandler,
     log_query,
 )
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class QueryLogger(QueryLogHandler):
@@ -57,8 +67,8 @@ def send_delegation(
     ADDITIONAL section.
     """
     ns_name = "ns." + zone_cut.to_text()
-    ns_rrset = dns.rrset.from_text(zone_cut, 2, qctx.qclass, dns.rdatatype.NS, ns_name)
-    a_rrset = dns.rrset.from_text(ns_name, 2, qctx.qclass, dns.rdatatype.A, target_addr)
+    ns_rrset = rrset(zone_cut, dns.rdatatype.NS, ns_name, ttl=2)
+    a_rrset = rrset(ns_name, dns.rdatatype.A, target_addr, ttl=2)
 
     response = qctx.prepare_new_response(with_zone_data=False)
     response.set_rcode(dns.rcode.NOERROR)

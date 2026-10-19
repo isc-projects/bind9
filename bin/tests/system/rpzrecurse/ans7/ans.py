@@ -11,7 +11,9 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -20,16 +22,26 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
 class ReplyA(ResponseHandler):
     matcher = Qname("trigger.cve-2026-97313.test.") & Qtype(dns.rdatatype.A)
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        a_rrset = dns.rrset.from_text(
-            qctx.qname, 300, qctx.qclass, dns.rdatatype.A, "10.53.0.99"
-        )
-        qctx.response.answer.append(a_rrset)
+        qctx.response.answer.append(a(qctx.qname, "10.53.0.99"))
         yield DnsResponseSend(qctx.response)
 
 
@@ -37,12 +49,11 @@ class ReplyDefault(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        soa_rrset = dns.rrset.from_text(
+        soa_rrset = rrset(
             ".",
-            1,  # Important: this should be 1 so it expires early
-            qctx.qclass,
             dns.rdatatype.SOA,
             "a.root-servers.test. root.test. 1 3600 1200 604800 1",
+            ttl=1,  # Important: this should be 1 so it expires early
         )
         qctx.response.authority.append(soa_rrset)
         yield DnsResponseSend(qctx.response)

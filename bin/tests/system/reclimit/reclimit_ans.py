@@ -32,6 +32,15 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
 class ReclimitStateHandler(ResponseHandler):
     """
     Handler for the "count." and "reset." queries that also holds the state
@@ -52,11 +61,8 @@ class ReclimitStateHandler(ResponseHandler):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         if f"{qctx.qname}" == "count.":
             self.count += 1
-            qctx.response.answer.append(
-                dns.rrset.from_text(
-                    "count.", 0, dns.rdataclass.IN, dns.rdatatype.TXT, f"{self.count}"
-                )
-            )
+            count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self.count}", ttl=0)
+            qctx.response.answer.append(count_rrset)
             yield DnsResponseSend(qctx.response, authoritative=True)
         elif f"{qctx.qname}" == "reset.":
             self.reset()

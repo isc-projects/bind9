@@ -48,6 +48,10 @@ def txt(owner: str, data: str, ttl: int = 2) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.TXT, f'"{data}"')
 
 
+def caa(owner: str, data: str, ttl: int = 300) -> dns.rrset.RRset:
+    return rrset(owner, ttl, dns.rdatatype.CAA, data)
+
+
 def cname(owner: str, target: str, ttl: int) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.CNAME, target)
 

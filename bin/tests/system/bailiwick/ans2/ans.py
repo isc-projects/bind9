@@ -11,6 +11,8 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -21,7 +23,35 @@ from isctest.template import ANS3
 from ..bailiwick_ans import ResponseSpoofer, spoofing_server
 
 ATTACKER_IP = ANS3.ip
-TTL = 3600
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 3600,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
+def txt(owner: str | dns.name.Name, text: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.TXT, f'"{text}"')
+
+
+def cname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.CNAME, target)
+
+
+def dname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.DNAME, target)
 
 
 class UnsolicitedNsSpoofer(ResponseSpoofer, mode="unsolicited-ns"):
@@ -33,19 +63,8 @@ class UnsolicitedNsSpoofer(ResponseSpoofer, mode="unsolicited-ns"):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
-        txt_rrset = dns.rrset.from_text(
-            qctx.qname,
-            TTL,
-            qctx.qclass,
-            dns.rdatatype.TXT,
-            '"spoofed answer with extra NS"',
-        )
-        response.answer.append(txt_rrset)
-
-        ns_rrset = dns.rrset.from_text(
-            "victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.attacker."
-        )
-        response.authority.append(ns_rrset)
+        response.answer.append(txt(qctx.qname, "spoofed answer with extra NS"))
+        response.authority.append(ns("victim.", "ns.attacker."))
 
         yield DnsResponseSend(response, authoritative=True)
 
@@ -59,15 +78,8 @@ class ParentGlueSpoofer(ResponseSpoofer, mode="parent-glue"):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
-        ns_rrset = dns.rrset.from_text(
-            "trigger.victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.victim."
-        )
-        response.authority.append(ns_rrset)
-
-        glue_rrset = dns.rrset.from_text(
-            "ns.victim.", TTL, qctx.qclass, dns.rdatatype.A, ATTACKER_IP
-        )
-        response.additional.append(glue_rrset)
+        response.authority.append(ns("trigger.victim.", "ns.victim."))
+        response.additional.append(a("ns.victim.", ATTACKER_IP))
 
         yield DnsResponseSend(response, authoritative=False)
 
@@ -81,18 +93,8 @@ class DnameSpoofer(ResponseSpoofer, mode="dname"):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         response = qctx.prepare_new_response(with_zone_data=False)
 
-        cname_rrset = dns.rrset.from_text(
-            qctx.qname,
-            TTL,
-            qctx.qclass,
-            dns.rdatatype.CNAME,
-            "trigger.attacker.",
-        )
-        dname_rrset = dns.rrset.from_text(
-            "victim.", TTL, qctx.qclass, dns.rdatatype.DNAME, "attacker."
-        )
-        response.answer.append(cname_rrset)
-        response.answer.append(dname_rrset)
+        response.answer.append(cname(qctx.qname, "trigger.attacker."))
+        response.answer.append(dname("victim.", "attacker."))
 
         yield DnsResponseSend(response, authoritative=True)
 

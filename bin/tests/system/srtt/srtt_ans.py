@@ -13,6 +13,7 @@ from collections.abc import AsyncGenerator
 
 import abc
 
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
@@ -20,6 +21,15 @@ import dns.rrset
 from isctest.asyncserver import QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class DelayedQnameRangeHandler(ResponseHandler, abc.ABC):
@@ -51,8 +61,6 @@ class DelayedQnameRangeHandler(ResponseHandler, abc.ABC):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        a_rrset = dns.rrset.from_text(
-            qctx.qname, 300, dns.rdataclass.IN, dns.rdatatype.A, "10.53.9.9"
-        )
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, "10.53.9.9")
         qctx.response.answer.append(a_rrset)
         yield DnsResponseSend(qctx.response, delay=self.delay)

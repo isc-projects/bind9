@@ -16,6 +16,7 @@ import abc
 import dns.edns
 import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.tsigkeyring
@@ -59,10 +60,17 @@ def tld(qctx: QueryContext) -> dns.name.Name:
     return dns.name.Name(qctx.qname.labels[-2:])
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 1,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
 def soa(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        tld(qctx), 2, qctx.qclass, dns.rdatatype.SOA, ". . 0 0 0 0 2"
-    )
+    return rrset(tld(qctx), dns.rdatatype.SOA, ". . 0 0 0 0 2", ttl=2)
 
 
 def ns_name(qctx: QueryContext) -> dns.name.Name:
@@ -70,21 +78,15 @@ def ns_name(qctx: QueryContext) -> dns.name.Name:
 
 
 def ns(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        qctx.qname,
-        1,
-        qctx.qclass,
-        dns.rdatatype.NS,
-        ns_name(qctx).to_text(),
-    )
+    return rrset(qctx.qname, dns.rdatatype.NS, ns_name(qctx).to_text())
 
 
 def legit_a(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(qctx.qname, 1, qctx.qclass, dns.rdatatype.A, ANS9.ip)
+    return rrset(qctx.qname, dns.rdatatype.A, ANS9.ip)
 
 
 def spoofed_a(qctx: QueryContext) -> dns.rrset.RRset:
-    return dns.rrset.from_text(qctx.qname, 1, qctx.qclass, dns.rdatatype.A, ANS10.ip)
+    return rrset(qctx.qname, dns.rdatatype.A, ANS10.ip)
 
 
 class _SpoofableHandler(ResponseHandler, abc.ABC):

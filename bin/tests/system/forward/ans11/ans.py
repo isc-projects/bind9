@@ -11,6 +11,8 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -25,6 +27,15 @@ from isctest.asyncserver.matchers import Domain
 from isctest.template import ANS11
 
 
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
 class ExtraAnswersHandler(ResponseHandler):
     """
     Answer from zone data, inserting extra RRsets into responses to A queries.
@@ -36,13 +47,9 @@ class ExtraAnswersHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         if qctx.qtype == dns.rdatatype.A:
-            ns_rrset = dns.rrset.from_text(
-                "net3.", 300, qctx.qclass, dns.rdatatype.NS, "local.net3."
-            )
+            ns_rrset = rrset("net3.", dns.rdatatype.NS, "local.net3.")
             qctx.response.answer.append(ns_rrset)
-            a_rrset = dns.rrset.from_text(
-                "local.net3.", 300, qctx.qclass, dns.rdatatype.A, ANS11.ip
-            )
+            a_rrset = rrset("local.net3.", dns.rdatatype.A, ANS11.ip)
             qctx.response.additional.append(a_rrset)
 
         yield DnsResponseSend(qctx.response)

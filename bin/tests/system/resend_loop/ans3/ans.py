@@ -34,16 +34,24 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
+def a(owner: dns.name.Name | str, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: dns.name.Name | str, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
 class RootNsHandler(SingleResponseHandler):
     matcher = Qname(".") & Qtype(dns.rdatatype.NS)
-    answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
-    additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, ANS3.ip)]
+    answer = [ns(".", "a.root-servers.nil.")]
+    additional = [a("a.root-servers.nil.", ANS3.ip)]
 
 
 class ExampleNsHandler(SingleResponseHandler):
     matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
-    answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
-    additional = [rrset("ns.example.", dns.rdatatype.A, ANS3.ip)]
+    answer = [ns("example.", "ns.example.")]
+    additional = [a("ns.example.", ANS3.ip)]
 
 
 class ExampleCookieHandler(ResponseHandler):
