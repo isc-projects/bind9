@@ -36,14 +36,12 @@ class ApexNSHandler(SingleResponseHandler):
     matcher = Qname("example.net.") & Qtype(dns.rdatatype.NS)
     answer = [
         rrset(
-            matcher.of(Qname).qnames[0],
+            matcher.of(Qname).qname,
             dns.rdatatype.NS,
-            f"ns.{matcher.of(Qname).qnames[0]}",
+            f"ns.{matcher.of(Qname).qname}",
         )
     ]
-    additional = [
-        rrset(f"ns.{matcher.of(Qname).qnames[0]}", dns.rdatatype.A, "10.53.0.3")
-    ]
+    additional = [rrset(f"ns.{matcher.of(Qname).qname}", dns.rdatatype.A, "10.53.0.3")]
 
 
 class AttackDnameHandler(SingleResponseHandler):
@@ -53,7 +51,7 @@ class AttackDnameHandler(SingleResponseHandler):
 
 class BadCnameHandler(SingleResponseHandler):
     matcher = Qname("badcname.example.net.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "badcname.example.org.")]
+    answer = [rrset(matcher.qname, dns.rdatatype.CNAME, "badcname.example.org.")]
 
 
 class BadGoodDnameNsHandler(SingleResponseHandler):
@@ -65,14 +63,12 @@ class BadGoodDnameNsHandler(SingleResponseHandler):
 
 class CnameSubHandler(SingleResponseHandler):
     matcher = Qname("cname.sub.example.org.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "ok.sub.example.org.")]
+    answer = [rrset(matcher.qname, dns.rdatatype.CNAME, "ok.sub.example.org.")]
 
 
 class ExampleOrgHandler(SingleResponseHandler):
     matcher = Qname("example.org.") & Qtype(dns.rdatatype.A)
-    answer = [
-        rrset(matcher.of(Qname).qnames[0], matcher.of(Qtype).qtypes[0], "1.2.3.4")
-    ]
+    answer = [rrset(matcher.of(Qname).qname, matcher.of(Qtype).qtype, "1.2.3.4")]
 
 
 class FooBadDnameHandler(SingleResponseHandler):
@@ -84,12 +80,12 @@ class FooBadDnameHandler(SingleResponseHandler):
 
 class FooBarSubTld1Handler(SingleResponseHandler):
     matcher = Qname("foo.bar.sub.tld1.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.TXT, "baz")]
+    answer = [rrset(matcher.qname, dns.rdatatype.TXT, "baz")]
 
 
 class FooGlueInAnswerHandler(SingleResponseHandler):
     matcher = Qname("foo.glue-in-answer.example.org.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.A, "192.0.2.1")]
+    answer = [rrset(matcher.qname, dns.rdatatype.A, "192.0.2.1")]
 
 
 class FooGoodDnameHandler(SingleResponseHandler):
@@ -101,14 +97,12 @@ class FooGoodDnameHandler(SingleResponseHandler):
 
 class GoodCnameHandler(SingleResponseHandler):
     matcher = Qname("goodcname.example.net.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.CNAME, "goodcname.example.org.")]
+    answer = [rrset(matcher.qname, dns.rdatatype.CNAME, "goodcname.example.org.")]
 
 
 class IscHandler(SingleResponseHandler):
     matcher = Qname("isc.org.") & Qtype(dns.rdatatype.A)
-    answer = [
-        rrset(matcher.of(Qname).qnames[0], matcher.of(Qtype).qtypes[0], "1.2.3.4")
-    ]
+    answer = [rrset(matcher.of(Qname).qname, matcher.of(Qtype).qtype, "1.2.3.4")]
 
 
 class LameExampleOrgDelegation(DelegationHandler):
@@ -120,7 +114,7 @@ class LargeReferralHandler(SingleResponseHandler):
     matcher = Qname("large-referral.example.net.")
     authority = [
         rrset_from_list(
-            matcher.of(Qname).qnames[0],
+            matcher.of(Qname).qname,
             dns.rdatatype.NS,
             [f"ns{i}.fake.large-referral.com." for i in range(1, 1000)],
         )
@@ -151,7 +145,7 @@ class NoresponseHandler(IgnoreAllQueries):
 
 class NsHandler(SingleResponseHandler):
     matcher = Qname("ns.example.net.")
-    answer = [rrset(matcher.qnames[0], dns.rdatatype.A, "10.53.0.3")]
+    answer = [rrset(matcher.qname, dns.rdatatype.A, "10.53.0.3")]
 
 
 class NxdomainHandler(SingleResponseHandler):

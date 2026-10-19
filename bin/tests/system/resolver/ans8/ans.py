@@ -80,14 +80,12 @@ class NoQuestionsNSHandler(SingleResponseHandler):
     matcher = Qname("no-questions.") & Qtype(dns.rdatatype.NS)
     answer = [
         rrset(
-            matcher.of(Qname).qnames[0],
+            matcher.of(Qname).qname,
             dns.rdatatype.NS,
-            f"ns.{matcher.of(Qname).qnames[0]}",
+            f"ns.{matcher.of(Qname).qname}",
         )
     ]
-    additional = [
-        rrset(f"ns.{matcher.of(Qname).qnames[0]}", dns.rdatatype.A, "10.53.0.8")
-    ]
+    additional = [rrset(f"ns.{matcher.of(Qname).qname}", dns.rdatatype.A, "10.53.0.8")]
 
 
 class NsNoQuestionsAHandler(ResponseHandler):

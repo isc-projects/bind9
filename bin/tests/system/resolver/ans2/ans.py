@@ -54,14 +54,14 @@ def cname_rrsets(
 class Cname1Handler(SingleResponseHandler):
     matcher = Qname("cname1.example.com.")
     # Data for the "cname + other data / 1" test
-    answer = cname_rrsets(matcher.qnames[0])
+    answer = cname_rrsets(matcher.qname)
     authoritative = False
 
 
 class Cname2Handler(SingleResponseHandler):
     matcher = Qname("cname2.example.com.")
     # Data for the "cname + other data / 2" test: same RRs in opposite order
-    answer = tuple(reversed(cname_rrsets(matcher.qnames[0])))
+    answer = tuple(reversed(cname_rrsets(matcher.qname)))
     authoritative = False
 
 

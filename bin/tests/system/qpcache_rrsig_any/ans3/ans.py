@@ -56,10 +56,10 @@ class RrsigCoversRrsigHandler(SingleResponseHandler):
 
     matcher = Qname("rrsig.attacker.test.")
     answer = [
-        address(matcher.qnames[0]),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.A),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.AAAA),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.RRSIG),
+        address(matcher.qname),
+        rrsig_covering(matcher.qname, dns.rdatatype.A),
+        rrsig_covering(matcher.qname, dns.rdatatype.AAAA),
+        rrsig_covering(matcher.qname, dns.rdatatype.RRSIG),
     ]
 
 

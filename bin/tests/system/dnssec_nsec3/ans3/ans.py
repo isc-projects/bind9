@@ -40,7 +40,7 @@ class ControlAHandler(SingleResponseHandler):
     """
 
     matcher = Qname("a.ctl.f055.test.") & Qtype(dns.rdatatype.A)
-    answer = [a(matcher.of(Qname).qnames[0])]
+    answer = [a(matcher.of(Qname).qname)]
 
 
 class AttackAHandler(SingleResponseHandler):
@@ -54,7 +54,7 @@ class AttackAHandler(SingleResponseHandler):
     """
 
     matcher = Qname("a.cut.f055.test.") & Qtype(dns.rdatatype.A)
-    answer = [a(matcher.of(Qname).qnames[0])]
+    answer = [a(matcher.of(Qname).qname)]
 
 
 class AttackDsHandler(ResponseHandler):
