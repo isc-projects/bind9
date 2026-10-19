@@ -22,8 +22,8 @@ from isctest.asyncserver import (
     ControllableAsyncDnsServer,
     DnsProtocol,
     QueryContext,
-    ResponseHandler,
 )
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Protocol, Qname, Qtype
 
 
@@ -56,7 +56,7 @@ def dname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.DNAME, target)
 
 
-class ResponseSpoofer(ResponseHandler, abc.ABC):
+class ResponseSpoofer(SingleResponseHandler, abc.ABC):
 
     spoofers: dict[str, type["ResponseSpoofer"]] = {}
 

@@ -9,10 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
 
-from isctest.asyncserver import QueryContext
-from isctest.asyncserver.actions import DnsResponseSend
 from isctest.template import ANS3
 
 from ..bailiwick_ans import ResponseSpoofer, a, ns, spoofing_server, txt
@@ -21,19 +18,11 @@ ATTACKER_IP = ANS3.ip
 
 
 class SiblingNsSpoofer(ResponseSpoofer, mode="sibling-ns"):
-
     qname = "trigger."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        response.answer.append(txt(qctx.qname, "spoofed answer with extra NS"))
-        response.authority.append(ns("victim.", "ns.attacker."))
-        response.additional.append(a("ns.attacker.", ATTACKER_IP))
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [txt(qname, "spoofed answer with extra NS")]
+    authority = [ns("victim.", "ns.attacker.")]
+    additional = [a("ns.attacker.", ATTACKER_IP)]
+    authoritative = True
 
 
 def main() -> None:

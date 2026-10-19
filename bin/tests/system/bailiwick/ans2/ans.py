@@ -9,10 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
 
-from isctest.asyncserver import QueryContext
-from isctest.asyncserver.actions import DnsResponseSend
 from isctest.template import ANS3
 
 from ..bailiwick_ans import ResponseSpoofer, a, cname, dname, ns, spoofing_server, txt
@@ -21,48 +18,26 @@ ATTACKER_IP = ANS3.ip
 
 
 class UnsolicitedNsSpoofer(ResponseSpoofer, mode="unsolicited-ns"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        response.answer.append(txt(qctx.qname, "spoofed answer with extra NS"))
-        response.authority.append(ns("victim.", "ns.attacker."))
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [txt(qname, "spoofed answer with extra NS")]
+    authority = [ns("victim.", "ns.attacker.")]
+    authoritative = True
 
 
 class ParentGlueSpoofer(ResponseSpoofer, mode="parent-glue"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        response.authority.append(ns("trigger.victim.", "ns.victim."))
-        response.additional.append(a("ns.victim.", ATTACKER_IP))
-
-        yield DnsResponseSend(response, authoritative=False)
+    authority = [ns("trigger.victim.", "ns.victim.")]
+    additional = [a("ns.victim.", ATTACKER_IP)]
+    authoritative = False
 
 
 class DnameSpoofer(ResponseSpoofer, mode="dname"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        response.answer.append(cname(qctx.qname, "trigger.attacker."))
-        response.answer.append(dname("victim.", "attacker."))
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [
+        cname(qname, "trigger.attacker."),
+        dname("victim.", "attacker."),
+    ]
+    authoritative = True
 
 
 def main() -> None:
