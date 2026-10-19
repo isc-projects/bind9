@@ -423,6 +423,195 @@ family of names it answers for:
     server.install_response_handlers(FallbackHandler())
 ```
 
+### Shared state is one object, read by a matcher, advanced in `get_responses()`
+
+State that several handlers of a server share is one plain object,
+constructed in `main()` and handed to each of them through the
+`__init__()` of one base handler; it is neither a handler nor a
+module global.  Prefer a `dataclass` for it, or an `asyncio.Event`
+when the only state is that one thing has happened: whatever makes it
+happen sets it, and a handler that holds a response until then awaits
+it.  A class with a constructor is for state that also knows how its
+values are derived or reset.  A handler whose answer depends on the
+state does not test it in `get_responses()`: a server-local `Matcher`
+reads the state, and each value it tells apart gets a handler of its
+own.  A matcher only reads; the state changes in the `get_responses()`
+of the handler whose response changes it, or in the control command
+the test sends to change it.  A value that never changes after
+construction is not state: it is a module constant.
+
+#### Examples
+
+A handler that held the state of a server, e5764f4bfd.  Before:
+
+```python
+# reclimit/reclimit_ans.py:44-73 before e5764f4bfd
+class ReclimitStateHandler(ResponseHandler):
+    """
+    Handler for the "count." and "reset." queries that also holds the state
+    shared by all the handlers in one server.
+    """
+
+    matcher = Qname("count.", "reset.")
+
+    def __init__(self, indirect_send_response_default: bool = True) -> None:
+        self._indirect_send_response_default = indirect_send_response_default
+        self.count = 0
+        self.limit = 0
+        self.indirect_send_response = indirect_send_response_default
+        super().__init__()
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        if f"{qctx.qname}" == "count.":
+            self.count += 1
+            count_rrset = rrset("count.", dns.rdatatype.TXT, f"{self.count}", ttl=0)
+            qctx.response.answer.append(count_rrset)
+            yield DnsResponseSend(qctx.response, authoritative=True)
+        elif f"{qctx.qname}" == "reset.":
+            self.reset()
+            yield DnsResponseSend(qctx.response, authoritative=False)
+
+    def reset(self) -> None:
+        self.count = 0
+        self.indirect_send_response = self._indirect_send_response_default
+```
+
+After, a plain object, a class with a constructor because one of its
+values starts from another and `reset()` restores them, and the base
+handler taking it:
+
+```python
+# reclimit/reclimit_ans.py:44-58 at e5764f4bfd
+class ReclimitState:
+    """
+    Query counter, query limit and the referral-or-answer switch shared by
+    all the handlers of one server.
+    """
+
+    def __init__(self, indirect_send_response_default: bool = True) -> None:
+        self._indirect_send_response_default = indirect_send_response_default
+        self.count = 0
+        self.limit = 0
+        self.indirect_send_response = indirect_send_response_default
+
+    def reset(self) -> None:
+        self.count = 0
+        self.indirect_send_response = self._indirect_send_response_default
+
+# reclimit/reclimit_ans.py:61-71 at e5764f4bfd
+class ReclimitHandler(ResponseHandler, abc.ABC):
+    """
+    Base class for handlers in this test.
+
+    Increments the shared query counter on each query and delegates the actual
+    response generation to the `_get_counted_responses()` method.
+    """
+
+    def __init__(self, state: ReclimitState) -> None:
+        self._state = state
+        super().__init__()
+```
+
+One phase per handler, read through a matcher and advanced in
+`get_responses()`, `xfer/ans11/ans.py` as of 1fe44dda10:
+
+```python
+# xfer/ans11/ans.py:86-94 as of 1fe44dda10
+@dataclass
+class TransferState:
+    """
+    Flag toggled once the initial AXFR (serial 1) has been served.  The SOA
+    handlers read it to advertise serial 1 before the transfer and serial 4
+    after it, so the secondary's next refresh switches from AXFR to IXFR.
+    """
+
+    initial_axfr_served: bool = False
+
+# xfer/ans11/ans.py:97-109 as of 1fe44dda10
+class InitialAxfrServed(Matcher):
+    """
+    Match once the initial AXFR has been served.
+    """
+
+    def __init__(self, progress: TransferState) -> None:
+        self._progress = progress
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._progress.initial_axfr_served
+
+    def __str__(self) -> str:
+        return "after the initial AXFR"
+
+# xfer/ans11/ans.py:122-127 as of 1fe44dda10
+class InitialSoaHandler(TransferHandler, SingleResponseHandler):
+    answer = [soa(1)]
+
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & ~InitialAxfrServed(progress)
+
+# xfer/ans11/ans.py:130-135 as of 1fe44dda10
+class RefreshSoaHandler(TransferHandler, SingleResponseHandler):
+    answer = [soa(4)]
+
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
+
+# xfer/ans11/ans.py:138-155 as of 1fe44dda10
+class InitialAxfrHandler(TransferHandler, AxfrHandler):
+    """
+    Serve the initial zone (serial 1) and mark the transfer as done.
+    """
+
+    initial_soa = soa(1)
+    zone_contents = [
+        ns(),
+        a(NS_NAME, "127.0.0.1"),
+    ]
+    final_soa = soa(1)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        self._progress.initial_axfr_served = True
+        async for action in super().get_responses(qctx):
+            yield action
+
+# xfer/ans11/ans.py:197-207 as of 1fe44dda10
+def main() -> None:
+    server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
+    progress = TransferState()
+    server.install_response_handlers(
+        InitialSoaHandler(progress),
+        RefreshSoaHandler(progress),
+        InitialAxfrHandler(progress),
+        TruncatedIxfrHandler(),
+        RaceIxfrHandler(),
+    )
+    server.run()
+```
+
+#### Negative examples
+
+State that one handler alone reads and writes is that handler's own
+attribute, `zero/ans5/ans.py` as of e5764f4bfd:
+
+```python
+# zero/ans5/ans.py:35-42 as of e5764f4bfd
+class IncrementARecordHandler(ResponseHandler):
+    """
+    To test the TTL=0 behavior, increment the IPv4 address by one every
+    time we get queried.
+    """
+
+    def __init__(self):
+        self._ip_address = ipaddress.ip_address("192.0.2.0")
+    ...
+```
+
 ### A handler's name says what it does
 
 Ideally the name gives a clear idea of what the handler does, so that
