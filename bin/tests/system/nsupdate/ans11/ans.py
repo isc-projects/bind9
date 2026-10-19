@@ -20,8 +20,7 @@ from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 ZONE = "sigaxfr.nil."
-NS_NAME = "ns.sigaxfr.nil."
-HOST = "host.sigaxfr.nil."
+NS_NAME = f"ns.{ZONE}"
 
 
 def rrset(name: str, rdtype: dns.rdatatype.RdataType, *rdata: str) -> dns.rrset.RRset:
@@ -32,7 +31,7 @@ def soa() -> dns.rrset.RRset:
     return rrset(
         ZONE,
         dns.rdatatype.SOA,
-        "ns.sigaxfr.nil. hostmaster.sigaxfr.nil. 1 3600 1200 604800 3600",
+        f"{NS_NAME} hostmaster.{ZONE} 1 3600 1200 604800 3600",
     )
 
 
@@ -48,9 +47,9 @@ def sig_rdata(covers: dns.rdatatype.RdataType) -> dns.rdata.Rdata:
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.SIG, wire, 0, len(wire))
 
 
-def sig() -> dns.rrset.RRset:
+def sig(owner: str = f"host.{ZONE}") -> dns.rrset.RRset:
     return dns.rrset.from_rdata(
-        HOST,
+        owner,
         600,
         sig_rdata(dns.rdatatype.A),
         sig_rdata(dns.rdatatype.MX),
