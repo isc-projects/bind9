@@ -311,20 +311,33 @@ class LabelCount(Matcher):
         return f"QNAME of {self._count} labels"
 
 
-class Once(Matcher):
+class FirstN(Matcher):
+    """
+    Match the first `count` queries the given matcher matches, and only those.
+    """
+
+    def __init__(self, count: int, matcher: Matcher) -> None:
+        self._count = count
+        self._matcher = matcher
+        self._matched = 0
+
+    def match(self, qctx: QueryContext) -> bool:
+        if self._matched >= self._count or not self._matcher.match(qctx):
+            return False
+        self._matched += 1
+        return True
+
+    def __str__(self) -> str:
+        return f"first {self._count}, {self._matcher}"
+
+
+class Once(FirstN):
     """
     Match the first query the given matcher matches, and only that one.
     """
 
     def __init__(self, matcher: Matcher) -> None:
-        self._matcher = matcher
-        self._done = False
-
-    def match(self, qctx: QueryContext) -> bool:
-        if self._done or not self._matcher.match(qctx):
-            return False
-        self._done = True
-        return True
+        super().__init__(1, matcher)
 
     def __str__(self) -> str:
         return f"once, {self._matcher}"
