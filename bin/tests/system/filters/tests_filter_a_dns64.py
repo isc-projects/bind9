@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from re import compile as Re
+
 import pytest
 
 from filters.common import ARTIFACTS
@@ -25,9 +27,22 @@ def bootstrap():
     }
 
 
-def test_dns64_filter_a_reentry():
+def test_dns64_filter_a_reentry(ns5):
     msg = isctest.query.create("nodata.test.", "aaaa", dnssec=False)
-    res = isctest.query.tcp(msg, "10.53.0.5", attempts=1)
+    with ns5.watch_log_from_here() as watcher:
+        res = isctest.query.tcp(msg, ns5.ip, attempts=1)
+
+        # ans6 holds the A answer back until the NODATA has expired from the
+        # cache, so filter-a has to query AAAA again; without that, the bug
+        # is not exercised at all
+        watcher.wait_for_sequence(
+            [
+                Re(r"fetch: nodata\.test/AAAA$"),
+                Re(r"fetch: nodata\.test/A$"),
+                Re(r"fetch: nodata\.test/AAAA$"),
+            ]
+        )
+
     isctest.check.noerror(res)
     answer = res.get_rrset(res.answer, "nodata.test.", "in", "aaaa")
     assert answer is not None, res
