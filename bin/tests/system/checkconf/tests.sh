@@ -200,7 +200,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking named-checkconf -i ignores deprecate warnings ($n)"
 ret=0
-$CHECKCONF -i deprecated.conf >checkconf.out$n 2>&1
+$CHECKCONF -i deprecated.conf >checkconf.out$n 2>&1 || ret=1
 [ -s checkconf.out$n ] && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
