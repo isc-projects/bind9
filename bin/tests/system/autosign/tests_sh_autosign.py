@@ -35,6 +35,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "nsupdate.out.*",
         "prepub.key",
         "rev.key",
+        "rndc.out.*",
         "settime.out.*",
         "signing.*out*",
         "standby.key",

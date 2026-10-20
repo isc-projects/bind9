@@ -204,7 +204,8 @@ zsk=$(cat autozsk.key)
 ksk=$(cat autoksk.key)
 $SETTIME -K ns3 -P now -A now $zsk >settime.out.test$n.zsk || ret=1
 $SETTIME -K ns3 -P now -A now $ksk >settime.out.test$n.ksk || ret=1
-($RNDCCMD 10.53.0.3 loadkeys autonsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 loadkeys autonsec3.example. >rndc.out.ns3.test$n.loadkeys 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.loadkeys | cat_i
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -263,9 +264,15 @@ status=$((status + ret))
 # Send rndc sync command to ns1, ns2 and ns3, to force the dynamically
 # signed zones to be dumped to their zone files
 echo_i "dumping zone files"
-($RNDCCMD 10.53.0.1 sync 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
-($RNDCCMD 10.53.0.2 sync 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
-($RNDCCMD 10.53.0.3 sync 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+ret=0
+$RNDCCMD 10.53.0.1 sync >rndc.out.ns1.test$n.sync 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.sync | cat_i
+$RNDCCMD 10.53.0.2 sync >rndc.out.ns2.test$n.sync 2>&1 || ret=1
+sed 's/^/ns2 /' rndc.out.ns2.test$n.sync | cat_i
+$RNDCCMD 10.53.0.3 sync >rndc.out.ns3.test$n.sync 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.sync | cat_i
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 now="$(TZ=UTC date +%Y%m%d%H%M%S)"
 check_expiry() (
@@ -829,7 +836,8 @@ oldserial=$(cat dig.out.ns3.test$n | awk '$0 !~ /SOA/ {print $3}')
 oldinception=$(cat dig.out.ns3.test$n | awk '/SOA/ {print $6}' | sort -u)
 id=$(keyfile_to_key_id "$(cat prepub.key)")
 echo_i "prepublish key for ZSK $id"
-($RNDCCMD 10.53.0.3 dnssec -rollover -key $id prepub.example 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 dnssec -rollover -key $id prepub.example >rndc.out.ns3.test$n.dnssec 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.dnssec | cat_i
 newserial=$oldserial
 try=0
 while [ $oldserial -eq $newserial -a $try -lt 42 ]; do
@@ -861,19 +869,23 @@ $SETTIME -K ns1 -i 0 -S $oldfile $newfile >settime.out.test$n.2 || ret=1
 # note previous zone serial number
 oldserial=$($DIG $DIGOPTS +short soa . @10.53.0.1 | awk '{print $3}')
 
-($RNDCCMD 10.53.0.1 freeze . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 freeze . >rndc.out.ns1.test$n.freeze 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.freeze | cat_i
 cp ns1/root.db.signed ns1/root.db.1
 $SIGNER -S -o . -O full -K ns1 -f ns1/root.db.signed ns1/root.db.1 >signing.root.out$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.1 thaw . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 thaw . >rndc.out.ns1.test$n.thaw 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.thaw | cat_i
 sleep 4
 
 echo_i "revoking key to duplicated key ID"
 $SETTIME -R now -K ns2 Kbar.+013+59973.key >settime.out.test$n.3 || ret=1
 
-($RNDCCMD 10.53.0.2 freeze bar. 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.2 freeze bar. >rndc.out.ns2.test$n.freeze 2>&1 || ret=1
+sed 's/^/ns2 /' rndc.out.ns2.test$n.freeze | cat_i
 cp ns2/bar.db.signed ns2/bar.db
 $SIGNER -S -o bar. -O full -K ns2 ns2/bar.db >signing.bar.out$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.2 thaw bar. 2>&1 | sed 's/^/ns2 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.2 thaw bar. >rndc.out.ns2.test$n.thaw 2>&1 || ret=1
+sed 's/^/ns2 /' rndc.out.ns2.test$n.thaw | cat_i
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -928,10 +940,12 @@ status=$((status + ret))
 
 echo_i "forcing full sign ($n)"
 ret=0
-($RNDCCMD 10.53.0.1 freeze . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 freeze . >rndc.out.ns1.test$n.freeze 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.freeze | cat_i
 cp ns1/root.db.signed ns1/root.db.2
 $SIGNER -S -o . -O full -K ns1 -f ns1/root.db.signed ns1/root.db >signing.root.out$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.1 thaw . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 thaw . >rndc.out.ns1.test$n.thaw 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.thaw | cat_i
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -985,7 +999,8 @@ $SETTIME -K ns3 -P now -A none $ksk >settime.out.test$n.ksk || ret=1
 cp ns3/delay.example.db ns3/delay.example.1
 # This will create a non valid DNSSEC zone, disable post-sign verification
 $SIGNER -P -S -o delay.example. -O full -N increment -K ns3 -f ns3/delay.example.db ns3/delay.example.1 >signing.delay.out.$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.3 reload delay.example | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 reload delay.example >rndc.out.ns3.test$n.reload 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.reload | cat_i
 check_has_dnskey() {
   $DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 >dig.out.ns3.test$n || return 1
   # DNSKEY expected:
@@ -1006,7 +1021,8 @@ $SETTIME -K ns3 -A now $zsk >settime.out.test$n.zsk || ret=1
 $SETTIME -K ns3 -A now $ksk >settime.out.test$n.ksk || ret=1
 cp ns3/delay.example.db ns3/delay.example.2
 $SIGNER -S -o delay.example. -O full -N increment -K ns3 -f ns3/delay.example.db ns3/delay.example.2 >signing.delay.out.$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.3 reload delay.example | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 reload delay.example >rndc.out.ns3.test$n.reload 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.reload | cat_i
 check_is_signed() {
   $DIG $DIGOPTS +noall +answer dnskey delay.example. @10.53.0.3 >dig.out.ns3.1.test$n || return 1
   # DNSKEY expected:
@@ -1040,10 +1056,12 @@ case $sleep in
     ;;
 esac
 ret=0
-($RNDCCMD 10.53.0.1 freeze . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 freeze . >rndc.out.ns1.test$n.freeze 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.freeze | cat_i
 cp ns1/root.db.signed ns1/root.db.3
 $SIGNER -v 3 -S -o . -O full -K ns1 -f ns1/root.db.signed ns1/root.db.3 >signing.root.out$n 2>&1 || ret=1
-($RNDCCMD 10.53.0.1 thaw . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.1 thaw . >rndc.out.ns1.test$n.thaw 2>&1 || ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.thaw | cat_i
 $DIG $DIGOPTS +multi dnskey . @10.53.0.1 >dig.out.ns1.test$n || ret=1
 grep '; key id = '"$oldid"'$' dig.out.ns1.test$n >/dev/null && ret=1
 n=$((n + 1))
@@ -1084,10 +1102,13 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-echo_i "forcing full sign with unreadable keys ($n)"
+echo_i "checking rejected sign command with unreadable keys ($n)"
 ret=0
 chmod 0 ns1/K.+*+*.key ns1/K.+*+*.private || ret=1
-($RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+# The root zone has no dnssec-policy, so the sign command is rejected.
+$RNDCCMD 10.53.0.1 sign . >rndc.out.ns1.test$n.sign 2>&1 && ret=1
+sed 's/^/ns1 /' rndc.out.ns1.test$n.sign | cat_i
+grep -F "rndc: 'sign' failed: permission denied" rndc.out.ns1.test$n.sign >/dev/null || ret=1
 $DIG $DIGOPTS . @10.53.0.1 dnskey >dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
 n=$((n + 1))
@@ -1097,11 +1118,13 @@ status=$((status + ret))
 echo_i "test turning on dnssec-policy during reconfig ($n)"
 ret=0
 # first create a zone that doesn't have dnssec-policy
-($RNDCCMD 10.53.0.3 addzone reconf.example '{ type primary; file "reconf.example.db"; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 addzone reconf.example '{ type primary; file "reconf.example.db"; };' >rndc.out.ns3.test$n.addzone 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.addzone | cat_i
 rekey_calls=$(grep "zone reconf.example.*next key event" ns3/named.run | wc -l)
 [ "$rekey_calls" -eq 0 ] || ret=1
 # ...then we add dnssec-policy and reconfigure
-($RNDCCMD 10.53.0.3 modzone reconf.example '{ type primary; file "reconf.example.db"; allow-update { any; }; dnssec-policy autosign; };' 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
+$RNDCCMD 10.53.0.3 modzone reconf.example '{ type primary; file "reconf.example.db"; allow-update { any; }; dnssec-policy autosign; };' >rndc.out.ns3.test$n.modzone 2>&1 || ret=1
+sed 's/^/ns3 /' rndc.out.ns3.test$n.modzone | cat_i
 rndc_reconfig ns3 10.53.0.3
 for i in 0 1 2 3 4 5 6 7 8 9; do
   lret=0
@@ -1160,7 +1183,8 @@ status=$((status + ret))
 # implemented 'cdnskey "only-during-rollovers";'.
 #echo_i "setting CDS and CDNSKEY deletion times and calling 'rndc loadkeys'"
 #$SETTIME -D sync now $(cat sync.key) > settime.out.test$n || ret=1
-#($RNDCCMD 10.53.0.3 loadkeys sync.example | sed 's/^/ns3 /' | cat_i) || ret=1
+#$RNDCCMD 10.53.0.3 loadkeys sync.example >rndc.out.ns3.test$n.loadkeys 2>&1 || ret=1
+#sed 's/^/ns3 /' rndc.out.ns3.test$n.loadkeys | cat_i
 #
 #echo_i "checking that the CDS and CDNSKEY are deleted ($n)"
 #ret=0
