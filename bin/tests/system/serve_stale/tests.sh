@@ -224,9 +224,9 @@ ret=0
 $DIG -p ${PORT} @10.53.0.7 aliasnx.source.stale A >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
+grep "aliasnx.source.stale.*30.*IN.*CNAME.*nonexist.target.stale." dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
-grep "aliasnx.source.stale.*30.*IN.*CNAME.*nonexist.target.stale." dig.out.test$n >/dev/null || ret=1
 # Restore auth server
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
