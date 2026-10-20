@@ -96,31 +96,6 @@ fromwire_talink(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&next, source, dctx, target);
 }
 
-static isc_result_t
-towire_talink(ARGS_TOWIRE) {
-	isc_region_t sregion;
-	dns_name_t prev;
-	dns_name_t next;
-
-	REQUIRE(rdata->type == dns_rdatatype_talink);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-
-	dns_name_init(&prev);
-	dns_name_init(&next);
-
-	dns_rdata_toregion(rdata, &sregion);
-
-	dns_name_fromregion(&prev, &sregion);
-	isc_region_consume(&sregion, name_length(&prev));
-	RETERR(dns_name_towire(&prev, cctx, target));
-
-	dns_name_fromregion(&next, &sregion);
-	isc_region_consume(&sregion, name_length(&next));
-	return dns_name_towire(&next, cctx, target);
-}
-
 static int
 compare_talink(ARGS_COMPARE) {
 	isc_region_t region1;

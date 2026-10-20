@@ -79,16 +79,6 @@ fromwire_hhit(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_hhit(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_hhit);
-	REQUIRE(rdata->length > 0);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_hhit(ARGS_COMPARE) {
 	isc_region_t r1;

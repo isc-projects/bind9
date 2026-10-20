@@ -657,16 +657,6 @@ fromwire_loc(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, 16);
 }
 
-static isc_result_t
-towire_loc(ARGS_TOWIRE) {
-	UNUSED(cctx);
-
-	REQUIRE(rdata->type == dns_rdatatype_loc);
-	REQUIRE(rdata->length != 0);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_loc(ARGS_COMPARE) {
 	isc_region_t r1;

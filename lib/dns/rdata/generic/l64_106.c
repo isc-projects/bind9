@@ -94,16 +94,6 @@ fromwire_l64(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sregion.base, sregion.length);
 }
 
-static isc_result_t
-towire_l64(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_l64);
-	REQUIRE(rdata->length == 10);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_l64(ARGS_COMPARE) {
 	isc_region_t region1;

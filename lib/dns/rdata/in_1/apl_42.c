@@ -235,16 +235,6 @@ fromwire_in_apl(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr2.base, sr2.length);
 }
 
-static isc_result_t
-towire_in_apl(ARGS_TOWIRE) {
-	UNUSED(cctx);
-
-	REQUIRE(rdata->type == dns_rdatatype_apl);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_in_apl(ARGS_COMPARE) {
 	isc_region_t r1;

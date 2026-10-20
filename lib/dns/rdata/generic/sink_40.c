@@ -123,16 +123,6 @@ fromwire_sink(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_sink(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_sink);
-	REQUIRE(rdata->length >= 3);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_sink(ARGS_COMPARE) {
 	isc_region_t r1;

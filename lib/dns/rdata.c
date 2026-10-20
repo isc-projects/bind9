@@ -90,11 +90,6 @@
 
 #define CALL_FROMWIRE rdclass, type, source, dctx, target
 
-#define ARGS_TOWIRE \
-	dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target
-
-#define CALL_TOWIRE rdata, cctx, target
-
 #define ARGS_COMPARE const dns_rdata_t *rdata1, const dns_rdata_t *rdata2
 
 #define CALL_COMPARE rdata1, rdata2
@@ -297,7 +292,6 @@ static isc_result_t generic_tostruct_tlsa(ARGS_TOSTRUCT);
 static isc_result_t generic_fromtext_in_svcb(ARGS_FROMTEXT);
 static isc_result_t generic_totext_in_svcb(ARGS_TOTEXT);
 static isc_result_t generic_fromwire_in_svcb(ARGS_FROMWIRE);
-static isc_result_t generic_towire_in_svcb(ARGS_TOWIRE);
 static isc_result_t generic_fromstruct_in_svcb(ARGS_FROMSTRUCT);
 static isc_result_t generic_tostruct_in_svcb(ARGS_TOSTRUCT);
 static isc_result_t generic_additionaldata_in_svcb(ARGS_ADDLDATA);
@@ -975,45 +969,6 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS) {
 		*source = ss;
 		*target = st;
-	}
-	return result;
-}
-
-isc_result_t
-dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
-		 isc_buffer_t *target) {
-	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	bool use_default = false;
-	isc_region_t tr;
-	isc_buffer_t st;
-
-	REQUIRE(rdata != NULL);
-	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
-
-	/*
-	 * Some DynDNS meta-RRs have empty rdata.
-	 */
-	if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
-		INSIST(rdata->length == 0);
-		return ISC_R_SUCCESS;
-	}
-
-	st = *target;
-
-	TOWIRESWITCH
-
-	if (use_default) {
-		isc_buffer_availableregion(target, &tr);
-		if (tr.length < rdata->length) {
-			return ISC_R_NOSPACE;
-		}
-		memmove(tr.base, rdata->data, rdata->length);
-		isc_buffer_add(target, rdata->length);
-		return ISC_R_SUCCESS;
-	}
-	if (result != ISC_R_SUCCESS) {
-		*target = st;
-		dns_compress_rollback(cctx, target->used);
 	}
 	return result;
 }

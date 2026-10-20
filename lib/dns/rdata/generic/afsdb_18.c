@@ -124,31 +124,6 @@ fromwire_afsdb(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_afsdb(ARGS_TOWIRE) {
-	isc_region_t tr;
-	isc_region_t sr;
-	dns_name_t name;
-
-	REQUIRE(rdata->type == dns_rdatatype_afsdb);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	isc_buffer_availableregion(target, &tr);
-	dns_rdata_toregion(rdata, &sr);
-	if (tr.length < 2) {
-		return ISC_R_NOSPACE;
-	}
-	memmove(tr.base, sr.base, 2);
-	isc_region_consume(&sr, 2);
-	isc_buffer_add(target, 2);
-
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &sr);
-
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_afsdb(ARGS_COMPARE) {
 	int result;

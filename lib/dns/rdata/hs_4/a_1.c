@@ -88,25 +88,6 @@ fromwire_hs_a(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_hs_a(ARGS_TOWIRE) {
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_a);
-	REQUIRE(rdata->rdclass == dns_rdataclass_hs);
-	REQUIRE(rdata->length == 4);
-
-	UNUSED(cctx);
-
-	isc_buffer_availableregion(target, &region);
-	if (region.length < rdata->length) {
-		return ISC_R_NOSPACE;
-	}
-	memmove(region.base, rdata->data, rdata->length);
-	isc_buffer_add(target, 4);
-	return ISC_R_SUCCESS;
-}
-
 static int
 compare_hs_a(ARGS_COMPARE) {
 	int order;

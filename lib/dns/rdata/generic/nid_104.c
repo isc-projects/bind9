@@ -94,16 +94,6 @@ fromwire_nid(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sregion.base, sregion.length);
 }
 
-static isc_result_t
-towire_nid(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_nid);
-	REQUIRE(rdata->length == 10);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_nid(ARGS_COMPARE) {
 	isc_region_t region1;

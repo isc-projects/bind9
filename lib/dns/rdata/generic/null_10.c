@@ -53,15 +53,6 @@ fromwire_null(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, sr.length);
 }
 
-static isc_result_t
-towire_null(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_null);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_null(ARGS_COMPARE) {
 	isc_region_t r1;

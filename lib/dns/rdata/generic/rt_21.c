@@ -123,31 +123,6 @@ fromwire_rt(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_rt(ARGS_TOWIRE) {
-	dns_name_t name;
-	isc_region_t region;
-	isc_region_t tr;
-
-	REQUIRE(rdata->type == dns_rdatatype_rt);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	isc_buffer_availableregion(target, &tr);
-	dns_rdata_toregion(rdata, &region);
-	if (tr.length < 2) {
-		return ISC_R_NOSPACE;
-	}
-	memmove(tr.base, region.base, 2);
-	isc_region_consume(&region, 2);
-	isc_buffer_add(target, 2);
-
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &region);
-
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_rt(ARGS_COMPARE) {
 	dns_name_t name1;

@@ -63,16 +63,6 @@ fromwire_hinfo(ARGS_FROMWIRE) {
 	return txt_fromwire(source, target);
 }
 
-static isc_result_t
-towire_hinfo(ARGS_TOWIRE) {
-	UNUSED(cctx);
-
-	REQUIRE(rdata->type == dns_rdatatype_hinfo);
-	REQUIRE(rdata->length != 0);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_hinfo(ARGS_COMPARE) {
 	isc_region_t r1;

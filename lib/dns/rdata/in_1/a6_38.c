@@ -203,35 +203,6 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_in_a6(ARGS_TOWIRE) {
-	isc_region_t sr;
-	dns_name_t name;
-	unsigned char prefixlen;
-	unsigned char octets;
-
-	REQUIRE(rdata->type == dns_rdatatype_a6);
-	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	dns_rdata_toregion(rdata, &sr);
-	prefixlen = sr.base[0];
-	INSIST(prefixlen <= 128);
-
-	octets = 1 + 16 - prefixlen / 8;
-	RETERR(mem_tobuffer(target, sr.base, octets));
-	isc_region_consume(&sr, octets);
-
-	if (prefixlen == 0) {
-		return ISC_R_SUCCESS;
-	}
-
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &sr);
-	return dns_name_towire(&name, cctx, target);
-}
-
 static int
 compare_in_a6(ARGS_COMPARE) {
 	int order;

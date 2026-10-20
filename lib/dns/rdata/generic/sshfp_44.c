@@ -148,19 +148,6 @@ fromwire_sshfp(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, sr.length);
 }
 
-static isc_result_t
-towire_sshfp(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_sshfp);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_sshfp(ARGS_COMPARE) {
 	isc_region_t r1;

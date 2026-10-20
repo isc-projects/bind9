@@ -119,32 +119,6 @@ fromwire_rp(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&email, source, dctx, target);
 }
 
-static isc_result_t
-towire_rp(ARGS_TOWIRE) {
-	isc_region_t region;
-	dns_name_t rmail;
-	dns_name_t email;
-
-	REQUIRE(rdata->type == dns_rdatatype_rp);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	dns_name_init(&rmail);
-	dns_name_init(&email);
-
-	dns_rdata_toregion(rdata, &region);
-
-	dns_name_fromregion(&rmail, &region);
-	isc_region_consume(&region, rmail.length);
-
-	RETERR(dns_name_towire(&rmail, cctx, target));
-
-	dns_name_fromregion(&rmail, &region);
-	isc_region_consume(&region, rmail.length);
-
-	return dns_name_towire(&rmail, cctx, target);
-}
-
 static int
 compare_rp(ARGS_COMPARE) {
 	isc_region_t region1;

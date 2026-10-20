@@ -231,19 +231,6 @@ fromwire_hip(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_hip(ARGS_TOWIRE) {
-	isc_region_t region;
-
-	REQUIRE(rdata->type == dns_rdatatype_hip);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &region);
-	return mem_tobuffer(target, region.base, region.length);
-}
-
 static int
 compare_hip(ARGS_COMPARE) {
 	isc_region_t region1;

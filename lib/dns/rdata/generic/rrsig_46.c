@@ -339,42 +339,6 @@ fromwire_rrsig(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, sr.base, sr.length);
 }
 
-static isc_result_t
-towire_rrsig(ARGS_TOWIRE) {
-	isc_region_t sr;
-	dns_name_t name;
-
-	REQUIRE(rdata->type == dns_rdatatype_rrsig);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, false);
-	dns_rdata_toregion(rdata, &sr);
-	/*
-	 * type covered: 2
-	 * algorithm: 1
-	 * labels: 1
-	 * original ttl: 4
-	 * signature expiration: 4
-	 * time signed: 4
-	 * key footprint: 2
-	 */
-	RETERR(mem_tobuffer(target, sr.base, 18));
-	isc_region_consume(&sr, 18);
-
-	/*
-	 * Signer.
-	 */
-	dns_name_init(&name);
-	dns_name_fromregion(&name, &sr);
-	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
-
-	/*
-	 * Signature.
-	 */
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_rrsig(ARGS_COMPARE) {
 	isc_region_t r1;

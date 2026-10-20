@@ -98,16 +98,6 @@ fromwire_lp(ARGS_FROMWIRE) {
 	return dns_name_fromwire(&name, source, dctx, target);
 }
 
-static isc_result_t
-towire_lp(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_lp);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_lp(ARGS_COMPARE) {
 	isc_region_t region1;

@@ -77,16 +77,6 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_gpos(ARGS_TOWIRE) {
-	REQUIRE(rdata->type == dns_rdatatype_gpos);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	return mem_tobuffer(target, rdata->data, rdata->length);
-}
-
 static int
 compare_gpos(ARGS_COMPARE) {
 	isc_region_t r1;

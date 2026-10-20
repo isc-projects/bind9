@@ -155,20 +155,6 @@ fromwire_doa(ARGS_FROMWIRE) {
 	return mem_tobuffer(target, region.base, region.length);
 }
 
-static isc_result_t
-towire_doa(ARGS_TOWIRE) {
-	isc_region_t region;
-
-	UNUSED(cctx);
-
-	REQUIRE(rdata != NULL);
-	REQUIRE(rdata->type == dns_rdatatype_doa);
-	REQUIRE(rdata->length != 0);
-
-	dns_rdata_toregion(rdata, &region);
-	return mem_tobuffer(target, region.base, region.length);
-}
-
 static int
 compare_doa(ARGS_COMPARE) {
 	isc_region_t r1;

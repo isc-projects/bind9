@@ -195,41 +195,6 @@ fromwire_soa(ARGS_FROMWIRE) {
 	return ISC_R_SUCCESS;
 }
 
-static isc_result_t
-towire_soa(ARGS_TOWIRE) {
-	isc_region_t sregion;
-	isc_region_t tregion;
-	dns_name_t mname;
-	dns_name_t rname;
-
-	REQUIRE(rdata->type == dns_rdatatype_soa);
-	REQUIRE(rdata->length != 0);
-
-	dns_compress_setpermitted(cctx, true);
-
-	dns_name_init(&mname);
-	dns_name_init(&rname);
-
-	dns_rdata_toregion(rdata, &sregion);
-
-	dns_name_fromregion(&mname, &sregion);
-	isc_region_consume(&sregion, name_length(&mname));
-	RETERR(dns_name_towire(&mname, cctx, target));
-
-	dns_name_fromregion(&rname, &sregion);
-	isc_region_consume(&sregion, name_length(&rname));
-	RETERR(dns_name_towire(&rname, cctx, target));
-
-	isc_buffer_availableregion(target, &tregion);
-	if (tregion.length < 20) {
-		return ISC_R_NOSPACE;
-	}
-
-	memmove(tregion.base, sregion.base, 20);
-	isc_buffer_add(target, 20);
-	return ISC_R_SUCCESS;
-}
-
 static int
 compare_soa(ARGS_COMPARE) {
 	isc_region_t region1;

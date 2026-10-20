@@ -42,19 +42,6 @@ fromwire_cds(ARGS_FROMWIRE) {
 	return generic_fromwire_ds(CALL_FROMWIRE);
 }
 
-static isc_result_t
-towire_cds(ARGS_TOWIRE) {
-	isc_region_t sr;
-
-	REQUIRE(rdata->type == dns_rdatatype_cds);
-	REQUIRE(rdata->length != 0);
-
-	UNUSED(cctx);
-
-	dns_rdata_toregion(rdata, &sr);
-	return mem_tobuffer(target, sr.base, sr.length);
-}
-
 static int
 compare_cds(ARGS_COMPARE) {
 	isc_region_t r1;
