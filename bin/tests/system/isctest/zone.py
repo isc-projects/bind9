@@ -407,6 +407,7 @@ class Zone:
         filepath_unsigned: Path | str | None = None,
         filepath_signed: Path | str | None = None,
         zone_type: str = "primary",
+        options: list[str] | None = None,
     ) -> None:
         self.dname: dns.name.Name = (
             dns.name.from_text(name) if isinstance(name, str) else name
@@ -418,6 +419,7 @@ class Zone:
         self.signed = signed
         self.subdir = subdir
         self.type = zone_type
+        self.options: list[str] = list(options or [])
         self._configured = False
 
         prefix = f"{subdir}/" if subdir else ""
