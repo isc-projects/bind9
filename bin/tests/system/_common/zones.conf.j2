@@ -8,6 +8,9 @@ zone "@zone.name@" {
 {% else %}
 	file "@zone.filepath@";
 {% endif %}
+{% for option in zone.options %}
+	@option@;
+{% endfor %}
 };
 {% endif %}
 {% endfor %}
