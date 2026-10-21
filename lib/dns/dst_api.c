@@ -39,6 +39,7 @@
 #include <isc/hmacsha.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -1254,6 +1255,7 @@ dst_key_free(dst_key_t **keyp) {
 	if (key->key_tkeytoken) {
 		isc_buffer_free(&key->key_tkeytoken);
 	}
+	DESTROYLOCK(&key->mdlock);
 	isc_safe_memwipe(key, sizeof(*key));
 	isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	*keyp = NULL;
@@ -1467,6 +1469,14 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 
 	result = isc_refcount_init(&key->refs, 1);
 	if (result != ISC_R_SUCCESS) {
+		dns_name_free(key->key_name, mctx);
+		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
+		isc_mem_put(mctx, key, sizeof(dst_key_t));
+		return (NULL);
+	}
+	result = isc_mutex_init(&key->mdlock);
+	if (result != ISC_R_SUCCESS) {
+		isc_refcount_destroy(&key->refs);
 		dns_name_free(key->key_name, mctx);
 		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
 		isc_mem_put(mctx, key, sizeof(dst_key_t));
