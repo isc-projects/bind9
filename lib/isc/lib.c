@@ -19,6 +19,7 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/os.h>
+#include <isc/quic.h>
 #include <isc/refcount.h>
 #include <isc/tls.h>
 #include <isc/urcu.h>
@@ -54,6 +55,7 @@ isc__lib_initialize(void) {
 	isc__mem_initialize();
 	isc__log_initialize();
 	isc__crypto_initialize();
+	isc__quic_initialize();
 	isc__uv_initialize();
 	isc__xml_initialize();
 	isc__hash_initialize();
@@ -73,6 +75,7 @@ isc__lib_shutdown(void) {
 	isc__iterated_hash_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();
+	isc__quic_shutdown();
 	isc__crypto_shutdown();
 	isc__log_shutdown();
 	isc__mem_shutdown();

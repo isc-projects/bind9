@@ -13,10 +13,14 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/tid.h>
+#include <isc/time.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 
 /*! \file isc/quic.h */
@@ -47,27 +51,24 @@
 
 /**
  * \brief
+ * Maximum size of UDP packet currently supported for use in QUIC connections.
+ *
+ * Specified in RFC9000, Section 14.2.
+ */
+#define ISC_QUIC_PACKET_MAX_LENGTH 1200
+
+/**
+ * \brief
+ * Infinite timeout or an invalid timestamp.
+ */
+constexpr isc_nanosecs_t isc_quic_timestamp_invalid = UINT64_MAX;
+
+/**
+ * \brief
  * Thread-safe data structure for associating CID's and stateless reset tokens
  * to QUIC connections.
  */
 typedef struct isc_quic_router isc_quic_router_t;
-
-/**
- * \brief
- * Callbacks the router uses to keep a connection alive while it is reachable
- * through the router or has been handed out by a lookup.
- *
- * `conn_ref` must acquire a reference on `conn`; `conn_unref` must release one.
- * They allow the router to hand out a retained connection pointer without
- * racing a concurrent teardown.
- *
- * \warning
- * `conn_unref` may be invoked from an RCU worker thread, because the router
- * releases its own reference from a deferred-reclamation (call_rcu) callback.
- * It must therefore be safe to call from any thread.
- */
-typedef void (*isc_quic_conn_ref_t)(void *conn);
-typedef void (*isc_quic_conn_unref_t)(void *conn);
 
 typedef enum isc_quic_version {
 	/** Invalid QUIC version */
@@ -85,11 +86,155 @@ typedef enum isc_quic_version {
 	ISC_QUIC_VERSION__MAX = 4,
 } isc_quic_version_t;
 
+typedef enum isc_quic_application_error_kind {
+	/**
+	 * \brief
+	 * Indeterminate application error status.
+	 *
+	 * It is safe to trigger an contract failure upon receiving this value.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_INVALID = 0,
+
+	/**
+	 * \brief
+	 * No application error code is set.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_NONE = 1,
+
+	/**
+	 * \brief
+	 * The linked ngtcp2 is too old to determine which side has set the
+	 * application error code.
+	 */
+	ISC_QUIC_APPLICATION_ERROR_UNKNOWN = 2,
+
+	ISC_QUIC_APPLICATION_ERROR_RX_ONLY = 3,
+	ISC_QUIC_APPLICATION_ERROR_TX_ONLY = 4,
+	ISC_QUIC_APPLICATION_ERROR_RX_AND_TX = 5,
+	ISC_QUIC_APPLICATION_ERROR__MAX = 6,
+} isc_quic_application_error_kind_t;
+
+/**
+ * \brief
+ * User-specified callbacks
+ *
+ * All callbacks are optional.
+ */
+struct isc_quic_conn_callbacks {
+	/**
+	 * \brief
+	 * Callback function for when handshake has been completed
+	 */
+	void (*handshake_completed)(void *cbarg);
+
+	/**
+	 * \brief
+	 * Callback function for when the remote endpoint has opened a new
+	 * stream.
+	 */
+	isc_result_t (*stream_opened)(isc_quic_conn_t *conn, void *cbarg,
+				      void **stream_data, int64_t stream_id);
+
+	/**
+	 * \brief
+	 * Callback function for when a stream has been closed.
+	 *
+	 * If the application error kind is unknown, both RX and TX application
+	 * errors codes will be set as the unknown side's error code.
+	 *
+	 * Returning anything other than `ISC_R_SUCCESS` will cause the
+	 * connection to fail and require closing.
+	 */
+	isc_result_t (*stream_closed)(isc_quic_conn_t *conn, void *cbarg,
+				      int64_t stream_id, void *stream_data,
+				      isc_quic_application_error_kind_t kind,
+				      uint64_t rx_application_error_code,
+				      uint64_t tx_application_error_code);
+
+	/**
+	 * \brief
+	 * Callback function for when there is data to be read in a stream.
+	 *
+	 * Called by isc_quic_conn_push_packet when there is data to be read
+	 * in a stream.
+	 *
+	 * Returning anything other than `ISC_R_SUCCESS` will cause the
+	 * connection to fail and require closing.
+	 */
+	isc_result_t (*data_read)(isc_quic_conn_t *conn, void *cbarg,
+				  isc_quic_stream_data_info_t info,
+				  isc_constregion_t	      data);
+};
+
+struct isc_quic_stream_data_info {
+	/**
+	 * \brief
+	 * True if this is the final packet that will be received from this
+	 * stream.
+	 */
+	bool final;
+
+	/**
+	 * \brief
+	 * True if the data is trasmitted during 0-RTT.
+	 */
+	bool zerortt;
+
+	/**
+	 * \brief
+	 * Stream ID of received data.
+	 */
+	int64_t stream_id;
+
+	/**
+	 * \brief
+	 * Stream-specific data set by the user.
+	 */
+	void *stream_data;
+};
+
+/**
+ * \brief
+ * Connection independent QUIC connection options of an endpoint.
+ */
+struct isc_quic_conn_options {
+	/**
+	 * \brief
+	 * TLS context used by the QUIC connection.
+	 */
+	isc_tlsctx_t *tlsctx;
+
+	/**
+	 * \brief
+	 * ALPN value of the TLS handshake.
+	 *
+	 * \warning
+	 * Must be less than 7-bytes, might be increased in the future.
+	 */
+	isc_constregion_t alpn;
+
+	/**
+	 * \brief
+	 * Handshake timeout of the state machine
+	 *
+	 * Must not be `isc_quic_timestamp_invalid`. Zero value disables
+	 * timeout.
+	 */
+	isc_nanosecs_t handshake_timeout;
+
+	/**
+	 * \brief
+	 * Idle timeout of the state machine
+	 *
+	 * Must not be `isc_quic_timestamp_invalid`. Zero value disables
+	 * timeout.
+	 */
+	isc_nanosecs_t idle_timeout;
+};
+
 void
 isc_quic_router_create(isc_mem_t *mctx, size_t cidlen,
-		       isc_quic_conn_ref_t   conn_ref,
-		       isc_quic_conn_unref_t conn_unref,
-		       isc_quic_router_t   **routerp);
+		       isc_quic_router_t **routerp);
 /**<
  * \brief
  * Create a new QUIC CID router.
@@ -137,7 +282,7 @@ isc_quic_router_add_cid(isc_quic_router_t *router, isc_constregion_t cid,
 
 isc_result_t
 isc_quic_router_get_cid(isc_quic_router_t *router, isc_constregion_t cid,
-			isc_tid_t *tidp, void **connp);
+			isc_tid_t *tidp, isc_quic_conn_t **connp);
 /**<
  * \brief
  * Get the connection associated with a given CID and its thread if `tidp` is
@@ -171,6 +316,20 @@ isc_quic_router_del_cid(isc_quic_router_t *router, isc_constregion_t cid);
  * \retval ISC_R_NOTFOUND if no connection exists for the given CID.
  */
 
+void
+isc_quic_router_stateless_reset_from_cid(
+	const isc_quic_router_t *router, isc_constregion_t cid,
+	uint8_t token[restrict ISC_QUIC_STATELESS_TOKEN_LENGTH]);
+/**<
+ * \brief
+ * Derive the router-specific stateless reset token of the given CID.
+ *
+ * \par Requires:
+ * \li `router` is a valid router
+ * \li `cid.base != NULL` and `cid.length` ∈ [1, 20]
+ * \li `token != NULL`
+ */
+
 isc_result_t
 isc_quic_router_add_stateless_reset(
 	isc_quic_router_t *router,
@@ -202,7 +361,7 @@ isc_result_t
 isc_quic_router_get_stateless_reset(
 	isc_quic_router_t *router,
 	const uint8_t token[const restrict ISC_QUIC_STATELESS_TOKEN_LENGTH],
-	isc_tid_t *tidp, void **connp);
+	isc_tid_t *tidp, isc_quic_conn_t **connp);
 /**<
  * \brief
  * Get the connection associated with the given stateless reset token and its
@@ -243,7 +402,7 @@ isc_quic_router_handle_packet(isc_quic_router_t	 *router,
 			      isc_quic_version_t *versionp,
 			      isc_constregion_t	 *dcidp,
 			      isc_constregion_t *scidp, isc_tid_t *tidp,
-			      void **connp);
+			      isc_quic_conn_t **connp);
 /**<
  * \brief
  * Extracts the associated value and relevant information of a given QUIC
@@ -294,3 +453,257 @@ isc_quic_router_handle_packet(isc_quic_router_t	 *router,
  * Unlike ISC_R_UNEXPECTED, the caller MUST NOT send a stateless reset in
  * response (RFC9000, Section 10.3).
  */
+
+isc_result_t
+isc_quic_conn_client_create(isc_mem_t *mctx, isc_quic_router_t *router,
+			    const isc_quic_conn_callbacks_t *callbacks,
+			    void			    *callback_arg,
+			    const isc_quic_conn_options_t   *options,
+			    isc_quic_version_t version, const char *sni,
+			    const isc_sockaddr_t *local,
+			    const isc_sockaddr_t *peer,
+			    isc_quic_conn_t	**connp);
+
+/**<
+ * \brief
+ * Create a new client state machine.
+ *
+ * \par Requires
+ * \li `mctx` is a valid memory context
+ * \li `router` is a valid QUIC router
+ * \li `options != NULL` and is valid
+ * \li `version` is a valid and defined QUIC version
+ * \li `sni` points to a valid SNI string
+ * \li `local != NULL`
+ * \li `peer != NULL`
+ * \li `connp != NULL` and `*connp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTIMPLEMENTED if the given QUIC version is not supported
+ * \retval ISC_R_TLSERROR on internal TLS failure
+ * \retval ISC_R_NOMEMORY on allocation failure
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+isc_result_t
+isc_quic_conn_server_create(
+	isc_mem_t *mctx, isc_quic_router_t *router,
+	const isc_quic_conn_callbacks_t *callbacks, void *callback_arg,
+	const isc_quic_conn_options_t *options,
+	isc_quic_version_t initial_version, isc_constregion_t initial_dcid,
+	isc_constregion_t initial_scid, const isc_sockaddr_t *local,
+	const isc_sockaddr_t *peer, isc_quic_conn_t **connp);
+/**<
+ * \brief
+ * Create a new server state machine
+ *
+ * \par Requires
+ * \li `mctx` is a valid memory context
+ * \li `router` is a valid QUIC router
+ * \li `options != NULL` and is valid
+ * \li `initial_version` is a valid and defined QUIC version
+ * \li `initial_dcid.base != NULL` and `initial_dcid.length` ∈ [1, 20]
+ * \li `initial_scid.base != NULL` and `initial_scid.length` ∈ [1, 20]
+ * \li `local != NULL`
+ * \li `peer != NULL`
+ * \li `connp != NULL` and `*connp == NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTIMPLEMENTED if the given QUIC version is not supported
+ * \retval ISC_R_TLSERROR on internal TLS failure
+ * \retval ISC_R_NOMEMORY on allocation failure
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+ISC_REFCOUNT_DECL(isc_quic_conn);
+
+void *
+isc_quic_conn_get_callback_arg(const isc_quic_conn_t *conn)
+	ISC_ATTR_ACCESS(read_only, 1);
+/**
+ * \brief
+ * Get the connection specific callback argument.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection.
+ *
+ * \retval The connection-specific user data.
+ */
+
+isc_result_t
+isc_quic_conn_shutdown(isc_quic_conn_t *conn);
+/**<
+ * \brief
+ * Start shutting down the connection gracefully.
+ *
+ * The connection should still be pulled for packets until the graceful shutdown
+ * period has passed for this connection.
+ *
+ * \note
+ * This will disassociate all relevant CIDs from the router.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_SHUTTINGDOWN if the connection was already down.
+ */
+
+isc_result_t
+isc_quic_conn_pull_packet(isc_quic_conn_t *conn, isc_region_t out,
+			  size_t *written, isc_sockaddr_t *from,
+			  isc_sockaddr_t *to);
+/**<
+ * \brief
+ * Consume a packet produced by the state machine if there is any.
+ *
+ * If `from` and `to` are not-NULL, the source and destination addresses will be
+ * written to upon success.
+ *
+ * \note
+ * Upon failure except for `ISC_R_IGNORE` and `ISC_R_UNEXPECTEDEND`, the
+ * connection should be closed via `isc_quic_conn_shutdown` and the a packet
+ * should be pulled again for the shutdown.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection
+ * \li `out.base != NULL` and `out.length != 0`
+ * \li `written != NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_UNEXPECTEDEND when the packet is limited congestion control.
+ * The caller should push more packets if available and wait for the congestion
+ * window to clear before calling again.
+ * \retval ISC_R_NOMEMORY on allocation failure
+ * \retval ISC_R_TERMINATED if the connection has been terminated
+ * \retval ISC_R_NOMORE on QUIC packet number exhaustion
+ * \retval ISC_R_NOSPACE on insufficient buffer size from `out`
+ * \retval ISC_R_IOERROR on stream data block due to flow control
+ * \retval ISC_R_FAILURE on opaque internal failure
+ * \retval ISC_R_IGNORE when there isn't any data to generate a packet. The
+ * caller should push stream data before calling again.
+ */
+
+isc_result_t
+isc_quic_conn_push_packet(isc_quic_conn_t *conn, isc_constregion_t packet,
+			  isc_sockaddr_t *local, isc_sockaddr_t *peer);
+/**<
+ * \brief
+ * Feed the incoming packet to the state machine.
+ *
+ * If provided, it might call the `data_read` callback.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection state machine.
+ * \li `packet.base != NULL` and `packet` is a valid QUIC packet.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+isc_result_t
+isc_quic_conn_handle_expiry(isc_quic_conn_t *conn);
+/**<
+ * \brief
+ * Decides on the timeout action.
+ *
+ * This function is meant to be fired at a timeout after the duration specified
+ * by isc_quic_conn_next_expiry_time has passed.
+ *
+ * \retval ISC_R_SUCCESS when the a packet should be pulled from the connection
+ * \retval ISC_R_TIMEDOUT when the connection should be dropped without further
+ * interaction
+ * \retval ISC_R_CANCELED when the connection is closed and yet it want to
+ * transmit the connection to the endpoint
+ */
+
+isc_nanosecs_t
+isc_quic_conn_next_expiry_time(isc_quic_conn_t *conn);
+/**<
+ * \brief
+ * Get the next timeout duration.
+ *
+ * \par Requires:
+ * \li `conn` is a valid QUIC connection state machine.
+ *
+ * \retval isc_quic_timestamp_invalid if there are no timeouts to be handled
+ */
+
+isc_result_t
+isc_quic_conn_shutdown_stream(isc_quic_conn_t *conn, int64_t stream_id,
+			      uint64_t application_code);
+/**<
+ * \brief
+ * Abruptly shutdown a stream.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection state machine.
+ * \li `stream_id` ≥ 0
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOMEMORY on memory context failure
+ * \retval ISC_R_FAILURE on unknown failure
+ */
+
+isc_result_t
+isc_quic_conn_open_bidi_stream(isc_quic_conn_t *conn, int64_t *stream_idp,
+			       void *user_data);
+/**<
+ * \brief
+ * Open a new bidrectional stream.
+ *
+ * \note
+ * This does not trigger the `stream_opened` callback.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection state machine.
+ * \li `stream_idp != NULL`
+ * \li `user_data != NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ */
+
+isc_result_t
+isc_quic_conn_push_stream_data(isc_quic_conn_t *conn, int64_t stream_id,
+			       const uint8_t *data, size_t len)
+	ISC_ATTR_ACCESS(read_only, 3, 4);
+/**<
+ * \brief
+ * Push stream data to the QUIC connection state machine.
+ *
+ * \par Requires
+ * \li `conn` is a valid QUIC connection state machine.
+ * \li `stream_id` ≥ 0
+ * \li `data != NULL`
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_NOTFOUND if no such stream with the given ID exists
+ */
+
+isc_result_t
+isc_quic_tlsctx_client_configure(isc_tlsctx_t *tlsctx);
+/**<
+ * \brief
+ * Configure the client TLS context to be used for QUIC connections.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_TLSERROR on failure
+ */
+
+isc_result_t
+isc_quic_tlsctx_server_configure(isc_tlsctx_t *tlsctx);
+/**<
+ * \brief
+ * Configure the server TLS context to be used for QUIC connections.
+ *
+ * \retval ISC_R_SUCCESS on success
+ * \retval ISC_R_TLSERROR on failure
+ */
+
+#ifdef HAVE_LIBNGTCP2
+void
+isc__quic_initialize(void);
+
+void
+isc__quic_shutdown(void);
+#else /* HAVE_LIBNGTCP2 */
+#define isc__quic_initialize()
+#define isc__quic_shutdown()
+#endif /* HAVE_LIBNGTCP2 */

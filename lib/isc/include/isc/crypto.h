@@ -22,6 +22,10 @@
 #include <isc/region.h>
 #include <isc/types.h>
 
+#define ISC_CRYPTO_AEAD_MAX_KEY_LENGTH	 32
+#define ISC_CRYPTO_AEAD_MAX_NONCE_LENGTH 12
+#define ISC_CRYPTO_AEAD_MAX_TAG_LENGTH	 16
+
 /**
  * \brief
  * Context to an AEAD cipher.
