@@ -36,7 +36,9 @@
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
+#include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rdataset.h>
 
 #include "dnstest.h"
 
@@ -294,6 +296,413 @@ compression_test(void **state) {
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
+}
+
+/*
+ * Lay out a chain of compression pointers in 'buf', ending with a name
+ * that is a single pointer into it, and return the total wire length.
+ * '*name_offset' receives the offset that name starts at.
+ *
+ * The chain terminates at a root label at offset zero and each node points
+ * at the node before it, so decompressing the name follows exactly
+ * 'follows' pointers. A labelled chain puts a one octet label in front of
+ * every pointer, the way a conforming encoder's output does, so the name
+ * gains a label per hop; an unlabelled chain is pointers only and always
+ * decompresses to the root.
+ */
+static size_t
+build_ptr_chain(uint8_t *buf, size_t size, unsigned int follows, bool labelled,
+		size_t *name_offset) {
+	unsigned int nodes = follows - 1;
+	size_t stride = labelled ? 4 : 2;
+	size_t target;
+	size_t p = 0;
+
+	REQUIRE(follows > 0);
+	REQUIRE(1 + stride * nodes + 2 <= size);
+
+	buf[p++] = 0x00;
+
+	for (unsigned int node = 0; node < nodes; node++) {
+		target = (node == 0) ? 0 : 1 + stride * (node - 1);
+		if (labelled) {
+			buf[p++] = 1;
+			buf[p++] = 'a';
+		}
+		buf[p++] = 0xC0 | (target >> 8);
+		buf[p++] = target & 0xFF;
+	}
+
+	*name_offset = p;
+	target = (nodes == 0) ? 0 : 1 + stride * (nodes - 1);
+	buf[p++] = 0xC0 | (target >> 8);
+	buf[p++] = target & 0xFF;
+
+	return (p);
+}
+
+static isc_result_t
+fromwire_ptr_chain(dns_name_t *name, uint8_t *buf, size_t size,
+		   unsigned int follows, bool labelled,
+		   dns_decompress_t *dctx) {
+	isc_buffer_t b;
+	size_t name_offset;
+	size_t len = build_ptr_chain(buf, size, follows, labelled,
+				     &name_offset);
+
+	isc_buffer_init(&b, buf, len);
+	isc_buffer_add(&b, len);
+	isc_buffer_forward(&b, name_offset);
+	isc_buffer_setactive(&b, len - name_offset);
+
+	return (dns_name_fromwire(name, &b, dctx, 0, NULL));
+}
+
+/* the hop limit must admit the longest name a conforming encoder can emit */
+static void
+fromwire_hops_floor_test(void **state) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	uint8_t buf[1024];
+	dns_decompress_t dctx;
+
+	UNUSED(state);
+
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+
+	/*
+	 * The interop floor: a chain that gains a label per hop builds a
+	 * perfectly legal 255 octet, 128 label name in DNS_NAME_MAXHOPS
+	 * hops, and our own encoder emits chains of exactly this shape.
+	 * Lowering the limit would reject conforming names.
+	 */
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(name->length, DNS_NAME_MAXWIRE);
+	assert_int_equal(dns_name_countlabels(name), DNS_NAME_MAXLABELS);
+
+	/*
+	 * Which is also why the hop limit sits where it does: one hop
+	 * further and a labelled chain has already overrun the name length
+	 * limit, so the two limits meet rather than overlap.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS + 1, true, &dctx),
+			 DNS_R_NAMETOOLONG);
+
+	/* refusing to decompress at all still takes precedence */
+	name = dns_fixedname_initname(&fixed);
+	dns_decompress_invalidate(&dctx);
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS + 1, false, &dctx),
+			 DNS_R_DISALLOWED);
+
+	dns_decompress_invalidate(&dctx);
+}
+
+/*
+ * Lay out a chain in which every node spends one label but three hops:
+ * the label is followed by a pointer to a pointer to a pointer to the
+ * previous node's label. That keeps each run of indirection within
+ * DNS_NAME_MAXINDIRECTS while letting the hop count grow three times as
+ * fast as the label count, so it reaches DNS_NAME_MAXHOPS long before the
+ * name reaches 255 octets. The name itself is a single pointer at the end
+ * of the chain, as in build_ptr_chain().
+ *
+ * Node k occupies 8 octets at 1 + 8k:
+ *
+ *	+0  pointer to the previous node's label (or the root at 0)
+ *	+2  pointer to +0
+ *	+4  the label "a"
+ *	+6  pointer to +2
+ *
+ * Decompressing the name follows 1 + 3 * nodes pointers and yields a
+ * name of 'nodes' labels.
+ */
+static size_t
+build_indirect_chain(uint8_t *buf, size_t size, unsigned int nodes,
+		     size_t *name_offset) {
+	size_t p = 0;
+
+	REQUIRE(1 + 8 * (size_t)nodes + 2 <= size);
+
+	buf[p++] = 0x00;
+
+	for (unsigned int node = 0; node < nodes; node++) {
+		size_t base = p;
+		size_t prev_label = (node == 0) ? 0 : base - 4;
+
+		buf[p++] = 0xC0 | (prev_label >> 8); /* +0 */
+		buf[p++] = prev_label & 0xFF;
+		buf[p++] = 0xC0 | (base >> 8); /* +2 */
+		buf[p++] = base & 0xFF;
+		buf[p++] = 1; /* +4 */
+		buf[p++] = 'a';
+		buf[p++] = 0xC0 | ((base + 2) >> 8); /* +6 */
+		buf[p++] = (base + 2) & 0xFF;
+	}
+
+	*name_offset = p;
+	size_t last_label = (nodes == 0) ? 0 : p - 4;
+	buf[p++] = 0xC0 | (last_label >> 8);
+	buf[p++] = last_label & 0xFF;
+
+	return (p);
+}
+
+static isc_result_t
+fromwire_indirect_chain(dns_name_t *name, uint8_t *buf, size_t size,
+			unsigned int nodes, dns_decompress_t *dctx) {
+	isc_buffer_t b;
+	size_t name_offset;
+	size_t len = build_indirect_chain(buf, size, nodes, &name_offset);
+
+	isc_buffer_init(&b, buf, len);
+	isc_buffer_add(&b, len);
+	isc_buffer_forward(&b, name_offset);
+	isc_buffer_setactive(&b, len - name_offset);
+
+	return (dns_name_fromwire(name, &b, dctx, 0, NULL));
+}
+
+/*
+ * The per-name hop limit itself. fromwire_hops_floor never reaches it: a
+ * labelled chain of DNS_NAME_MAXHOPS + 1 hops has already overrun the name
+ * length limit, and an unlabelled chain is stopped by DNS_NAME_MAXINDIRECTS
+ * first. Only a chain that follows several pointers per label can exceed
+ * DNS_NAME_MAXHOPS while staying inside both of those, and that is what
+ * this test builds.
+ */
+static void
+fromwire_hops_limit_test(void **state) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+	uint8_t buf[2048];
+	dns_decompress_t dctx;
+	/* 1 + 3 * nodes hops: the most nodes that stay at or under the limit */
+	const unsigned int under = (DNS_NAME_MAXHOPS - 1) / 3;
+
+	UNUSED(state);
+
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+
+	/* 1 + 3 * under <= DNS_NAME_MAXHOPS: accepted, well short of 255 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(
+		fromwire_indirect_chain(name, buf, sizeof(buf), under, &dctx),
+		ISC_R_SUCCESS);
+	assert_int_equal(dns_name_countlabels(name), under + 1);
+	assert_true(name->length < DNS_NAME_MAXWIRE);
+
+	/*
+	 * One more node pushes the count past DNS_NAME_MAXHOPS while the
+	 * name is still short and no run of indirection is any longer than
+	 * before, so the hop limit is the only thing that can refuse it.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_indirect_chain(name, buf, sizeof(buf),
+						 under + 1, &dctx),
+			 DNS_R_BADPOINTER);
+
+	/*
+	 * And it is a per-name limit: a fresh name walking the accepted
+	 * chain is charged from zero again.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(
+		fromwire_indirect_chain(name, buf, sizeof(buf), under, &dctx),
+		ISC_R_SUCCESS);
+
+	dns_decompress_invalidate(&dctx);
+}
+
+/* a pointer may lead straight to another only so many times over */
+static void
+fromwire_indirects_test(void **state) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	uint8_t buf[1024];
+	dns_decompress_t dctx;
+
+	UNUSED(state);
+
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+
+	/*
+	 * A pointer only chain is nothing but indirection, so its length is
+	 * exactly what this limit counts.
+	 */
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXINDIRECTS + 1, false,
+					    &dctx),
+			 ISC_R_SUCCESS);
+	assert_true(dns_name_equal(name, dns_rootname));
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXINDIRECTS + 2, false,
+					    &dctx),
+			 DNS_R_BADPOINTER);
+
+	/*
+	 * A label between two pointers resets the count, which is why this
+	 * limit does not bound a chain that spends one per hop - see
+	 * fromwire_budget for what does.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(name->length, DNS_NAME_MAXWIRE);
+
+	dns_decompress_invalidate(&dctx);
+}
+
+/* names sharing one chain are also bounded together, not just apart */
+static void
+fromwire_budget_test(void **state) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+	uint8_t buf[1024];
+	dns_decompress_t dctx;
+
+	UNUSED(state);
+
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+
+	/* The default budget accommodates repeated standalone names. */
+	assert_int_equal(dctx.budget, UINT32_MAX);
+	for (int i = 0; i < 4; i++) {
+		name = dns_fixedname_initname(&fixed);
+		assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+						    DNS_NAME_MAXHOPS, true,
+						    &dctx),
+				 ISC_R_SUCCESS);
+	}
+	assert_int_equal(dctx.budget, UINT32_MAX - 4 * DNS_NAME_MAXHOPS);
+
+	/*
+	 * A budget of one name's worth of hops buys exactly one such name.
+	 * The second is refused even though it is within the per-name limit,
+	 * which is the whole point: that limit cannot see how many names
+	 * are walking the same chain.
+	 */
+	dctx.budget = DNS_NAME_MAXHOPS;
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(dctx.budget, 0);
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 DNS_R_BADPOINTER);
+
+	dns_decompress_invalidate(&dctx);
+}
+
+/* The legacy parser must still honor DNS_NAME_DOWNCASE. */
+static void
+fromwire_downcase_test(void **state) {
+	const unsigned char wire[] = { 7,   'E', 'x', 'A',  'm', 'P',
+				       'l', 'E', 0,   0xc0, 0 };
+	const unsigned char lower[] = {
+		7, 'e', 'x', 'a', 'm', 'p', 'l', 'e', 0
+	};
+
+	UNUSED(state);
+
+	for (unsigned int i = 0; i < 2; i++) {
+		dns_fixedname_t fixed;
+		dns_name_t *name = dns_fixedname_initname(&fixed);
+		dns_decompress_t dctx;
+		isc_buffer_t source;
+		isc_result_t result;
+
+		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+		dctx.budget = 1;
+		isc_buffer_constinit(&source, wire, sizeof(wire));
+		isc_buffer_add(&source, sizeof(wire));
+		isc_buffer_forward(&source, sizeof(lower));
+		isc_buffer_setactive(&source, 2);
+		result = dns_name_fromwire(name, &source, &dctx,
+					   i == 0 ? 0 : DNS_NAME_DOWNCASE,
+					   NULL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_int_equal(name->length, sizeof(lower));
+		assert_memory_equal(name->ndata, i == 0 ? wire : lower,
+				    sizeof(lower));
+		assert_int_equal(isc_buffer_remaininglength(&source), 0);
+		assert_int_equal(dctx.budget, 0);
+		dns_decompress_invalidate(&dctx);
+	}
+}
+
+/*
+ * Ordinary compressed MX records fill several scratch buffers. Retrying a
+ * name or RDATA in a fresh buffer must still produce the full answer.
+ */
+static void
+parse_decompression_retry_test(void **state) {
+	unsigned char wirebuf[4096];
+	isc_buffer_t wire;
+	dns_message_t *msg = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+	dns_rdataset_t *rdataset;
+	isc_region_t region;
+	const unsigned int records = 100;
+	isc_result_t result;
+
+	UNUSED(state);
+
+	isc_buffer_init(&wire, wirebuf, sizeof(wirebuf));
+	isc_buffer_putuint16(&wire, 0x1234);
+	isc_buffer_putuint16(&wire, DNS_MESSAGEFLAG_QR);
+	isc_buffer_putuint16(&wire, 1);	      /* QDCOUNT */
+	isc_buffer_putuint16(&wire, records); /* ANCOUNT */
+	isc_buffer_putuint16(&wire, 0);	      /* NSCOUNT */
+	isc_buffer_putuint16(&wire, 0);	      /* ARCOUNT */
+	dns_test_namefromstring("retry.example.", &fixed);
+	dns_name_toregion(dns_fixedname_name(&fixed), &region);
+	isc_buffer_putmem(&wire, region.base, region.length);
+	isc_buffer_putuint16(&wire, dns_rdatatype_mx);
+	isc_buffer_putuint16(&wire, dns_rdataclass_in);
+	for (unsigned int i = 0; i < records; i++) {
+		isc_buffer_putuint16(&wire, 0xc000 | DNS_MESSAGE_HEADERLEN);
+		isc_buffer_putuint16(&wire, dns_rdatatype_mx);
+		isc_buffer_putuint16(&wire, dns_rdataclass_in);
+		isc_buffer_putuint32(&wire, 300);
+		isc_buffer_putuint16(&wire, 4);
+		isc_buffer_putuint16(&wire, i);
+		isc_buffer_putuint16(&wire, 0xc000 | DNS_MESSAGE_HEADERLEN);
+	}
+
+	dns_message_create(dt_mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	result = dns_message_parse(msg, &wire, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_ptr_not_equal(ISC_LIST_HEAD(msg->scratchpad),
+			     ISC_LIST_TAIL(msg->scratchpad));
+	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
+	assert_true(dns_name_equal(name, dns_fixedname_name(&fixed)));
+	rdataset = ISC_LIST_HEAD(name->list);
+	assert_non_null(rdataset);
+	assert_int_equal(rdataset->type, dns_rdatatype_mx);
+	assert_int_equal(dns_rdataset_count(rdataset), records);
+	dns_message_detach(&msg);
 }
 
 /* is trust-anchor-telemetry test */
@@ -753,6 +1162,13 @@ main(int argc, char **argv) {
 		cmocka_unit_test(fullcompare_test),
 		cmocka_unit_test_setup_teardown(compression_test, _setup,
 						_teardown),
+		cmocka_unit_test(fromwire_hops_floor_test),
+		cmocka_unit_test(fromwire_hops_limit_test),
+		cmocka_unit_test(fromwire_indirects_test),
+		cmocka_unit_test(fromwire_budget_test),
+		cmocka_unit_test(fromwire_downcase_test),
+		cmocka_unit_test_setup_teardown(parse_decompression_retry_test,
+						_setup, _teardown),
 		cmocka_unit_test(istat_test),
 		cmocka_unit_test(init_test),
 		cmocka_unit_test(invalidate_test),

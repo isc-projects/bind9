@@ -4850,7 +4850,8 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, &client->ecs, NULL);
 
-	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+	if (WANTDNSSEC(client) && *dbp != NULL && dns_db_iszone(*dbp) &&
+	    dns_db_issecure(*dbp))
 	{
 		return (ISC_R_NOTFOUND);
 	}
@@ -4936,10 +4937,12 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_disassociate(&trdataset);
 	}
 nxrrset:
-	if (*nodep != NULL) {
-		dns_db_detachnode(*dbp, nodep);
+	if (*dbp != NULL) {
+		if (*nodep != NULL) {
+			dns_db_detachnode(*dbp, nodep);
+		}
+		dns_db_detach(dbp);
 	}
-	dns_db_detach(dbp);
 	dns_db_attachnode(db, node, nodep);
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
@@ -4960,7 +4963,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fixed;
 	dns_fixedname_t fixedredirect;
-	dns_name_t *found, *redirectname;
+	dns_name_t *found = NULL, *redirectname = NULL, *tname = NULL;
 	dns_rdataset_t trdataset;
 	isc_result_t result;
 	dns_rdatatype_t type;
@@ -4978,7 +4981,11 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		return (ISC_R_NOTFOUND);
 	}
 
-	if (dns_name_issubdomain(name, client->view->redirectzone)) {
+	tname = name;
+	if (tname->length == 0) {
+		tname = client->query.qname;
+	}
+	if (dns_name_issubdomain(tname, client->view->redirectzone)) {
 		return (ISC_R_NOTFOUND);
 	}
 
@@ -4988,7 +4995,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, &client->ecs, NULL);
 
-	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+	if (WANTDNSSEC(client) && *dbp != NULL && dns_db_iszone(*dbp) &&
+	    dns_db_issecure(*dbp))
 	{
 		return (ISC_R_NOTFOUND);
 	}
@@ -5121,16 +5129,18 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 		dns_rdataset_disassociate(&trdataset);
 	}
 nxrrset:
-	if (*nodep != NULL) {
-		dns_db_detachnode(*dbp, nodep);
+	if (*dbp != NULL) {
+		if (*nodep != NULL) {
+			dns_db_detachnode(*dbp, nodep);
+		}
+		dns_db_detach(dbp);
 	}
-	dns_db_detach(dbp);
 	dns_db_attachnode(db, node, nodep);
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
 	dns_db_detach(&db);
-	*is_zonep = is_zone;
 	*versionp = version;
+	*is_zonep = is_zone;
 
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 				     NS_QUERYATTR_NOADDITIONAL);
@@ -6152,8 +6162,16 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
 	 * that a lookup due to stale-answer-client-timeout may have set.
+	 *
+	 * We still check whether the client has requested and is allowed
+	 * recursion before resetting 'recursionok' to true, because the
+	 * current fetch might have originated e.g. by RPZ even with RD=0.
 	 */
-	if (client->view->cachedb != NULL && client->view->recursion) {
+	if (client->view->cachedb != NULL && client->view->recursion &&
+	    (client->attributes & NS_CLIENTATTR_RA) != 0 &&
+	    client->message != NULL &&
+	    (client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+	{
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
 	client->query.fetchoptions &= ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
@@ -9329,6 +9347,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return (query_nodata(qctx, DNS_R_NXRRSET));
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
@@ -9366,6 +9385,7 @@ query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	case DNS_R_NXRRSET:
 		qctx->redirected = true;
 		qctx->is_zone = true;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		return (query_nodata(qctx, DNS_R_NXRRSET));
 	case DNS_R_NCACHENXRRSET:
 		qctx->redirected = true;
