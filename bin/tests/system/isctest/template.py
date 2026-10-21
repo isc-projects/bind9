@@ -234,6 +234,7 @@ class Zone:
     ns: Nameserver | None = None
     type: str = "primary"
     filepath: Path | None = field(default=None)
+    options: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.filepath is None:
@@ -257,6 +258,12 @@ def zones(zone_list: "list[_SetupZone]") -> dict[str, Zone]:
     each template zone is set to the actual zone file (signed or unsigned).
     """
     return {
-        z.name: Zone(name=z.name, ns=z.ns, type=z.type, filepath=z.filepath)
+        z.name: Zone(
+            name=z.name,
+            ns=z.ns,
+            type=z.type,
+            filepath=z.filepath,
+            options=z.options,
+        )
         for z in zone_list
     }
