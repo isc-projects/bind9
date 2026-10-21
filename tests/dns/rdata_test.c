@@ -138,6 +138,9 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	      dns_rdata_t *rdata) {
 	isc_buffer_t source, target;
 	isc_result_t result;
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
 
 	/*
 	 * Set up len-octet buffer pointing at data.
@@ -154,8 +157,8 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	result = dns_rdata_fromwire(rdata, rdclass, type, &source,
-				    DNS_DECOMPRESS_ALWAYS, &target);
+	result = dns_rdata_fromwire(rdata, rdclass, type, &source, &dctx,
+				    &target);
 	detect_uncleared_libcrypto_error();
 
 	return result;
@@ -2141,9 +2144,16 @@ ISC_RUN_TEST_IMPL(hip) {
 		hipwire[i + 1] = 0x06;
 	}
 
+	/*
+	 * HIP postdates RFC 3597, so its rendezvous servers have to arrive
+	 * uncompressed and the very first pointer is refused. Before we
+	 * honoured that, this buffer was accepted far enough to expand past
+	 * the rdata length limit and fail as DNS_R_FORMERR instead.
+	 */
 	result = wire_to_rdata(hipwire, sizeof(hipwire), dns_rdataclass_in,
 			       dns_rdatatype_hip, buf, sizeof(buf), &rdata);
-	assert_int_equal(result, DNS_R_FORMERR);
+	assert_int_equal(result, DNS_R_DISALLOWED);
+
 	check_text_ok(text_ok, dns_rdataclass_in, dns_rdatatype_hip,
 		      sizeof(dns_rdata_hip_t));
 }
@@ -2349,13 +2359,16 @@ ISC_RUN_TEST_IMPL(key) {
 	unsigned char buf[sizeof(key)];
 	isc_buffer_t source, target;
 	isc_result_t result;
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
 
 	isc_buffer_init(&source, key, sizeof(key));
 	isc_buffer_add(&source, sizeof(key));
 	isc_buffer_setactive(&source, sizeof(key) - 1);
 	isc_buffer_init(&target, buf, sizeof(buf));
 	result = dns_rdata_fromwire(NULL, dns_rdataclass_in, dns_rdatatype_key,
-				    &source, DNS_DECOMPRESS_ALWAYS, &target);
+				    &source, &dctx, &target);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 }
 
@@ -3705,12 +3718,13 @@ ISC_RUN_TEST_IMPL(zonemd) {
  * Compression pointers are only permitted in the rdata of the types
  * defined in RFC 1035, and of the older types that RFC 3597 section 4
  * asks receivers to decompress: RP, AFSDB, RT, SIG, PX, NXT, NAPTR and
- * SRV. Each type's fromwire handler sets the policy for its own rdata,
- * so unless the caller passes DNS_DECOMPRESS_ALWAYS, a pointer in any
- * other type is rejected with DNS_R_DISALLOWED. Exercise this for MX,
- * for each of the RFC 3597 types, and for a disallowed type (DNAME),
- * with a context that arrives with compression permitted, to show that
- * the policy is set per type rather than inherited from the caller.
+ * SRV. dns_rdata_fromwire() forbids them before dispatching to the
+ * type's handler, and only the handlers for those types opt back in,
+ * so a pointer in any other type is rejected with DNS_R_DISALLOWED.
+ * Exercise this for MX, for each of the RFC 3597 types, and for a
+ * disallowed type (DNAME), with a context that arrives with compression
+ * permitted, to show that the policy is re-established per record
+ * rather than inherited from the caller.
  *
  * Each wire buffer starts with the name "example.com." at offset 0
  * so every 0xc0 0x00 compression pointer in the rdata refers back to
@@ -3795,6 +3809,9 @@ ISC_RUN_TEST_IMPL(decompression_permitted) {
 		unsigned char buf[256];
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		isc_result_t result;
+		dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+		dns_decompress_setpermitted(&dctx, true);
 
 		isc_buffer_constinit(&source, cases[i].wire, cases[i].wire_len);
 		isc_buffer_add(&source, cases[i].wire_len);
@@ -3804,8 +3821,78 @@ ISC_RUN_TEST_IMPL(decompression_permitted) {
 		isc_buffer_init(&target, buf, sizeof(buf));
 
 		result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
-					    cases[i].type, &source,
-					    DNS_DECOMPRESS_PERMITTED, &target);
+					    cases[i].type, &source, &dctx,
+					    &target);
+		assert_int_equal(result, cases[i].expected);
+	}
+}
+
+/*
+ * Even where compression is permitted, a name may only be assembled out
+ * of so many pointers. Nothing in RFC 1035 bounds a chain of them, and a
+ * pointer that lands on another pointer adds no octets, so the name
+ * length limits never notice it.
+ *
+ * Lay out a chain that ends at a root label at offset zero, each node
+ * pointing at the node before it, and put a MINFO rdata after it whose
+ * RMAILBX is a single pointer at the far end of the chain. MINFO predates
+ * RFC 3597, so it is one of the types still allowed to compress.
+ */
+ISC_RUN_TEST_IMPL(decompression_hop_limit) {
+	const struct {
+		unsigned int follows;
+		bool labelled;
+		isc_result_t expected;
+	} cases[] = {
+		/* a chain that spends a label per hop is conforming */
+		{ DNS_NAME_MAXHOPS, true, ISC_R_SUCCESS },
+		/* one hop further and it overruns the name length limit */
+		{ DNS_NAME_MAXHOPS + 1, true, DNS_R_NAMETOOLONG },
+		/* pointers leading straight to pointers are not */
+		{ DNS_NAME_MAXINDIRECTS + 1, false, ISC_R_SUCCESS },
+		{ DNS_NAME_MAXINDIRECTS + 2, false, DNS_R_BADPOINTER },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(cases); i++) {
+		unsigned char wire[4 * (DNS_NAME_MAXHOPS + 2) + 8];
+		unsigned char buf[1024];
+		isc_buffer_t source, target;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		unsigned int nodes = cases[i].follows - 1;
+		size_t stride = cases[i].labelled ? 4 : 2;
+		size_t head, off, len, p = 0;
+		isc_result_t result;
+		dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+		dns_decompress_setpermitted(&dctx, true);
+
+		wire[p++] = 0x00;
+		for (unsigned int node = 0; node < nodes; node++) {
+			off = (node == 0) ? 0 : 1 + stride * (node - 1);
+			if (cases[i].labelled) {
+				wire[p++] = 1;
+				wire[p++] = 'a';
+			}
+			wire[p++] = 0xc0 | (off >> 8);
+			wire[p++] = off & 0xff;
+		}
+
+		off = p;
+		head = 1 + stride * (nodes - 1);
+		wire[p++] = 0xc0 | (head >> 8); /* RMAILBX: into the chain */
+		wire[p++] = head & 0xff;
+		wire[p++] = 0x00; /* EMAILBX: the root */
+		len = p;
+
+		isc_buffer_init(&source, wire, len);
+		isc_buffer_add(&source, len);
+		isc_buffer_forward(&source, off);
+		isc_buffer_setactive(&source, len - off);
+		isc_buffer_init(&target, buf, sizeof(buf));
+
+		result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
+					    dns_rdatatype_minfo, &source, &dctx,
+					    &target);
 		assert_int_equal(result, cases[i].expected);
 	}
 }
@@ -4011,6 +4098,7 @@ ISC_TEST_ENTRY(zonemd)
 /* other tests */
 ISC_TEST_ENTRY(edns_client_subnet)
 ISC_TEST_ENTRY(edns_rad)
+ISC_TEST_ENTRY(decompression_hop_limit)
 ISC_TEST_ENTRY(decompression_permitted)
 ISC_TEST_ENTRY(atcname)
 ISC_TEST_ENTRY(atparent)

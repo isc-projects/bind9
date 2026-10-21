@@ -25,3 +25,4 @@ cat $infile $key1.key $key2.key >$zonefile
 $SIGNER -P -g -O full -o $zone $zonefile >sign.ns9.root.out
 
 keyfile_to_static_keys $key2 >../ns10/trusted.conf
+keyfile_to_static_keys $key2 >../ns11/trusted.conf

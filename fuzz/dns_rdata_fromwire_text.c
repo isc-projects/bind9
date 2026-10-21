@@ -143,8 +143,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 * Reject invalid rdata. (Disallow decompression as we are
 	 * reading a packet)
 	 */
-	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source,
-				 DNS_DECOMPRESS_NEVER, &target));
+	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source, NULL,
+				 &target));
 	assert(rdata1.length == size);
 
 	/*

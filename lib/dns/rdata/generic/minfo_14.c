@@ -101,7 +101,7 @@ fromwire_minfo(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, true);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&rmail);
 	dns_name_init(&email);

@@ -28,6 +28,11 @@
 /*
  * code copied from lib/dns/name.c as of commit
  * 6967973568fe80b03e1729259f8907ce8792be34
+ *
+ * The limits on following compression pointers were added back
+ * afterwards, because the differential fuzzer requires this
+ * implementation and the current one to agree on every result. It is
+ * deliberately not a verbatim copy any more.
  */
 
 typedef enum { fw_start = 0, fw_ordinary, fw_newcurrent } fw_state;
@@ -46,11 +51,12 @@ typedef enum { fw_start = 0, fw_ordinary, fw_newcurrent } fw_state;
 #define BINDABLE(name) (!name->attributes.readonly && !name->attributes.dynamic)
 
 isc_result_t
-old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
-		  unsigned int options, isc_buffer_t *target) {
+old_name_fromwire(dns_name_t *name, isc_buffer_t *source,
+		  dns_decompress_t *dctx, unsigned int options,
+		  isc_buffer_t *target) {
 	unsigned char *cdata, *ndata;
 	unsigned int cused; /* Bytes of compressed name data used */
-	unsigned int nused, labels, n, nmax;
+	unsigned int hops, indirects, nused, labels, n, nmax;
 	unsigned int current, new_current, biggest_pointer;
 	bool done;
 	fw_state state = fw_start;
@@ -95,6 +101,8 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 	/*
 	 * Set up.
 	 */
+	hops = 0;
+	indirects = 0;
 	labels = 0;
 	done = false;
 
@@ -140,6 +148,7 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 					goto full;
 				}
 				nused += c + 1;
+				indirects = 0;
 				*ndata++ = c;
 				if (c == 0) {
 					done = true;
@@ -152,6 +161,11 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 				 */
 				if (!dns_decompress_getpermitted(dctx)) {
 					return DNS_R_DISALLOWED;
+				}
+				if (hops++ >= DNS_NAME_MAXHOPS ||
+				    !dns_decompress_consume(dctx))
+				{
+					return DNS_R_BADPOINTER;
 				}
 				new_current = c & 0x3F;
 				state = fw_newcurrent;
@@ -178,6 +192,11 @@ old_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 			biggest_pointer = new_current;
 			current = new_current;
 			cdata = (unsigned char *)source->base + current;
+			if (*cdata < 192) {
+				indirects = 0;
+			} else if (++indirects > DNS_NAME_MAXINDIRECTS) {
+				return DNS_R_BADPOINTER;
+			}
 			seen_pointer = true;
 			state = fw_start;
 			break;

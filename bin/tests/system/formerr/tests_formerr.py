@@ -14,6 +14,7 @@ from typing import SupportsInt
 import socket
 
 import dns.flags
+import dns.message
 import dns.name
 import dns.opcode
 import dns.rcode
@@ -560,3 +561,87 @@ def test_formerr(
 ) -> None:
     response_wire = query_raw_tcp(ns1.ip, named_port, query_wire)
     assert response_wire == expected_wire
+
+
+# lib/dns/include/dns/name.h
+DNS_NAME_MAXHOPS = 128
+
+# A chain lives in the RDATA of the first additional record, which starts
+# after the header, the question, and that record's own 11 byte preamble.
+# It ends at the root label of the QNAME.
+CHAIN_BASE = 12 + 5 + 11
+CHAIN_TERMINUS = 12
+
+# Each node of the chain is a one octet label followed by a pointer.
+CHAIN_STRIDE = 4
+
+
+def ptr(offset: int) -> bytes:
+    return u16(0xC000 | offset)
+
+
+def ptr_chain(follows: int) -> bytes:
+    """
+    A chain of compression pointers, each aimed at the node before it.
+
+    Every node spends a label before its pointer, the way a conforming
+    encoder's output does, so the name gains a label per hop. A name that
+    is a single pointer to the last node follows exactly `follows` pointers
+    before it reaches the root label. A pointer that lands straight on
+    another pointer is a different case, bounded separately by
+    DNS_NAME_MAXINDIRECTS, and is not what this builds.
+    """
+    return wire(
+        *(
+            wire(
+                b"\x01a",
+                ptr(
+                    CHAIN_TERMINUS
+                    if node == 0
+                    else CHAIN_BASE + CHAIN_STRIDE * (node - 1)
+                ),
+            )
+            for node in range(follows - 1)
+        )
+    )
+
+
+def chain_query(follows: int, names: int = 1) -> bytes:
+    """
+    A query whose additional records aim `names` owners at one chain.
+    """
+    head = ptr(CHAIN_BASE + CHAIN_STRIDE * (follows - 2))
+    return wire(
+        header(qdcount=1, arcount=1 + names),
+        question(root()),
+        rr(root(), 65280, dns.rdataclass.RdataClass.IN, rdata=ptr_chain(follows)),
+        *(rr(head, 65281, dns.rdataclass.RdataClass.IN) for _ in range(names)),
+    )
+
+
+def test_compression_pointer_hop_limit(named_port: int, ns1) -> None:
+    """
+    A single name may only be assembled out of so many pointers.
+
+    The accepted case is not merely legal, it is the shape our own encoder
+    produces for a maximally nested name: DNS_NAME_MAXHOPS hops build a
+    255 octet, 128 label name, so the limit has to sit above it. One hop
+    further and the name has already overrun its length limit, which is
+    why the two limits meet rather than overlap.
+    """
+    accepted = query_raw_tcp(ns1.ip, named_port, chain_query(DNS_NAME_MAXHOPS))
+    assert dns.message.from_wire(accepted).rcode() != dns.rcode.FORMERR
+
+    refused = query_raw_tcp(ns1.ip, named_port, chain_query(DNS_NAME_MAXHOPS + 1))
+    assert refused == wire(formerr_response_header(qdcount=1), question(root()))
+
+
+def test_compression_pointer_message_budget(named_port: int, ns1) -> None:
+    """
+    Nor may a message aim unboundedly many such names at one chain.
+
+    Every name here stays inside the per-name limit, so only the budget
+    shared by the whole message can refuse this.
+    """
+    refused = query_raw_tcp(ns1.ip, named_port, chain_query(DNS_NAME_MAXHOPS, names=64))
+    assert refused == wire(formerr_response_header(qdcount=1), question(root()))

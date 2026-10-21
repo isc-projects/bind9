@@ -313,7 +313,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r);
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t dctx, isc_buffer_t *target);
+		   dns_decompress_t *dctx, isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed rdata at source into the target region.
  *
@@ -329,7 +329,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *
  *\li	'target' is a valid buffer.
  *
- *\li	'dctx' is a valid decompression context.
+ *\li	'dctx' is a valid decompression context, or NULL, in which case
+ *	any compression pointer in the rdata is rejected with
+ *	DNS_R_DISALLOWED.
  *
  * Ensures,
  *	if result is success:

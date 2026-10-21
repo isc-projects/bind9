@@ -244,8 +244,6 @@ fromwire_tkey(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	/*
 	 * Algorithm.
 	 */

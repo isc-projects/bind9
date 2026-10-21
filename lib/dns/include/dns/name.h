@@ -246,6 +246,42 @@ extern const dns_name_t *dns_inaddrarpa;
 #define DNS_NAME_MAXLABELS 128
 #define DNS_NAME_LABELLEN  63
 
+/*%
+ * The most compression pointers dns_name_fromwire() will follow while
+ * decompressing one name.
+ *
+ * RFC 1035 requires only that a pointer refer to an earlier occurrence of
+ * the name. That makes decompression terminate, but it does not bound the
+ * work: a pointer that refers to another pointer contributes no octets, so
+ * the 255 octet limit never constrains how many of them may be chained.
+ *
+ * A conforming encoder emits a pointer only in place of a suffix that has
+ * already occurred, so each pointer it emits is preceded by at least one
+ * label, and a name needs no more pointers than it has labels. Our own
+ * encoder obeys this: insert_label() in compress.c only ever records an
+ * offset that refers to a label, never to a pointer. Do not lower this
+ * below DNS_NAME_MAXLABELS - doing so rejects conforming names, which is
+ * why the 16 pointer limit we used to have was removed in 2006.
+ */
+#define DNS_NAME_MAXHOPS DNS_NAME_MAXLABELS
+
+/*%
+ * The most compression pointers dns_name_fromwire() will follow one
+ * immediately after another, without an intervening label.
+ *
+ * Nothing in a message needs a pointer to refer to another pointer: the
+ * encoder could have written the second pointer's target directly. Some
+ * do it anyway - Microsoft's servers give a CNAME target's owner name as
+ * a pointer to the target, which may itself be a pointer - so a small
+ * number are tolerated rather than none. Captured traffic here never
+ * exceeds one in a row.
+ *
+ * This does not subsume DNS_NAME_MAXHOPS. A chain that spends a label on
+ * every hop resets this count at each one while still following as many
+ * pointers as the name has labels.
+ */
+#define DNS_NAME_MAXINDIRECTS 2
+
 typedef uint8_t dns_offsets_t[DNS_NAME_MAXLABELS];
 
 /*
@@ -821,7 +857,7 @@ dns_name__toregion(const dns_name_t *name, isc_region_t *r) {
 
 isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-		  const dns_decompress_t dctx, isc_buffer_t *target);
+		  dns_decompress_t *dctx, isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed name at source (active region) into target,
  * decompressing it.
@@ -847,7 +883,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
  * \li	'target' is a valid buffer or 'target' is NULL and 'name' has
  *	a dedicated buffer.
  *
- * \li	'dctx' is a valid decompression context.
+ * \li	'dctx' is a valid decompression context, or NULL, in which case
+ *	any compression pointer is rejected with DNS_R_DISALLOWED.
  *
  * \li	DNS_NAME_DOWNCASE is not set.
  *

@@ -170,7 +170,7 @@ fromwire_soa(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	dctx = dns_decompress_setpermitted(dctx, true);
+	dns_decompress_setpermitted(dctx, true);
 
 	dns_name_init(&mname);
 	dns_name_init(&rname);

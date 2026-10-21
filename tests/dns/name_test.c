@@ -129,7 +129,7 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 	      const dns_name_t *name3, unsigned char *compressed,
 	      unsigned int compressed_length, unsigned char *expanded,
 	      unsigned int expanded_length, dns_compress_t *cctx,
-	      dns_decompress_t dctx, bool rdata) {
+	      dns_decompress_t *dctx, bool rdata) {
 	isc_buffer_t source;
 	isc_buffer_t target;
 	dns_name_t name;
@@ -264,18 +264,19 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test 0: no compression context */
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), NULL, DNS_DECOMPRESS_NEVER, true);
+		      sizeof(plain), NULL, NULL, true);
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), NULL, DNS_DECOMPRESS_NEVER, false);
+		      sizeof(plain), NULL, NULL, false);
 
 	/* Test 1: off, rdata */
 	permitted = false;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), &cctx, dctx, true);
+		      sizeof(plain), &cctx, &dctx, true);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -284,10 +285,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, compressed, compressed_len, plain,
-		      sizeof(plain), &cctx, dctx, true);
+		      sizeof(plain), &cctx, &dctx, true);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -296,10 +298,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = false;
 	dns_compress_init(&cctx, isc_g_mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), &cctx, dctx, true);
+		      sizeof(plain), &cctx, &dctx, true);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -308,10 +311,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), &cctx, dctx, true);
+		      sizeof(plain), &cctx, &dctx, true);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -320,11 +324,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, dns_rootname, &name4, root_plain,
 		      sizeof(root_plain), root_plain, sizeof(root_plain), &cctx,
-		      dctx, true);
+		      &dctx, true);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -333,10 +338,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = false;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), &cctx, dctx, false);
+		      sizeof(plain), &cctx, &dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -345,10 +351,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, compressed, compressed_len, plain,
-		      sizeof(plain), &cctx, dctx, false);
+		      sizeof(plain), &cctx, &dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -357,10 +364,11 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = false;
 	dns_compress_init(&cctx, isc_g_mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
-		      sizeof(plain), &cctx, dctx, false);
+		      sizeof(plain), &cctx, &dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -369,11 +377,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, &name2, &name3, disabled_owner,
-		      sizeof(disabled_owner), plain, sizeof(plain), &cctx, dctx,
-		      false);
+		      sizeof(disabled_owner), plain, sizeof(plain), &cctx,
+		      &dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -382,11 +391,12 @@ ISC_RUN_TEST_IMPL(compression) {
 	permitted = true;
 	dns_compress_init(&cctx, isc_g_mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
-	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
+	dns_decompress_init(&dctx);
+	dns_decompress_setpermitted(&dctx, permitted);
 
 	compress_test(&name1, dns_rootname, &name4, root_plain,
 		      sizeof(root_plain), root_plain, sizeof(root_plain), &cctx,
-		      dctx, false);
+		      &dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
 	dns_compress_invalidate(&cctx);
@@ -552,12 +562,296 @@ ISC_RUN_TEST_IMPL(fromwire) {
 	 * as the active region has been set to cover only the first
 	 * two.
 	 */
-	result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER, NULL);
+	result = dns_name_fromwire(name, &b, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER, NULL);
+	result = dns_name_fromwire(name, &b, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER, NULL);
+	result = dns_name_fromwire(name, &b, NULL, NULL);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
+}
+
+/*
+ * Lay out a chain of compression pointers in 'buf', ending with a name
+ * that is a single pointer into it, and return the total wire length.
+ * '*name_offset' receives the offset that name starts at.
+ *
+ * The chain terminates at a root label at offset zero and each node points
+ * at the node before it, so decompressing the name follows exactly
+ * 'follows' pointers. A labelled chain puts a one octet label in front of
+ * every pointer, the way a conforming encoder's output does, so the name
+ * gains a label per hop; an unlabelled chain is pointers only and always
+ * decompresses to the root.
+ */
+static size_t
+build_ptr_chain(uint8_t *buf, size_t size, unsigned int follows, bool labelled,
+		size_t *name_offset) {
+	unsigned int nodes = follows - 1;
+	size_t stride = labelled ? 4 : 2;
+	size_t target;
+	size_t p = 0;
+
+	REQUIRE(follows > 0);
+	REQUIRE(1 + stride * nodes + 2 <= size);
+
+	buf[p++] = 0x00;
+
+	for (unsigned int node = 0; node < nodes; node++) {
+		target = (node == 0) ? 0 : 1 + stride * (node - 1);
+		if (labelled) {
+			buf[p++] = 1;
+			buf[p++] = 'a';
+		}
+		buf[p++] = 0xC0 | (target >> 8);
+		buf[p++] = target & 0xFF;
+	}
+
+	*name_offset = p;
+	target = (nodes == 0) ? 0 : 1 + stride * (nodes - 1);
+	buf[p++] = 0xC0 | (target >> 8);
+	buf[p++] = target & 0xFF;
+
+	return p;
+}
+
+static isc_result_t
+fromwire_ptr_chain(dns_name_t *name, uint8_t *buf, size_t size,
+		   unsigned int follows, bool labelled,
+		   dns_decompress_t *dctx) {
+	isc_buffer_t b;
+	size_t name_offset;
+	size_t len = build_ptr_chain(buf, size, follows, labelled,
+				     &name_offset);
+
+	isc_buffer_init(&b, buf, len);
+	isc_buffer_add(&b, len);
+	isc_buffer_forward(&b, name_offset);
+	isc_buffer_setactive(&b, len - name_offset);
+
+	return dns_name_fromwire(name, &b, dctx, NULL);
+}
+
+/* the hop limit must admit the longest name a conforming encoder can emit */
+ISC_RUN_TEST_IMPL(fromwire_hops_floor) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	uint8_t buf[1024];
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
+
+	/*
+	 * The interop floor: a chain that gains a label per hop builds a
+	 * perfectly legal 255 octet, 128 label name in DNS_NAME_MAXHOPS
+	 * hops, and our own encoder emits chains of exactly this shape.
+	 * Lowering the limit would reject conforming names.
+	 */
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(name->length, DNS_NAME_MAXWIRE);
+	assert_int_equal(dns_name_countlabels(name), DNS_NAME_MAXLABELS);
+
+	/*
+	 * Which is also why the hop limit sits where it does: one hop
+	 * further and a labelled chain has already overrun the name length
+	 * limit, so the two limits meet rather than overlap.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS + 1, true, &dctx),
+			 DNS_R_NAMETOOLONG);
+
+	/* refusing to decompress at all still takes precedence */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS + 1, false, NULL),
+			 DNS_R_DISALLOWED);
+}
+
+/*
+ * Lay out a chain in which every node spends one label but three hops:
+ * the label is followed by a pointer to a pointer to a pointer to the
+ * previous node's label. That keeps each run of indirection within
+ * DNS_NAME_MAXINDIRECTS while letting the hop count grow three times as
+ * fast as the label count, so it reaches DNS_NAME_MAXHOPS long before the
+ * name reaches 255 octets. The name itself is a single pointer at the end
+ * of the chain, as in build_ptr_chain().
+ *
+ * Node k occupies 8 octets at 1 + 8k:
+ *
+ *	+0  pointer to the previous node's label (or the root at 0)
+ *	+2  pointer to +0
+ *	+4  the label "a"
+ *	+6  pointer to +2
+ *
+ * Decompressing the name follows 1 + 3 * nodes pointers and yields a
+ * name of 'nodes' labels.
+ */
+static size_t
+build_indirect_chain(uint8_t *buf, size_t size, unsigned int nodes,
+		     size_t *name_offset) {
+	size_t p = 0;
+
+	REQUIRE(1 + 8 * (size_t)nodes + 2 <= size);
+
+	buf[p++] = 0x00;
+
+	for (unsigned int node = 0; node < nodes; node++) {
+		size_t base = p;
+		size_t prev_label = (node == 0) ? 0 : base - 4;
+
+		buf[p++] = 0xC0 | (prev_label >> 8); /* +0 */
+		buf[p++] = prev_label & 0xFF;
+		buf[p++] = 0xC0 | (base >> 8); /* +2 */
+		buf[p++] = base & 0xFF;
+		buf[p++] = 1; /* +4 */
+		buf[p++] = 'a';
+		buf[p++] = 0xC0 | ((base + 2) >> 8); /* +6 */
+		buf[p++] = (base + 2) & 0xFF;
+	}
+
+	*name_offset = p;
+	size_t last_label = (nodes == 0) ? 0 : p - 4;
+	buf[p++] = 0xC0 | (last_label >> 8);
+	buf[p++] = last_label & 0xFF;
+
+	return p;
+}
+
+static isc_result_t
+fromwire_indirect_chain(dns_name_t *name, uint8_t *buf, size_t size,
+			unsigned int nodes, dns_decompress_t *dctx) {
+	isc_buffer_t b;
+	size_t name_offset;
+	size_t len = build_indirect_chain(buf, size, nodes, &name_offset);
+
+	isc_buffer_init(&b, buf, len);
+	isc_buffer_add(&b, len);
+	isc_buffer_forward(&b, name_offset);
+	isc_buffer_setactive(&b, len - name_offset);
+
+	return dns_name_fromwire(name, &b, dctx, NULL);
+}
+
+/*
+ * The per-name hop limit itself. fromwire_hops_floor never reaches it: a
+ * labelled chain of DNS_NAME_MAXHOPS + 1 hops has already overrun the name
+ * length limit, and an unlabelled chain is stopped by DNS_NAME_MAXINDIRECTS
+ * first. Only a chain that follows several pointers per label can exceed
+ * DNS_NAME_MAXHOPS while staying inside both of those, and that is what
+ * this test builds.
+ */
+ISC_RUN_TEST_IMPL(fromwire_hops_limit) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+	uint8_t buf[2048];
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+	/* 1 + 3 * nodes hops: the most nodes that stay at or under the limit */
+	const unsigned int under = (DNS_NAME_MAXHOPS - 1) / 3;
+
+	dns_decompress_setpermitted(&dctx, true);
+
+	/* 1 + 3 * under <= DNS_NAME_MAXHOPS: accepted, well short of 255 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(
+		fromwire_indirect_chain(name, buf, sizeof(buf), under, &dctx),
+		ISC_R_SUCCESS);
+	assert_int_equal(dns_name_countlabels(name), under + 1);
+	assert_true(name->length < DNS_NAME_MAXWIRE);
+
+	/*
+	 * One more node pushes the count past DNS_NAME_MAXHOPS while the
+	 * name is still short and no run of indirection is any longer than
+	 * before, so the hop limit is the only thing that can refuse it.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_indirect_chain(name, buf, sizeof(buf),
+						 under + 1, &dctx),
+			 DNS_R_BADPOINTER);
+
+	/*
+	 * And it is a per-name limit: a fresh name walking the accepted
+	 * chain is charged from zero again.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(
+		fromwire_indirect_chain(name, buf, sizeof(buf), under, &dctx),
+		ISC_R_SUCCESS);
+}
+
+/* a pointer may lead straight to another only so many times over */
+ISC_RUN_TEST_IMPL(fromwire_indirects) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+	uint8_t buf[1024];
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
+
+	/*
+	 * A pointer only chain is nothing but indirection, so its length is
+	 * exactly what this limit counts.
+	 */
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXINDIRECTS + 1, false,
+					    &dctx),
+			 ISC_R_SUCCESS);
+	assert_true(dns_name_isroot(name));
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXINDIRECTS + 2, false,
+					    &dctx),
+			 DNS_R_BADPOINTER);
+
+	/*
+	 * A label between two pointers resets the count, which is why this
+	 * limit does not bound a chain that spends one per hop - see
+	 * fromwire_budget for what does.
+	 */
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(name->length, DNS_NAME_MAXWIRE);
+}
+
+/* names sharing one chain are also bounded together, not just apart */
+ISC_RUN_TEST_IMPL(fromwire_budget) {
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+	uint8_t buf[1024];
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dns_decompress_setpermitted(&dctx, true);
+
+	/* an unmetered context is not charged, however often it is used */
+	for (int i = 0; i < 4; i++) {
+		name = dns_fixedname_initname(&fixed);
+		assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+						    DNS_NAME_MAXHOPS, true,
+						    &dctx),
+				 ISC_R_SUCCESS);
+	}
+
+	/*
+	 * A budget of one name's worth of hops buys exactly one such name.
+	 * The second is refused even though it is within the per-name limit,
+	 * which is the whole point: that limit cannot see how many names
+	 * are walking the same chain.
+	 */
+	dns_decompress_setbudget(&dctx, DNS_NAME_MAXHOPS);
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 ISC_R_SUCCESS);
+	assert_int_equal(dns_decompress_getbudget(&dctx), 0);
+
+	name = dns_fixedname_initname(&fixed);
+	assert_int_equal(fromwire_ptr_chain(name, buf, sizeof(buf),
+					    DNS_NAME_MAXHOPS, true, &dctx),
+			 DNS_R_BADPOINTER);
 }
 
 /* is trust-anchor-telemetry test */
@@ -1155,87 +1449,6 @@ ISC_RUN_TEST_IMPL(totext) {
 	}
 }
 
-#ifdef DNS_BENCHMARK_TESTS
-
-/*
- * XXXMUKS: Don't delete this code. It is useful in benchmarking the
- * name parser, but we don't require it as part of the unit test runs.
- */
-
-/* Benchmark dns_name_fromwire() implementation */
-
-ISC_RUN_TEST_IMPL(fromwire_thread(void *arg) {
-	unsigned int maxval = 32000000;
-	uint8_t data[] = { 3,	'w', 'w', 'w', 7,   'e', 'x',
-			   'a', 'm', 'p', 'l', 'e', 7,	 'i',
-			   'n', 'v', 'a', 'l', 'i', 'd', 0 };
-	unsigned char output_data[DNS_NAME_MAXWIRE];
-	isc_buffer_t source, target;
-	unsigned int i;
-	dns_decompress_t dctx;
-
-	UNUSED(arg);
-
-	dns_decompress_init(&dctx, DNS_DECOMPRESS_STRICT);
-	dns_decompress_setmethods(&dctx, DNS_COMPRESS_NONE);
-
-	isc_buffer_init(&source, data, sizeof(data));
-	isc_buffer_add(&source, sizeof(data));
-	isc_buffer_init(&target, output_data, sizeof(output_data));
-
-	/* Parse 32 million names in each thread */
-	for (i = 0; i < maxval; i++) {
-		dns_name_t name;
-
-		isc_buffer_clear(&source);
-		isc_buffer_clear(&target);
-		isc_buffer_add(&source, sizeof(data));
-		isc_buffer_setactive(&source, sizeof(data));
-
-		dns_name_init(&name, NULL);
-		(void)dns_name_fromwire(&name, &source, &dctx, &target);
-	}
-
-	return NULL;
-}
-
-ISC_RUN_TEST_IMPL(benchmark) {
-	isc_result_t result;
-	unsigned int i;
-	isc_time_t ts1, ts2;
-	double t;
-	unsigned int nthreads;
-	isc_thread_t threads[32];
-
-	UNUSED(state);
-
-	debug_mem_record = false;
-
-	result = isc_time_now(&ts1);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	nthreads = ISC_MIN(isc_os_ncpus(), 32);
-	nthreads = ISC_MAX(nthreads, 1);
-	for (i = 0; i < nthreads; i++) {
-		isc_thread_create(fromwire_thread, NULL, &threads[i]);
-	}
-
-	for (i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	result = isc_time_now(&ts2);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	t = isc_time_microdiff(&ts2, &ts1);
-
-	printf("%u dns_name_fromwire() calls, %f seconds, %f calls/second\n",
-	       nthreads * 32000000, t / 1000000.0,
-	       (nthreads * 32000000) / (t / 1000000.0));
-}
-
-#endif /* DNS_BENCHMARK_TESTS */
-
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(belowroot)
 ISC_TEST_ENTRY(buffer)
@@ -1244,6 +1457,10 @@ ISC_TEST_ENTRY(compression)
 ISC_TEST_ENTRY(countlabels)
 ISC_TEST_ENTRY(fromregion)
 ISC_TEST_ENTRY(fromwire)
+ISC_TEST_ENTRY(fromwire_budget)
+ISC_TEST_ENTRY(fromwire_hops_floor)
+ISC_TEST_ENTRY(fromwire_hops_limit)
+ISC_TEST_ENTRY(fromwire_indirects)
 ISC_TEST_ENTRY(fullcompare)
 ISC_TEST_ENTRY(getlabel)
 ISC_TEST_ENTRY(getlabelsequence)
@@ -1256,9 +1473,6 @@ ISC_TEST_ENTRY(issubdomain)
 ISC_TEST_ENTRY(istat)
 ISC_TEST_ENTRY(maxlabels)
 ISC_TEST_ENTRY(totext)
-#ifdef DNS_BENCHMARK_TESTS
-ISC_TEST_ENTRY(benchmark)
-#endif /* DNS_BENCHMARK_TESTS */
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

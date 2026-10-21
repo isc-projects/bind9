@@ -101,12 +101,20 @@ struct dns_compress {
 /*
  * Decompression context
  */
-enum dns_decompress {
+typedef enum dns_decompress_policy {
 	DNS_DECOMPRESS_DEFAULT,
 	DNS_DECOMPRESS_PERMITTED,
-	DNS_DECOMPRESS_NEVER,
-	DNS_DECOMPRESS_ALWAYS,
+} dns_decompress_policy_t;
+
+struct dns_decompress {
+	uint32_t		budget;
+	dns_decompress_policy_t policy;
 };
+
+#define DNS_DECOMPRESS_INITIALIZER                                     \
+	(dns_decompress_t) {                                           \
+		.policy = DNS_DECOMPRESS_DEFAULT, .budget = UINT32_MAX \
+	}
 
 void
 dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx,
@@ -230,25 +238,60 @@ dns_compress_rollback(dns_compress_t *cctx, unsigned int offset);
  *\li		'cctx' is initialized.
  */
 
+static inline void
+dns_decompress_init(dns_decompress_t *dctx) {
+	REQUIRE(dctx != NULL);
+
+	*dctx = DNS_DECOMPRESS_INITIALIZER;
+}
+
 /*%
  *	Set whether decompression is allowed, according to RFC 3597
  */
-static inline dns_decompress_t /* inline to suppress code generation */
-dns_decompress_setpermitted(const dns_decompress_t dctx, bool permitted) {
-	if (dctx == DNS_DECOMPRESS_NEVER || dctx == DNS_DECOMPRESS_ALWAYS) {
-		return dctx;
-	} else if (permitted) {
-		return DNS_DECOMPRESS_PERMITTED;
+static inline void
+dns_decompress_setpermitted(dns_decompress_t *dctx, bool permitted) {
+	if (dctx == NULL) { /* former DNS_DECOMPRESS_NEVER */
+		return;
+	}
+
+	if (permitted) {
+		dctx->policy = DNS_DECOMPRESS_PERMITTED;
 	} else {
-		return DNS_DECOMPRESS_DEFAULT;
+		dctx->policy = DNS_DECOMPRESS_DEFAULT;
 	}
 }
 
 /*%
  *	Returns whether decompression is allowed here
  */
-static inline bool /* inline to suppress code generation */
-dns_decompress_getpermitted(const dns_decompress_t dctx) {
-	return dctx == DNS_DECOMPRESS_ALWAYS ||
-	       dctx == DNS_DECOMPRESS_PERMITTED;
+static inline bool
+dns_decompress_getpermitted(const dns_decompress_t *dctx) {
+	if (dctx == NULL) {
+		return false;
+	}
+
+	return dctx->policy == DNS_DECOMPRESS_PERMITTED;
+}
+
+static inline void
+dns_decompress_setbudget(dns_decompress_t *dctx, uint32_t budget) {
+	REQUIRE(dctx != NULL);
+
+	dctx->budget = budget;
+}
+
+static inline uint32_t
+dns_decompress_getbudget(const dns_decompress_t *dctx) {
+	REQUIRE(dctx != NULL);
+
+	return dctx->budget;
+}
+
+static inline bool
+dns_decompress_consume(dns_decompress_t *dctx) {
+	if (dctx == NULL || dctx->budget == 0) {
+		return false;
+	}
+	dctx->budget--;
+	return true;
 }

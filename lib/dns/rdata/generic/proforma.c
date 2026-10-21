@@ -40,9 +40,6 @@ static isc_result_t fromwire_ #(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_proforma.c #);
 	REQUIRE(rdclass == #);
 
-	/* see RFC 3597 */
-	dctx = dns_decompress_setpermitted(dctx, false);
-
 	return ISC_R_NOTIMPLEMENTED;
 }
 
