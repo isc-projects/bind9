@@ -335,7 +335,6 @@ struct dns_journal {
 		uint32_t current_serial; /*%< Current SOA serial */
 		isc_buffer_t source;	 /*%< Data from disk */
 		isc_buffer_t target;	 /*%< Data from _fromwire check */
-		dns_decompress_t dctx;	 /*%< Dummy decompression ctx */
 		dns_name_t name;	 /*%< Current domain name */
 		dns_rdata_t rdata;	 /*%< Current rdata */
 		uint32_t ttl;		 /*%< Current TTL */
@@ -719,7 +718,6 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 	 */
 	isc_buffer_init(&j->it.source, NULL, 0);
 	isc_buffer_init(&j->it.target, NULL, 0);
-	j->it.dctx = DNS_DECOMPRESS_NEVER;
 
 	j->state = writable ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;
 
@@ -2022,7 +2020,7 @@ read_one_rr(dns_journal_t *j) {
 	 */
 	isc_buffer_setactive(&j->it.source,
 			     j->it.source.used - j->it.source.current);
-	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, j->it.dctx,
+	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, NULL,
 				&j->it.target));
 
 	/*
@@ -2054,7 +2052,7 @@ read_one_rr(dns_journal_t *j) {
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass, rdtype, &j->it.source,
-				 j->it.dctx, &j->it.target));
+				 NULL, &j->it.target));
 	j->it.ttl = ttl;
 
 	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;

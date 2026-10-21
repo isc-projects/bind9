@@ -10,9 +10,11 @@
 # information regarding copyright ownership.
 
 """
-Exercise GSS-TSIG sessions across view teardown and server restart.
+Exercise shared GSS contexts during concurrent queries, view teardown and server
+restart.
 """
 
+import concurrent.futures
 import os
 import socket
 import struct
@@ -117,6 +119,55 @@ def test_gss_context_survives_reload(ns1, monkeypatch):
         for _ in range(10):
             time.sleep(0.1)
             signed_query(ns1, keyring)
+
+
+@pytest.mark.parametrize("reload_during_queries", [False, True])
+def test_concurrent_gss_mic_operations(ns1, monkeypatch, reload_during_queries):
+    keyring = establish(ns1, monkeypatch)
+
+    def exchange(packet):
+        wire, query, valid = packet
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.settimeout(10)
+            sock.sendto(wire, (ns1.ip, ns1.ports.dns))
+            response_wire = sock.recv(65535)
+        return response_wire, query, valid
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as pool:
+        for batch in range(8):
+            # Limit outstanding sequence numbers to stay within the GSS
+            # replay window even when packets or replies are reordered.
+            packets = []
+            for _ in range(16):
+                query = dns.message.make_query("example.nil.", "SOA")
+                query.use_tsig(keyring, algorithm=dns.tsig.GSS_TSIG)
+                wire = query.to_wire()
+                # Bad MICs exercise the provider's error state; good queries
+                # also make named sign replies using the same context.
+                bad_mac = query.mac[:-1] + bytes([query.mac[-1] ^ 1])
+                assert wire.count(query.mac) == 1
+                packets.append((wire.replace(query.mac, bad_mac, 1), query, False))
+                packets.append((wire, query, True))
+
+            futures = [pool.submit(exchange, packet) for packet in packets]
+            if reload_during_queries and batch % 2 == 0:
+                ns1.reload()
+            for future in concurrent.futures.as_completed(futures):
+                wire, query, valid = future.result()
+                # All client GSS calls, including response verification,
+                # run on this thread. Workers only exchange raw packets.
+                response = dns.message.from_wire(
+                    wire, keyring=keyring if valid else False, request_mac=query.mac
+                )
+                assert response.id == query.id
+                assert response.had_tsig
+                if valid:
+                    assert response.rcode() == dns.rcode.NOERROR
+                    assert response.tsig[0].error == 0
+                else:
+                    assert response.rcode() == dns.rcode.NOTAUTH
+                    assert response.tsig[0].error == dns.rcode.BADSIG
+    signed_query(ns1, keyring)
 
 
 def test_gss_context_survives_restart(ns1, monkeypatch):

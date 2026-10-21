@@ -1,0 +1,1 @@
+-n 1 -D rpzrecurse-ns8 -m record -c named.conf -d 99 -g

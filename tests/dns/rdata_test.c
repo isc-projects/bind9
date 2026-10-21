@@ -130,6 +130,9 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	      dns_rdata_t *rdata) {
 	isc_buffer_t source, target;
 	isc_result_t result;
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dctx.policy = DNS_DECOMPRESS_ALWAYS;
 
 	/*
 	 * Set up len-octet buffer pointing at data.
@@ -146,8 +149,8 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	/*
 	 * Try converting input data into uncompressed wire form.
 	 */
-	result = dns_rdata_fromwire(rdata, rdclass, type, &source,
-				    DNS_DECOMPRESS_ALWAYS, &target);
+	result = dns_rdata_fromwire(rdata, rdclass, type, &source, &dctx,
+				    &target);
 	detect_uncleared_libcrypto_error();
 
 	return result;
@@ -2085,6 +2088,7 @@ ISC_RUN_TEST_IMPL(hip) {
 	result = wire_to_rdata(hipwire, sizeof(hipwire), dns_rdataclass_in,
 			       dns_rdatatype_hip, buf, sizeof(buf), &rdata);
 	assert_int_equal(result, DNS_R_FORMERR);
+
 	check_text_ok(text_ok, dns_rdataclass_in, dns_rdatatype_hip,
 		      sizeof(dns_rdata_hip_t));
 }
@@ -2288,13 +2292,16 @@ ISC_RUN_TEST_IMPL(key) {
 	unsigned char buf[sizeof(key)];
 	isc_buffer_t source, target;
 	isc_result_t result;
+	dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+	dctx.policy = DNS_DECOMPRESS_ALWAYS;
 
 	isc_buffer_init(&source, key, sizeof(key));
 	isc_buffer_add(&source, sizeof(key));
 	isc_buffer_setactive(&source, sizeof(key) - 1);
 	isc_buffer_init(&target, buf, sizeof(buf));
 	result = dns_rdata_fromwire(NULL, dns_rdataclass_in, dns_rdatatype_key,
-				    &source, DNS_DECOMPRESS_ALWAYS, &target);
+				    &source, &dctx, &target);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 }
 
@@ -3639,6 +3646,204 @@ ISC_RUN_TEST_IMPL(zonemd) {
 		    dns_rdatatype_zonemd, sizeof(dns_rdata_zonemd_t));
 }
 
+/*
+ * Preserve the 9.20 per-type compression policies, and verify that ALWAYS
+ * overrides them without disabling the shared budget. Each wire buffer
+ * starts with "example.com." so the pointers in the RDATA refer to a
+ * valid name. Parsing starts after that name.
+ */
+ISC_RUN_TEST_IMPL(decompression_permitted) {
+#define OWNER 0x07, 'e', 'x', 'a', 'm', 'p', 'l', 'e', 0x03, 'c', 'o', 'm', 0x00
+	static const size_t OWNER_LEN = 13;
+	static const unsigned char mx_wire[] = {
+		OWNER, 0x00, 0x0a, /* preference */
+		0xc0,  0x00,	   /* exchange: pointer */
+	};
+	static const unsigned char rp_wire[] = {
+		OWNER, 0xc0, 0x00, /* mbox: pointer */
+		0xc0,  0x00,	   /* txt: pointer */
+	};
+	static const unsigned char afsdb_wire[] = {
+		OWNER, 0x00, 0x01, /* subtype */
+		0xc0,  0x00,	   /* hostname: pointer */
+	};
+	static const unsigned char rt_wire[] = {
+		OWNER, 0x00, 0x0a, /* preference */
+		0xc0,  0x00,	   /* intermediate host: pointer */
+	};
+	static const unsigned char sig_wire[] = {
+		OWNER, 0x00, 0x01, 0x08, 0x02, /* covered/algorithm/labels */
+		0x00,  0x00, 0x0e, 0x10,       /* original TTL */
+		0x00,  0x00, 0x00, 0x00,       /* expiration */
+		0x00,  0x00, 0x00, 0x00,       /* inception */
+		0x00,  0x01,		       /* key tag */
+		0xc0,  0x00,		       /* signer: pointer */
+		0x01,			       /* signature */
+	};
+	static const unsigned char px_wire[] = {
+		OWNER, 0x00, 0x0a, /* preference */
+		0xc0,  0x00,	   /* MAP822: pointer */
+		0xc0,  0x00,	   /* MAPX400: pointer */
+	};
+	/* next domain: pointer */
+	static const unsigned char nxt_wire[] = { OWNER, 0xc0, 0x00 };
+	static const unsigned char naptr_wire[] = {
+		OWNER, 0x00, 0x0a, 0x00, 0x14, /* order/preference */
+		0x00,  0x00, 0x00,	       /* flags/service/regexp */
+		0xc0,  0x00,		       /* replacement: pointer */
+	};
+	static const unsigned char srv_wire[] = {
+		OWNER, 0x00, 0x0a, 0x00,
+		0x14,  0x00, 0x50, /* priority/weight/port */
+		0xc0,  0x00,	   /* target: pointer */
+	};
+	/* target: pointer */
+	static const unsigned char dname_wire[] = { OWNER, 0xc0, 0x00 };
+#undef OWNER
+
+	const struct {
+		const unsigned char *wire;
+		size_t wire_len;
+		dns_rdatatype_t type;
+		isc_result_t expected;
+	} cases[] = {
+		{ mx_wire, sizeof(mx_wire), dns_rdatatype_mx, ISC_R_SUCCESS },
+		{ rp_wire, sizeof(rp_wire), dns_rdatatype_rp,
+		  DNS_R_DISALLOWED },
+		{ afsdb_wire, sizeof(afsdb_wire), dns_rdatatype_afsdb,
+		  DNS_R_DISALLOWED },
+		{ rt_wire, sizeof(rt_wire), dns_rdatatype_rt,
+		  DNS_R_DISALLOWED },
+		{ sig_wire, sizeof(sig_wire), dns_rdatatype_sig,
+		  DNS_R_DISALLOWED },
+		{ px_wire, sizeof(px_wire), dns_rdatatype_px,
+		  DNS_R_DISALLOWED },
+		{ nxt_wire, sizeof(nxt_wire), dns_rdatatype_nxt,
+		  DNS_R_DISALLOWED },
+		{ naptr_wire, sizeof(naptr_wire), dns_rdatatype_naptr,
+		  DNS_R_DISALLOWED },
+		{ srv_wire, sizeof(srv_wire), dns_rdatatype_srv,
+		  DNS_R_DISALLOWED },
+		{ dname_wire, sizeof(dname_wire), dns_rdatatype_dname,
+		  DNS_R_DISALLOWED },
+	};
+
+	for (dns_decompress_policy_t policy = DNS_DECOMPRESS_DEFAULT;
+	     policy <= DNS_DECOMPRESS_ALWAYS; policy++)
+	{
+		for (size_t i = 0; i < ARRAY_SIZE(cases); i++) {
+			isc_buffer_t source, target;
+			unsigned char buf[256];
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			isc_result_t result;
+			dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+			dctx.policy = policy;
+
+			isc_buffer_constinit(&source, cases[i].wire,
+					     cases[i].wire_len);
+			isc_buffer_add(&source, cases[i].wire_len);
+			isc_buffer_forward(&source, OWNER_LEN);
+			isc_buffer_setactive(&source,
+					     cases[i].wire_len - OWNER_LEN);
+
+			isc_buffer_init(&target, buf, sizeof(buf));
+
+			result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
+						    cases[i].type, &source,
+						    &dctx, &target);
+			assert_int_equal(result, policy == DNS_DECOMPRESS_ALWAYS
+							 ? ISC_R_SUCCESS
+							 : cases[i].expected);
+			if (result == ISC_R_SUCCESS) {
+				assert_true(dns_decompress_getbudget(&dctx) <
+					    UINT32_MAX);
+
+				/* ALWAYS still honors an exhausted budget. */
+				isc_buffer_first(&source);
+				isc_buffer_forward(&source, OWNER_LEN);
+				isc_buffer_clear(&target);
+				dns_rdata_reset(&rdata);
+				dns_decompress_setbudget(&dctx, 0);
+				result = dns_rdata_fromwire(
+					&rdata, dns_rdataclass_in,
+					cases[i].type, &source, &dctx, &target);
+				assert_int_equal(result, DNS_R_BADPOINTER);
+			}
+		}
+	}
+}
+
+/*
+ * Even where compression is permitted, a name may only be assembled out
+ * of so many pointers. Nothing in RFC 1035 bounds a chain of them, and a
+ * pointer that lands on another pointer adds no octets, so the name
+ * length limits never notice it.
+ *
+ * Lay out a chain that ends at a root label at offset zero, each node
+ * pointing at the node before it, and put a MINFO rdata after it whose
+ * RMAILBX is a single pointer at the far end of the chain. MINFO predates
+ * RFC 3597, so it is one of the types still allowed to compress.
+ */
+ISC_RUN_TEST_IMPL(decompression_hop_limit) {
+	const struct {
+		unsigned int follows;
+		bool labelled;
+		isc_result_t expected;
+	} cases[] = {
+		/* a chain that spends a label per hop is conforming */
+		{ DNS_NAME_MAXHOPS, true, ISC_R_SUCCESS },
+		/* one hop further and it overruns the name length limit */
+		{ DNS_NAME_MAXHOPS + 1, true, DNS_R_NAMETOOLONG },
+		/* pointers leading straight to pointers are not */
+		{ DNS_NAME_MAXINDIRECTS + 1, false, ISC_R_SUCCESS },
+		{ DNS_NAME_MAXINDIRECTS + 2, false, DNS_R_BADPOINTER },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(cases); i++) {
+		unsigned char wire[4 * (DNS_NAME_MAXHOPS + 2) + 8];
+		unsigned char buf[1024];
+		isc_buffer_t source, target;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		unsigned int nodes = cases[i].follows - 1;
+		size_t stride = cases[i].labelled ? 4 : 2;
+		size_t head, off, len, p = 0;
+		isc_result_t result;
+		dns_decompress_t dctx = DNS_DECOMPRESS_INITIALIZER;
+
+		dns_decompress_setpermitted(&dctx, true);
+
+		wire[p++] = 0x00;
+		for (unsigned int node = 0; node < nodes; node++) {
+			off = (node == 0) ? 0 : 1 + stride * (node - 1);
+			if (cases[i].labelled) {
+				wire[p++] = 1;
+				wire[p++] = 'a';
+			}
+			wire[p++] = 0xc0 | (off >> 8);
+			wire[p++] = off & 0xff;
+		}
+
+		off = p;
+		head = 1 + stride * (nodes - 1);
+		wire[p++] = 0xc0 | (head >> 8); /* RMAILBX: into the chain */
+		wire[p++] = head & 0xff;
+		wire[p++] = 0x00; /* EMAILBX: the root */
+		len = p;
+
+		isc_buffer_init(&source, wire, len);
+		isc_buffer_add(&source, len);
+		isc_buffer_forward(&source, off);
+		isc_buffer_setactive(&source, len - off);
+		isc_buffer_init(&target, buf, sizeof(buf));
+
+		result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
+					    dns_rdatatype_minfo, &source, &dctx,
+					    &target);
+		assert_int_equal(result, cases[i].expected);
+	}
+}
+
 ISC_RUN_TEST_IMPL(atcname) {
 	unsigned int i;
 
@@ -3755,6 +3960,8 @@ ISC_TEST_ENTRY(zonemd)
 
 /* other tests */
 ISC_TEST_ENTRY(edns_client_subnet)
+ISC_TEST_ENTRY(decompression_hop_limit)
+ISC_TEST_ENTRY(decompression_permitted)
 ISC_TEST_ENTRY(atcname)
 ISC_TEST_ENTRY(atparent)
 ISC_TEST_ENTRY(iszonecutauth)
