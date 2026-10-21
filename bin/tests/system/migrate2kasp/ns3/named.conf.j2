@@ -31,7 +31,7 @@ zone "csk.kasp" {
 zone "csk-nosep.kasp" {
 	type primary;
 	file "csk-nosep.kasp.db";
-	dnssec-policy "default";
+	dnssec-policy "csk-nosep";
 	inline-signing no;
 	allow-update { any; };
 };

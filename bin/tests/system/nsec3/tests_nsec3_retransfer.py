@@ -96,7 +96,7 @@ def test_nsec3_retransfer(servers, templates):
         "zone": "retransfer.kasp",
         "policy": "nsec3rsa256",
         "key-properties": [
-            f"ksk 0 {RSASHA256.number} 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+            f"ksk 0 {RSASHA256.number} 2048 goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep",
             f"zsk {ZSK_LIFETIME} {RSASHA256.number} 2048 goal:omnipresent dnskey:rumoured zrrsig:rumoured",
         ],
     }

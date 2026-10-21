@@ -6490,6 +6490,12 @@ keys
     Each KSK/ZSK pair must have the same algorithm. A CSK combines the
     functionality of a ZSK and a KSK.
 
+    You can optionally set one or more key flags with ``flags``.
+    Two keywords are allowed, ``sep`` and ``adt``, and they will set the
+    corresponding key flags. If ``flags`` is not set, any KASP key with
+    the role ``csk`` or ``ksk`` will have the SEP bit set, and none of
+    the keys will have the ADT bit set.
+
 .. note:: When changing the ``key-directory`` or the ``key-store``, BIND will
    be unable to find existing key files. Be sure to copy key files to the
    new directory before changing the path used in the configuration file.

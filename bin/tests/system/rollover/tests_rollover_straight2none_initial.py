@@ -54,7 +54,7 @@ def test_straight2none_initial(zone, ns3, default_algorithm):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']}",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P10D']} sep",
         ],
         "nextev": None,
     }

@@ -89,3 +89,12 @@ dnssec-policy "migrate-nomatch-kzc" {
 	parent-propagation-delay pt1h;
 	parent-ds-ttl 7200;
 };
+
+/*
+ * CSK without SEP.
+ */
+dnssec-policy "csk-nosep" {
+	keys {
+		csk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ flags;
+	};
+};

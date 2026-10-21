@@ -70,6 +70,7 @@ struct dns_kasp_key {
 	dst_algorithm_t algorithm;
 	int		length;
 	uint8_t		role;
+	uint16_t	flags;
 	uint16_t	tag_min;
 	uint16_t	tag_max;
 };
@@ -709,6 +710,16 @@ dns_kasp_key_zsk(dns_kasp_key_t *key);
  *\li  True, if the key role has DNS_KASP_KEY_ROLE_ZSK set.
  *\li  False, otherwise.
  *
+ */
+
+uint16_t
+dns_kasp_key_flags(dns_kasp_key_t *key);
+/*%<
+ * Returns the key flags to use.
+ *
+ * Requires:
+ *
+ *\li  key != NULL
  */
 
 uint16_t

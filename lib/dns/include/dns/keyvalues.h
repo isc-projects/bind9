@@ -33,6 +33,7 @@
 enum {
 	DNS_KEYOWNER_ZONE = 1 << 8,  /* zone key (mandatory for DNSKEY). */
 	DNS_KEYFLAG_REVOKE = 1 << 7, /* key revoked (per rfc5011) */
+	DNS_KEYFLAG_ADT = 1 << 1,    /* DELEG */
 	DNS_KEYFLAG_KSK = 1 << 0,    /* key signing key */
 };
 

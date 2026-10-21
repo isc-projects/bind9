@@ -98,7 +98,7 @@ def test_algoroll_csk_reconfig_step1(tld, ns3, default_algorithm):
             "zone": zone,
             "cdss": CDSS,
             "keyprops": [
-                f"csk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']}",
+                f"csk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']} sep",
             ],
             "manual-mode": True,
             "nextev": None,
@@ -125,9 +125,9 @@ def test_algoroll_csk_reconfig_step1(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             # The RSASHA keys are outroducing.
-            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL} sep",
             # The ECDSAP256SHA256 keys are introducing.
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured zrrsig:rumoured ds:hidden sep",
         ],
         # Next key event is when the ecdsa256 keys have been propagated.
         "nextev": ALGOROLL_IPUB,
@@ -159,10 +159,10 @@ def test_algoroll_csk_reconfig_step2(tld, ns3, default_algorithm):
             # The RSASHA keys are outroducing, but need to stay present
             # until the new algorithm chain of trust has been established.
             # Thus the expected key states of these keys stay the same.
-            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL} sep",
             # The ECDSAP256SHA256 keys are introducing. The DNSKEY RRset is
             # omnipresent, but the zone signatures are not.
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:rumoured ds:hidden offset:{ALGOROLL_OFFSETS['step2']}",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:rumoured ds:hidden offset:{ALGOROLL_OFFSETS['step2']} sep",
         ],
         # Next key event is when all zone signatures are signed with the
         # new algorithm.  This is the child publication interval, minus
@@ -195,8 +195,8 @@ def test_algoroll_csk_reconfig_step3(tld, ns3, default_algorithm):
             "zone": zone,
             "cdss": CDSS,
             "keyprops": [
-                f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL}",
-                f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:hidden offset:{ALGOROLL_OFFSETS['step3']}",
+                f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFVAL} sep",
+                f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:hidden offset:{ALGOROLL_OFFSETS['step3']} sep",
             ],
             "manual-mode": True,
             "nextev": None,
@@ -235,8 +235,8 @@ def test_algoroll_csk_reconfig_step3(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             # The DS can be swapped.
-            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:unretentive offset:{ALGOROLL_OFFVAL}",
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:rumoured offset:{ALGOROLL_OFFSETS['step3']}",
+            f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:unretentive offset:{ALGOROLL_OFFVAL} sep",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:rumoured offset:{ALGOROLL_OFFSETS['step3']} sep",
         ],
         # Next key event is when the DS becomes OMNIPRESENT. This happens
         # after the publication interval of the parent side.
@@ -269,8 +269,8 @@ def test_algoroll_csk_reconfig_step4(tld, ns3, default_algorithm):
             "zone": zone,
             "cdss": CDSS,
             "keyprops": [
-                f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:hidden offset:{ALGOROLL_OFFVAL}",
-                f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']}",
+                f"csk 0 8 2048 goal:hidden dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:hidden offset:{ALGOROLL_OFFVAL} sep",
+                f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']} sep",
             ],
             "manual-mode": True,
             "nextev": None,
@@ -295,8 +295,8 @@ def test_algoroll_csk_reconfig_step4(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             # The old DS is HIDDEN, we can remove the old algorithm records.
-            f"csk 0 8 2048 goal:hidden dnskey:unretentive krrsig:unretentive zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']}",
+            f"csk 0 8 2048 goal:hidden dnskey:unretentive krrsig:unretentive zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL} sep",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step4']} sep",
         ],
         # Next key event is when the old DNSKEY becomes HIDDEN.
         # This happens after the DNSKEY TTL plus zone propagation delay.
@@ -327,8 +327,8 @@ def test_algoroll_csk_reconfig_step5(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             # The DNSKEY becomes HIDDEN.
-            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step5']}",
+            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:unretentive ds:hidden offset:{ALGOROLL_OFFVAL} sep",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step5']} sep",
         ],
         # Next key event is when the RSASHA signatures become HIDDEN.
         # This happens after the max-zone-ttl plus zone propagation delay
@@ -363,8 +363,8 @@ def test_algoroll_csk_reconfig_step6(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             # The zone signatures are now HIDDEN.
-            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:hidden ds:hidden offset:{ALGOROLL_OFFVAL}",
-            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step6']}",
+            f"csk 0 8 2048 goal:hidden dnskey:hidden krrsig:hidden zrrsig:hidden ds:hidden offset:{ALGOROLL_OFFVAL} sep",
+            f"csk 0 {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{ALGOROLL_OFFSETS['step6']} sep",
         ],
         # Next key event is never since we established the policy and the
         # keys have an unlimited lifetime.  Fallback to the default

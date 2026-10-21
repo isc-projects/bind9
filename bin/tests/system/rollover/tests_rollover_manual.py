@@ -173,7 +173,7 @@ def test_rollover_manual(servers):
     zone = "manual-rollover.kasp"
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
 
@@ -222,8 +222,8 @@ def test_rollover_manual(servers):
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
@@ -258,8 +258,8 @@ def test_rollover_manual(servers):
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent",
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent sep",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:omnipresent",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured zrrsig:hidden",
     ]
@@ -332,7 +332,7 @@ def test_rollover_manual_zrrsig_rumoured(ns3, default_algorithm):
     koffset = -int(timedelta(days=7).total_seconds())
     zoffset = -int(timedelta(hours=2).total_seconds())
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{koffset}",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{koffset} sep",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:rumoured offset:{zoffset}",
     ]
     expected = isctest.kasp.policy_to_properties(ttl, key_properties)
@@ -357,7 +357,7 @@ def test_rollover_manual_zrrsig_rumoured(ns3, default_algorithm):
     isctest.kasp.check_dnssec_verify(ns3, zone)
 
     key_properties = [
-        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{koffset}",
+        f"ksk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{koffset} sep",
         # Predecessor DNSKEY must stay until successor ZSK is fully omnipresent.
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent zrrsig:rumoured offset:{zoffset}",
         f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured zrrsig:hidden offset:0",

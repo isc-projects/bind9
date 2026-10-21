@@ -494,6 +494,12 @@ dns_kasp_key_zsk(dns_kasp_key_t *key) {
 }
 
 uint16_t
+dns_kasp_key_flags(dns_kasp_key_t *key) {
+	REQUIRE(key != NULL);
+	return key->flags;
+}
+
+uint16_t
 dns_kasp_key_tagmin(dns_kasp_key_t *key) {
 	REQUIRE(key != NULL);
 	return key->tag_min;
@@ -519,6 +525,10 @@ dns_kasp_key_match(dns_kasp_key_t *key, dns_dnsseckey_t *dkey) {
 	}
 	/* Matching length? */
 	if (dst_key_size(dkey->key) != dns_kasp_key_size(key)) {
+		return false;
+	}
+	/* Matching flags? */
+	if (dst_key_flags(dkey->key) != dns_kasp_key_flags(key)) {
 		return false;
 	}
 	/* Matching role? */

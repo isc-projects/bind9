@@ -67,7 +67,7 @@ def test_algoroll_csk_initial(tld, ns3):
         "zone": zone,
         "cdss": CDSS,
         "keyprops": [
-            f"csk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']}",
+            f"csk 0 8 2048 goal:omnipresent dnskey:omnipresent krrsig:omnipresent zrrsig:omnipresent ds:omnipresent offset:{-DURATION['P7D']} sep",
         ],
         "nextev": TIMEDELTA["PT1H"],
     }

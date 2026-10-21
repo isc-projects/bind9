@@ -313,14 +313,9 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	isc_buffer_t buf;
 	isc_result_t result;
 	isc_stdtime_t prepub;
-	uint16_t flags = DNS_KEYOWNER_ZONE;
+	uint16_t flags = dns_kasp_key_flags(kaspkey);
 
 	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
-
-	/* ZSK or KSK? */
-	if (ksr->ksk) {
-		flags |= DNS_KEYFLAG_KSK;
-	}
 
 	/* Check algorithm and size. */
 	dst_algorithm_format(ksr->alg, algstr, sizeof(algstr));

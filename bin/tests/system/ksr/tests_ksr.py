@@ -28,6 +28,7 @@ import isctest
 pytestmark = pytest.mark.extra_artifacts(
     [
         "K*",
+        "adt.test.*",
         "collision.test.*",
         "common.test.*",
         "fast.test.*",
@@ -43,6 +44,11 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns1/K*",
         "ns1/_default.nzd",
         "ns1/_default.nzf",
+        "ns1/adt.test.db",
+        "ns1/adt.test.db.jbk",
+        "ns1/adt.test.db.signed",
+        "ns1/adt.test.db.signed.jnl",
+        "ns1/adt.test.skr.1",
         "ns1/collision.test.*",
         "ns1/common.test.db",
         "ns1/common.test.db.jbk",
@@ -866,6 +872,79 @@ def test_ksr_common(ns1):
     isctest.kasp.check_apex(ns1, zone, ksks, overlapping_zsks, offline_ksk=True)
     # - check subdomain
     isctest.kasp.check_subdomain(ns1, zone, ksks, overlapping_zsks, offline_ksk=True)
+
+
+def test_ksr_adt(ns1):
+    # test with ADT bit set
+    zone = "adt.test"
+    policy = "adt"
+    n = 1
+
+    # create ksk
+    kskdir = "ns1/offline"
+    cmd = ksr(zone, policy, "keygen", options=f"-K {kskdir} -i now -e +1y -o")
+    ksks = isctest.kasp.keystr_to_keylist(cmd.out, kskdir)
+    assert len(ksks) == 1
+
+    check_keys(ksks, None, CONFIG)
+
+    # check that 'dnssec-ksr keygen' pregenerates right amount of keys
+    zskdir = "ns1"
+    cmd = ksr(zone, policy, "keygen", options=f"-K {zskdir} -i now -e +1y")
+    zsks = isctest.kasp.keystr_to_keylist(cmd.out, zskdir)
+    assert len(zsks) == 2
+
+    lifetime = timedelta(days=31 * 6)
+    check_keys(zsks, lifetime, CONFIG)
+
+    # check that 'dnssec-ksr request' creates correct ksr
+    now = zsks[0].get_timing("Created")
+    until = now + timedelta(days=365)
+    ksr_fname = f"{zone}.ksr.{n}"
+    ksr(
+        zone,
+        policy,
+        "request",
+        options=f"-K {zskdir} -i {now} -e +1y",
+        to_file=ksr_fname,
+    )
+    check_keysigningrequest(ksr_fname, zsks, now, until)
+
+    # check that 'dnssec-ksr sign' creates correct skr
+    refresh = -432000  # 5 days
+    skr_fname = f"{zone}.skr.{n}"
+    ksr(
+        zone,
+        policy,
+        "sign",
+        options=f"-K {kskdir} -f {ksr_fname} -i {now} -e +1y",
+        to_file=skr_fname,
+    )
+    check_signedkeyresponse(skr_fname, CONFIG, zone, ksks, zsks, now, until, refresh)
+
+    # add zone
+    ns1.rndc(
+        f"addzone {zone} "
+        + "{ type primary; file "
+        + f'"{zone}.db"; dnssec-policy {policy}; '
+        + "};"
+    )
+
+    # import skr
+    shutil.copyfile(skr_fname, f"ns1/{skr_fname}")
+    ns1.rndc(f"skr -import {skr_fname} {zone}")
+
+    # test zone is correctly signed
+    # - check rndc dnssec -status output
+    isctest.kasp.check_dnssecstatus(ns1, zone, zsks, policy=policy, verbose=True)
+    # - dnssec_verify
+    isctest.kasp.check_dnssec_verify(ns1, zone)
+    # - check keys
+    check_keys(zsks, lifetime, CONFIG, with_state=True)
+    # - check apex
+    isctest.kasp.check_apex(ns1, zone, ksks, zsks, offline_ksk=True)
+    # - check subdomain
+    isctest.kasp.check_subdomain(ns1, zone, ksks, zsks, offline_ksk=True)
 
 
 def test_ksr_lastbundle(ns1):

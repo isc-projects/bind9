@@ -94,7 +94,7 @@ def test_ksk_doubleksk_step1(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step1-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step1-p']} sep",
         ],
         # Next key event is when the successor KSK needs to be published.
         # That is the KSK lifetime - prepublication time (minus time
@@ -126,7 +126,7 @@ def test_ksk_doubleksk_step2(tld, ns3, default_algorithm):
             "cdss": CDSS,
             "keyprops": [
                 f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
-                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
+                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']} sep",
             ],
             "manual-mode": True,
             "nextev": None,
@@ -155,8 +155,8 @@ def test_ksk_doubleksk_step2(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step2-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:{OFFSETS['step2-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step2-p']} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:rumoured krrsig:rumoured ds:hidden offset:{OFFSETS['step2-s']} sep",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the successor KSK becomes OMNIPRESENT.
@@ -187,8 +187,8 @@ def test_ksk_doubleksk_step3(tld, ns3, default_algorithm):
             "cdss": CDSS,
             "keyprops": [
                 f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step3-p']}",
-                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']}",
-                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:hidden offset:{OFFSETS['step3-s']}",
+                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step3-p']} sep",
+                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:hidden offset:{OFFSETS['step3-s']} sep",
             ],
             "keyrelationships": [1, 2],
             "manual-mode": True,
@@ -234,8 +234,8 @@ def test_ksk_doubleksk_step3(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step3-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSETS['step3-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSETS['step3-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:unretentive offset:{OFFSETS['step3-p']} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:rumoured offset:{OFFSETS['step3-s']} sep",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the predecessor DS has been replaced with
@@ -272,8 +272,8 @@ def test_ksk_doubleksk_step4(tld, ns3, default_algorithm):
             "cdss": CDSS,
             "keyprops": [
                 f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-p']}",
-                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:hidden offset:{OFFSETS['step4-p']}",
-                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']}",
+                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:omnipresent krrsig:omnipresent ds:hidden offset:{OFFSETS['step4-p']} sep",
+                f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']} sep",
             ],
             "keyrelationships": [1, 2],
             "manual-mode": True,
@@ -307,8 +307,8 @@ def test_ksk_doubleksk_step4(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step4-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{OFFSETS['step4-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:unretentive krrsig:unretentive ds:hidden offset:{OFFSETS['step4-p']} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step4-s']} sep",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the DNSKEY enters the HIDDEN state.
@@ -344,8 +344,8 @@ def test_ksk_doubleksk_step5(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step5-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{OFFSETS['step5-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:hidden dnskey:hidden krrsig:hidden ds:hidden offset:{OFFSETS['step5-p']} sep",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step5-s']} sep",
         ],
         "keyrelationships": [1, 2],
         # Next key event is when the new successor needs to be published.
@@ -380,7 +380,7 @@ def test_ksk_doubleksk_step6(tld, ns3, default_algorithm):
         "cdss": CDSS,
         "keyprops": [
             f"zsk unlimited {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent zrrsig:omnipresent offset:{OFFSETS['step6-p']}",
-            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-s']}",
+            f"ksk {KSK_LIFETIME_POLICY} {default_algorithm.number} {default_algorithm.bits} goal:omnipresent dnskey:omnipresent krrsig:omnipresent ds:omnipresent offset:{OFFSETS['step6-s']} sep",
         ],
         "nextev": None,
     }

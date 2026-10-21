@@ -10,6 +10,25 @@ dnssec-policy "default-dynamic" {
 	inline-signing no;
 };
 
+dnssec-policy "adt" {
+	dnskey-ttl 1234;
+
+	keys {
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ flags sep adt;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+};
+
+dnssec-policy "crazy-flags" {
+	dnskey-ttl 1234;
+
+	keys {
+		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ flags;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ flags sep;
+		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@ flags adt;
+	};
+};
+
 dnssec-policy "migrate-to-dnssec-policy" {
 	dnskey-ttl 1234;
 

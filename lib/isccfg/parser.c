@@ -2187,6 +2187,15 @@ cfg_doc_bracketed_list(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "; ... }");
 }
 
+void
+cfg_doc_enum_list(cfg_printer_t *pctx, const cfg_type_t *type) {
+	REQUIRE(pctx != NULL);
+	REQUIRE(type != NULL);
+
+	cfg_doc_obj(pctx, type->of);
+	cfg_print_cstr(pctx, " ...");
+}
+
 /*
  * Parse a homogeneous list whose elements are of type 'elttype'
  * and where elements are separated by space.  The list ends

@@ -46,8 +46,8 @@ U="UNRETENTIVE"
 #
 # Set up zones that will be initially signed.
 #
-for zn in default dnssec-keygen some-keys legacy-keys pregenerated \
-  rumoured rsasha256 rsasha512 ecdsa256 ecdsa384 \
+for zn in adt crazy-flags default dnssec-keygen some-keys legacy-keys \
+  pregenerated rumoured rsasha256 rsasha512 ecdsa256 ecdsa384 \
   dynamic dynamic-inline-signing inline-signing \
   checkds-ksk checkds-doubleksk checkds-csk inherit unlimited \
   keystore cds-cdnskey; do

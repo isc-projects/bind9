@@ -16,6 +16,14 @@ dnssec-policy "common" {
 	};
 };
 
+dnssec-policy "adt" {
+	offline-ksk yes;
+	keys {
+		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk lifetime P6M algorithm @DEFAULT_ALGORITHM@ flags adt;
+	};
+};
+
 dnssec-policy "csk" {
 	offline-ksk no;
 	keys {
