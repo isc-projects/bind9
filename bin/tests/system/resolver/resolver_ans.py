@@ -71,7 +71,7 @@ def setup_delegation(
     qctx.response.additional.append(delegation.a_rrset)
 
 
-class DelegationHandler(ResponseHandler):
+class DelegationHandler(ResponseHandler, abc.ABC):
     @property
     @abc.abstractmethod
     def domains(self) -> list[str]:

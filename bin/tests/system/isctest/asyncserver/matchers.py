@@ -66,7 +66,7 @@ class Matcher(abc.ABC):
         return f"{self.__class__.__name__}()"
 
 
-class _Combinator(Matcher):
+class _Combinator(Matcher, abc.ABC):
     """
     Base class for matchers combining other matchers.
     """
