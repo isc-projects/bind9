@@ -11,6 +11,8 @@
 
 from collections.abc import AsyncGenerator, Collection
 
+import abc
+
 import dns.name
 import dns.rcode
 import dns.rdataclass
@@ -72,7 +74,7 @@ class SerialCounter:
         self.serial = 0
 
 
-class SerialCounted(ResponseHandler):
+class SerialCounted(ResponseHandler, abc.ABC):
     def __init__(self, serials: SerialCounter) -> None:
         super().__init__()
         self._serials = serials
@@ -88,7 +90,7 @@ class SoaHandler(SerialCounted):
         yield DnsResponseSend(qctx.response)
 
 
-class ZoneAxfrHandler(AxfrHandler, SerialCounted):
+class ZoneAxfrHandler(AxfrHandler, SerialCounted, abc.ABC):
     """
     Serve an AXFR for a single zone whose SOA serial is drawn from a shared
     SerialCounter, bumping it once the transfer completes.  Subclasses set

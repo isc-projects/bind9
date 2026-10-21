@@ -31,7 +31,7 @@ from isctest.asyncserver.matchers import Domain, Protocol, Qname, Qtype
 from ..resolver_ans import rrset
 
 
-class HeaderOnlyHandler(ResponseHandler):
+class HeaderOnlyHandler(ResponseHandler, abc.ABC):
     """
     Return an empty DNS message with only header flags set.
     """
