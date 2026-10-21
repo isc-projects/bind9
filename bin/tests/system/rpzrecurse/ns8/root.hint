@@ -1,0 +1,3 @@
+$TTL 999999
+.			IN NS	ns.example.
+ns.example.		IN A	10.53.0.1
