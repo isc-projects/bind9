@@ -860,6 +860,10 @@ ISC_LOOP_TEST_IMPL(isc_quic_conn_closed_stream_no_write) {
 		version, dcid, scid, &to, &from, &server->state[0].conn);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	result = isc_quic_conn_push_packet(server->state[0].conn, packet, &to,
+					   &from);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
 	rcu_barrier();
 
 	while (client->handshakes == 0 && server->handshakes == 0) {
