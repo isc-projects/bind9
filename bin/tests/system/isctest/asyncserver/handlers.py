@@ -268,7 +268,7 @@ class StaticResponseHandler(ResponseHandler):
         )
 
 
-class ForwarderHandler(ResponseHandler):
+class ForwarderHandler(ResponseHandler, abc.ABC):
     """
     A handler forwarding all received queries to another DNS server with an
     optional delay and then relaying the responses back to the original client.
@@ -370,7 +370,7 @@ class ForwarderHandler(ResponseHandler):
             yield BytesResponseSend(response.result())
 
 
-class AxfrHandler(ResponseHandler):
+class AxfrHandler(ResponseHandler, abc.ABC):
     """
     Base class for AXFR response handlers.
 
