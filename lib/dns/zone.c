@@ -116,6 +116,7 @@
  */
 #define REVOKE(x)  ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 #define KSK(x)	   ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ADT(x)	   ((dst_key_flags(x) & DNS_KEYFLAG_ADT) != 0)
 #define ZONEKEY(x) ((dst_key_flags(x) & DNS_KEYOWNER_ZONE) != 0)
 #define ID(x)	   dst_key_id(x)
 #define ALG(x)	   dst_key_alg(x)
@@ -5764,9 +5765,9 @@ cleanup:
 
 static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
-	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
-	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t now,
-	 isc_stdtime_t inception, isc_stdtime_t expire) {
+	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys, size_t nkeys,
+	 isc_mem_t *mctx, isc_stdtime_t now, isc_stdtime_t inception,
+	 isc_stdtime_t expire) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_stats_t *dnssecsignstats;
@@ -5774,7 +5775,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[DNS_RDATA_MAXLENGTH];
 	isc_buffer_t buffer;
-	unsigned int i;
 	bool use_kasp = false;
 	bool offlineksk = false;
 
@@ -5808,7 +5808,23 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 		goto cleanup;
 	}
 
-	for (i = 0; i < nkeys; i++) {
+	if (type == dns_rdatatype_deleg) {
+		/* Warn if we don't have at least one ADT key */
+		bool adt = false;
+		for (size_t i = 0; i < nkeys; i++) {
+			if (ADT(keys[i])) {
+				adt = true;
+				break;
+			}
+		}
+		if (!adt) {
+			dns_zone_log(zone, ISC_LOG_WARNING,
+				     "WARNING: signing DELEG but no DNSKEY "
+				     "with the ADT flag is present");
+		}
+	}
+
+	for (size_t i = 0; i < nkeys; i++) {
 		/* Don't add signatures for offline or inactive keys */
 		if (!dst_key_isprivate(keys[i]) && !offlineksk) {
 			continue;
@@ -6462,8 +6478,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	    bool build_nsec, dst_key_t *key, isc_stdtime_t now,
 	    isc_stdtime_t inception, isc_stdtime_t expire, dns_ttl_t nsecttl,
 	    bool both, bool is_ksk, bool is_zsk, bool fullsign,
-	    bool is_bottom_of_zone, dns_diff_t *diff, int32_t *signatures,
-	    isc_mem_t *mctx) {
+	    bool is_bottom_of_zone, bool have_adt, dns_diff_t *diff,
+	    int32_t *signatures, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
@@ -6556,6 +6572,12 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 					 key, fullsign))
 		{
 			continue;
+		}
+
+		if (rdataset.type == dns_rdatatype_deleg && !have_adt) {
+			dns_zone_log(zone, ISC_LOG_WARNING,
+				     "WARNING: signing DELEG but no DNSKEY "
+				     "with the ADT flag is present");
 		}
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
@@ -8321,6 +8343,7 @@ zone_sign(dns_zone_t *zone) {
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
 		dns_signing_t *nextsigning = ISC_LIST_NEXT(signing, link);
 		bool has_alg = false;
+		bool have_adt = false;
 
 		dns_dbiterator_pause(signing->dbiterator);
 
@@ -8398,6 +8421,14 @@ zone_sign(dns_zone_t *zone) {
 				dns_name_copy(found, name);
 				is_bottom_of_zone = true;
 				goto next_node;
+			}
+		}
+
+		/* Check whether we still have any ADT keys */
+		for (i = 0; i < nkeys; i++) {
+			if (ADT(zone_keys[i])) {
+				have_adt = true;
+				break;
 			}
 		}
 
@@ -8509,7 +8540,8 @@ zone_sign(dns_zone_t *zone) {
 				build_nsec, zone_keys[i], now, inception,
 				expire, zone_nsecttl(zone), both, is_ksk,
 				is_zsk, signing->fullsign, is_bottom_of_zone,
-				zonediff.diff, &signatures, zone->mctx));
+				have_adt, zonediff.diff, &signatures,
+				zone->mctx));
 			/*
 			 * If we are adding we are done.  Look for other keys
 			 * of the same algorithm if deleting.

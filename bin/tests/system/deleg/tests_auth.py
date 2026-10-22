@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from re import compile as Re
+
 import time
 
 from dns import rdatatype, update
@@ -439,3 +441,11 @@ def test_deleg_updates(qtype, do, de):
         if de:
             expected = 4  # signed DELEG, signed NSEC/NSEC3
     isctest.check.rr_count_eq(res.authority, expected)
+
+
+def test_deleg_noadt_warning(ns1):
+    # this should be found for zone noadt and no other zones
+    count1 = len(ns1.log.grep(Re("noadt/IN.*signing DELEG but no DNSKEY")))
+    count2 = len(ns1.log.grep(Re("signing DELEG but no DNSKEY")))
+    assert count1 != 0
+    assert count1 == count2

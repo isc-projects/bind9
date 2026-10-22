@@ -182,6 +182,7 @@ static bool set_maxttl = false;
 static dns_ttl_t maxttl = 0;
 static bool no_max_check = false;
 static const char *sync_records = "cdnskey,cds:sha-256";
+static bool have_adt = false;
 
 #define INCSTAT(counter)                               \
 	if (printstats) {                              \
@@ -539,6 +540,13 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	}
 
 	vbprintf(1, "%s/%s:\n", namestr, typestr);
+
+	if (set->type == dns_rdatatype_deleg && !have_adt) {
+		fprintf(stderr,
+			"%s: warning: signing DELEG, but no DNSKEY with "
+			"the ADT flag is present.\n",
+			isc_commandline_progname);
+	}
 
 	RWLOCK(&keylist_lock, isc_rwlocktype_read);
 	arraysize = keycount;
@@ -2877,7 +2885,7 @@ findkeys:
 }
 
 static void
-warnifallksk(dns_db_t *db) {
+checkdnskeys(dns_db_t *db) {
 	dns_dbversion_t *currentversion = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
@@ -2913,6 +2921,11 @@ warnifallksk(dns_db_t *db) {
 		check_result(result, "dns_rdata_tostruct");
 		if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0) {
 			have_non_ksk = true;
+		}
+		if ((dnskey.flags & DNS_KEYFLAG_ADT) != 0) {
+			have_adt = true;
+		}
+		if (have_non_ksk && have_adt) {
 			break;
 		}
 	}
@@ -3871,7 +3884,7 @@ main(int argc, char *argv[]) {
 		nokeys = true;
 	}
 
-	warnifallksk(gdb);
+	checkdnskeys(gdb);
 
 	if (IS_NSEC3) {
 		bool answer;

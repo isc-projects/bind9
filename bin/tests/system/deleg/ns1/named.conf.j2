@@ -31,7 +31,7 @@ dnssec-policy nsec {
 	parent-ds-ttl 3600;
 	keys {
 		zsk key-directory lifetime 60d algorithm ecdsa256;
-		ksk key-directory lifetime unlimited algorithm ecdsa256;
+		ksk key-directory lifetime unlimited algorithm ecdsa256 flags sep adt;
 	};
 };
 
@@ -41,7 +41,7 @@ dnssec-policy nsec3 {
 	nsec3param iterations 0 optout no;
 	keys {
 		zsk key-directory lifetime 60d algorithm ecdsa256;
-		ksk key-directory lifetime unlimited algorithm ecdsa256;
+		ksk key-directory lifetime unlimited algorithm ecdsa256 flags sep adt;
 	};
 };
 
@@ -51,7 +51,7 @@ dnssec-policy optout {
 	nsec3param iterations 0 optout yes;
 	keys {
 		zsk key-directory lifetime 60d algorithm ecdsa256;
-		ksk key-directory lifetime unlimited algorithm ecdsa256;
+		ksk key-directory lifetime unlimited algorithm ecdsa256 flags sep adt;
 	};
 };
 
@@ -82,4 +82,11 @@ zone unsigned {
 	file "unsigned.db";
 	initial-file "example.db.in";
 	dnssec-policy none;
+};
+
+zone noadt {
+	type primary;
+	file "noadt.db";
+	initial-file "example.db.in";
+	dnssec-policy default;
 };

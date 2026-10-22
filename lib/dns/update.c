@@ -920,8 +920,8 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 static isc_result_t
 add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
-	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-	 isc_stdtime_t now, isc_stdtime_t inception, isc_stdtime_t expire) {
+	 dns_diff_t *diff, dst_key_t **keys, size_t nkeys, isc_stdtime_t now,
+	 isc_stdtime_t inception, isc_stdtime_t expire) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
@@ -930,7 +930,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
 	unsigned char data[DNS_RDATA_MAXLENGTH];
-	unsigned int i;
 	bool added_sig = false;
 	bool use_kasp = false;
 	bool offlineksk = false;
@@ -956,15 +955,32 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ADT(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_ADT) != 0)
 #define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
+
+	if (type == dns_rdatatype_deleg) {
+		/* Warn if we don't have at least one ADT key */
+		bool adt = false;
+		for (size_t i = 0; i < nkeys; i++) {
+			if (ADT(keys[i])) {
+				adt = true;
+				break;
+			}
+		}
+		if (!adt) {
+			update_log(log, zone, ISC_LOG_WARNING,
+				   "WARNING: signing DELEG but no DNSKEY "
+				   "with the ADT flag is present");
+		}
+	}
 
 	/*
 	 * If we are honoring KSK flags then we need to check that we
 	 * have both KSK and non-KSK keys that are not revoked per
 	 * algorithm.
 	 */
-	for (i = 0; i < nkeys; i++) {
+	for (size_t i = 0; i < nkeys; i++) {
 		bool both = false;
 
 		/* Don't add signatures for offline or inactive keys */
