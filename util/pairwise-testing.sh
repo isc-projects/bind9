@@ -45,9 +45,11 @@ if ! command -v timeout >/dev/null 2>&1; then
   exit 1
 fi
 
+param=0
 grep -v -F "pairwise: skip" configure.ac | sed -n -E "s|.*# \[pairwise: (.*)\]|\1|p" \
   | while read -r SWITCH; do
-    echo "${RANDOM}: ${SWITCH}"
+    param=$((param + 1))
+    echo "${param}: ${SWITCH}"
   done >pairwise-model.txt
 
 pict pairwise-model.txt | tr "\t" " " | sed "1d" >pairwise-commands.txt
