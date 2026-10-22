@@ -220,7 +220,6 @@ have_libxml2 = with_libxml2
 have_json_c = with_json_c
 
 supported_openssl_version = pytest.mark.skipif(
-    ssl.OPENSSL_VERSION_NUMBER >= 0x300000C0
-    and ssl.OPENSSL_VERSION_NUMBER < 0x300000E0,
+    0x300000C0 <= ssl.OPENSSL_VERSION_NUMBER < 0x300000E0,
     reason="unsupported OpenSSL [GL #4814]",
 )
