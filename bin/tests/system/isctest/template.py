@@ -14,6 +14,7 @@ from pathlib import Path
 from re import compile as Re
 from typing import TYPE_CHECKING, Any
 
+import contextlib
 import os
 import re
 
@@ -23,6 +24,7 @@ import jinja2.nodes
 import jinja2.parser
 
 from .log import debug
+from .util import newer_mtime
 
 if TYPE_CHECKING:
     from .zone import Zone as _SetupZone
@@ -137,12 +139,15 @@ class TemplateEngine:
         output: str,
         data: dict[str, Any] | None = None,
         template: str | None = None,
+        newer: bool = False,
     ) -> None:
         """
         Render `output` file from jinja `template` and fill in the `data`. The
         `template` defaults to *.j2.manual or *.j2 file. The environment
         variables which the engine was initialized with are also filled in. In
-        case of a variable name clash, `data` has precedence.
+        case of a variable name clash, `data` has precedence. With `newer`, an
+        existing `output` file gets a modification time in a later second, so
+        that named does not skip reloading it (see `util.newer_mtime()`).
         """
         available = self.j2env.list_templates()
         if template is None:
@@ -168,7 +173,8 @@ class TemplateEngine:
         if output.endswith(".conf"):
             for term, legacy in LEGACY_TERMS:
                 text = term.sub(legacy, text)
-        Path(output).write_text(text, encoding="utf-8")
+        with newer_mtime(output) if newer else contextlib.nullcontext():
+            Path(output).write_text(text, encoding="utf-8")
 
     def render_auto(self, data: dict[str, Any] | None = None):
         """
