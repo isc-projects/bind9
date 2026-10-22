@@ -61,7 +61,7 @@ def test_xfer_servers_list(named_port, ns1, ns2, ns3, ns4, templates):
         wait_for_sending_notify(ns1, ns, key_name)
 
     # Then, ns1 update test. It notifies ns2, ns3 and ns4 about it
-    templates.render("ns1/test.db", {"serial": 2})
+    templates.render("ns1/test.db", {"serial": 2}, newer=True)
     with ns2.watch_log_from_here() as ns2_watcher, ns3.watch_log_from_here() as ns3_watcher, ns4.watch_log_from_here() as ns4_watcher:
         ns1.rndc("reload")
         ns2_watcher.wait_for_line(
