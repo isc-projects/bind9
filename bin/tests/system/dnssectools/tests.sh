@@ -237,6 +237,22 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_ic "check that dnssec-signzone correctly handles DELEG ($n)"
+ret=0
+(
+  cd signer/general || exit 1
+  rm -f signed.zone
+  $SIGNER -O full -f signed.zone -o example.com. test14.zone >signer.out.$n
+  grep -q "^mixed.*IN RRSIG.*DELEG" signed.zone || exit 1
+  grep -q "^mixed.*IN NSEC.*NS .*DELEG" signed.zone || exit 1
+  grep -q "^deleg-only.*IN NSEC.*DELEG" signed.zone || exit 1
+  grep -q "^deleg-only.*IN NSEC.*NS " signed.zone && exit 1
+  test -f signed.zone || exit 1
+) || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 get_default_algorithm_key_ids_from_sigs() {
   zone=$1
 
@@ -1123,6 +1139,22 @@ echo_i "check dnssec-dsfromkey with revoked key ($n)"
 ret=0
 $DSFROMKEY -f revkey.dnskey revkey.example. >dsfromkey.out.test$n || ret=1
 test $(wc -l <dsfromkey.out.test$n) -eq 1 || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+
+echo_i "check dnssec-keygen flag options ($n)"
+ret=0
+zone=example
+key=$("$KEYGEN" -K signer -f ZSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 256 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f KSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 257 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f ADT -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 258 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f ADT -f KSK -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 259 "signer/${key}.key" || ret=1
+key=$("$KEYGEN" -K signer -f KSK -f REVOKE -q -a $DEFAULT_ALGORITHM "$zone")
+grep -q 385 "signer/${key}.key" || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 

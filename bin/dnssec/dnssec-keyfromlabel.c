@@ -112,7 +112,7 @@ main(int argc, char **argv) {
 	dst_key_t *key = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	uint16_t flags = 0, kskflag = 0, revflag = 0;
+	uint16_t flags = 0, kskflag = 0, revflag = 0, adtflag = 0;
 	dst_algorithm_t alg;
 	int ch;
 	isc_result_t result;
@@ -171,6 +171,8 @@ main(int argc, char **argv) {
 				kskflag = DNS_KEYFLAG_KSK;
 			} else if (toupper(c) == 'R') {
 				revflag = DNS_KEYFLAG_REVOKE;
+			} else if (toupper(c) == 'A') {
+				adtflag = DNS_KEYFLAG_ADT;
 			} else {
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
@@ -544,6 +546,7 @@ main(int argc, char **argv) {
 		flags |= DNS_KEYOWNER_ZONE; /* DNSKEY: name type ZONE */
 		flags |= kskflag;
 		flags |= revflag;
+		flags |= adtflag;
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);

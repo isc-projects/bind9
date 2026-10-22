@@ -94,7 +94,7 @@ totext_uri(ARGS_TOTEXT) {
 	/*
 	 * Target URI
 	 */
-	RETERR(multitxt_totext(&region, target));
+	RETERR(multitxt_totext(&region, true, target));
 	return ISC_R_SUCCESS;
 }
 

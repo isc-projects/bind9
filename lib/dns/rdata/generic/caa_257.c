@@ -357,7 +357,7 @@ totext_caa(ARGS_TOTEXT) {
 	/*
 	 * Value
 	 */
-	RETERR(multitxt_totext(&region, target));
+	RETERR(multitxt_totext(&region, true, target));
 	return ISC_R_SUCCESS;
 }
 

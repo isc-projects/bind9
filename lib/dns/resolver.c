@@ -8061,7 +8061,7 @@ resquery_response_continue(void *arg, isc_result_t result) {
 		result = rctx_answer_none(rctx);
 		switch (result) {
 		case ISC_R_SUCCESS:
-		case DNS_R_CHASEDSSERVERS:
+		case DNS_R_CHASEPARENTSERVERS:
 			break;
 		case DNS_R_DELEGATION:
 			/*
@@ -9167,15 +9167,16 @@ rctx_answer_none(respctx_t *rctx) {
 	}
 
 	/*
-	 * Trigger lookups for DNS nameservers.
+	 * Trigger lookups for DNS nameservers for types for
+	 * which the parent zone is authoritative (DS, DELEG).
 	 */
 	if (rctx->negative &&
 	    rctx->query->rmessage->rcode == dns_rcode_noerror &&
-	    fctx->type == dns_rdatatype_ds && rctx->soa_name != NULL &&
+	    dns_rdatatype_atparent(fctx->type) && rctx->soa_name != NULL &&
 	    dns_name_equal(rctx->soa_name, fctx->name) &&
 	    !dns_name_isroot(fctx->name))
 	{
-		return DNS_R_CHASEDSSERVERS;
+		return DNS_R_CHASEPARENTSERVERS;
 	}
 
 	/*
@@ -9870,7 +9871,7 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 	} else if (rctx->resend) {
 		UNLOCK(&fctx->lock);
 		rctx_resend(rctx, addrinfo);
-	} else if (result == DNS_R_CHASEDSSERVERS) {
+	} else if (result == DNS_R_CHASEPARENTSERVERS) {
 		UNLOCK(&fctx->lock);
 		rctx_chaseds(rctx, message, addrinfo, result);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {

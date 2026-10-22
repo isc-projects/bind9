@@ -197,6 +197,8 @@ static struct keyflag {
 		 { "FLAG9", 0x0040, 0x0040 },
 		 { "FLAG10", 0x0020, 0x0020 },
 		 { "FLAG11", 0x0010, 0x0010 },
+		 { "FLAG12", 0x0008, 0x0008 },
+		 { "FLAG13", 0x0004, 0x0004 },
 		 { "SIG0", 0x0000, 0x000F },
 		 { "SIG1", 0x0001, 0x000F },
 		 { "SIG2", 0x0002, 0x000F },
@@ -213,6 +215,7 @@ static struct keyflag {
 		 { "SIG13", 0x000D, 0x000F },
 		 { "SIG14", 0x000E, 0x000F },
 		 { "SIG15", 0x000F, 0x000F },
+		 { "ADT", DNS_KEYFLAG_ADT, DNS_KEYFLAG_ADT },
 		 { "KSK", DNS_KEYFLAG_KSK, DNS_KEYFLAG_KSK },
 		 { NULL, 0, 0 } };
 

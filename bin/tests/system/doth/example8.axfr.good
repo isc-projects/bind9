@@ -2536,6 +2536,13 @@ cname02.example8.	3600	IN	CNAME	cname-target.example8.
 cname03.example8.	3600	IN	CNAME	.
 csync01.example8.	3600	IN	CSYNC	0 0 A NS AAAA
 csync02.example8.	3600	IN	CSYNC	0 0
+deleg.example8.		3600	IN	DELEG   mandatory=server-ipv4 server-ipv4=192.0.2.2
+deleg.example8.		3600	IN	DELEG	server-ipv4=192.0.2.1 server-ipv6=2001:db8::1
+deleg.example8.		3600	IN	DELEG	server-name=ns1.example.net.,ns2.example.org.
+deleg.example8.		3600	IN	DELEG	key12345=abc
+delegparam.example8.	3600	IN	DELEGPARAM	server-ipv4=192.0.2.1 server-ipv6=2001:db8::1
+delegparam.example8.	3600	IN	DELEGPARAM	server-name=ns1.example.net.,ns2.example.org.
+delegparam.example8.	3600	IN	DELEGPARAM	key321=xyz
 dhcid01.example8.	3600	IN	DHCID	AAIBY2/AuCccgoJbsaxcQc9TUapptP69lOjxfNuVAA2kjEA=
 dhcid02.example8.	3600	IN	DHCID	AAEBOSD+XR3Os/0LozeXVqcNc7FwCfQdWL3b/NaiUDlW2No=
 dhcid03.example8.	3600	IN	DHCID	AAABxLmlskllE0MVjd57zHcWmEH3pCQ6VytcKD//7es/deY=

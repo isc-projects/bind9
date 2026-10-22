@@ -131,22 +131,31 @@ zoneverify_log_error(const vctx_t *vctx, const char *fmt, ...) {
 static bool
 is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	      uint32_t *ttlp) {
-	dns_rdataset_t nsset;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
 	isc_result_t result;
 
 	if (dns_name_equal(name, vctx->origin)) {
 		return false;
 	}
 
-	dns_rdataset_init(&nsset);
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
-				     dns_rdatatype_ns, 0, 0, &nsset, NULL);
-	if (dns_rdataset_isassociated(&nsset)) {
-		SET_IF_NOT_NULL(ttlp, nsset.ttl);
-		dns_rdataset_disassociate(&nsset);
+				     dns_rdatatype_ns, 0, 0, &rdataset, NULL);
+	if (result == ISC_R_SUCCESS && dns_rdataset_isassociated(&rdataset)) {
+		SET_IF_NOT_NULL(ttlp, rdataset.ttl);
+		dns_rdataset_disassociate(&rdataset);
+		return true;
 	}
 
-	return result == ISC_R_SUCCESS;
+	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
+				     dns_rdatatype_deleg, 0, 0, &rdataset,
+				     NULL);
+	if (result == ISC_R_SUCCESS && dns_rdataset_isassociated(&rdataset)) {
+		SET_IF_NOT_NULL(ttlp, rdataset.ttl);
+		dns_rdataset_disassociate(&rdataset);
+		return true;
+	}
+
+	return false;
 }
 
 /*%
@@ -705,6 +714,11 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 					     dns_rdatatype_nsec3, 0, 0,
 					     &rdataset, NULL);
 	}
+
+	/*
+	 * An OPT-OUT range may cover unsigned delegation points and
+	 * empty nodes, but any other node must have a matching NSEC3.
+	 */
 	if (result != ISC_R_SUCCESS &&
 	    (!delegation || !optout ||
 	     (!empty && dns_nsec_isset(types, dns_rdatatype_ds))))
@@ -918,6 +932,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		 */
 		if (rdataset.type != dns_rdatatype_rrsig &&
 		    (!delegation || rdataset.type == dns_rdatatype_ds ||
+		     rdataset.type == dns_rdatatype_deleg ||
 		     rdataset.type == dns_rdatatype_nsec))
 		{
 			result = verifyset(vctx, &rdataset, name, node, dstkeys,

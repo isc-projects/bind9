@@ -144,6 +144,7 @@ def create(
     dnssec: bool = True,
     use_edns: int | bool = True,
     payload: int = 1232,
+    deleg: bool = True,
     rd: bool = True,
     cd: bool = False,
     ad: bool = True,
@@ -152,11 +153,17 @@ def create(
     """
     Create DNS query with defaults suitable for our tests.
     """
+    eflags = 0
+    if dnssec:
+        eflags |= dns.flags.DO
+    if deleg:
+        eflags |= 0x2000  # DE is not yet defined in dnspython
     msg = dns.message.make_query(
         qname,
         qtype,
         qclass,
         use_edns=use_edns,
+        ednsflags=eflags,
         want_dnssec=dnssec,
         payload=payload,
         id=message_id,

@@ -3,6 +3,7 @@ zone <string> [ <class> ] {
 	allow-query { <address_match_element>; ... };
 	allow-query-on { <address_match_element>; ... };
 	check-names ( fail | warn | ignore );
+	check-ns ( fail | warn | ignore );
 	database <string>;
 	file <quoted_string>;
 	forward ( first | only );

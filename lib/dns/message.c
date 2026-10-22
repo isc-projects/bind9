@@ -3668,10 +3668,14 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 		if ((ps->ttl & DNS_MESSAGEEXTFLAG_CO) != 0) {
 			ADD_STRING(target, " co");
 		}
+		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DE) != 0) {
+			ADD_STRING(target, " de");
+		}
 		ADD_STRING(target, "\n");
 		mbz = ps->ttl & 0xffff;
 		/* Exclude Known Flags. */
-		mbz &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO);
+		mbz &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO |
+			 DNS_MESSAGEEXTFLAG_DE);
 		if (mbz != 0) {
 			INDENT(style);
 			ADD_STRING(target, "MBZ: ");
@@ -4100,9 +4104,13 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 		if ((ps->ttl & DNS_MESSAGEEXTFLAG_CO) != 0) {
 			ADD_STRING(target, " co");
 		}
+		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DE) != 0) {
+			ADD_STRING(target, " de");
+		}
 		mbz = ps->ttl & 0xffff;
 		/* Exclude Known Flags. */
-		mbz &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO);
+		mbz &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO |
+			 DNS_MESSAGEEXTFLAG_DE);
 		if (mbz != 0) {
 			ADD_STRING(target, "; MBZ: ");
 			snprintf(buf, sizeof(buf), "0x%.4x", mbz);

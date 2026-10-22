@@ -96,6 +96,14 @@
 
 typedef struct hashlist hashlist_t;
 
+/* Delegation types: NS, DELEG, or both */
+typedef enum {
+	DEL_NONE = 0,
+	DEL_NS = 1,
+	DEL_DELEG = 2,
+	DEL_BOTH = 3,
+} deltype_t;
+
 static int nsec_datatype = dns_rdatatype_nsec;
 
 #define check_dns_dbiterator_current(result)                               \
@@ -174,6 +182,7 @@ static bool set_maxttl = false;
 static dns_ttl_t maxttl = 0;
 static bool no_max_check = false;
 static const char *sync_records = "cdnskey,cds:sha-256";
+static bool have_adt = false;
 
 #define INCSTAT(counter)                               \
 	if (printstats) {                              \
@@ -531,6 +540,13 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	}
 
 	vbprintf(1, "%s/%s:\n", namestr, typestr);
+
+	if (set->type == dns_rdatatype_deleg && !have_adt) {
+		fprintf(stderr,
+			"%s: warning: signing DELEG, but no DNSKEY with "
+			"the ADT flag is present.\n",
+			isc_commandline_progname);
+	}
 
 	RWLOCK(&keylist_lock, isc_rwlocktype_read);
 	arraysize = keycount;
@@ -1183,25 +1199,33 @@ secure(dns_name_t *name, dns_dbnode_t *node) {
 	return result == ISC_R_SUCCESS;
 }
 
-static bool
-is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
-	      dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp) {
-	dns_rdataset_t nsset;
-	isc_result_t result;
+static deltype_t
+delegation_type(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
+		dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp) {
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	deltype_t deltype = DEL_NONE;
 
 	if (dns_name_equal(name, origin)) {
-		return false;
+		return DEL_NONE;
 	}
 
-	dns_rdataset_init(&nsset);
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_ns, 0, 0,
-				     &nsset, NULL);
-	if (dns_rdataset_isassociated(&nsset)) {
-		SET_IF_NOT_NULL(ttlp, nsset.ttl);
-		dns_rdataset_disassociate(&nsset);
+	(void)dns_db_findrdataset(db, node, ver, dns_rdatatype_ns, 0, 0,
+				  &rdataset, NULL);
+	if (dns_rdataset_isassociated(&rdataset)) {
+		deltype |= DEL_NS;
+		SET_IF_NOT_NULL(ttlp, rdataset.ttl);
+		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return result == ISC_R_SUCCESS;
+	(void)dns_db_findrdataset(db, node, ver, dns_rdatatype_deleg, 0, 0,
+				  &rdataset, NULL);
+	if (dns_rdataset_isassociated(&rdataset)) {
+		deltype |= DEL_DELEG;
+		SET_IF_NOT_NULL(ttlp, rdataset.ttl);
+		dns_rdataset_disassociate(&rdataset);
+	}
+
+	return deltype;
 }
 
 /*%
@@ -1229,9 +1253,9 @@ signname(dns_dbnode_t *node, bool apex, dns_name_t *name) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *rdsiter;
-	bool isdelegation = false;
 	dns_diff_t del, add;
 	char namestr[DNS_NAME_FORMATSIZE];
+	deltype_t deltype;
 
 	dns_rdataset_init(&rdataset);
 	dns_name_format(name, namestr, sizeof(namestr));
@@ -1239,9 +1263,7 @@ signname(dns_dbnode_t *node, bool apex, dns_name_t *name) {
 	/*
 	 * Determine if this is a delegation point.
 	 */
-	if (is_delegation(gdb, gversion, gorigin, name, node, NULL)) {
-		isdelegation = true;
-	}
+	deltype = delegation_type(gdb, gversion, gorigin, name, node, NULL);
 
 	/*
 	 * Now iterate through the rdatasets.
@@ -1262,11 +1284,11 @@ signname(dns_dbnode_t *node, bool apex, dns_name_t *name) {
 		/*
 		 * If this name is a delegation point, skip all records
 		 * except NSEC and DS sets.  Otherwise check that there
-		 * isn't a DS record.
+		 * isn't a DS or DELEG record.
 		 */
-		if (isdelegation) {
+		if (deltype != DEL_NONE) {
 			if (rdataset.type != nsec_datatype &&
-			    rdataset.type != dns_rdatatype_ds)
+			    !dns_rdatatype_atparent(rdataset.type))
 			{
 				goto skip;
 			}
@@ -1641,11 +1663,13 @@ assignwork(void *arg) {
 			    (zonecut == NULL ||
 			     !dns_name_issubdomain(name, zonecut)))
 			{
-				if (is_delegation(gdb, gversion, gorigin, name,
-						  node, NULL))
-				{
+				deltype_t deltype =
+					delegation_type(gdb, gversion, gorigin,
+							name, node, NULL);
+				if (deltype != DEL_NONE) {
 					zonecut = savezonecut(&fzonecut, name);
 					if (!OPTOUT(nsec3flags) ||
+					    (deltype & DEL_DELEG) != 0 ||
 					    secure(name, node))
 					{
 						found = true;
@@ -1867,6 +1891,8 @@ nsecify(void) {
 	check_result(result, "dns_dbiterator_first()");
 
 	while (!done) {
+		deltype_t deltype;
+
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
 		/*
@@ -1889,7 +1915,9 @@ nsecify(void) {
 			(void)active_node(node);
 		}
 
-		if (is_delegation(gdb, gversion, gorigin, name, node, &nsttl)) {
+		deltype = delegation_type(gdb, gversion, gorigin, name, node,
+					  &nsttl);
+		if (deltype != DEL_NONE) {
 			zonecut = savezonecut(&fzonecut, name);
 			remove_sigs(node, true, 0);
 			if (generateds) {
@@ -2316,6 +2344,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
+			deltype_t deltype;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			check_dns_dbiterator_current(result);
@@ -2334,15 +2363,16 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 				result = dns_dbiterator_next(dbiter);
 				continue;
 			}
-			if (is_delegation(gdb, gversion, gorigin, nextname,
-					  nextnode, &nsttl))
-			{
+			deltype = delegation_type(gdb, gversion, gorigin,
+						  nextname, nextnode, &nsttl);
+			if (deltype != DEL_NONE) {
 				zonecut = savezonecut(&fzonecut, nextname);
 				remove_sigs(nextnode, true, 0);
 				if (generateds) {
 					add_ds(nextname, nextnode, nsttl);
 				}
 				if (OPTOUT(nsec3flags) &&
+				    (deltype & DEL_DELEG) == 0 &&
 				    !secure(nextname, nextnode))
 				{
 					dns_db_detachnode(&nextnode);
@@ -2458,6 +2488,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
+			deltype_t deltype;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			check_dns_dbiterator_current(result);
@@ -2475,11 +2506,12 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 				result = dns_dbiterator_next(dbiter);
 				continue;
 			}
-			if (is_delegation(gdb, gversion, gorigin, nextname,
-					  nextnode, NULL))
-			{
+			deltype = delegation_type(gdb, gversion, gorigin,
+						  nextname, nextnode, NULL);
+			if (deltype != DEL_NONE) {
 				zonecut = savezonecut(&fzonecut, nextname);
 				if (OPTOUT(nsec3flags) &&
+				    (deltype & DEL_DELEG) == 0 &&
 				    !secure(nextname, nextnode))
 				{
 					dns_db_detachnode(&nextnode);
@@ -2853,7 +2885,7 @@ findkeys:
 }
 
 static void
-warnifallksk(dns_db_t *db) {
+checkdnskeys(dns_db_t *db) {
 	dns_dbversion_t *currentversion = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
@@ -2889,6 +2921,11 @@ warnifallksk(dns_db_t *db) {
 		check_result(result, "dns_rdata_tostruct");
 		if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0) {
 			have_non_ksk = true;
+		}
+		if ((dnskey.flags & DNS_KEYFLAG_ADT) != 0) {
+			have_adt = true;
+		}
+		if (have_non_ksk && have_adt) {
 			break;
 		}
 	}
@@ -3847,7 +3884,7 @@ main(int argc, char *argv[]) {
 		nokeys = true;
 	}
 
-	warnifallksk(gdb);
+	checkdnskeys(gdb);
 
 	if (IS_NSEC3) {
 		bool answer;

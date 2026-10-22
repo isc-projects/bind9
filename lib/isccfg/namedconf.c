@@ -2369,6 +2369,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "catalog-zones", &cfg_type_catz, 0, NULL },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI,
 	  checknames_merge },
+	{ "check-ns", &cfg_type_checkmode, 0, NULL },
 	{ "cleaning-interval", NULL, CFG_CLAUSEFLAG_ANCIENT, NULL },
 	{ "clients-per-query", &cfg_type_uint32, 0, NULL },
 	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0, NULL },
@@ -2796,6 +2797,10 @@ static cfg_clausedef_t zone_only_clauses[] = {
 		  CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD,
 	  NULL },
 	{ "check-names", &cfg_type_checkmode,
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
+		  CFG_ZONE_HINT | CFG_ZONE_STUB,
+	  NULL },
+	{ "check-ns", &cfg_type_checkmode,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_HINT | CFG_ZONE_STUB,
 	  NULL },

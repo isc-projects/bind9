@@ -474,7 +474,7 @@ for ntype in $(seq 65280 65534); do
 done
 # Wait at least one second
 sleep 1
-for ntype in $(seq 65280 65534); do
+for ntype in $(seq 65280 65432) $(seq 65434 65534); do
   check_manytypes 2 manytypes.big "TYPE${ntype}" NOERROR manytypes.big "TYPE${ntype}" "" 120 || ret=1
 done
 

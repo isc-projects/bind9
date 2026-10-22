@@ -1,0 +1,33 @@
+; Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+;
+; SPDX-License-Identifier: MPL-2.0
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0.  If a copy of the MPL was not distributed with this
+; file, you can obtain one at https://mozilla.org/MPL/2.0/.
+;
+; See the COPYRIGHT file distributed with this work for additional
+; information regarding copyright ownership.
+
+$TTL 300
+.			86400	IN	SOA	a.root-servers.nil.  hostmaster.root-servers.nil. 2025091700 1800 900 604800 86400
+.			240748	IN	NS	a.root-servers.nil.
+a.root-servers.nil. A 10.53.0.1
+
+example.   DELEG server-ipv4=192.0.2.1 server-ipv6=2001:DB8::1
+example.   DELEG server-name=ns2.example.net.,ns3.example.org.
+example.   DELEG include-delegparam=other.
+
+example.   NS    a.example.
+example.   NS    b.example.net.
+example.   NS    c.example.org.
+
+example.   DS    44444 13 2 FD03B2312C8F0FE72C1751EFA1007D743C94EC91594FF0047C23C37CE119BA0C
+
+; unsigned glue for legacy (NS) delegation
+a.example. A     192.0.2.1
+a.example. AAAA  2001:DB8::1
+
+other. DELEGPARAM server-ipv4=192.0.2.2
+other. DELEGPARAM server-ipv6=2001:DB8::2
+other. DELEGPARAM key123=foo

@@ -3897,6 +3897,135 @@ ISC_RUN_TEST_IMPL(decompression_hop_limit) {
 	}
 }
 
+ISC_RUN_TEST_IMPL(deleg) {
+	/*
+	 * Known keys: mandatory, server-ipv4, server-ipv6,
+	 *             server-name, include-delegparam
+	 */
+	text_ok_t text_ok[] = {
+		/* unknown key invalid */
+		TEXT_INVALID("unknown="),
+		/* minimal record */
+		TEXT_INVALID(""),
+		/* server-ipv4 */
+		TEXT_VALID("server-ipv4=1.2.3.4"),
+		TEXT_VALID("server-ipv4=1.2.3.4,2.3.4.5,3.4.5.6"),
+		TEXT_INVALID("server-ipv4=dead::beef"),
+		TEXT_INVALID("server-ipv4=xxxxx"), TEXT_INVALID("server-ipv4="),
+		/* server-ipv6 */
+		TEXT_VALID("server-ipv6=dead::beef"),
+		TEXT_VALID("server-ipv6=dead::beef,beef::dead"),
+		TEXT_INVALID("server-ipv6=1.2.3.4"),
+		TEXT_INVALID("server-ipv6=xxxxx"), TEXT_INVALID("server-ipv6="),
+		/* both */
+		TEXT_VALID("server-ipv4=1.2.3.4 server-ipv6=dead::beef"),
+		TEXT_VALID_CHANGED("server-ipv6=dead::beef server-ipv4=1.2.3.4",
+				   "server-ipv4=1.2.3.4 "
+				   "server-ipv6=dead::beef"),
+		TEXT_VALID("server-ipv4=1.2.3.4,4.3.2.1 "
+			   "server-ipv6=dead::beef,beef::dead"),
+		TEXT_INVALID("server-ipv6=1.2.3.4 server-ipv4=dead::beef"),
+		/* server-name */
+		TEXT_VALID("server-name=ns.example.com."),
+		TEXT_VALID_CHANGED("server-name=ns.example.com",
+				   "server-name=ns.example.com."),
+		TEXT_INVALID("server-name=...."), TEXT_VALID("server-name===."),
+		TEXT_VALID_CHANGED(
+			"server-name=\"part1,part2,part3\\\\,part4\\\\\\\\\"",
+			"server-name=part1.,part2.,part3\\\\,part4\\\\\\\\."),
+		/* server-name mixed with server addresses */
+		TEXT_INVALID("server-ipv4=1.2.3.4 server-name=example."),
+		TEXT_INVALID("server-name=example. server-ipv4=1.2.3.4"),
+		/* include-delegparam */
+		TEXT_VALID("include-delegparam=foo."),
+		TEXT_VALID("server-ipv4=1.2.3.4 include-delegparam=foo."),
+		TEXT_VALID("server-ipv6=dead::beef include-delegparam=foo."),
+		TEXT_VALID("server-name=ns.foo. include-delegparam=bar."),
+		TEXT_VALID_CHANGED("include-delegparam=bar. "
+				   "server-name=ns.foo.",
+				   "server-name=ns.foo. "
+				   "include-delegparam=bar."),
+		/* mandatory */
+		TEXT_VALID("mandatory=server-ipv4 server-ipv4=1.2.3.4"),
+		TEXT_VALID_CHANGED("server-ipv4=1.2.3.4 mandatory=server-ipv4",
+				   "mandatory=server-ipv4 server-ipv4=1.2.3.4"),
+		TEXT_INVALID("mandatory=server-ipv6 server-ipv4=1.2.3.4"),
+		TEXT_INVALID("mandatory=server-ipv4 server-name=example."),
+		TEXT_INVALID("mandatory=mandatory"),
+		/* unknown keys, including key-only forms */
+		TEXT_VALID("key123=foo"), TEXT_VALID("key123"),
+		TEXT_VALID("mandatory=key123 key122 key123"),
+		TEXT_VALID("mandatory=key123 key123=foo"),
+		TEXT_VALID("mandatory=key123 key123"),
+		TEXT_INVALID("mandatory=key1234 key123=foo"),
+		TEXT_INVALID("mandatory=key1234 key123"), TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/* too short */
+		WIRE_INVALID(0x00, 0x00),
+		/* mandatory=mandatory*/
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0x00, 0x00),
+		/* mandatory=key32 key32 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x02, 0x00, 0x20, 0x00, 0x20, 0x00,
+			   0x00),
+		/* mandatory=key32 key33 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0x00, 0x20, 0x00, 0x21,
+			     0x00, 0x00),
+		/* mandatory=key32 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0x00, 0x20),
+		/* mandatory=key32 key31 key32 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x02, 0x00, 0x20, 0x00, 0x19, 0x00,
+			   0x00, 0x00, 0x20, 0x00, 0x00),
+		/*
+		 * mandatory=key10,key11,key12
+		 * key10=1 key11=2 key12=3
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x06, 0x00, 0x0A, 0x00, 0x0B, 0x00,
+			   0x0C, 0x00, 0x0A, 0x00, 0x01, 0x31, 0x00, 0x0B, 0x00,
+			   0x01, 0x32, 0x00, 0x0C, 0x00, 0x01, 0x33),
+		/*
+		 * mandatory=key10,key11,key12
+		 * key11=2 key12=3
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x06, 0x00, 0x0A, 0x00, 0x0B,
+			     0x00, 0x0C, 0x00, 0x0B, 0x00, 0x01, 0x32, 0x00,
+			     0x0C, 0x00, 0x01, 0x33),
+		/*
+		 * mandatory=key10,key11,key12
+		 * key10=1 key12=3
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x06, 0x00, 0x0A, 0x00, 0x0B,
+			     0x00, 0x0C, 0x00, 0x0A, 0x00, 0x01, 0x31, 0x00,
+			     0x0C, 0x00, 0x01, 0x33),
+		/*
+		 * mandatory=key10,key11,key12
+		 * key10=1 key11=2
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x06, 0x00, 0x0A, 0x00, 0x0B,
+			     0x00, 0x0C, 0x00, 0x0A, 0x00, 0x01, 0x31, 0x00,
+			     0x0B, 0x00, 0x01, 0x32),
+
+		WIRE_SENTINEL()
+	};
+	textvsunknown_t textvsunknown[] = {
+		/* server-ipv4=1.2.3.4 */
+		{ "server-ipv4=1.2.3.4", "\\# 8 0001000401020304" },
+
+		{ NULL, NULL }
+	};
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_deleg, sizeof(dns_rdata_in_deleg_t));
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_delegparam,
+		    sizeof(dns_rdata_in_delegparam_t));
+
+	check_textvsunknown(textvsunknown, dns_rdataclass_in,
+			    dns_rdatatype_deleg);
+	check_textvsunknown(textvsunknown, dns_rdataclass_in,
+			    dns_rdatatype_delegparam);
+}
+
 ISC_RUN_TEST_IMPL(atcname) {
 	unsigned int i;
 
@@ -3930,6 +4059,7 @@ ISC_RUN_TEST_IMPL(atparent) {
 		bool tf = dns_rdatatype_atparent((dns_rdatatype_t)i);
 		switch (i) {
 		case dns_rdatatype_ds:
+		case dns_rdatatype_deleg:
 			if (!tf) {
 				print_message(UNR, i);
 			}
@@ -3954,6 +4084,7 @@ ISC_RUN_TEST_IMPL(iszonecutauth) {
 		switch (i) {
 		case dns_rdatatype_ns:
 		case dns_rdatatype_ds:
+		case dns_rdatatype_deleg:
 		case dns_rdatatype_nsec:
 		case dns_rdatatype_rrsig:
 			if (!tf) {
@@ -4094,6 +4225,7 @@ ISC_TEST_ENTRY(uri)
 ISC_TEST_ENTRY(wallet)
 ISC_TEST_ENTRY(wks)
 ISC_TEST_ENTRY(zonemd)
+ISC_TEST_ENTRY(deleg)
 
 /* other tests */
 ISC_TEST_ENTRY(edns_client_subnet)

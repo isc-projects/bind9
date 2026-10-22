@@ -1,0 +1,31 @@
+options {
+	{% include_indented "_common/options.conf.j2" %}
+};
+
+{% include "_common/controls.conf.j2" %}
+
+view vwarn {
+	match-clients { @ns.ip@; };
+	zone "example" {
+		type primary;
+		file "example.db";
+	};
+};
+
+view vignore {
+	match-clients { 10.53.0.2; };
+	check-ns ignore;
+	zone "example2" {
+		type primary;
+		file "example.db";
+	};
+};
+
+view vfail {
+	match-clients { 10.53.0.3; };
+	check-ns fail;
+	zone "example3" {
+		type primary;
+		file "example.db";
+	};
+};

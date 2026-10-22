@@ -33,7 +33,12 @@
 enum {
 	DNS_KEYOWNER_ZONE = 1 << 8,  /* zone key (mandatory for DNSKEY). */
 	DNS_KEYFLAG_REVOKE = 1 << 7, /* key revoked (per rfc5011) */
-	DNS_KEYFLAG_ADT = 1 << 1,    /* DELEG */
+	DNS_KEYFLAG_ADT = 1 << 1,    /* authoritative delegation types:
+					zone may contain DELEG.
+					this tells validators that a
+					nonexistence proof for a DELEG
+					record will be included with NS
+					referrals and must be verified. */
 	DNS_KEYFLAG_KSK = 1 << 0,    /* key signing key */
 };
 

@@ -376,7 +376,8 @@ rrset_visible(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
-	result = dns_db_find(db, name, ver, type, DNS_DBFIND_NOWILD,
+	result = dns_db_find(db, name, ver, type,
+			     DNS_DBFIND_NOWILD | DNS_DBFIND_DELEGOK,
 			     (isc_stdtime_t)0, dns_name(&fixed), NULL, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -658,10 +659,10 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 	isc_result_t result;
 	dns_fixedname_t foundname;
 	dns_fixedname_init(&foundname);
-	result = dns_db_find(db, name, ver, dns_rdatatype_any,
-			     DNS_DBFIND_GLUEOK | DNS_DBFIND_NOWILD,
-			     (isc_stdtime_t)0, dns_name(&foundname), NULL,
-			     NULL);
+	result = dns_db_find(
+		db, name, ver, dns_rdatatype_any,
+		DNS_DBFIND_GLUEOK | DNS_DBFIND_DELEGOK | DNS_DBFIND_NOWILD,
+		(isc_stdtime_t)0, dns_name(&foundname), NULL, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_EMPTYNAME) {
 		*flag = true;
 		*cut = false;
@@ -919,8 +920,8 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 static isc_result_t
 add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
-	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-	 isc_stdtime_t now, isc_stdtime_t inception, isc_stdtime_t expire) {
+	 dns_diff_t *diff, dst_key_t **keys, size_t nkeys, isc_stdtime_t now,
+	 isc_stdtime_t inception, isc_stdtime_t expire) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
@@ -929,7 +930,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
 	unsigned char data[DNS_RDATA_MAXLENGTH];
-	unsigned int i;
 	bool added_sig = false;
 	bool use_kasp = false;
 	bool offlineksk = false;
@@ -955,15 +955,32 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 #define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
 #define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ADT(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_ADT) != 0)
 #define ID(x)	  dst_key_id(x)
 #define ALG(x)	  dst_key_alg(x)
+
+	if (type == dns_rdatatype_deleg) {
+		/* Warn if we don't have at least one ADT key */
+		bool adt = false;
+		for (size_t i = 0; i < nkeys; i++) {
+			if (ADT(keys[i])) {
+				adt = true;
+				break;
+			}
+		}
+		if (!adt) {
+			update_log(log, zone, ISC_LOG_WARNING,
+				   "WARNING: signing DELEG but no DNSKEY "
+				   "with the ADT flag is present");
+		}
+	}
 
 	/*
 	 * If we are honoring KSK flags then we need to check that we
 	 * have both KSK and non-KSK keys that are not revoked per
 	 * algorithm.
 	 */
-	for (i = 0; i < nkeys; i++) {
+	for (size_t i = 0; i < nkeys; i++) {
 		bool both = false;
 
 		/* Don't add signatures for offline or inactive keys */
@@ -1215,8 +1232,8 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		dns_rdataset_disassociate(&rdataset);
 
 		/*
-		 * We don't need to sign unsigned NSEC records at the cut
-		 * as they are handled elsewhere.
+		 * We don't need to sign unsigned DS records at the
+		 * zone cut as they are handled elsewhere.
 		 */
 		if ((type == dns_rdatatype_rrsig) ||
 		    (cut && type != dns_rdatatype_ds))
@@ -1594,12 +1611,12 @@ next_state:
 
 		/*
 		 * Find names potentially affected by delegation changes
-		 * (obscured by adding an NS or DNAME, or unobscured by
-		 * removing one).
+		 * (obscured by adding an NS, DNAME or DELEG, or
+		 * unobscured by removing one).
 		 */
 		ISC_LIST_FOREACH(state->diffnames.tuples, t, link) {
-			bool ns_existed, dname_existed;
-			bool ns_exists, dname_exists;
+			bool ns_existed, dname_existed, deleg_existed;
+			bool ns_exists, dname_exists, deleg_exists;
 
 			if (oldver != NULL) {
 				CHECK(rrset_exists(db, oldver, &t->name,
@@ -1615,13 +1632,23 @@ next_state:
 			} else {
 				dname_existed = false;
 			}
+			if (oldver != NULL) {
+				CHECK(rrset_exists(db, oldver, &t->name,
+						   dns_rdatatype_deleg, 0,
+						   &deleg_existed));
+			} else {
+				deleg_existed = false;
+			}
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_ns, 0, &ns_exists));
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_dname, 0,
 					   &dname_exists));
-			if ((ns_exists || dname_exists) ==
-			    (ns_existed || dname_existed))
+			CHECK(rrset_exists(db, newver, &t->name,
+					   dns_rdatatype_deleg, 0,
+					   &deleg_exists));
+			if ((ns_exists || dname_exists || deleg_exists) ==
+			    (ns_existed || dname_existed || deleg_existed))
 			{
 				continue;
 			}
@@ -1807,15 +1834,15 @@ next_state:
 
 		/*
 		 * Find names potentially affected by delegation changes
-		 * (obscured by adding an NS or DNAME, or unobscured by
-		 * removing one).
+		 * (obscured by adding an NS, DNAME or DELEG, or
+		 * unobscured by removing one).
 		 */
 		tuple = ISC_LIST_HEAD(diff->tuples);
 		while (tuple != NULL) {
 			dns_name_t *name = &tuple->name;
 
-			bool ns_existed, dname_existed;
-			bool ns_exists, dname_exists;
+			bool ns_existed, dname_existed, deleg_existed;
+			bool ns_exists, dname_exists, deleg_exists;
 			bool exists, existed;
 
 			if (tuple->rdata.type == dns_rdatatype_nsec ||
@@ -1841,14 +1868,24 @@ next_state:
 			} else {
 				dname_existed = false;
 			}
+			if (oldver != NULL) {
+				CHECK(rrset_exists(db, oldver, name,
+						   dns_rdatatype_deleg, 0,
+						   &deleg_existed));
+			} else {
+				deleg_existed = false;
+			}
 			CHECK(rrset_exists(db, newver, name, dns_rdatatype_ns,
 					   0, &ns_exists));
 			CHECK(rrset_exists(db, newver, name,
 					   dns_rdatatype_dname, 0,
 					   &dname_exists));
+			CHECK(rrset_exists(db, newver, name,
+					   dns_rdatatype_deleg, 0,
+					   &deleg_exists));
 
-			exists = ns_exists || dname_exists;
-			existed = ns_existed || dname_existed;
+			exists = ns_exists || dname_exists || deleg_exists;
+			existed = ns_existed || dname_existed || deleg_existed;
 			if (exists == existed) {
 				goto nextname;
 			}

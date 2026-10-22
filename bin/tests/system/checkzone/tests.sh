@@ -31,6 +31,9 @@ for db in zones/good*.db; do
     zones/good-rpz-prefix.db)
       $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || ret=1
       ;;
+    zones/good-deleg-root.db)
+      $CHECKZONE -i local . $db >test.out.$n 2>&1 || ret=1
+      ;;
     *)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || ret=1
       ;;
@@ -134,7 +137,7 @@ for db in zones/bad*.db; do
       ;;
     zones/bad-svcb-mandatory.db)
       $CHECKZONE -P -i local db $db >test.out.$n 2>&1 || v=$?
-      grep "zones/bad-svcb-mandatory.db:6: near eol: disallowed (by application policy)" test.out.$n >/dev/null || ret=1
+      grep "zones/bad-svcb-mandatory.db:6: near eol: disallowed" test.out.$n >/dev/null || ret=1
       ;;
     zones/bad-svcb-servername.db)
       $CHECKZONE -k fail -i local 0.0.0.0.in-addr.arpa $db >test.out.$n 2>&1 || v=$?
@@ -163,6 +166,14 @@ for db in zones/bad*.db; do
     zones/badttl.db)
       $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
       grep "zones/badttl.db:1: unexpected end of line" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-deleg-apex.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "bad-deleg-apex.db:15: DELEG record at top of zone (example)" test.out.$n >/dev/null || ret=1
+      ;;
+    zones/bad-deleg-into-zone.db)
+      $CHECKZONE -i local example $db >test.out.$n 2>&1 || v=$?
+      grep "DELEG: invalid target name 'ns.sub.example'" test.out.$n >/dev/null || ret=1
       ;;
     *)
       ret=1
@@ -437,6 +448,24 @@ ret=0
 $CHECKZONE example zones/warn.deprecated.key-alg.db >test.out.$n || ret=1
 grep "zone example/IN: example/KEY deprecated algorithm 5 (RSASHA1)" test.out.$n >/dev/null || ret=1
 grep "loaded serial 0 (DNSSEC signed)" test.out.$n >/dev/null || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "Checking for no NS records warning ($n)"
+ret=0
+$CHECKZONE example zones/warn.no-apex-ns.db >test.out.$n || ret=1
+grep "zone example/IN: has no NS records" test.out.$n >/dev/null || ret=1
+grep "OK" test.out.$n >/dev/null || ret=1
+$CHECKZONE -n fail example zones/warn.no-apex-ns.db >/dev/null && ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "Checking DELEG in a non-IN zone ($n)"
+ret=0
+$CHECKZONE example zones/deleg.db >test.out.$n || ret=1
+$CHECKZONE -c chaos example zones/deleg.db >test.out.$n && ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

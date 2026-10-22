@@ -760,6 +760,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->coflag = lookold->coflag;
+	looknew->deflag = lookold->deflag;
 	looknew->raflag = lookold->raflag;
 	looknew->tcflag = lookold->tcflag;
 	looknew->print_unknown_format = lookold->print_unknown_format;
@@ -2380,12 +2381,16 @@ setup_lookup(dig_lookup_t *lookup) {
 
 		/* Set the EDNS flags */
 		unsigned int flags = lookup->ednsflags;
-		flags &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO);
+		flags &= ~(DNS_MESSAGEEXTFLAG_DO | DNS_MESSAGEEXTFLAG_CO |
+			   DNS_MESSAGEEXTFLAG_DE);
 		if (lookup->dnssec) {
 			flags |= DNS_MESSAGEEXTFLAG_DO;
 		}
 		if (lookup->coflag) {
 			flags |= DNS_MESSAGEEXTFLAG_CO;
+		}
+		if (lookup->deflag) {
+			flags |= DNS_MESSAGEEXTFLAG_DE;
 		}
 
 		/* Set the EDNS UDP size */

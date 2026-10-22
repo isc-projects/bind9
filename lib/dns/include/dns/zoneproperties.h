@@ -711,24 +711,6 @@ dns_zone_setzeronosoattl(dns_zone_t *zone, bool state);
  */
 
 void
-dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
-/*%<
- * 	Set the severity of name checking when loading a zone.
- *
- * Require:
- * \li     'zone' to be a valid zone.
- */
-
-dns_severity_t
-dns_zone_getchecknames(dns_zone_t *zone);
-/*%<
- *	Return the current severity of name checking.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-void
 dns_zone_setjournalsize(dns_zone_t *zone, int32_t size);
 /*%<
  *	Sets the journal size for the zone.

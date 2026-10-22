@@ -47,7 +47,7 @@ awk 'END {
 }' </dev/null >>ns1/above-limit.db
 
 cp ns1/empty.db.in ns1/255types.db
-for ntype in $(seq 65280 65534); do
+for ntype in $(seq 65280 65431) $(seq 65434 65534); do
   echo "m TYPE${ntype} \# 0"
 done >>ns1/255types.db
 echo "m TXT bunny" >>ns1/255types.db
