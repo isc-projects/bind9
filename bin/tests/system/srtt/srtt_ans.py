@@ -22,7 +22,7 @@ from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
 
 
-class DelayedQnameRangeHandler(ResponseHandler):
+class DelayedQnameRangeHandler(ResponseHandler, abc.ABC):
     """
     Respond to queries for QNAMEs "foo1.example." through "foo<N>.example."
     with QTYPE=A, where <N> must be defined by the subclass.  Every response is
