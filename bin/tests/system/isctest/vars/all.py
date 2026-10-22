@@ -9,7 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections import ChainMap
+from collections.abc import Iterator, Mapping
+from typing import Any
 
 from .algorithms import ALG_VARS, CRYPTO_SUPPORTED_VARS
 from .basic import BASIC_VARS
@@ -20,37 +21,37 @@ from .openssl import OPENSSL_VARS
 from .ports import PORT_VARS
 
 
-class VarLookup(ChainMap):
+class VarLookup(Mapping[str, Any]):
     """
-    A dictionary-like structure to coalesce the variables from different
-    modules without making a copy (which would prevent updating these values
-    from inside the modules). Values which are None are treated as unset when
+    A read-only mapping to coalesce the variables from different modules
+    without making a copy (which would prevent updating these values from
+    inside the modules). Values which are None are treated as unset when
     iterating.
     """
 
-    def __init__(self, *maps):
-        keys = set()
+    def __init__(self, *maps: Mapping[str, str | None]):
+        keys: set[str] = set()
         for m in maps:
             overlap = keys.intersection(m.keys())
             if overlap:
                 raise RuntimeError(f"key(s) are defined multiple times: {overlap}")
             keys = keys.union(m.keys())
-        super().__init__(*maps)
+        self._maps = maps
 
-    def __setitem__(self, *args, **kwargs):
-        raise RuntimeError("read-only structure")
+    def __getitem__(self, key: str) -> Any:
+        for m in self._maps:
+            if key in m:
+                return m[key]
+        raise KeyError(key)
 
-    def keys(self):
-        result = set()
-        for m in self.maps:
+    def __iter__(self) -> Iterator[str]:
+        for m in self._maps:
             for key, val in m.items():
-                if val is None:  # treat None as unset
-                    continue
-                result.add(key)
-        return list(result)
+                if val is not None:
+                    yield key
 
-    def __iter__(self):
-        return iter(self.keys())
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
 
 
 ALL = VarLookup(

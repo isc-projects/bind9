@@ -11,6 +11,8 @@
 
 from collections.abc import AsyncGenerator
 
+import abc
+
 import dns.edns
 import dns.name
 import dns.rcode
@@ -86,7 +88,7 @@ def _spoofed_a(qctx: QueryContext) -> dns.rrset.RRset:
     )
 
 
-class _SpoofableHandler(ResponseHandler):
+class _SpoofableHandler(ResponseHandler, abc.ABC):
     def __init__(self, evil_server: bool) -> None:
         self.evil_server = evil_server
 

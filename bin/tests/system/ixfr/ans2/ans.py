@@ -84,7 +84,7 @@ class SoaHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class IxfrHandler(ResponseHandler):
+class IxfrHandler(ResponseHandler, abc.ABC):
     @property
     @abc.abstractmethod
     def answer(self) -> Collection[dns.rrset.RRset]:

@@ -67,7 +67,7 @@ class ReclimitStateHandler(ResponseHandler):
         self.indirect_send_response = self._indirect_send_response_default
 
 
-class ReclimitHandler(ResponseHandler):
+class ReclimitHandler(ResponseHandler, abc.ABC):
     """
     Base class for handlers in this test.
 
