@@ -332,7 +332,8 @@ echo_i "checking TTLs of imported DNSKEYs (no default) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl1.example. @10.53.0.3 >dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-(awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n | cat_i) || ret=1
+awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n >awk.out.ns3.test$n || ret=1
+cat_i <awk.out.ns3.test$n
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -341,7 +342,8 @@ echo_i "checking TTLs of imported DNSKEYs (with default) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl2.example. @10.53.0.3 >dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-(awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n | cat_i) || ret=1
+awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n >awk.out.ns3.test$n || ret=1
+cat_i <awk.out.ns3.test$n
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -350,7 +352,8 @@ echo_i "checking TTLs of imported DNSKEYs (mismatched) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl3.example. @10.53.0.3 >dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-(awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n | cat_i) || ret=1
+awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n >awk.out.ns3.test$n || ret=1
+cat_i <awk.out.ns3.test$n
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -359,7 +362,8 @@ echo_i "checking TTLs of imported DNSKEYs (existing RRset) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl4.example. @10.53.0.3 >dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-(awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n | cat_i) || ret=1
+awk 'BEGIN {r=0} $2 != 3600 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n >awk.out.ns3.test$n || ret=1
+cat_i <awk.out.ns3.test$n
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

@@ -17,6 +17,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "activate-now-publish-1day.key",
         "autoksk.key",
         "autozsk.key",
+        "awk.out.*",
         "del.key",
         "delayksk.key",
         "delayzsk.key",
