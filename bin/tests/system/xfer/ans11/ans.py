@@ -11,6 +11,8 @@
 
 from collections.abc import AsyncGenerator
 
+import abc
+
 import dns.flags
 import dns.rcode
 import dns.rdataclass
@@ -110,7 +112,7 @@ class InitialAxfrServed(Matcher):
         return "after the initial AXFR"
 
 
-class TransferHandler(ResponseHandler):
+class TransferHandler(ResponseHandler, abc.ABC):
     """
     Base for the handlers that share a single TransferState.
     """

@@ -48,7 +48,7 @@ class QueryLogHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class EntRcodeChanger(ResponseHandler):
+class EntRcodeChanger(ResponseHandler, abc.ABC):
     """
     Log all received DNS queries to a text file.  Use the zone file for
     preparing responses, but override the RCODE returned for empty
@@ -79,7 +79,7 @@ class EntRcodeChanger(ResponseHandler):
             yield DnsResponseSend(qctx.response)
 
 
-class DelayedResponseHandler(ResponseHandler):
+class DelayedResponseHandler(ResponseHandler, abc.ABC):
     """
     Log all received DNS queries to a text file.  Use the zone file for
     preparing responses, but delay sending every answer by the amount of time
