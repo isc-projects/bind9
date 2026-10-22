@@ -938,7 +938,7 @@ checkprivate secure.optout.example 10.53.0.3 || ret=1
 checkprivate ttl1.example 10.53.0.3 || ret=1
 checkprivate ttl2.example 10.53.0.3 || ret=1
 checkprivate ttl3.example 10.53.0.3 || ret=1
-checkprivate ttl4.example 10.53.0.3 || ret=1
+checkprivate ttl4.example 10.53.0.3 2 || ret=1 # DNSKEYs in zone file
 n=$((n + 1))
 status=$((status + ret))
 
@@ -1298,10 +1298,10 @@ pub=$(grep "DNSKEY .* is now published" ns3/named.run | grep -v "CDNSKEY" | wc -
 act=$(grep "DNSKEY .* is now active" ns3/named.run | wc -l)
 if [ $RSASHA1_SUPPORTED = 1 ]; then
   # Include two log lines for nsec-only zone.
-  [ "$pub" -eq 53 ] || ret=1
+  [ "$pub" -eq 51 ] || ret=1
   [ "$act" -eq 54 ] || ret=1
 else
-  [ "$pub" -eq 51 ] || ret=1
+  [ "$pub" -eq 49 ] || ret=1
   [ "$act" -eq 52 ] || ret=1
 fi
 rev=$(grep "DNSKEY .* is now revoked" ns3/named.run | wc -l)
