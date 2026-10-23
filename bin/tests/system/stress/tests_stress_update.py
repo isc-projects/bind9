@@ -56,7 +56,7 @@ def test_update_stress(ns3):
     test_state = {"finished": False}
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.submit(rndc_loop, test_state, ns3)
+        reloader = executor.submit(rndc_loop, test_state, ns3)
 
         updaters = []
         for i in range(5):
@@ -73,3 +73,7 @@ def test_update_stress(ns3):
         test_state["finished"] = True
 
     assert not unfinished_tasks
+
+    # Re-raise any exception that ended a task early.
+    for task in [reloader] + updaters:
+        task.result()
