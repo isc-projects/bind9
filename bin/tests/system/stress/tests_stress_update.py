@@ -52,11 +52,11 @@ def update_zone(test_state, zone):
 
 
 # If the test has run to completion without named crashing, it has succeeded.
-def test_update_stress():
+def test_update_stress(ns3):
     test_state = {"finished": False}
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.submit(rndc_loop, test_state, "10.53.0.3")
+        reloader = executor.submit(rndc_loop, test_state, ns3)
 
         updaters = []
         for i in range(5):
@@ -73,3 +73,7 @@ def test_update_stress():
         test_state["finished"] = True
 
     assert not unfinished_tasks
+
+    # Re-raise any exception that ended a task early.
+    for task in [reloader] + updaters:
+        task.result()
