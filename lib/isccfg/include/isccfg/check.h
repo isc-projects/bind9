@@ -32,20 +32,17 @@
 #define MAX_MAX_NCACHE_TTL 7 * 24 * 3600
 #endif /* MAX_MAX_NCACHE_TTL */
 
-#define BIND_CHECK_PLUGINS 0x00000001
-/*%<
- * Check the plugin configuration.
- */
-#define BIND_CHECK_ALGORITHMS 0x00000002
-/*%<
- * Check the dnssec-policy DNSSEC algorithms against those
- * supported by the crypto provider.
- */
-#define BIND_CHECK_KEYS 0x00000004
-/*%<
- * Check the dnssec-policy DNSSEC keys against the key files
- * in the key stores.
- */
+enum {
+	BIND_CHECK_PLUGINS = 1 << 0,	/* Check the plugin configuration */
+	BIND_CHECK_ALGORITHMS = 1 << 1, /* Check the dnssec-policy DNSSEC
+					 * algorithms against those supported
+					 * by the crypto provider. */
+	BIND_CHECK_KEYS = 1 << 2,	/* Check the dnssec-policy DNSSEC keys
+					 * against the key files in the key
+					 * stores. */
+	BIND_CHECK_DEPRECATED = 1 << 3, /* Check for deprecated parameters
+					 * to options */
+};
 
 isc_result_t
 isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
