@@ -236,6 +236,16 @@ matches the rendering server) and the validating resolver's with
 (`trusted.conf.j2` emits `trust-anchors` from the `trust_anchors` data, and
 `root.hint.conf` points the resolver at ns1 for the root zone).
 
+The generated `zone` block holds only the zone's `type` and its `file`
+(`server-addresses` for a `static-stub` zone).  Further zone statements
+passed in `options` are copied into the block verbatim, each terminated
+with `;`:
+
+```python
+zone = Zone("example", NS2, options=["allow-update { 10.53.0.1; }"])
+zone.configure()
+```
+
 The `dnssec_py` directory is the canonical example of this pattern,
 including several modules with different zone setups sharing one directory.
 Declare the generated files as artifacts:
