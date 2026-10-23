@@ -34,21 +34,21 @@ Paste the output of `named -V` here.
 <!--
 Is a specific setup needed?
 
-Please check the BIND Security Assumptions chapter in the ARM:
-https://bind9.readthedocs.io/en/latest/chapter7.html#security-assumptions
+Please check the Threat Model section in the ARM:
+https://bind9.readthedocs.io/en/latest/chapter7.html#threat-model
 
 E.g. DNSSEC validation must be disabled, etc.
 E.g. Resolver must be configured to forward to attacker's server via DNS-over-TLS, etc.
 E.g. Authoritative server must be configured to transfer specific primary zone.
-E.g. Attacker must be in posession of a key authorized to modify at least one zone.
-E.g. Attacker can affect system clock on the server running BIND.
+E.g. Attacker must be in possession of a key authorized to modify at least one zone.
+E.g. Attacker can shift the system clock on the server running BIND, e.g., via NTP.
 -->
 
 ### Attacker's abilities
 <!--
 What resources does an attacker need to have under their control to mount this attack?
 
-E.g. If attacking an authoritative server, does the attacked have to have prior
+E.g. If attacking an authoritative server, does the attacker have to have prior
 relationship with it? "The authoritative server under attack needs to
 transfer a malicious zone from attacker's authoritative server via TLS."
 
@@ -68,12 +68,16 @@ If the affected party is the BIND server itself, please quantify the impact
 on legitimate clients:
 E.g. After launching the attack, the answers-per-second metric for legitimate
 traffic drops to 1/1000 within the first minute of the attack.
+
+Compare the impact with the Threat Model baselines over the same transport.
 -->
 
 
 ### Steps to reproduce
 <!--
 This is extremely important! Be precise and use itemized lists, please.
+Source code analysis alone is not sufficient; provide a reproducer against a
+released version.
 
 Even if a default configuration is affected, please include the full configuration
 files _you were testing with_.
