@@ -23,6 +23,8 @@ import dns.query
 import dns.zone
 import pytest
 
+from isctest.util import newer_mtime
+
 import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
@@ -38,9 +40,8 @@ pytestmark = pytest.mark.extra_artifacts(
 
 
 def test_xferquota(named_port, servers):
-    # Changing test zone ensuring that the time stamp changes
-    time.sleep(1)
-    shutil.copyfile("ns1/changing2.db", "ns1/changing.db")
+    with newer_mtime("ns1/changing.db"):
+        shutil.copyfile("ns1/changing2.db", "ns1/changing.db")
     with open("ns1/named.pid", "r", encoding="utf-8") as pidfile:
         pid = int(pidfile.read())
     os.kill(pid, signal.SIGHUP)
