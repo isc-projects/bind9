@@ -90,7 +90,7 @@ confidential!
   - [ ] [:grey_question:][step_clearance]         **(SwEng)** Grant QA & Marketing clearance to proceed with public release
   - [ ] [:grey_question:][step_bump_advisory]     **(Support)** Bump Document Version for the Security Advisory in Printing Press
   - [ ] [:grey_question:][step_publish_advisory]  **(Support)** Knowledge Base: Publish the Security Advisory as a new article
-  - [ ] [:grey_question:][step_matrix]            **(Support)** Knowledge Base: Add the CVE to the full list and (for BIND) the matrix
+  - [ ] [:grey_question:][step_matrix]            **(Support)** Knowledge Base: Add the CVE to the full list and (for BIND) the matrix. Also add the new releases to the vulnerability matrix (as outlined in the release checklist)
   - [ ] [:grey_question:][step_publish]           **(QA/Marketing)** Publish the releases (as outlined in the release checklist)
   - [ ] [:grey_question:][step_notifications]     **(QA)** Send notification emails to third parties
   - [ ] [:grey_question:][step_mitre]             **(QA)** Advise MITRE about the disclosed CVEs
