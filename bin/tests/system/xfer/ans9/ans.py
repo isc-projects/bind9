@@ -32,6 +32,7 @@ from isctest.asyncserver.matchers import Qname, Qtype
 TTL = 300
 
 RECONFIG_ZONE = "xfr-and-reconfig."
+RETRY_ZONE = "retry-too-big."
 OVERRUN_ZONE = "private-dns-overrun."
 
 # The malformed DNSKEY's algorithm identifier finishes on a 00 byte in the
@@ -130,6 +131,17 @@ class ReconfigAxfrHandler(ZoneAxfrHandler):
         ]
 
 
+class RetryAxfrHandler(ZoneAxfrHandler):
+    zone = RETRY_ZONE
+
+    @property
+    def zone_contents(self) -> Collection[dns.rrset.RRset]:
+        return [
+            ns(self.zone),
+            txt(self.zone),
+        ]
+
+
 class OverrunAxfrHandler(ZoneAxfrHandler):
     """
     Serve the malformed PRIVATEDNS DNSKEY overrun; see OVERRUN_DNSKEY.
@@ -157,6 +169,7 @@ def main() -> None:
         SoaHandler(serials),
         OverrunAxfrHandler(serials),
         ReconfigAxfrHandler(serials),
+        RetryAxfrHandler(serials),
     )
     server.run()
 

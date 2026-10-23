@@ -71,6 +71,14 @@ zone "axfr-too-big" {
 	file "axfr-too-big.bk";
 };
 
+zone "retry-too-big" {
+	type secondary;
+	max-records 30;
+	primaries { 10.53.0.1; 10.53.0.9; };
+	file "retry-too-big.bk";
+	request-ixfr no; # ans9 supports only axfr
+};
+
 zone "ixfr-too-big" {
 	type secondary;
 	max-records 30;

@@ -55,6 +55,11 @@ zone "axfr-too-big" {
 	file "axfr-too-big.db";
 };
 
+zone "retry-too-big" {
+	type primary;
+	file "retry-too-big.db";
+};
+
 zone "ixfr-too-big" {
 	type primary;
 	allow-update { any; };
