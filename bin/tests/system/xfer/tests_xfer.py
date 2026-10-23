@@ -23,7 +23,7 @@ import dns.tsig
 import dns.zone
 import pytest
 
-from isctest.util import param
+from isctest.util import newer_mtime, param
 
 import isctest
 
@@ -165,7 +165,10 @@ def test_zone_is_dumped_after_transfer(ns1, ns2, ns3, ns6, ns7):
         "ns6/primary.db",
         "ns7/primary2.db",
     ]:
-        with fileinput.FileInput(zone_file, inplace=True) as file:
+        with (
+            newer_mtime(zone_file),
+            fileinput.FileInput(zone_file, inplace=True) as file,
+        ):
             for line in file:
                 print(
                     line.replace(" 0.0.0.0", " 0.0.0.1").replace(
