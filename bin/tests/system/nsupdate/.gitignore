@@ -3,3 +3,4 @@
 # there is little point in keeping the certificate requests
 # for the issued certificates
 /CA/certs/*.csr
+dhparam3072.pem

@@ -1,3 +1,4 @@
+dhparam3072.pem
 gnutls-cli.*
 ns*/example.db
 ns*/named.conf

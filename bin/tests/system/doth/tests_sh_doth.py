@@ -15,6 +15,7 @@ import isctest.mark
 
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
+        "dhparam3072.pem",
         "dig.out.*",
         "ns*/example*.db",
         "ns1/named.sslkeylogfile",

@@ -20,9 +20,10 @@ import isctest.mark
 
 EXTRA_ARTIFACTS = pytest.mark.extra_artifacts(
     [
-        "sslyze.log.*",
+        "dhparam3072.pem",
         "ns*/example*.db",
         "ns1/named.sslkeylogfile",
+        "sslyze.log.*",
     ]
 )
 

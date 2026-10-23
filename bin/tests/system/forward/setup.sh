@@ -13,6 +13,12 @@
 
 . ../conf.sh
 
+if $FEATURETEST --have-openssl-1.0.x; then
+  cp dhparam3072.openssl_1.0.x.pem.in dhparam3072.pem
+else
+  cp dhparam3072.pem.in dhparam3072.pem
+fi
+
 (
   cd ns1
   $SHELL sign.sh

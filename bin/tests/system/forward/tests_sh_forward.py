@@ -13,6 +13,7 @@ import pytest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
+        "dhparam3072.pem",
         "dig.out.*",
         "statschannel.out.*",
         "ns*/trusted.conf",

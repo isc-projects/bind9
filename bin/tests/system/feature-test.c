@@ -47,6 +47,7 @@ usage(void) {
 	fprintf(stderr, "\t--gssapi\n");
 	fprintf(stderr, "\t--have-fips-dh\n");
 	fprintf(stderr, "\t--have-fips-mode\n");
+	fprintf(stderr, "\t--have-openssl-1.0.x\n");
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
@@ -165,6 +166,14 @@ main(int argc, char **argv) {
 		return 0;
 #else
 		return isc_fips_mode() ? 0 : 1;
+#endif
+	}
+
+	if (strcmp(argv[1], "--have-openssl-1.0.x") == 0) {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		return 1;
+#else
+		return 0;
 #endif
 	}
 

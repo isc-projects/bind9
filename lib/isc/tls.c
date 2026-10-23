@@ -333,6 +333,19 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 					 SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
 #endif
 
+#if defined(SSL_CTX_set_ecdh_auto)
+	/*
+	 * Using this macro is required for older versions of OpenSSL to
+	 * automatically enable ECDH support.  Without it, OpenSSL 1.0.2
+	 * offers no ECDHE cipher suites, which leaves servers using an EC
+	 * certificate with only static ECDH, which modern clients refuse.
+	 *
+	 * On later versions this function is no longer needed and is
+	 * deprecated.
+	 */
+	(void)SSL_CTX_set_ecdh_auto(ctx, 1);
+#endif /* defined(SSL_CTX_set_ecdh_auto) */
+
 	if (ephemeral) {
 		const int group_nid = NID_X9_62_prime256v1;
 
@@ -367,17 +380,6 @@ isc_tlsctx_createserver(const char *keyfile, const char *certfile,
 		EC_KEY_set_conv_form(pkey->pkey.ec,
 				     POINT_CONVERSION_UNCOMPRESSED);
 #endif /* HAVE_EVP_PKEY_GET0_EC_KEY */
-
-#if defined(SSL_CTX_set_ecdh_auto)
-		/*
-		 * Using this macro is required for older versions of OpenSSL to
-		 * automatically enable ECDH support.
-		 *
-		 * On later versions this function is no longer needed and is
-		 * deprecated.
-		 */
-		(void)SSL_CTX_set_ecdh_auto(ctx, 1);
-#endif /* defined(SSL_CTX_set_ecdh_auto) */
 
 		/* Cleanup */
 		EC_KEY_free(eckey);

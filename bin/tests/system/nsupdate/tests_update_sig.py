@@ -45,6 +45,7 @@ import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
+        "dhparam3072.pem",
         "ns*/*.bk",
         "ns*/*.conf",
         "ns*/*.db",
