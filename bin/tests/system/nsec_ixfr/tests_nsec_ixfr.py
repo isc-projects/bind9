@@ -23,6 +23,8 @@ import shutil
 import dns.name
 import dns.rdatatype
 
+from isctest.util import newer_mtime
+
 import isctest
 
 ORIGIN = dns.name.from_text("example.")
@@ -44,7 +46,8 @@ def test_nsec_ixfr_empty_nonterminal(ns1, ns2):
     isctest.query.wait_for_serial(ns2.ip, "example", 1)
 
     # Step 2: Replace the zone on ns1 with the signed version and reload.
-    shutil.copy("ns1/example.db.signed", "ns1/example.db")
+    with newer_mtime("ns1/example.db"):
+        shutil.copy("ns1/example.db.signed", "ns1/example.db")
     ns1.rndc("reload")
 
     # Step 3: Wait for ns2 to get the signed zone via IXFR.
