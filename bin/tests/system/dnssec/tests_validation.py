@@ -19,7 +19,7 @@ from dns.edns import EDECode
 
 import pytest
 
-from isctest.util import param
+from isctest.util import newer_mtime, param
 
 import isctest
 import isctest.mark
@@ -925,9 +925,9 @@ def test_validation_recovery(ns2, ns4):
         watcher.wait_for_line("10.53.0.100")
 
     # then reload server with properly signed zone
-    shutil.copyfile(
-        "ns2/peer.peer-ns-spoof.db.next", "ns2/peer.peer-ns-spoof.db.signed"
-    )
+    zone_file = "ns2/peer.peer-ns-spoof.db.signed"
+    with newer_mtime(zone_file):
+        shutil.copyfile("ns2/peer.peer-ns-spoof.db.next", zone_file)
     with ns2.watch_log_from_here() as watcher:
         ns2.rndc("reload peer.peer-ns-spoof")
         watcher.wait_for_line("zone peer.peer-ns-spoof/IN: loaded serial 2000042408")
@@ -946,9 +946,9 @@ def test_validation_recovery(ns2, ns4):
     isctest.check.rr_count_eq(res.answer, 2)
 
     # then reload server with properly signed zone
-    shutil.copyfile(
-        "ns2/dnskey-rrsigs-stripped.db.next", "ns2/dnskey-rrsigs-stripped.db.signed"
-    )
+    zone_file = "ns2/dnskey-rrsigs-stripped.db.signed"
+    with newer_mtime(zone_file):
+        shutil.copyfile("ns2/dnskey-rrsigs-stripped.db.next", zone_file)
     with ns2.watch_log_from_here() as watcher:
         ns2.rndc("reload dnskey-rrsigs-stripped")
         watcher.wait_for_line(
@@ -970,9 +970,9 @@ def test_validation_recovery(ns2, ns4):
     isctest.check.rr_count_eq(res.answer, 1)
 
     # then reload server with properly signed zone
-    shutil.copyfile(
-        "ns2/ds-rrsigs-stripped.db.next", "ns2/ds-rrsigs-stripped.db.signed"
-    )
+    zone_file = "ns2/ds-rrsigs-stripped.db.signed"
+    with newer_mtime(zone_file):
+        shutil.copyfile("ns2/ds-rrsigs-stripped.db.next", zone_file)
     with ns2.watch_log_from_here() as watcher:
         ns2.rndc("reload ds-rrsigs-stripped")
         watcher.wait_for_line("zone ds-rrsigs-stripped/IN: loaded serial 2000042408")
