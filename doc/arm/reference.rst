@@ -5646,13 +5646,17 @@ zone; there are no delegations.
    With a redirect namespace (``option { nxdomain-redirect <suffix> };``),
    the data used to replace the NXDOMAIN is part of the normal namespace
    and is looked up by appending the specified suffix to the original
-   query name. This roughly doubles the cache required to process
+   query name.
+
+   Records with special processing like CNAME, DNAME, NS are not supported.
+
+   This feature roughly doubles the cache required to process
    NXDOMAIN responses, as both the original NXDOMAIN response and the
    replacement data (or an NXDOMAIN indicating that there is no
    replacement) must be stored.
 
 If both a redirect zone and a redirect namespace are configured, the
-redirect zone is tried first.
+:any:`redirect zone <type redirect>` is tried first.
 
 ``server`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -7136,8 +7140,8 @@ Zone Types
    Spanish names (under COM.ES), use wildcard entries
    called ``*.COM.ES.``.
 
-   Note that the redirect zone supports all possible types; it is not
-   limited to A and AAAA records.
+   Note that while the redirect zone supports A, AAAA and other ordinary types,
+   records with special behavior including CNAME, DNAME, NS are not supported.
 
    If a redirect zone is configured with a :any:`primaries` option, then it is
    transferred in as if it were a secondary zone. Otherwise, it is loaded from a
@@ -7149,6 +7153,8 @@ Zone Types
    redirect zone configured as a secondary, use :option:`rndc retransfer -redirect <rndc retransfer>`.
    When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
+
+   See also `NXDOMAIN Redirection`_.
 
    Redirect zones are deprecated, and will be removed in a future release.
 
