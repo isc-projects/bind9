@@ -57,6 +57,7 @@ EXTRA_DIST =					\
 	rpz.inc.rst				\
 	security.inc.rst			\
 	sig0.inc.rst				\
+	threat-model.inc.rst			\
 	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
 	zones.inc.rst				\
