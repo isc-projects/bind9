@@ -111,6 +111,7 @@ stages:
   - system
   - performance
   - docs
+  - packages
   - postmerge
   - release
 
@@ -976,6 +977,70 @@ tarball-create:
       - diff.patch
       - build/meson-dist/*.tar.xz
   needs: []
+
+# Jobs building RPM packages in mock from the "tarball-create" artifacts
+#
+# The packaging sources (spec file et al.) and the Makefile driving mock are
+# taken from the public bind-rpms repository.  The isc-bind-* dependency
+# packages (jemalloc, libuv, fstrm, protobuf, ...) are provided by the Copr
+# repository of the BIND edition being built.  The built packages are then
+# installed into a pristine mock chroot and smoke-tested ("make check").
+#
+# The trailing part of the RPM Release field is derived from the pipeline
+# creation time, so packages built by a later pipeline are always considered
+# newer by RPM than packages built by an earlier one.
+#
+# Each of these jobs downloads several hundred megabytes from external
+# services, which is why they only run automatically in scheduled pipelines.
+
+.rpms: &rpms_job
+  <<: *linux_amd64
+  stage: packages
+  image: registry.gitlab.isc.org/isc-projects/images/packager:rpm
+  rules:
+    - *rule_mr_manual
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|trigger|web)$/ && $REBASE_ONLY != "1"'
+      when: manual
+      allow_failure: true
+  needs:
+    - job: tarball-create
+      artifacts: true
+  script:
+    # The packager image appends a Cloudsmith repository definition with
+    # @...@ placeholders (substituted only by the private bind-rpms CI) to
+    # the mock chroot configs; edit that block out so that dnf inside mock
+    # does not choke on it.
+    - sed -i "/^config_opts\['yum.conf'\] += '''/,/'''$/d" /etc/mock/${TARGET_OS}.cfg
+    - git clone --depth 1 https://gitlab.isc.org/isc-packages/rpms/bind.git bind-rpms
+    - >
+      make -C bind-rpms rpms/${TARGET_OS} check/${TARGET_OS}
+      SOURCE_URL="$(readlink -e build/meson-dist/bind-*.tar.xz)"
+      PACKAGE_REVISION="$(date --utc --date "${CI_PIPELINE_CREATED_AT}" +%Y%m%d%H%M%S).git${CI_COMMIT_SHORT_SHA}"
+      DEPENDENCY_REPO_URL="https://download.copr.fedorainfracloud.org/results/isc/bind-dev/${TARGET_OS#alma+}/"
+  artifacts:
+    paths:
+      - bind-rpms/${TARGET_OS}/
+    # On success, the artifacts are the built RPMs.  When the build fails,
+    # the same directory holds the mock logs instead, so upload it in either
+    # case.
+    when: always
+    expire_in: 1 week
+
+rpms:el8:amd64:
+  <<: *rpms_job
+  variables:
+    TARGET_OS: alma+epel-8-x86_64
+
+rpms:el9:amd64:
+  <<: *rpms_job
+  variables:
+    TARGET_OS: alma+epel-9-x86_64
+
+rpms:el10:amd64:
+  <<: *rpms_job
+  variables:
+    TARGET_OS: alma+epel-10-x86_64
 
 # Jobs for doc builds on Debian 13 "trixie" (amd64)
 
