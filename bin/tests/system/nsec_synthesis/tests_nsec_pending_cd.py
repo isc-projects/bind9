@@ -75,37 +75,24 @@ def _query(server, qname, qtype, cd=False, dnssec=True):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _has_a(response, owner, address):
-    rrset = _rrset(response, response.answer, owner, dns.rdatatype.A)
+    rrset = response.get_rrset(
+        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
+    )
     return rrset is not None and any(rdata.address == address for rdata in rrset)
 
 
 def _check_attacker_nsec(response, section):
-    nsec = _rrset(response, section, f"{ATTACKER}", dns.rdatatype.NSEC)
+    nsec = response.get_rrset(
+        section, f"{ATTACKER}", dns.rdataclass.IN, dns.rdatatype.NSEC
+    )
     assert nsec is not None, response.to_text()
     assert nsec[0].next == dns.name.from_text(POISON_NEXT), response.to_text()
 
-    rrsig = _rrset(
-        response,
+    rrsig = response.get_rrset(
         section,
         f"{ATTACKER}",
+        dns.rdataclass.IN,
         dns.rdatatype.RRSIG,
         covers=dns.rdatatype.NSEC,
     )
@@ -135,14 +122,24 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert _rrset(response, response.authority, ATTACKER, dns.rdatatype.NSEC) is None
+    assert (
+        response.get_rrset(
+            response.authority, ATTACKER, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is None
+    )
 
     # Step 4: Exploit Against Stub Client
     response = _query(RESOLVER, VICTIM, "A", dnssec=False)
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert _rrset(response, response.authority, ATTACKER, dns.rdatatype.NSEC) is None
+    assert (
+        response.get_rrset(
+            response.authority, ATTACKER, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is None
+    )
 
     # Step 5: Verify Upstream Queries
     with open("ans1/ans.run", "r", encoding="utf-8") as file:

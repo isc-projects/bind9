@@ -74,37 +74,22 @@ def _query(server, qname, qtype, cd=False, dnssec=True):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _has_a(response, owner, address):
-    rrset = _rrset(response, response.answer, owner, dns.rdatatype.A)
+    rrset = response.get_rrset(
+        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
+    )
     return rrset is not None and any(rdata.address == address for rdata in rrset)
 
 
 def _check_forged_nsec(response, section):
-    nsec = _rrset(response, section, VICTIM, dns.rdatatype.NSEC)
+    nsec = response.get_rrset(section, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC)
     assert nsec is not None, response.to_text()
     assert nsec[0].next == dns.name.from_text(POISON_NEXT), response.to_text()
 
-    rrsig = _rrset(
-        response,
+    rrsig = response.get_rrset(
         section,
         VICTIM,
+        dns.rdataclass.IN,
         dns.rdatatype.RRSIG,
         covers=dns.rdatatype.NSEC,
     )
@@ -142,5 +127,15 @@ def test_pending_exact_nodata_nsec_cache_poisoning():
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert _rrset(response, response.answer, VICTIM, dns.rdatatype.NSEC) is None
-    assert _rrset(response, response.authority, VICTIM, dns.rdatatype.NSEC) is None
+    assert (
+        response.get_rrset(
+            response.answer, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is None
+    )
+    assert (
+        response.get_rrset(
+            response.authority, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is None
+    )

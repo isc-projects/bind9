@@ -93,37 +93,24 @@ def _query(server, qname, qtype):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _has_a(response, owner, address):
-    rrset = _rrset(response, response.answer, owner, dns.rdatatype.A)
+    rrset = response.get_rrset(
+        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
+    )
     return rrset is not None and any(rdata.address == address for rdata in rrset)
 
 
 def _check_child_self_loop_nsec(response):
-    nsec = _rrset(response, response.authority, CHILD, dns.rdatatype.NSEC)
+    nsec = response.get_rrset(
+        response.authority, CHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
+    )
     assert nsec is not None, response.to_text()
     assert nsec[0].next == dns.name.from_text(CHILD), response.to_text()
 
-    rrsig = _rrset(
-        response,
+    rrsig = response.get_rrset(
         response.authority,
         CHILD,
+        dns.rdataclass.IN,
         dns.rdatatype.RRSIG,
         covers=dns.rdatatype.NSEC,
     )
@@ -148,4 +135,9 @@ def test_resolver_does_not_synth_parent_nxdomain_from_child_nsec():
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert _rrset(response, response.authority, CHILD, dns.rdatatype.NSEC) is None
+    assert (
+        response.get_rrset(
+            response.authority, CHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is None
+    )
