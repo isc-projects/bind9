@@ -387,7 +387,15 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 		result = isccc_cc_lookupuint32(data, "result", &eresult);
 		if (result == ISC_R_SUCCESS) {
-			printf("%s %u\n", isc_result_toid(eresult), eresult);
+			char *tmp = NULL;
+			const char *errid;
+			result = isccc_cc_lookupstring(data, "errid", &tmp);
+			if (result != ISC_R_SUCCESS) {
+				errid = "UNKNOWN";
+			} else {
+				errid = tmp;
+			}
+			printf("%s %u\n", errid, eresult);
 		} else {
 			printf("NONE -1\n");
 		}
