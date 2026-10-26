@@ -69,11 +69,6 @@ def bootstrap():
     return {"DNSKEY": dnskey}
 
 
-def _query(server, qname, qtype, cd=False, dnssec=True):
-    query = isctest.query.create(qname, qtype, cd=cd, dnssec=dnssec)
-    return isctest.query.tcp(query, server)
-
-
 def _has_a(response, owner, address):
     rrset = response.get_rrset(
         response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
@@ -110,20 +105,20 @@ def test_pending_exact_nodata_nsec_cache_poisoning():
     victim's real A record.
     """
     # Prime the zone SOA (and the DNSKEY as a subquery) at secure trust.
-    soa = _query(RESOLVER, F004_ZONE, "SOA")
+    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), RESOLVER)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Inject a forged NSEC owned by the victim name via a CD=1 query; it is
     # cached at pending trust on the victim node.
-    poison = _query(RESOLVER, VICTIM, "NSEC", cd=True)
+    poison = isctest.query.tcp(isctest.query.create(VICTIM, "NSEC", cd=True), RESOLVER)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
     _check_forged_nsec(poison, poison.answer)
 
     # Query the victim's A record. The pending NSEC must not be used to
     # synthesize a NODATA; the resolver fetches and validates the real A.
-    response = _query(RESOLVER, VICTIM, "A")
+    response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)

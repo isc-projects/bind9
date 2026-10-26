@@ -72,11 +72,6 @@ def bootstrap():
     return {"DNSKEY": dnskey}
 
 
-def _query(server, qname, qtype):
-    query = isctest.query.create(qname, qtype)
-    return isctest.query.tcp(query, server)
-
-
 def _has_a(response, owner, address):
     rrset = response.get_rrset(
         response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
@@ -102,17 +97,17 @@ def _check_malicious_nsec(response, section):
 
 
 def _prime_parent_for_aggressive_nsec():
-    soa = _query(RESOLVER, F023_ZONE, "SOA")
+    soa = isctest.query.tcp(isctest.query.create(F023_ZONE, "SOA"), RESOLVER)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
-    nsec = _query(RESOLVER, F023_ZONE, "NSEC")
+    nsec = isctest.query.tcp(isctest.query.create(F023_ZONE, "NSEC"), RESOLVER)
     isctest.check.noerror(nsec)
     isctest.check.adflag(nsec)
 
 
 def test_direct_insecure_child_nsec_next_fixture():
-    poison = _query(AUTH, POISON, "NSEC")
+    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), AUTH)
     isctest.check.noerror(poison)
     assert poison.flags & dns.flags.AA
     _check_malicious_nsec(poison, poison.answer)
@@ -121,12 +116,12 @@ def test_direct_insecure_child_nsec_next_fixture():
 def test_resolver_does_not_synth_from_insecure_child_nsec():
     _prime_parent_for_aggressive_nsec()
 
-    poison = _query(RESOLVER, POISON, "NSEC")
+    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), RESOLVER)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
     _check_malicious_nsec(poison, poison.answer)
 
-    response = _query(RESOLVER, TARGET, "A")
+    response = isctest.query.tcp(isctest.query.create(TARGET, "A"), RESOLVER)
     isctest.check.noerror(response)
     assert _has_a(response, TARGET, TARGET_A), response.to_text()
     isctest.check.adflag(response)
