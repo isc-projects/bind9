@@ -74,39 +74,28 @@ def bootstrap():
     }
 
 
-def _check_signer(response, section, owner, covered, signer):
-    rrsig = response.get_rrset(
-        section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=covered
+def _check_nsec_signer(response, owner, signer):
+    text = response.to_text()
+    nsec = response.get_rrset(
+        response.authority, owner, dns.rdataclass.IN, dns.rdatatype.NSEC
     )
-    assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(signer), response.to_text()
+    rrsig = response.get_rrset(
+        response.authority,
+        owner,
+        dns.rdataclass.IN,
+        dns.rdatatype.RRSIG,
+        covers=dns.rdatatype.NSEC,
+    )
+    assert nsec and rrsig, text
+    assert rrsig[0].signer == dns.name.from_text(signer), text
 
 
 def test_forged_response_contains_cross_zone_nsec():
     response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), AUTH)
     isctest.check.nxdomain(response)
 
-    assert response.get_rrset(
-        response.authority, ATTACKER_NSEC_OWNER, dns.rdataclass.IN, dns.rdatatype.NSEC
-    )
-    _check_signer(
-        response,
-        response.authority,
-        ATTACKER_NSEC_OWNER,
-        dns.rdatatype.NSEC,
-        ATTACKER,
-    )
-
-    assert response.get_rrset(
-        response.authority, VICTIM_NSEC_OWNER, dns.rdataclass.IN, dns.rdatatype.NSEC
-    )
-    _check_signer(
-        response,
-        response.authority,
-        VICTIM_NSEC_OWNER,
-        dns.rdatatype.NSEC,
-        VICTIM,
-    )
+    _check_nsec_signer(response, ATTACKER_NSEC_OWNER, ATTACKER)
+    _check_nsec_signer(response, VICTIM_NSEC_OWNER, VICTIM)
 
 
 def test_resolver_rejects_cross_zone_nowildcard_proof():
@@ -132,7 +121,7 @@ def test_valid_wildcard_still_validates():
     answer = response.get_rrset(
         response.answer, CONTROL, dns.rdataclass.IN, dns.rdatatype.A
     )
-    assert answer is not None, response.to_text()
+    assert answer, response.to_text()
     assert any(rdata.address == CONTROL_A for rdata in answer), response.to_text()
 
 
@@ -140,4 +129,4 @@ def test_valid_wildcard_nodata_still_validates():
     response = isctest.query.tcp(isctest.query.create(CONTROL_NODATA, "AAAA"), RESOLVER)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
-    isctest.check.rr_count_eq(response.answer, 0)
+    assert not response.answer, response.to_text()
