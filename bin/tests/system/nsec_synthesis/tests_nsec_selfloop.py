@@ -12,12 +12,10 @@
 from pathlib import Path
 
 import dns.flags
-import dns.name
-import dns.rdataclass
-import dns.rdatatype
 import pytest
 
 from isctest.run import EnvCmd
+from nsec_synthesis.common import check_nsec, get_nsec, has_a
 
 import isctest
 
@@ -88,51 +86,21 @@ victim A {VICTIM_A}
     }
 
 
-def _has_a(response, owner, address):
-    rrset = response.get_rrset(
-        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
-    )
-    return rrset is not None and any(rdata.address == address for rdata in rrset)
-
-
-def _check_child_self_loop_nsec(response):
-    nsec = response.get_rrset(
-        response.authority, CHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
-    )
-    assert nsec is not None, response.to_text()
-    assert nsec[0].next == dns.name.from_text(CHILD), response.to_text()
-
-    rrsig = response.get_rrset(
-        response.authority,
-        CHILD,
-        dns.rdataclass.IN,
-        dns.rdatatype.RRSIG,
-        covers=dns.rdatatype.NSEC,
-    )
-    assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(CHILD), response.to_text()
-
-
 def test_direct_child_self_loop_nsec_fixture():
     response = isctest.query.tcp(isctest.query.create(PROBE, "A"), AUTH)
     isctest.check.nxdomain(response)
     assert response.flags & dns.flags.AA
-    _check_child_self_loop_nsec(response)
+    check_nsec(response, response.authority, CHILD, CHILD, CHILD)
 
 
 def test_resolver_does_not_synth_parent_nxdomain_from_child_nsec():
     poison = isctest.query.tcp(isctest.query.create(PROBE, "A"), RESOLVER)
     isctest.check.nxdomain(poison)
     isctest.check.adflag(poison)
-    _check_child_self_loop_nsec(poison)
+    check_nsec(poison, poison.authority, CHILD, CHILD, CHILD)
 
     response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
-    assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
+    assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert (
-        response.get_rrset(
-            response.authority, CHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
-        )
-        is None
-    )
+    assert get_nsec(response, response.authority, CHILD) is None
