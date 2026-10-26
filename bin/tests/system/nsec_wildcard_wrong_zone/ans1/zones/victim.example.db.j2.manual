@@ -1,0 +1,4 @@
+{% include "_common/zones/soa.partial.db.j2" %}
+{% include "_common/zones/ns.partial.db.j2" %}
+
+*	A	192.0.2.1
