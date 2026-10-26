@@ -70,11 +70,6 @@ def bootstrap():
     return {"DNSKEY": dnskey}
 
 
-def _query(server, qname, qtype, cd=False, dnssec=True):
-    query = isctest.query.create(qname, qtype, cd=cd, dnssec=dnssec)
-    return isctest.query.tcp(query, server)
-
-
 def _has_a(response, owner, address):
     rrset = response.get_rrset(
         response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
@@ -107,18 +102,20 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     F-004 Cache Poisoning via Pending-Trust NSEC in Aggressive Cache
     """
     # Step 1: Prime SOA parent (and DNSKEY as subquery)
-    soa = _query(RESOLVER, F004_ZONE, "SOA")
+    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), RESOLVER)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Step 2: Inject Forged NSEC via CD=1 Query
-    poison = _query(RESOLVER, ATTACKER, "NSEC", cd=True)
+    poison = isctest.query.tcp(
+        isctest.query.create(ATTACKER, "NSEC", cd=True), RESOLVER
+    )
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
     _check_attacker_nsec(poison, poison.answer)
 
     # Step 3: Exploit Against Victim Domain
-    response = _query(RESOLVER, VICTIM, "A")
+    response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
@@ -130,7 +127,9 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     )
 
     # Step 4: Exploit Against Stub Client
-    response = _query(RESOLVER, VICTIM, "A", dnssec=False)
+    response = isctest.query.tcp(
+        isctest.query.create(VICTIM, "A", dnssec=False), RESOLVER
+    )
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)

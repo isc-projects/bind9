@@ -88,11 +88,6 @@ victim A {VICTIM_A}
     }
 
 
-def _query(server, qname, qtype):
-    query = isctest.query.create(qname, qtype)
-    return isctest.query.tcp(query, server)
-
-
 def _has_a(response, owner, address):
     rrset = response.get_rrset(
         response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
@@ -119,19 +114,19 @@ def _check_child_self_loop_nsec(response):
 
 
 def test_direct_child_self_loop_nsec_fixture():
-    response = _query(AUTH, PROBE, "A")
+    response = isctest.query.tcp(isctest.query.create(PROBE, "A"), AUTH)
     isctest.check.nxdomain(response)
     assert response.flags & dns.flags.AA
     _check_child_self_loop_nsec(response)
 
 
 def test_resolver_does_not_synth_parent_nxdomain_from_child_nsec():
-    poison = _query(RESOLVER, PROBE, "A")
+    poison = isctest.query.tcp(isctest.query.create(PROBE, "A"), RESOLVER)
     isctest.check.nxdomain(poison)
     isctest.check.adflag(poison)
     _check_child_self_loop_nsec(poison)
 
-    response = _query(RESOLVER, VICTIM, "A")
+    response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
     assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
