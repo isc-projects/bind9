@@ -19,7 +19,4 @@ zone "abc.example" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	victim.example. static-key 257 3 13 "@VICTIM_DNSKEY@";
-	abc.example. static-key 257 3 13 "@ATTACKER_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
