@@ -21,11 +21,9 @@ from nsec_synthesis.common import (
 )
 
 import isctest
-import isctest.template
 
 ATTACKER = f"attacker.{F004_ZONE}"
 POISON_NEXT = f"b.{F004_VICTIM}"
-RESOLVER = isctest.template.NS2.ip
 
 pytestmark = SIGNED_ZONE_MARKS
 
@@ -34,20 +32,18 @@ def bootstrap():
     return f004_bootstrap()
 
 
-def test_pending_trust_nsec_cd_cache_poisoning(f004_key_tags):
+def test_pending_trust_nsec_cd_cache_poisoning(ns2, ans1, f004_key_tags):
     """
     Reproducer for #5872:
     F-004 Cache Poisoning via Pending-Trust NSEC in Aggressive Cache
     """
     # Step 1: Prime SOA parent (and DNSKEY as subquery)
-    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), RESOLVER)
+    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), ns2.ip)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Step 2: Inject Forged NSEC via CD=1 Query
-    poison = isctest.query.tcp(
-        isctest.query.create(ATTACKER, "NSEC", cd=True), RESOLVER
-    )
+    poison = isctest.query.tcp(isctest.query.create(ATTACKER, "NSEC", cd=True), ns2.ip)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
     check_forged_nsec(
@@ -55,7 +51,7 @@ def test_pending_trust_nsec_cd_cache_poisoning(f004_key_tags):
     )
 
     # Step 3: Exploit Against Victim Domain
-    response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), ns2.ip)
     isctest.check.noerror(response)
     assert has_a(response, F004_VICTIM, F004_VICTIM_A), response.to_text()
     isctest.check.adflag(response)
@@ -63,7 +59,7 @@ def test_pending_trust_nsec_cd_cache_poisoning(f004_key_tags):
 
     # Step 4: Exploit Against Stub Client
     response = isctest.query.tcp(
-        isctest.query.create(F004_VICTIM, "A", dnssec=False), RESOLVER
+        isctest.query.create(F004_VICTIM, "A", dnssec=False), ns2.ip
     )
     isctest.check.noerror(response)
     assert has_a(response, F004_VICTIM, F004_VICTIM_A), response.to_text()
@@ -71,5 +67,4 @@ def test_pending_trust_nsec_cd_cache_poisoning(f004_key_tags):
     assert not get_nsec(response, response.authority, ATTACKER)
 
     # Step 5: Verify Upstream Queries
-    with open("ans1/ans.run", "r", encoding="utf-8") as file:
-        assert f"Received {F004_VICTIM.rstrip('.')}/IN/A" in file.read()
+    assert f"Received {F004_VICTIM.rstrip('.')}/IN/A" in ans1.log

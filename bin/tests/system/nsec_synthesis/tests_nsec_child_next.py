@@ -26,8 +26,6 @@ POISON = f"0.{EVIL}"
 POISON_NEXT = f"zzz.{F023_ZONE}"
 TARGET = f"target.{F023_ZONE}"
 TARGET_A = "192.0.2.77"
-AUTH = isctest.template.ANS4.ip
-RESOLVER = isctest.template.NS2.ip
 
 pytestmark = SIGNED_ZONE_MARKS
 
@@ -40,18 +38,18 @@ def bootstrap():
     return {"trust_anchors": zone.trust_anchors()}
 
 
-def _prime_parent_for_aggressive_nsec():
-    soa = isctest.query.tcp(isctest.query.create(F023_ZONE, "SOA"), RESOLVER)
+def _prime_parent_for_aggressive_nsec(resolver):
+    soa = isctest.query.tcp(isctest.query.create(F023_ZONE, "SOA"), resolver.ip)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
-    nsec = isctest.query.tcp(isctest.query.create(F023_ZONE, "NSEC"), RESOLVER)
+    nsec = isctest.query.tcp(isctest.query.create(F023_ZONE, "NSEC"), resolver.ip)
     isctest.check.noerror(nsec)
     isctest.check.adflag(nsec)
 
 
-def test_direct_insecure_child_nsec_next_fixture(f023_key_tags):
-    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), AUTH)
+def test_direct_insecure_child_nsec_next_fixture(ans4, f023_key_tags):
+    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), ans4.ip)
     isctest.check.noerror(poison)
     isctest.check.aaflag(poison)
     check_forged_nsec(
@@ -59,17 +57,17 @@ def test_direct_insecure_child_nsec_next_fixture(f023_key_tags):
     )
 
 
-def test_resolver_does_not_synth_from_insecure_child_nsec(f023_key_tags):
-    _prime_parent_for_aggressive_nsec()
+def test_resolver_does_not_synth_from_insecure_child_nsec(ns2, f023_key_tags):
+    _prime_parent_for_aggressive_nsec(ns2)
 
-    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), RESOLVER)
+    poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), ns2.ip)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
     check_forged_nsec(
         poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, f023_key_tags
     )
 
-    response = isctest.query.tcp(isctest.query.create(TARGET, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(TARGET, "A"), ns2.ip)
     isctest.check.noerror(response)
     assert has_a(response, TARGET, TARGET_A), response.to_text()
     isctest.check.adflag(response)

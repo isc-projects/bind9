@@ -1,5 +1,9 @@
 // validating resolver
 
+{% set ans1 = Nameserver("ans1") %}
+{% set ans4 = Nameserver("ans4") %}
+{% set ns3 = Nameserver("ns3") %}
+
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation yes;
@@ -12,22 +16,22 @@ options {
 
 zone "f004.test" {
 	type static-stub;
-	server-addresses { 10.53.0.1; };
+	server-addresses { @ans1.ip@; };
 };
 
 zone "f007.test" {
 	type static-stub;
-	server-addresses { 10.53.0.3; };
+	server-addresses { @ns3.ip@; };
 };
 
 zone "f023.test" {
 	type static-stub;
-	server-addresses { 10.53.0.4; };
+	server-addresses { @ans4.ip@; };
 };
 
 zone "evil.f023.test" {
 	type static-stub;
-	server-addresses { 10.53.0.4; };
+	server-addresses { @ans4.ip@; };
 };
 
 {% include "_common/trusted.conf.j2" %}
