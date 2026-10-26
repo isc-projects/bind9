@@ -1,0 +1,4 @@
+$ORIGIN @zone.name@.
+$TTL 300
+@zone.name@.	SOA	ns3.f007.test. . 1 20 20 1814400 3600
+@zone.name@.	NS	ns3.f007.test.

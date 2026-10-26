@@ -9,15 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import pytest
-
-from isctest.run import EnvCmd
-from isctest.template import TrustAnchor
-from nsec_synthesis.common import check_nsec, get_nsec, has_a
+from nsec_synthesis.common import ARTIFACTS, check_nsec, get_nsec, has_a
 
 import isctest
+import isctest.template
+import isctest.zone
 
 PARENT = "f007.test."
 CHILD = "!.f007.test."
@@ -27,61 +23,19 @@ VICTIM_A = "203.0.113.7"
 AUTH = "10.53.0.3"
 RESOLVER = "10.53.0.2"
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ns3/K*",
-        "ns3/child.f007.test.db",
-        "ns3/child.f007.test.db.signed",
-        "ns3/dsset-*",
-        "ns3/f007.test.db",
-        "ns3/f007.test.db.signed",
-    ]
-)
-
-
-def _write_zone(path, text):
-    Path(path).write_text(text, encoding="ascii")
+pytestmark = ARTIFACTS
 
 
 def bootstrap():
-    keygen = EnvCmd("KEYGEN", "-a ECDSA256 -q")
-    dsfromkey = EnvCmd("DSFROMKEY", "-2")
-    signer = EnvCmd("SIGNER", "-S -g")
-
-    parent_ksk = keygen(f"-f KSK {PARENT}", cwd="ns3").out.strip()
-    keygen(PARENT, cwd="ns3")
-    child_ksk = keygen(f"-f KSK {CHILD}", cwd="ns3").out.strip()
-    keygen(CHILD, cwd="ns3")
-
-    child_ds = dsfromkey(f"{child_ksk}.key", cwd="ns3").out
-
-    _write_zone(
-        "ns3/child.f007.test.db",
-        f"""$TTL 300
-$ORIGIN {CHILD}
-@ SOA ns.f007.test. hostmaster.f007.test. 1 3600 600 86400 300
-@ NS ns.f007.test.
-""",
-    )
-    _write_zone(
-        "ns3/f007.test.db",
-        f"""$TTL 300
-$ORIGIN {PARENT}
-@ SOA ns hostmaster 1 3600 600 86400 300
-@ NS ns
-ns A 10.53.0.3
-victim A {VICTIM_A}
-! NS ns.f007.test.
-{child_ds}""",
-    )
-
-    signer(f"-o {CHILD} -f child.f007.test.db.signed child.f007.test.db", cwd="ns3")
-    signer(f"-o {PARENT} -f f007.test.db.signed f007.test.db", cwd="ns3")
-
-    dnskey = str(isctest.kasp.Key(parent_ksk, keydir="ns3").dnskey).split()
-    contents = f'{" ".join(dnskey[4:7])} "{"".join(dnskey[7:])}"'
-
-    return {"trust_anchors": [TrustAnchor(PARENT, "static-key", contents)]}
+    child = isctest.zone.Zone(CHILD, isctest.template.NS3, signed=True)
+    child.configure(csk=True)
+    parent = isctest.zone.Zone(PARENT, isctest.template.NS3, signed=True)
+    parent.delegations = [child]
+    parent.configure(csk=True)
+    return {
+        "trust_anchors": parent.trust_anchors(),
+        "zones": isctest.template.zones([parent, child]),
+    }
 
 
 def test_direct_child_self_loop_nsec_fixture():

@@ -9,13 +9,4 @@ options {
 
 {% include "_common/root.hint.conf" %}
 
-zone "f007.test" {
-	type primary;
-	file "f007.test.db.signed";
-};
-
-zone "!.f007.test" {
-	type primary;
-	file "child.f007.test.db.signed";
-};
-
+{% include "_common/zones.conf.j2" %}

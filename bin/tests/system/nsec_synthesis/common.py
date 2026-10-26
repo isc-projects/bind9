@@ -19,17 +19,18 @@ import isctest.mark
 import isctest.template
 import isctest.zone
 
-SIGNED_ZONE_MARKS = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/dsset-*",
-            "ans*/zones/*.db",
-            "ans*/zones/*.db.signed",
-        ]
-    ),
-]
+ARTIFACTS = pytest.mark.extra_artifacts(
+    [
+        "ans*/dsset-*",
+        "ans*/zones/*.db",
+        "ans*/zones/*.db.signed",
+        "ns3/dsset-*",
+        "ns3/zones/*.db",
+        "ns3/zones/*.db.signed",
+    ]
+)
 
+SIGNED_ZONE_MARKS = [isctest.mark.with_ecdsa_deterministic, ARTIFACTS]
 
 F004_ZONE = "f004.test."
 F004_VICTIM = f"victim.{F004_ZONE}"
