@@ -47,6 +47,20 @@ def test_fresh_response_keeps_the_server_defaults():
     isctest.check.empty_authority(res)
 
 
+def test_rrsets_in_the_prepared_response_are_found():
+    res = query("lookup.response.test.")
+    isctest.check.noerror(res)
+    isctest.check.section_equal(
+        res.answer,
+        [
+            dns.rrset.from_text("lookup.response.test.", 300, "IN", "A", "192.0.2.3"),
+            dns.rrset.from_text(
+                "lookup.response.test.", 300, "IN", "TXT", '"appended by the handler"'
+            ),
+        ],
+    )
+
+
 def test_changes_after_rendering_reach_the_wire():
     res = query("rendered.response.test.")
     isctest.check.noerror(res)

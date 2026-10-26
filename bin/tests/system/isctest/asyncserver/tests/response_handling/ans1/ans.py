@@ -45,6 +45,27 @@ class FreshResponseHandler(ResponseHandler):
         yield DnsResponseSend(qctx.prepare_new_response(with_zone_data=False))
 
 
+class LookupHandler(ResponseHandler):
+    """
+    Look up an RRset from zone data and one appended by the handler in the
+    prepared response, then answer with only the RRsets found.
+    """
+
+    matcher = Qname(f"lookup.{ZONE}")
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        response = qctx.response
+        response.answer.append(txt(qctx.qname, "appended by the handler"))
+        found = [
+            response.get_rrset(response.answer, qctx.qname, dns.rdataclass.IN, rdtype)
+            for rdtype in (dns.rdatatype.A, dns.rdatatype.TXT)
+        ]
+        response.answer = [rrset for rrset in found if rrset is not None]
+        yield DnsResponseSend(response)
+
+
 class RenderedBeforeSendHandler(ResponseHandler):
     """
     Render the response to wire before changing it, as a handler measuring
@@ -82,6 +103,7 @@ def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOTIMP)
     server.install_response_handlers(
         FreshResponseHandler(),
+        LookupHandler(),
         RenderedBeforeSendHandler(),
         RollbackHandler(),
     )
