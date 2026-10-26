@@ -25,8 +25,6 @@ VALID_NXDOMAIN = f"bar.{ATTACKER}"
 CONTROL = f"wild1.{VICTIM}"
 CONTROL_NODATA = f"wild2.{VICTIM}"
 CONTROL_A = "192.0.2.1"
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -46,8 +44,8 @@ def bootstrap():
     return {"trust_anchors": trust_anchors}
 
 
-def test_forged_response_contains_cross_zone_nsec():
-    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), AUTH)
+def test_forged_response_contains_cross_zone_nsec(ans1):
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ans1.ip)
     isctest.check.nxdomain(response)
 
     signers = {
@@ -61,24 +59,24 @@ def test_forged_response_contains_cross_zone_nsec():
     }, response.to_text()
 
 
-def test_resolver_rejects_cross_zone_nowildcard_proof():
-    response = isctest.query.tcp(isctest.query.create(ATTACKER, "SOA"), RESOLVER)
+def test_resolver_rejects_cross_zone_nowildcard_proof(ns2):
+    response = isctest.query.tcp(isctest.query.create(ATTACKER, "SOA"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
 
-    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ns2.ip)
     isctest.check.servfail(response)
     isctest.check.noadflag(response)
 
 
-def test_valid_same_zone_nxdomain_still_validates():
-    response = isctest.query.tcp(isctest.query.create(VALID_NXDOMAIN, "A"), RESOLVER)
+def test_valid_same_zone_nxdomain_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(VALID_NXDOMAIN, "A"), ns2.ip)
     isctest.check.nxdomain(response)
     isctest.check.adflag(response)
 
 
-def test_valid_wildcard_still_validates():
-    response = isctest.query.tcp(isctest.query.create(CONTROL, "A"), RESOLVER)
+def test_valid_wildcard_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(CONTROL, "A"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
     answer = response.get_rrset(
@@ -88,8 +86,8 @@ def test_valid_wildcard_still_validates():
     assert any(rdata.address == CONTROL_A for rdata in answer), response.to_text()
 
 
-def test_valid_wildcard_nodata_still_validates():
-    response = isctest.query.tcp(isctest.query.create(CONTROL_NODATA, "AAAA"), RESOLVER)
+def test_valid_wildcard_nodata_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(CONTROL_NODATA, "AAAA"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
     assert not response.answer, response.to_text()
