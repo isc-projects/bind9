@@ -13,17 +13,15 @@ from pathlib import Path
 
 import json
 
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
-import dns.name
-import dns.rdataclass
-import dns.rdatatype
-import pytest
+from nsec_synthesis.common import (
+    SIGNED_ZONE_MARKS,
+    check_forged_nsec,
+    get_nsec,
+    has_a,
+    make_key,
+)
 
 import isctest
-import isctest.mark
 
 F004_ZONE = "f004.test."
 VICTIM = f"victim.{F004_ZONE}"
@@ -32,65 +30,14 @@ VICTIM_A = "203.0.113.1"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/keys.json",
-        ]
-    ),
-]
-
-
-def _make_key(zone: str):
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-        "ds": ds.to_text(),
-    }
+pytestmark = SIGNED_ZONE_MARKS
 
 
 def bootstrap():
-    keys = {F004_ZONE: _make_key(F004_ZONE)}
+    keys = {F004_ZONE: make_key(F004_ZONE)}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
     dnskey = "".join(keys[F004_ZONE]["dnskey"].split()[3:])
     return {"DNSKEY": dnskey}
-
-
-def _has_a(response, owner, address):
-    rrset = response.get_rrset(
-        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
-    )
-    return rrset is not None and any(rdata.address == address for rdata in rrset)
-
-
-def _check_forged_nsec(response, section):
-    nsec = response.get_rrset(section, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC)
-    assert nsec is not None, response.to_text()
-    assert nsec[0].next == dns.name.from_text(POISON_NEXT), response.to_text()
-
-    rrsig = response.get_rrset(
-        section,
-        VICTIM,
-        dns.rdataclass.IN,
-        dns.rdatatype.RRSIG,
-        covers=dns.rdatatype.NSEC,
-    )
-    assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(F004_ZONE), response.to_text()
-    assert rrsig[0].key_tag == 9999, response.to_text()
 
 
 def test_pending_exact_nodata_nsec_cache_poisoning():
@@ -114,23 +61,13 @@ def test_pending_exact_nodata_nsec_cache_poisoning():
     poison = isctest.query.tcp(isctest.query.create(VICTIM, "NSEC", cd=True), RESOLVER)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
-    _check_forged_nsec(poison, poison.answer)
+    check_forged_nsec(poison, poison.answer, VICTIM, POISON_NEXT, F004_ZONE, 9999)
 
     # Query the victim's A record. The pending NSEC must not be used to
     # synthesize a NODATA; the resolver fetches and validates the real A.
     response = isctest.query.tcp(isctest.query.create(VICTIM, "A"), RESOLVER)
     isctest.check.noerror(response)
-    assert _has_a(response, VICTIM, VICTIM_A), response.to_text()
+    assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert (
-        response.get_rrset(
-            response.answer, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC
-        )
-        is None
-    )
-    assert (
-        response.get_rrset(
-            response.authority, VICTIM, dns.rdataclass.IN, dns.rdatatype.NSEC
-        )
-        is None
-    )
+    assert get_nsec(response, response.answer, VICTIM) is None
+    assert get_nsec(response, response.authority, VICTIM) is None

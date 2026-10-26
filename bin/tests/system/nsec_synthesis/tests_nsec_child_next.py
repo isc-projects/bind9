@@ -13,18 +13,17 @@ from pathlib import Path
 
 import json
 
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.flags
-import dns.name
-import dns.rdataclass
-import dns.rdatatype
-import pytest
+
+from nsec_synthesis.common import (
+    SIGNED_ZONE_MARKS,
+    check_forged_nsec,
+    get_nsec,
+    has_a,
+    make_key,
+)
 
 import isctest
-import isctest.mark
 
 F023_ZONE = "f023.test."
 EVIL = f"evil.{F023_ZONE}"
@@ -35,65 +34,14 @@ TARGET_A = "192.0.2.77"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/keys.json",
-        ]
-    ),
-]
-
-
-def _make_key(zone: str):
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-        "ds": ds.to_text(),
-    }
+pytestmark = SIGNED_ZONE_MARKS
 
 
 def bootstrap():
-    keys = {F023_ZONE: _make_key(F023_ZONE)}
+    keys = {F023_ZONE: make_key(F023_ZONE)}
     Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
     dnskey = "".join(keys[F023_ZONE]["dnskey"].split()[3:])
     return {"DNSKEY": dnskey}
-
-
-def _has_a(response, owner, address):
-    rrset = response.get_rrset(
-        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
-    )
-    return rrset is not None and any(rdata.address == address for rdata in rrset)
-
-
-def _check_malicious_nsec(response, section):
-    nsec = response.get_rrset(section, POISON, dns.rdataclass.IN, dns.rdatatype.NSEC)
-    assert nsec is not None, response.to_text()
-    assert nsec[0].next == dns.name.from_text(POISON_NEXT), response.to_text()
-
-    rrsig = response.get_rrset(
-        section,
-        POISON,
-        dns.rdataclass.IN,
-        dns.rdatatype.RRSIG,
-        covers=dns.rdatatype.NSEC,
-    )
-    assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(F023_ZONE), response.to_text()
-    assert rrsig[0].key_tag == 12345, response.to_text()
 
 
 def _prime_parent_for_aggressive_nsec():
@@ -110,7 +58,7 @@ def test_direct_insecure_child_nsec_next_fixture():
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), AUTH)
     isctest.check.noerror(poison)
     assert poison.flags & dns.flags.AA
-    _check_malicious_nsec(poison, poison.answer)
+    check_forged_nsec(poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, 12345)
 
 
 def test_resolver_does_not_synth_from_insecure_child_nsec():
@@ -119,15 +67,10 @@ def test_resolver_does_not_synth_from_insecure_child_nsec():
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), RESOLVER)
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
-    _check_malicious_nsec(poison, poison.answer)
+    check_forged_nsec(poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, 12345)
 
     response = isctest.query.tcp(isctest.query.create(TARGET, "A"), RESOLVER)
     isctest.check.noerror(response)
-    assert _has_a(response, TARGET, TARGET_A), response.to_text()
+    assert has_a(response, TARGET, TARGET_A), response.to_text()
     isctest.check.adflag(response)
-    assert (
-        response.get_rrset(
-            response.authority, POISON, dns.rdataclass.IN, dns.rdatatype.NSEC
-        )
-        is None
-    )
+    assert get_nsec(response, response.authority, POISON) is None
