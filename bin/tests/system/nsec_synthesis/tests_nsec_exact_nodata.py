@@ -21,10 +21,8 @@ from nsec_synthesis.common import (
 )
 
 import isctest
-import isctest.template
 
 POISON_NEXT = f"z.{F004_ZONE}"
-RESOLVER = isctest.template.NS2.ip
 
 pytestmark = SIGNED_ZONE_MARKS
 
@@ -33,7 +31,7 @@ def bootstrap():
     return f004_bootstrap()
 
 
-def test_pending_exact_nodata_nsec_cache_poisoning(f004_key_tags):
+def test_pending_exact_nodata_nsec_cache_poisoning(ns2, f004_key_tags):
     """
     Companion to #5872 that covers the query_coveringnsec() trust check on
     the exact-match NODATA branch (the `if (exists)` path in ns/query.c),
@@ -45,14 +43,14 @@ def test_pending_exact_nodata_nsec_cache_poisoning(f004_key_tags):
     victim's real A record.
     """
     # Prime the zone SOA (and the DNSKEY as a subquery) at secure trust.
-    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), RESOLVER)
+    soa = isctest.query.tcp(isctest.query.create(F004_ZONE, "SOA"), ns2.ip)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Inject a forged NSEC owned by the victim name via a CD=1 query; it is
     # cached at pending trust on the victim node.
     poison = isctest.query.tcp(
-        isctest.query.create(F004_VICTIM, "NSEC", cd=True), RESOLVER
+        isctest.query.create(F004_VICTIM, "NSEC", cd=True), ns2.ip
     )
     isctest.check.noerror(poison)
     isctest.check.noadflag(poison)
@@ -62,7 +60,7 @@ def test_pending_exact_nodata_nsec_cache_poisoning(f004_key_tags):
 
     # Query the victim's A record. The pending NSEC must not be used to
     # synthesize a NODATA; the resolver fetches and validates the real A.
-    response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(F004_VICTIM, "A"), ns2.ip)
     isctest.check.noerror(response)
     assert has_a(response, F004_VICTIM, F004_VICTIM_A), response.to_text()
     isctest.check.adflag(response)
