@@ -11,7 +11,6 @@
 
 from pathlib import Path
 
-import dns.flags
 import pytest
 
 from isctest.run import EnvCmd
@@ -89,7 +88,7 @@ victim A {VICTIM_A}
 def test_direct_child_self_loop_nsec_fixture():
     response = isctest.query.tcp(isctest.query.create(PROBE, "A"), AUTH)
     isctest.check.nxdomain(response)
-    assert response.flags & dns.flags.AA
+    isctest.check.aaflag(response)
     check_nsec(response, response.authority, CHILD, CHILD, CHILD)
 
 
@@ -103,4 +102,4 @@ def test_resolver_does_not_synth_parent_nxdomain_from_child_nsec():
     isctest.check.noerror(response)
     assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert get_nsec(response, response.authority, CHILD) is None
+    assert not get_nsec(response, response.authority, CHILD)
