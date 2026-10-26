@@ -9,21 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import pytest
 
 import isctest
-import isctest.mark
+import isctest.template
+import isctest.zone
 
 VICTIM = "victim.example."
 ATTACKER = "abc.example."
@@ -31,71 +24,41 @@ ATTACK = f"foo.{VICTIM}"
 VALID_NXDOMAIN = f"bar.{ATTACKER}"
 CONTROL = f"wild1.{VICTIM}"
 CONTROL_NODATA = f"wild2.{VICTIM}"
-VICTIM_NSEC_OWNER = f"a.{VICTIM}"
-ATTACKER_NSEC_OWNER = f"z.{ATTACKER}"
 CONTROL_A = "192.0.2.1"
 AUTH = "10.53.0.1"
 RESOLVER = "10.53.0.2"
 
-pytestmark = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/keys.json",
-        ]
-    ),
-]
-
-
-def _make_key():
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-    }
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/dsset-*",
+        "ans*/zones/*.db",
+        "ans*/zones/*.db.signed",
+    ]
+)
 
 
 def bootstrap():
-    keys = {zone: _make_key() for zone in [VICTIM, ATTACKER]}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    return {
-        "VICTIM_DNSKEY": "".join(keys[VICTIM]["dnskey"].split()[3:]),
-        "ATTACKER_DNSKEY": "".join(keys[ATTACKER]["dnskey"].split()[3:]),
-    }
-
-
-def _check_nsec_signer(response, owner, signer):
-    text = response.to_text()
-    nsec = response.get_rrset(
-        response.authority, owner, dns.rdataclass.IN, dns.rdatatype.NSEC
-    )
-    rrsig = response.get_rrset(
-        response.authority,
-        owner,
-        dns.rdataclass.IN,
-        dns.rdatatype.RRSIG,
-        covers=dns.rdatatype.NSEC,
-    )
-    assert nsec and rrsig, text
-    assert rrsig[0].signer == dns.name.from_text(signer), text
+    trust_anchors = []
+    for name in (VICTIM, ATTACKER):
+        zone = isctest.zone.Zone(name, isctest.template.ANS1, signed=True)
+        zone.configure(csk=True)
+        trust_anchors += zone.trust_anchors()
+    return {"trust_anchors": trust_anchors}
 
 
 def test_forged_response_contains_cross_zone_nsec():
     response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), AUTH)
     isctest.check.nxdomain(response)
 
-    _check_nsec_signer(response, ATTACKER_NSEC_OWNER, ATTACKER)
-    _check_nsec_signer(response, VICTIM_NSEC_OWNER, VICTIM)
+    signers = {
+        rrsig[0].signer
+        for rrsig in response.authority
+        if rrsig.rdtype == dns.rdatatype.RRSIG and rrsig.covers == dns.rdatatype.NSEC
+    }
+    assert signers == {
+        dns.name.from_text(VICTIM),
+        dns.name.from_text(ATTACKER),
+    }, response.to_text()
 
 
 def test_resolver_rejects_cross_zone_nowildcard_proof():
