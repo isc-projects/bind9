@@ -336,7 +336,11 @@ control_respond(controlconnection_t *conn) {
 
 	data = isccc_alist_lookup(conn->response, "_data");
 	if (data != NULL) {
+		const char *errid = isc_result_toid(result);
 		if (isccc_cc_defineuint32(data, "result", result) == NULL) {
+			goto cleanup;
+		}
+		if (isccc_cc_definestring(data, "errid", errid) == NULL) {
 			goto cleanup;
 		}
 	}
