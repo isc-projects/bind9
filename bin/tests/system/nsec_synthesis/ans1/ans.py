@@ -28,7 +28,7 @@ class AttackCoveringNsecHandler(AttackNsecHandler):
     matcher = (
         Qname("attacker.f004.test.") & Qtype(dns.rdatatype.NSEC) & Flags(dns.flags.CD)
     )
-    nsec = "b.victim.f004.test. NS SOA RRSIG NSEC DNSKEY"
+    nsec = "b.victim.f004.test. A RRSIG NSEC"
 
 
 class AttackNodataNsecHandler(AttackNsecHandler):
