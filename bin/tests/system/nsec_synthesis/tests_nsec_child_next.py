@@ -13,8 +13,6 @@ from pathlib import Path
 
 import json
 
-import dns.flags
-
 from nsec_synthesis.common import (
     SIGNED_ZONE_MARKS,
     check_forged_nsec,
@@ -57,7 +55,7 @@ def _prime_parent_for_aggressive_nsec():
 def test_direct_insecure_child_nsec_next_fixture():
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), AUTH)
     isctest.check.noerror(poison)
-    assert poison.flags & dns.flags.AA
+    isctest.check.aaflag(poison)
     check_forged_nsec(poison, poison.answer, POISON, POISON_NEXT, F023_ZONE, 12345)
 
 
@@ -73,4 +71,4 @@ def test_resolver_does_not_synth_from_insecure_child_nsec():
     isctest.check.noerror(response)
     assert has_a(response, TARGET, TARGET_A), response.to_text()
     isctest.check.adflag(response)
-    assert get_nsec(response, response.authority, POISON) is None
+    assert not get_nsec(response, response.authority, POISON)

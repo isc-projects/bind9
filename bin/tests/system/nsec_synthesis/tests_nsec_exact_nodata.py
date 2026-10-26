@@ -69,5 +69,5 @@ def test_pending_exact_nodata_nsec_cache_poisoning():
     isctest.check.noerror(response)
     assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert get_nsec(response, response.answer, VICTIM) is None
-    assert get_nsec(response, response.authority, VICTIM) is None
+    assert not get_nsec(response, response.answer, VICTIM)
+    assert not get_nsec(response, response.authority, VICTIM)

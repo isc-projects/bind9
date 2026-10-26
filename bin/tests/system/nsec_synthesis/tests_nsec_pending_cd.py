@@ -64,7 +64,7 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     isctest.check.noerror(response)
     assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert get_nsec(response, response.authority, ATTACKER) is None
+    assert not get_nsec(response, response.authority, ATTACKER)
 
     # Step 4: Exploit Against Stub Client
     response = isctest.query.tcp(
@@ -73,7 +73,7 @@ def test_pending_trust_nsec_cd_cache_poisoning():
     isctest.check.noerror(response)
     assert has_a(response, VICTIM, VICTIM_A), response.to_text()
     isctest.check.adflag(response)
-    assert get_nsec(response, response.authority, ATTACKER) is None
+    assert not get_nsec(response, response.authority, ATTACKER)
 
     # Step 5: Verify Upstream Queries
     with open("ans1/ans.run", "r", encoding="utf-8") as file:
