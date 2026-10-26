@@ -44,6 +44,11 @@ def bootstrap():
     return {"trust_anchors": trust_anchors}
 
 
+@pytest.fixture(autouse=True)
+def autouse_flush_resolver_cache(ns2):
+    ns2.rndc("flush")
+
+
 def test_forged_response_contains_cross_zone_nsec(ans1):
     response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ans1.ip)
     isctest.check.nxdomain(response)
