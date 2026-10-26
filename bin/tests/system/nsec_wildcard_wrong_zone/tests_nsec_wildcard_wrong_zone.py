@@ -79,30 +79,9 @@ def _query(server, qname, qtype):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _check_signer(response, section, owner, covered, signer):
-    rrsig = _rrset(
-        response,
-        section,
-        owner,
-        dns.rdatatype.RRSIG,
-        covers=covered,
+    rrsig = response.get_rrset(
+        section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=covered
     )
     assert rrsig is not None, response.to_text()
     assert rrsig[0].signer == dns.name.from_text(signer), response.to_text()
@@ -112,7 +91,9 @@ def test_forged_response_contains_cross_zone_nsec():
     response = _query(AUTH, ATTACK, "A")
     isctest.check.nxdomain(response)
 
-    assert _rrset(response, response.authority, ATTACKER_NSEC_OWNER, dns.rdatatype.NSEC)
+    assert response.get_rrset(
+        response.authority, ATTACKER_NSEC_OWNER, dns.rdataclass.IN, dns.rdatatype.NSEC
+    )
     _check_signer(
         response,
         response.authority,
@@ -121,7 +102,9 @@ def test_forged_response_contains_cross_zone_nsec():
         ATTACKER,
     )
 
-    assert _rrset(response, response.authority, VICTIM_NSEC_OWNER, dns.rdatatype.NSEC)
+    assert response.get_rrset(
+        response.authority, VICTIM_NSEC_OWNER, dns.rdataclass.IN, dns.rdatatype.NSEC
+    )
     _check_signer(
         response,
         response.authority,
@@ -151,7 +134,9 @@ def test_valid_wildcard_still_validates():
     response = _query(RESOLVER, CONTROL, "A")
     isctest.check.noerror(response)
     isctest.check.adflag(response)
-    answer = _rrset(response, response.answer, CONTROL, dns.rdatatype.A)
+    answer = response.get_rrset(
+        response.answer, CONTROL, dns.rdataclass.IN, dns.rdatatype.A
+    )
     assert answer is not None, response.to_text()
     assert any(rdata.address == CONTROL_A for rdata in answer), response.to_text()
 
