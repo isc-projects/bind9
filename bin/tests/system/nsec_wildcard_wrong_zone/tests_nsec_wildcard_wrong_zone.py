@@ -74,11 +74,6 @@ def bootstrap():
     }
 
 
-def _query(server, qname, qtype):
-    query = isctest.query.create(qname, qtype)
-    return isctest.query.tcp(query, server)
-
-
 def _check_signer(response, section, owner, covered, signer):
     rrsig = response.get_rrset(
         section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=covered
@@ -88,7 +83,7 @@ def _check_signer(response, section, owner, covered, signer):
 
 
 def test_forged_response_contains_cross_zone_nsec():
-    response = _query(AUTH, ATTACK, "A")
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), AUTH)
     isctest.check.nxdomain(response)
 
     assert response.get_rrset(
@@ -115,23 +110,23 @@ def test_forged_response_contains_cross_zone_nsec():
 
 
 def test_resolver_rejects_cross_zone_nowildcard_proof():
-    response = _query(RESOLVER, ATTACKER, "SOA")
+    response = isctest.query.tcp(isctest.query.create(ATTACKER, "SOA"), RESOLVER)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
 
-    response = _query(RESOLVER, ATTACK, "A")
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), RESOLVER)
     isctest.check.servfail(response)
     isctest.check.noadflag(response)
 
 
 def test_valid_same_zone_nxdomain_still_validates():
-    response = _query(RESOLVER, VALID_NXDOMAIN, "A")
+    response = isctest.query.tcp(isctest.query.create(VALID_NXDOMAIN, "A"), RESOLVER)
     isctest.check.nxdomain(response)
     isctest.check.adflag(response)
 
 
 def test_valid_wildcard_still_validates():
-    response = _query(RESOLVER, CONTROL, "A")
+    response = isctest.query.tcp(isctest.query.create(CONTROL, "A"), RESOLVER)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
     answer = response.get_rrset(
@@ -142,7 +137,7 @@ def test_valid_wildcard_still_validates():
 
 
 def test_valid_wildcard_nodata_still_validates():
-    response = _query(RESOLVER, CONTROL_NODATA, "AAAA")
+    response = isctest.query.tcp(isctest.query.create(CONTROL_NODATA, "AAAA"), RESOLVER)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
     isctest.check.rr_count_eq(response.answer, 0)
