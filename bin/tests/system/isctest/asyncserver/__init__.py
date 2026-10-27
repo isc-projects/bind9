@@ -380,6 +380,8 @@ _ASYNCSERVER_RESPONSE_MARKER = "__is_asyncserver_response__"
 
 def _make_asyncserver_response(query: dns.message.Message) -> dns.message.Message:
     response = dns.message.make_response(query)
+    # Work around dnspython#1389
+    response.index = None  # type: ignore[assignment]
     setattr(response, _ASYNCSERVER_RESPONSE_MARKER, True)
     return response
 
