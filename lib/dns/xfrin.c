@@ -511,15 +511,9 @@ ixfr_apply_one(dns_xfrin_t *xfr, ixfr_apply_data_t *data) {
 		CHECK(dns_journal_writediff(xfr->ixfr.journal, &data->diff));
 	}
 	/*
-	 * In the current implementation, we always commit the results, since
-	 * dns_zone_verifydb doesn't know how to access the in-progress
-	 * transaction.
-	 */
-	dns_db_commitupdate(xfr->db, &callbacks);
-
-	/*
 	 * At the moment, rdatacallbacks doesn't offer a way to inspect the
-	 * result of a transaction before committing it.
+	 * result of a transaction before committing it, so dns_zone_verifydb
+	 * can't see the in-progress transaction.
 	 *
 	 * So we need to commit *before* calling dns_zone_verifydb, and rely
 	 * on closeversion to actually do cleanup.
