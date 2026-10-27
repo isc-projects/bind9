@@ -15779,12 +15779,6 @@ again:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOIXFR);
 		goto same_primary;
 
-	case DNS_R_TOOMANYRECORDS:
-	case DNS_R_VERIFYFAILURE:
-		DNS_ZONE_JITTER_ADD(&now, zone->refresh, &zone->refreshtime);
-		dns__zone_stats_increment(zone, dns_zonestatscounter_xfrfail);
-		break;
-
 	case ISC_R_SHUTTINGDOWN:
 		dns_remote_reset(&zone->primaries, true);
 		break;
