@@ -9,9 +9,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from collections.abc import Iterator
+
+import contextlib
+import os
+
 import dns.rrset
 import dns.zone
 import pytest
+
+NS_PER_SEC = 1_000_000_000
 
 
 def zone_contains(
@@ -44,6 +51,31 @@ def file_contents_contain(file, substr):
             if f"{substr}" in line:
                 return True
     return False
+
+
+@contextlib.contextmanager
+def newer_mtime(path: str | os.PathLike) -> Iterator[None]:
+    """
+    Make sure that `path`, rewritten inside the block, ends up with
+    a modification time in a later second than it had before.
+
+    named reloads a file only when its modification time is newer than the
+    last load, and where file timestamps resolve whole seconds only (macOS,
+    some file systems), a file rewritten within the same second is skipped as
+    "older than last load". A file that did not exist before is left as is.
+    """
+    try:
+        before: int | None = os.stat(path).st_mtime_ns
+    except FileNotFoundError:
+        before = None
+
+    yield
+
+    if before is None:
+        return
+    after = os.stat(path)
+    if after.st_mtime_ns // NS_PER_SEC <= before // NS_PER_SEC:
+        os.utime(path, ns=(after.st_atime_ns, before + NS_PER_SEC))
 
 
 def param(*args, **kwargs):
