@@ -27,7 +27,7 @@ import pytest
 
 from isctest.algorithms import ECDSAP256SHA256, ECDSAP384SHA384, Algorithm
 from isctest.kasp import KeyProperties, KeyTimingMetadata, SettimeOptions
-from isctest.util import param
+from isctest.util import newer_mtime, param
 
 import isctest
 import isctest.mark
@@ -224,7 +224,8 @@ def cb_ixfr_is_signed(expected_updates, params, ksks=None, zsks=None):
     isctest.log.debug(
         f"expected updates {expected_updates} policy {policy} ksks {ksks} zsks {zsks}"
     )
-    shutil.copyfile(f"ns2/{zone}.db.in2", f"ns2/{zone}.db")
+    with newer_mtime(f"ns2/{zone}.db"):
+        shutil.copyfile(f"ns2/{zone}.db.in2", f"ns2/{zone}.db")
     servers["ns2"].rndc(f"reload {zone}")
 
     def update_is_signed():
@@ -928,7 +929,8 @@ def test_kasp_default(ns3):
 
     # modify unsigned zone file and check that new record is signed.
     isctest.log.info("check that an updated zone signs the new record")
-    shutil.copyfile("ns3/template2.db.in", f"ns3/{zone}.db")
+    with newer_mtime(f"ns3/{zone}.db"):
+        shutil.copyfile("ns3/template2.db.in", f"ns3/{zone}.db")
     ns3.rndc(f"reload {zone}")
 
     def update_is_signed():
@@ -1727,7 +1729,8 @@ def test_kasp_reload_restart(ns6):
     soa1, ttl1 = query_soa(zone)
     assert ttl1 == 300
 
-    shutil.copyfile(f"ns6/{zone}2.db.in", f"ns6/{zone}.db")
+    with newer_mtime(f"ns6/{zone}.db"):
+        shutil.copyfile(f"ns6/{zone}2.db.in", f"ns6/{zone}.db")
     with ns6.watch_log_from_here() as watcher:
         ns6.rndc("reload")
         watcher.wait_for_line("all zones loaded")

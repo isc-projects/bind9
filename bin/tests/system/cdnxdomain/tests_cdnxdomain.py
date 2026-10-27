@@ -31,6 +31,8 @@ import time
 
 import dns.zone
 
+from isctest.util import newer_mtime
+
 import isctest
 
 RESOLVER = "10.53.0.1"
@@ -85,19 +87,8 @@ def _serve(ns2, system_test_dir, variant):
     """
     src = system_test_dir / "ns2" / f"example-{variant}.db.signed"
     dst = system_test_dir / "ns2" / "example.db.signed"
-    # Ensure that the modification time of 'dst' increases on
-    # file systems with seconds granuality.
-    st_ok = False
-    try:
-        st = os.stat(dst)
-        st_ok = True
-    except FileNotFoundError:
-        pass
-    shutil.copyfile(src, dst)
-    if st_ok:
-        st2 = os.stat(dst)
-        if int(st2.st_mtime) <= int(st.st_mtime):
-            os.utime(dst, (st2.st_atime, st.st_mtime + 1))
+    with newer_mtime(dst):
+        shutil.copyfile(src, dst)
     with ns2.watch_log_from_here() as watcher:
         ns2.rndc("reload")
         watcher.wait_for_line("zone example/IN: loaded serial")

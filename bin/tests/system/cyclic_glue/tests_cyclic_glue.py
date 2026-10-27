@@ -47,7 +47,7 @@ def test_cyclic_glues(ns1, ns4, templates):
     # in total we should have test, foo.test, and bar.test, nothing else:
     assert len(dump.grep(Re("test. [0-9]* DELEG"))) == 3
 
-    templates.render("ns1/root.db", {"broken_ns": True})
+    templates.render("ns1/root.db", {"broken_ns": True}, newer=True)
     with ns1.watch_log_from_here() as watcher:
         ns1.rndc("reload")
         watcher.wait_for_all(["running", "zone ./IN: loaded serial"])
