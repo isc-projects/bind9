@@ -3556,7 +3556,7 @@ create_mapped_acl(void) {
 isc_result_t
 named_register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 			  cfg_aclconfctx_t *aclctx, const char *plugin_path,
-			  const char *const *parameters, void *callback_data) {
+			  const cfg_token_t *parameters, void *callback_data) {
 	char full_path[PATH_MAX];
 	isc_result_t result;
 	ns_hook_data_t *hookdata = callback_data;

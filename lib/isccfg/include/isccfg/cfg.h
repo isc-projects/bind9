@@ -40,6 +40,7 @@
  ***/
 
 typedef struct cfg_aclconfctx cfg_aclconfctx_t;
+typedef struct cfg_token      cfg_token_t;
 
 /*%
  * A configuration parser.
@@ -365,10 +366,10 @@ cfg_obj_istokens(const cfg_obj_t *obj);
  * Return true iff 'obj' is a bracketed token list.
  */
 
-const char *const *
+const cfg_token_t *
 cfg_obj_astokens(const cfg_obj_t *obj);
 /*%<
- * Returns the value of a bracketed token list as a NULL-terminated
+ * Returns the value of a bracketed token list as a CFG_TOKEN_EOF-terminated
  * array of tokens, encoded as described in <isccfg/tokens.h>.
  *
  * Requires:
@@ -589,7 +590,7 @@ typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t	*config,
 				      const cfg_obj_t	*obj,
 				      cfg_aclconfctx_t	*aclctx,
 				      const char	*plugin_path,
-				      const char *const *parameters,
+				      const cfg_token_t *parameters,
 				      void		*callback_data);
 /*%<
  * Function prototype for the callback used with cfg_pluginlist_foreach().

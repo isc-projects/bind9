@@ -30,10 +30,10 @@ struct cfg_tokenstring {
 	cfg_tokenstring_t *next;
 };
 
-static const char *const empty[] = { NULL };
+static const cfg_token_t empty[] = { { .kind = CFG_TOKEN_EOF } };
 
 void
-cfg_tokens_init(cfg_tokens_t *tok, const char *const *tokens, const char *file,
+cfg_tokens_init(cfg_tokens_t *tok, const cfg_token_t *tokens, const char *file,
 		unsigned long line) {
 	REQUIRE(tok != NULL);
 
@@ -55,20 +55,20 @@ cfg_tokens_clear(cfg_tokens_t *tok) {
 	}
 }
 
-const char *
+const cfg_token_t *
 cfg_tokens_peek(cfg_tokens_t *tok) {
 	REQUIRE(tok != NULL);
 
-	while (*tok->next == CFG_TOKEN_NEWLINE) {
+	while (tok->next->kind == CFG_TOKEN_LINE) {
+		tok->line = tok->next->line;
 		tok->next++;
-		tok->line++;
 	}
-	return *tok->next;
+	return tok->next->kind == CFG_TOKEN_EOF ? NULL : tok->next;
 }
 
-const char *
+const cfg_token_t *
 cfg_tokens_next(cfg_tokens_t *tok) {
-	const char *token = cfg_tokens_peek(tok);
+	const cfg_token_t *token = cfg_tokens_peek(tok);
 
 	if (token != NULL) {
 		tok->next++;
@@ -97,7 +97,7 @@ cfg_tokens_log(const cfg_tokens_t *tok, int level, const char *fmt, ...) {
 }
 
 static const char *
-markername(const char *marker) {
+markername(cfg_token_kind_t marker) {
 	if (marker == CFG_TOKEN_OPEN) {
 		return "'{'";
 	} else if (marker == CFG_TOKEN_CLOSE) {
@@ -113,8 +113,8 @@ markername(const char *marker) {
 }
 
 isc_result_t
-cfg_tokens_expect(cfg_tokens_t *tok, const char *marker) {
-	const char *token = cfg_tokens_next(tok);
+cfg_tokens_expect(cfg_tokens_t *tok, cfg_token_kind_t marker) {
+	const cfg_token_t *token = cfg_tokens_next(tok);
 
 	if (token == NULL) {
 		cfg_tokens_log(tok, ISC_LOG_ERROR,
@@ -122,7 +122,7 @@ cfg_tokens_expect(cfg_tokens_t *tok, const char *marker) {
 			       markername(marker));
 		return ISC_R_UNEXPECTEDEND;
 	}
-	if (token != marker) {
+	if (token->kind != marker) {
 		cfg_tokens_log(tok, ISC_LOG_ERROR, "expected %s",
 			       markername(marker));
 		return ISC_R_UNEXPECTEDTOKEN;
@@ -132,7 +132,7 @@ cfg_tokens_expect(cfg_tokens_t *tok, const char *marker) {
 
 isc_result_t
 cfg_tokens_getstring(cfg_tokens_t *tok, const char **strp) {
-	const char *token = NULL;
+	const cfg_token_t *token = NULL;
 
 	REQUIRE(strp != NULL);
 
@@ -142,16 +142,16 @@ cfg_tokens_getstring(cfg_tokens_t *tok, const char **strp) {
 			       "expected string, found end of input");
 		return ISC_R_UNEXPECTEDEND;
 	}
-	if (!CFG_TOKEN_ISSTRING(token)) {
+	if (token->kind != CFG_TOKEN_STRING) {
 		cfg_tokens_log(tok, ISC_LOG_ERROR, "expected string");
 		return ISC_R_UNEXPECTEDTOKEN;
 	}
-	if (token[0] == '"') {
+	if (token->text[0] == '"') {
 		cfg_obj_t *obj = NULL;
 		isc_buffer_t buffer;
-		size_t length = strlen(token);
+		size_t length = strlen(token->text);
 
-		isc_buffer_constinit(&buffer, token, length);
+		isc_buffer_constinit(&buffer, token->text, length);
 		isc_buffer_add(&buffer, length);
 		RETERR(cfg_parse_buffer(&buffer, tok->file, tok->line,
 					&cfg_type_qstring, 0, &obj));
@@ -163,7 +163,7 @@ cfg_tokens_getstring(cfg_tokens_t *tok, const char **strp) {
 		tok->strings = string;
 		*strp = cfg_obj_asstring(obj);
 	} else {
-		*strp = token;
+		*strp = token->text;
 	}
 	return ISC_R_SUCCESS;
 }
@@ -176,7 +176,7 @@ print_tobuffer(void *closure, const char *text, int textlen) {
 isc_result_t
 cfg_tokens_getaml(cfg_tokens_t *tok, cfg_obj_t **objp) {
 	isc_result_t result;
-	const char *const *end = NULL;
+	const cfg_token_t *end = NULL;
 	unsigned long line;
 	unsigned int depth = 0;
 	isc_buffer_t *b = NULL;
@@ -189,13 +189,13 @@ cfg_tokens_getaml(cfg_tokens_t *tok, cfg_obj_t **objp) {
 
 	/* Find the matching closing bracket. */
 	for (end = tok->next;; end++) {
-		if (*end == NULL) {
+		if (end->kind == CFG_TOKEN_EOF) {
 			cfg_tokens_log(tok, ISC_LOG_ERROR,
 				       "expected '}', found end of input");
 			return ISC_R_UNEXPECTEDEND;
-		} else if (*end == CFG_TOKEN_OPEN) {
+		} else if (end->kind == CFG_TOKEN_OPEN) {
 			depth++;
-		} else if (*end == CFG_TOKEN_CLOSE) {
+		} else if (end->kind == CFG_TOKEN_CLOSE) {
 			if (depth == 0) {
 				break;
 			}
@@ -211,15 +211,15 @@ cfg_tokens_getaml(cfg_tokens_t *tok, cfg_obj_t **objp) {
 	 */
 	isc_buffer_allocate(isc_g_mctx, &b, 256);
 	pctx = (cfg_printer_t){ .f = print_tobuffer, .closure = b };
-	cfg_print_tokens(&pctx, tok->next, end);
+	cfg_print_tokens(&pctx, tok->next, end, line);
 
 	result = cfg_parse_buffer(b, tok->file, line, &cfg_type_bracketed_aml,
 				  0, objp);
 	isc_buffer_free(&b);
 
 	for (; tok->next != end; tok->next++) {
-		if (*tok->next == CFG_TOKEN_NEWLINE) {
-			tok->line++;
+		if (tok->next->kind == CFG_TOKEN_LINE) {
+			tok->line = tok->next->line;
 		}
 	}
 	tok->next++;

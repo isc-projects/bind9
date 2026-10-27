@@ -408,7 +408,7 @@ typedef struct synthrecord_params {
 } synthrecord_params_t;
 
 static isc_result_t
-synthrecord_parseparams(const char *const *parameters, const char *cfgfile,
+synthrecord_parseparams(const cfg_token_t *parameters, const char *cfgfile,
 			unsigned long cfgline, synthrecord_params_t *params) {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_tokens_t *tok = &params->tokens;
@@ -582,7 +582,7 @@ synthrecord_parseallowsynth(synthrecord_t *inst, const cfg_obj_t *cfg,
 }
 
 static isc_result_t
-synthrecord_parseconfig(synthrecord_t *inst, const char *const *parameters,
+synthrecord_parseconfig(synthrecord_t *inst, const cfg_token_t *parameters,
 			const cfg_obj_t *cfg, const char *cfgfile,
 			unsigned long cfgline, cfg_aclconfctx_t *aclctx,
 			const dns_name_t *zname) {
@@ -607,7 +607,7 @@ cleanup:
 }
 
 isc_result_t
-plugin_register(const char *const *parameters, const void *cfg,
+plugin_register(const cfg_token_t *parameters, const void *cfg,
 		const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
 		void *aclctx, ns_hooktable_t *hooktable,
 		const ns_pluginctx_t *ctx, void **instp) {
@@ -646,7 +646,7 @@ plugin_register(const char *const *parameters, const void *cfg,
 }
 
 isc_result_t
-plugin_check(const char *const *parameters, const void *cfg,
+plugin_check(const cfg_token_t *parameters, const void *cfg,
 	     const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
 	     void *aclctx, const ns_pluginctx_t *ctx) {
 	isc_result_t result;

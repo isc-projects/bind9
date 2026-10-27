@@ -228,7 +228,7 @@ struct cfg_obj {
 		uint32_t	   uint32;
 		uint64_t	   uint64;
 		char		  *string; /*%< null terminated */
-		char		 **tokens; /*%< see <isccfg/tokens.h> */
+		cfg_token_t	  *tokens; /*%< see <isccfg/tokens.h> */
 		bool		   boolean;
 		cfg_map_t	  *map;
 		cfg_list_t	  *list;
@@ -510,12 +510,13 @@ cfg_print_cstr(cfg_printer_t *pctx, const char *s);
 /*%< Print the null-terminated string 's' */
 
 void
-cfg_print_tokens(cfg_printer_t *pctx, const char *const *tokens,
-		 const char *const *end);
+cfg_print_tokens(cfg_printer_t *pctx, const cfg_token_t *tokens,
+		 const cfg_token_t *end, unsigned long line);
 /*%<
  * Print the token array 'tokens' (see <isccfg/tokens.h>) as a
- * bracketed block, stopping at 'end' or at the terminating NULL,
- * whichever comes first. 'end' may be NULL.
+ * bracketed block, stopping at 'end' or at the terminating CFG_TOKEN_EOF,
+ * whichever comes first. 'end' may be NULL. 'line' is the source line
+ * of the opening bracket.
  */
 
 isc_result_t

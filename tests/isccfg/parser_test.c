@@ -60,30 +60,51 @@ append(void *arg, const char *str, int len) {
 
 /* Preserve lexical spelling, including quoted punctuation and escapes. */
 ISC_RUN_TEST_IMPL(tokens_roundtrip) {
-	const char *spelling[] = {
-		"plain",     "\"plain\"",     "\"\"",	       "\"a\\ b\"",
-		"\"a\\;b\"", "\"a\\#b\"",     "\"a\\/b\"",     "\"a\\!b\"",
-		"\"a\\{b\"", "\"a\\}b\"",     "\"a\\\tb\"",    "\"a\\\"b\"",
-		"tail\\",    "tail\\\\",      "\"tail\\\\\"",  "\"a\\\\\\\"b\"",
-		"\"/\"",     "\"/\"",	      "\"/\"",	       "\"*\"",
-		"\"!\"",     CFG_TOKEN_SLASH, CFG_TOKEN_BANG,  CFG_TOKEN_OPEN,
-		"nested",    CFG_TOKEN_END,   CFG_TOKEN_CLOSE, CFG_TOKEN_END,
-		NULL
+	const cfg_token_t spelling[] = {
+		{ .kind = CFG_TOKEN_STRING, .text = "plain" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"plain\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\ b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\;b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\#b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\/b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\!b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\{b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\}b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\\tb\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\\"b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "tail\\" },
+		{ .kind = CFG_TOKEN_STRING, .text = "tail\\\\" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"tail\\\\\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\\\\\\"b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"/\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"/\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"/\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"*\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"!\"" },
+		{ .kind = CFG_TOKEN_SLASH },
+		{ .kind = CFG_TOKEN_BANG },
+		{ .kind = CFG_TOKEN_OPEN },
+		{ .kind = CFG_TOKEN_STRING, .text = "nested" },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_CLOSE },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_EOF }
 	};
 	unsigned int flags[] = { 0, CFG_PRINTER_ONELINE };
 	char input[1024] = "{ ";
 
-	for (const char *const *t = spelling; *t != NULL; t++) {
-		const char *text = *t;
-		if (text == CFG_TOKEN_OPEN) {
+	for (const cfg_token_t *t = spelling; t->kind != CFG_TOKEN_EOF; t++) {
+		const char *text = t->text;
+		if (t->kind == CFG_TOKEN_OPEN) {
 			text = "{";
-		} else if (text == CFG_TOKEN_CLOSE) {
+		} else if (t->kind == CFG_TOKEN_CLOSE) {
 			text = "}";
-		} else if (text == CFG_TOKEN_END) {
+		} else if (t->kind == CFG_TOKEN_END) {
 			text = ";";
-		} else if (text == CFG_TOKEN_SLASH) {
+		} else if (t->kind == CFG_TOKEN_SLASH) {
 			text = "/";
-		} else if (text == CFG_TOKEN_BANG) {
+		} else if (t->kind == CFG_TOKEN_BANG) {
 			text = "!";
 		}
 		strlcat(input, text, sizeof(input));
@@ -110,35 +131,155 @@ ISC_RUN_TEST_IMPL(tokens_roundtrip) {
 						  &copy),
 				 ISC_R_SUCCESS);
 
-		const char *const *original = cfg_obj_astokens(obj);
-		const char *const *reparsed = cfg_obj_astokens(copy);
+		const cfg_token_t *original = cfg_obj_astokens(obj);
+		const cfg_token_t *reparsed = cfg_obj_astokens(copy);
 		for (size_t j = 0; j < ARRAY_SIZE(spelling); j++) {
-			if (spelling[j] != NULL &&
-			    CFG_TOKEN_ISSTRING(spelling[j]))
-			{
-				assert_non_null(original[j]);
-				assert_non_null(reparsed[j]);
-				assert_true(CFG_TOKEN_ISSTRING(original[j]));
-				assert_true(CFG_TOKEN_ISSTRING(reparsed[j]));
-				assert_string_equal(original[j], spelling[j]);
-				assert_string_equal(reparsed[j], spelling[j]);
-			} else {
-				assert_ptr_equal(original[j], spelling[j]);
-				assert_ptr_equal(reparsed[j], spelling[j]);
+			assert_int_equal(original[j].kind, spelling[j].kind);
+			assert_int_equal(reparsed[j].kind, spelling[j].kind);
+			if (spelling[j].kind == CFG_TOKEN_STRING) {
+				assert_string_equal(original[j].text,
+						    spelling[j].text);
+				assert_string_equal(reparsed[j].text,
+						    spelling[j].text);
 			}
 		}
+
 		cfg_obj_detach(&obj);
 		cfg_obj_detach(&copy);
 	}
 }
 
+/* Preserve skipped lines without duplicating newlines inside strings. */
+ISC_RUN_TEST_IMPL(tokens_newlines) {
+	const char *input = "{\r\n\n/* comment\ncontinued */ plain;\n"
+			    "// comment\n# comment\n\"first\nsecond\";\n"
+			    "{ nested;\n}; /* trailing\ncomment */\n}";
+	const cfg_token_t expected[] = {
+		{ .kind = CFG_TOKEN_LINE, .line = 103 },
+		{ .kind = CFG_TOKEN_STRING, .text = "plain" },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_LINE, .line = 106 },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"first\nsecond\"" },
+		{ .kind = CFG_TOKEN_LINE, .line = 107 },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_LINE, .line = 108 },
+		{ .kind = CFG_TOKEN_OPEN },
+		{ .kind = CFG_TOKEN_STRING, .text = "nested" },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_LINE, .line = 109 },
+		{ .kind = CFG_TOKEN_CLOSE },
+		{ .kind = CFG_TOKEN_END },
+		{ .kind = CFG_TOKEN_LINE, .line = 111 },
+		{ .kind = CFG_TOKEN_EOF },
+	};
+	char printed[1024] = "";
+
+	for (size_t pass = 0; pass < 2; pass++) {
+		cfg_obj_t *obj = NULL;
+		isc_buffer_t b;
+
+		isc_buffer_constinit(&b, input, strlen(input));
+		isc_buffer_add(&b, strlen(input));
+		assert_int_equal(cfg_parse_buffer(&b, "newlines", 100,
+						  &cfg_type_bracketed_tokens, 0,
+						  &obj),
+				 ISC_R_SUCCESS);
+
+		const cfg_token_t *tokens = cfg_obj_astokens(obj);
+		for (size_t i = 0; i < ARRAY_SIZE(expected); i++) {
+			assert_int_equal(tokens[i].kind, expected[i].kind);
+			if (expected[i].kind == CFG_TOKEN_STRING) {
+				assert_string_equal(tokens[i].text,
+						    expected[i].text);
+			} else if (expected[i].kind == CFG_TOKEN_LINE) {
+				assert_int_equal(tokens[i].line,
+						 expected[i].line);
+			}
+		}
+
+		if (pass == 0) {
+			cfg_printx(obj, 0, append, printed);
+			input = printed;
+		}
+		cfg_obj_detach(&obj);
+	}
+}
+
+/* Absolute line markers locate tokens after multiline strings and ACLs. */
+ISC_RUN_TEST_IMPL(tokens_cursor_lines) {
+	const char *input = "{\n\"first\nsecond\nthird\";\n"
+			    "{ \"acl\nname\"; any;\n}\n{ any; }\n}";
+	isc_buffer_t b;
+	cfg_obj_t *tokens = NULL, *copy = NULL;
+
+	isc_buffer_constinit(&b, input, strlen(input));
+	isc_buffer_add(&b, strlen(input));
+	assert_int_equal(cfg_parse_buffer(&b, "lines", 100,
+					  &cfg_type_bracketed_tokens, 0,
+					  &tokens),
+			 ISC_R_SUCCESS);
+	cfg_obj_clone(tokens, &copy);
+	cfg_obj_detach(&tokens);
+
+	for (size_t pass = 0; pass < 2; pass++) {
+		cfg_tokens_t tok;
+		cfg_obj_t *aml = NULL;
+		const char *value = NULL;
+
+		cfg_tokens_init(&tok, cfg_obj_astokens(copy), "lines", 100);
+		for (size_t i = 0; i < 2; i++) {
+			const cfg_token_t *token = cfg_tokens_peek(&tok);
+			assert_non_null(token);
+			assert_int_equal(token->kind, CFG_TOKEN_STRING);
+			assert_string_equal(token->text,
+					    "\"first\nsecond\nthird\"");
+			assert_int_equal(tok.line, 101);
+		}
+		if (pass == 0) {
+			assert_string_equal(cfg_tokens_next(&tok)->text,
+					    "\"first\nsecond\nthird\"");
+		} else {
+			assert_int_equal(cfg_tokens_getstring(&tok, &value),
+					 ISC_R_SUCCESS);
+			assert_string_equal(value, "first\nsecond\nthird");
+		}
+		assert_int_equal(tok.line, 101);
+		assert_int_equal(cfg_tokens_expect(&tok, CFG_TOKEN_END),
+				 ISC_R_SUCCESS);
+		assert_int_equal(tok.line, 103);
+		assert_int_equal(cfg_tokens_getaml(&tok, &aml), ISC_R_SUCCESS);
+		assert_int_equal(cfg_obj_line(aml), 104);
+		const cfg_listelt_t *second =
+			cfg_list_next(cfg_list_first(aml));
+		assert_non_null(second);
+		assert_int_equal(cfg_obj_line(cfg_listelt_value(second)), 105);
+		assert_int_equal(tok.line, 106);
+		cfg_obj_detach(&aml);
+		assert_int_equal(cfg_tokens_getaml(&tok, &aml), ISC_R_SUCCESS);
+		assert_int_equal(cfg_obj_line(aml), 107);
+		assert_int_equal(tok.line, 107);
+		cfg_obj_detach(&aml);
+		assert_null(cfg_tokens_next(&tok));
+		assert_int_equal(tok.line, 108);
+		cfg_tokens_clear(&tok);
+	}
+	cfg_obj_detach(&copy);
+}
+
 /* Decoding leaves lexical tokens intact and previous results valid. */
 ISC_RUN_TEST_IMPL(tokens_strings) {
-	const char *tokens[] = { "\"dynamic-\"", "\"\"",
-				 "\"a\\\"b\"",	 "\"a\\ b\"",
-				 "\"tail\\\\\"", "\"a\\\\\\\"b\"",
-				 "a\\\"b",	 "\"a\nb\"",
-				 "plain",	 NULL };
+	const cfg_token_t tokens[] = {
+		{ .kind = CFG_TOKEN_STRING, .text = "\"dynamic-\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\\"b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\ b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"tail\\\\\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\\\\\\\"b\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "a\\\"b" },
+		{ .kind = CFG_TOKEN_STRING, .text = "\"a\nb\"" },
+		{ .kind = CFG_TOKEN_STRING, .text = "plain" },
+		{ .kind = CFG_TOKEN_EOF },
+	};
 	const char *expected[] = { "dynamic-", "",	   "a\"b",
 				   "a\\ b",    "tail\\\\", "a\\\\\"b",
 				   "a\\\"b",   "a\nb",	   "plain" };
@@ -147,7 +288,7 @@ ISC_RUN_TEST_IMPL(tokens_strings) {
 
 	cfg_tokens_init(&tok, tokens, "strings", 1);
 	for (size_t i = 0; i < ARRAY_SIZE(expected); i++) {
-		assert_ptr_equal(cfg_tokens_peek(&tok), tokens[i]);
+		assert_ptr_equal(cfg_tokens_peek(&tok), &tokens[i]);
 		assert_int_equal(cfg_tokens_getstring(&tok, &values[i]),
 				 ISC_R_SUCCESS);
 	}
@@ -155,7 +296,7 @@ ISC_RUN_TEST_IMPL(tokens_strings) {
 	for (size_t i = 0; i < ARRAY_SIZE(expected); i++) {
 		assert_string_equal(values[i], expected[i]);
 	}
-	assert_string_equal(tokens[0], "\"dynamic-\"");
+	assert_string_equal(tokens[0].text, "\"dynamic-\"");
 	cfg_tokens_clear(&tok);
 }
 
@@ -500,6 +641,8 @@ ISC_RUN_TEST_IMPL(cfg_map_findclause_empty) {
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(tokens_roundtrip)
+ISC_TEST_ENTRY(tokens_newlines)
+ISC_TEST_ENTRY(tokens_cursor_lines)
 ISC_TEST_ENTRY(tokens_strings)
 ISC_TEST_ENTRY(tokens_aml)
 ISC_TEST_ENTRY(addzoneconf)

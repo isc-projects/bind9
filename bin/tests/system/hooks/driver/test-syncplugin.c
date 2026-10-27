@@ -66,7 +66,7 @@ typedef struct {
 } syncplugin_params_t;
 
 static isc_result_t
-syncplugin__parse_params(const char *const *parameters, const char *cfgfile,
+syncplugin__parse_params(const cfg_token_t *parameters, const char *cfgfile,
 			 unsigned long cfgline, syncplugin_params_t *params) {
 	cfg_tokens_t *tok = &params->tokens;
 
@@ -122,7 +122,7 @@ syncplugin__parse_rcode(const char *rcodestr, uint8_t *rcode) {
 }
 
 isc_result_t
-plugin_register(const char *const *parameters, const void *cfg,
+plugin_register(const cfg_token_t *parameters, const void *cfg,
 		const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
 		void *aclctx, ns_hooktable_t *hooktable,
 		const ns_pluginctx_t *ctx, void **instp) {
@@ -216,7 +216,7 @@ cleanup:
 }
 
 isc_result_t
-plugin_check(const char *const *parameters, const void *cfg,
+plugin_check(const cfg_token_t *parameters, const void *cfg,
 	     const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
 	     void *aclctx, const ns_pluginctx_t *ctx) {
 	UNUSED(parameters);

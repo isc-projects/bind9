@@ -211,7 +211,7 @@ unload_plugin(ns_plugin_t **pluginp) {
 }
 
 isc_result_t
-ns_plugin_register(const char *modpath, const char *const *parameters,
+ns_plugin_register(const char *modpath, const cfg_token_t *parameters,
 		   const void *cfg, const char *cfg_file,
 		   unsigned long cfg_line, isc_mem_t *mctx, void *aclctx,
 		   ns_hook_data_t *hookdata) {
@@ -248,7 +248,7 @@ cleanup:
 }
 
 isc_result_t
-ns_plugin_check(const char *modpath, const char *const *parameters,
+ns_plugin_check(const char *modpath, const cfg_token_t *parameters,
 		const void *cfg, const char *cfg_file, unsigned long cfg_line,
 		isc_mem_t *mctx, void *aclctx, const ns_pluginctx_t *ctx) {
 	isc_result_t result;

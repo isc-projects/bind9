@@ -19,13 +19,12 @@
  *
  * The contents of the "{ ... }" block of a "plugin" or "dyndb" statement
  * are lexed, but not parsed, by named. They are handed to the plugin or
- * driver as a NULL-terminated array of tokens, in which:
+ * driver as a CFG_TOKEN_EOF-terminated array of tokens, in which:
  *
  * \li	CFG_TOKEN_OPEN, CFG_TOKEN_CLOSE, CFG_TOKEN_END, CFG_TOKEN_SLASH
  *	and CFG_TOKEN_BANG stand for '{', '}', ';', '/' and '!' respectively;
- * \li	CFG_TOKEN_NEWLINE marks a line break in the original text, so
- *	that line numbers can be tracked;
- * \li	every other element preserves the token's original spelling,
+ * \li	CFG_TOKEN_LINE sets the absolute source line for following tokens;
+ * \li	CFG_TOKEN_STRING preserves the token's original spelling,
  *	including quotes and escapes. For example, "10.0.0.0/8" is three
  *	tokens: "10.0.0.0", CFG_TOKEN_SLASH and "8".
  *
@@ -41,30 +40,36 @@
 
 #include <isccfg/cfg.h>
 
-#define CFG_TOKEN_OPEN	  ((const char *)(uintptr_t)-1)
-#define CFG_TOKEN_NEWLINE ((const char *)(uintptr_t)-2)
-#define CFG_TOKEN_CLOSE	  ((const char *)(uintptr_t)-3)
-#define CFG_TOKEN_END	  ((const char *)(uintptr_t)-4)
-#define CFG_TOKEN_SLASH	  ((const char *)(uintptr_t)-5)
-#define CFG_TOKEN_BANG	  ((const char *)(uintptr_t)-6)
+typedef enum {
+	CFG_TOKEN_EOF = 0,
+	CFG_TOKEN_STRING,
+	CFG_TOKEN_LINE,
+	CFG_TOKEN_OPEN,
+	CFG_TOKEN_CLOSE,
+	CFG_TOKEN_END,
+	CFG_TOKEN_SLASH,
+	CFG_TOKEN_BANG,
+} cfg_token_kind_t;
 
-/*%
- * True if the (non-NULL) token 't' is a string rather than one of the
- * CFG_TOKEN_* markers.
- */
-#define CFG_TOKEN_ISSTRING(t) ((uintptr_t)(t) < (uintptr_t)CFG_TOKEN_BANG)
+struct cfg_token {
+	cfg_token_kind_t kind;
+	union {
+		const char   *text;
+		unsigned long line;
+	};
+};
 
 typedef struct cfg_tokenstring cfg_tokenstring_t;
 
 typedef struct cfg_tokens {
-	const char *const *next;
+	const cfg_token_t *next;
 	const char	  *file;
 	unsigned long	   line;
 	cfg_tokenstring_t *strings;
 } cfg_tokens_t;
 
 void
-cfg_tokens_init(cfg_tokens_t *tok, const char *const *tokens, const char *file,
+cfg_tokens_init(cfg_tokens_t *tok, const cfg_token_t *tokens, const char *file,
 		unsigned long line);
 /*%<
  * Initialize the cursor 'tok' to walk 'tokens'. 'file' and 'line' are
@@ -79,21 +84,21 @@ cfg_tokens_clear(cfg_tokens_t *tok);
  * with the cursor and all values returned by cfg_tokens_getstring().
  */
 
-const char *
+const cfg_token_t *
 cfg_tokens_peek(cfg_tokens_t *tok);
 /*%<
- * Return the next token without consuming it, skipping (and counting)
- * line breaks. Returns NULL at the end of the list.
+ * Return the next token without consuming it, skipping line markers and
+ * updating the source line. Returns NULL at the end of the list.
  */
 
-const char *
+const cfg_token_t *
 cfg_tokens_next(cfg_tokens_t *tok);
 /*%<
  * Like cfg_tokens_peek(), but consume the token.
  */
 
 isc_result_t
-cfg_tokens_expect(cfg_tokens_t *tok, const char *marker);
+cfg_tokens_expect(cfg_tokens_t *tok, cfg_token_kind_t marker);
 /*%<
  * Consume the next token, which must be 'marker' (one of CFG_TOKEN_OPEN,
  * CFG_TOKEN_CLOSE, CFG_TOKEN_END, CFG_TOKEN_SLASH or CFG_TOKEN_BANG).

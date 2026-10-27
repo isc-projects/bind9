@@ -241,18 +241,18 @@ static void
 copy_tokens(cfg_obj_t *to, const cfg_obj_t *from) {
 	size_t n = 0;
 
-	while (from->value.tokens[n] != NULL) {
+	while (from->value.tokens[n].kind != CFG_TOKEN_EOF) {
 		n++;
 	}
-	to->value.tokens = isc_mem_allocate(isc_g_mctx,
-					    (n + 1) * sizeof(char *));
-	for (size_t i = 0; i < n; i++) {
-		char *t = from->value.tokens[i];
-		to->value.tokens[i] = CFG_TOKEN_ISSTRING(t)
-					      ? isc_mem_strdup(isc_g_mctx, t)
-					      : t;
+	to->value.tokens = isc_mem_allocate(
+		isc_g_mctx, (n + 1) * sizeof(*to->value.tokens));
+	for (size_t i = 0; i <= n; i++) {
+		to->value.tokens[i] = from->value.tokens[i];
+		if (from->value.tokens[i].kind == CFG_TOKEN_STRING) {
+			to->value.tokens[i].text = isc_mem_strdup(
+				isc_g_mctx, from->value.tokens[i].text);
+		}
 	}
-	to->value.tokens[n] = NULL;
 }
 
 static void
@@ -1497,7 +1497,8 @@ cleanup:
 }
 
 static void
-tokens_append(cfg_obj_t *obj, size_t *countp, size_t *sizep, char *token) {
+tokens_append(cfg_obj_t *obj, size_t *countp, size_t *sizep,
+	      cfg_token_t token) {
 	if (*countp + 1 >= *sizep) {
 		*sizep = (*sizep == 0) ? 16 : *sizep * 2;
 		obj->value.tokens = isc_mem_reallocate(
@@ -1505,7 +1506,19 @@ tokens_append(cfg_obj_t *obj, size_t *countp, size_t *sizep, char *token) {
 			*sizep * sizeof(obj->value.tokens[0]));
 	}
 	obj->value.tokens[(*countp)++] = token;
-	obj->value.tokens[*countp] = NULL;
+	obj->value.tokens[*countp] = (cfg_token_t){ .kind = CFG_TOKEN_EOF };
+}
+
+static size_t
+count_newlines(const char *text, size_t length) {
+	size_t count = 0;
+
+	for (size_t i = 0; i < length; i++) {
+		if (text[i] == '\n') {
+			count++;
+		}
+	}
+	return count;
 }
 
 static isc_result_t
@@ -1525,37 +1538,53 @@ parse_btokens(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 	/*
 	 * Create the object now, so that it carries the line number of
-	 * the opening bracket. Start with an empty, NULL-terminated array.
+	 * the opening bracket. Start with an empty, EOF-terminated array.
 	 */
 	cfg_obj_create(cfg_parser_currentfile(pctx), pctx->line, type, &obj);
 	obj->value.tokens = NULL;
-	tokens_append(obj, &count, &size, NULL);
+	tokens_append(obj, &count, &size,
+		      (cfg_token_t){ .kind = CFG_TOKEN_EOF });
 	count = 0;
+	unsigned long line = pctx->line;
 
 	for (;;) {
-		char *token = NULL;
+		cfg_token_t token = { 0 };
+		isc_region_t region = { 0 };
 
-		CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING | ISC_LEXOPT_EOL));
-		switch (pctx->token.type) {
-		case isc_tokentype_eol:
-			token = UNCONST(CFG_TOKEN_NEWLINE);
-			break;
-		case isc_tokentype_string:
-		case isc_tokentype_qstring: {
-			isc_region_t region;
-
+		CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
+		/* cfg_gettoken() closes the input source at EOF. */
+		if (pctx->token.type != isc_tokentype_eof) {
 			isc_lex_getlasttokentext(pctx->lexer, &pctx->token,
 						 &region);
-			token = isc_mem_allocate(isc_g_mctx, region.length + 1);
-			memmove(token, region.base, region.length);
-			token[region.length] = '\0';
+		}
+		const size_t next = pctx->line -
+				    count_newlines((const char *)region.base,
+						   region.length);
+
+		/* Set the starting line, including after multiline strings. */
+		if (next != line) {
+			tokens_append(obj, &count, &size,
+				      (cfg_token_t){ .kind = CFG_TOKEN_LINE,
+						     .line = next });
+			line = next;
+		}
+
+		switch (pctx->token.type) {
+		case isc_tokentype_string:
+		case isc_tokentype_qstring: {
+			char *text = isc_mem_allocate(isc_g_mctx,
+						      region.length + 1);
+			memmove(text, region.base, region.length);
+			text[region.length] = '\0';
+			token = (cfg_token_t){ .kind = CFG_TOKEN_STRING,
+					       .text = text };
 			break;
 		}
 		case isc_tokentype_special:
 			switch (pctx->token.value.as_char) {
 			case '{':
 				depth++;
-				token = UNCONST(CFG_TOKEN_OPEN);
+				token.kind = CFG_TOKEN_OPEN;
 				break;
 			case '}':
 				if (depth == 0) {
@@ -1563,16 +1592,16 @@ parse_btokens(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					return ISC_R_SUCCESS;
 				}
 				depth--;
-				token = UNCONST(CFG_TOKEN_CLOSE);
+				token.kind = CFG_TOKEN_CLOSE;
 				break;
 			case ';':
-				token = UNCONST(CFG_TOKEN_END);
+				token.kind = CFG_TOKEN_END;
 				break;
 			case '/':
-				token = UNCONST(CFG_TOKEN_SLASH);
+				token.kind = CFG_TOKEN_SLASH;
 				break;
 			case '!':
-				token = UNCONST(CFG_TOKEN_BANG);
+				token.kind = CFG_TOKEN_BANG;
 				break;
 			default:
 				UNREACHABLE();
@@ -1598,53 +1627,57 @@ cleanup:
 }
 
 void
-cfg_print_tokens(cfg_printer_t *pctx, const char *const *tokens,
-		 const char *const *end) {
+cfg_print_tokens(cfg_printer_t *pctx, const cfg_token_t *tokens,
+		 const cfg_token_t *end, unsigned long line) {
 	bool oneline = (pctx->flags & CFG_PRINTER_ONELINE) != 0;
 	bool newline = false;
 
 	/*
-	 * Line breaks are reproduced from the CFG_TOKEN_NEWLINE markers,
-	 * so the output has the same line structure as the input; the
-	 * indentation is derived from the bracket depth.
+	 * Preserve source line spacing for ACL reconstruction and derive
+	 * indentation from the bracket depth.
 	 */
 	pctx->indent++;
 	cfg_print_cstr(pctx, "{");
-	for (; tokens != end && *tokens != NULL; tokens++) {
-		const char *t = *tokens;
+	for (; tokens != end && tokens->kind != CFG_TOKEN_EOF; tokens++) {
+		const cfg_token_t *t = tokens;
 
-		if (t == CFG_TOKEN_NEWLINE) {
+		if (t->kind == CFG_TOKEN_LINE) {
 			if (!oneline) {
-				cfg_print_cstr(pctx, "\n");
-				newline = true;
+				while (line < t->line) {
+					cfg_print_cstr(pctx, "\n");
+					newline = true;
+					line++;
+				}
 			}
+			line = t->line;
 			continue;
 		}
 
-		if (t == CFG_TOKEN_CLOSE) {
+		if (t->kind == CFG_TOKEN_CLOSE) {
 			pctx->indent--;
 		}
 
 		if (newline) {
 			cfg_print_indent(pctx);
 			newline = false;
-		} else if (t != CFG_TOKEN_END) {
+		} else if (t->kind != CFG_TOKEN_END) {
 			cfg_print_cstr(pctx, " ");
 		}
 
-		if (t == CFG_TOKEN_OPEN) {
+		if (t->kind == CFG_TOKEN_OPEN) {
 			cfg_print_cstr(pctx, "{");
 			pctx->indent++;
-		} else if (t == CFG_TOKEN_CLOSE) {
+		} else if (t->kind == CFG_TOKEN_CLOSE) {
 			cfg_print_cstr(pctx, "}");
-		} else if (t == CFG_TOKEN_END) {
+		} else if (t->kind == CFG_TOKEN_END) {
 			cfg_print_cstr(pctx, ";");
-		} else if (t == CFG_TOKEN_SLASH) {
+		} else if (t->kind == CFG_TOKEN_SLASH) {
 			cfg_print_cstr(pctx, "/");
-		} else if (t == CFG_TOKEN_BANG) {
+		} else if (t->kind == CFG_TOKEN_BANG) {
 			cfg_print_cstr(pctx, "!");
 		} else {
-			cfg_print_cstr(pctx, t);
+			cfg_print_cstr(pctx, t->text);
+			line += count_newlines(t->text, strlen(t->text));
 		}
 	}
 
@@ -1659,7 +1692,7 @@ cfg_print_tokens(cfg_printer_t *pctx, const char *const *tokens,
 
 static void
 print_btokens(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	cfg_print_tokens(pctx, cfg_obj_astokens(obj), NULL);
+	cfg_print_tokens(pctx, cfg_obj_astokens(obj), NULL, obj->line);
 }
 
 static void
@@ -1673,11 +1706,11 @@ cfg_obj_istokens(const cfg_obj_t *obj) {
 	return obj->type->rep == &cfg_rep_tokens;
 }
 
-const char *const *
+const cfg_token_t *
 cfg_obj_astokens(const cfg_obj_t *obj) {
 	REQUIRE(VALID_CFGOBJ(obj));
 	REQUIRE(obj->type->rep == &cfg_rep_tokens);
-	return (const char *const *)obj->value.tokens;
+	return obj->value.tokens;
 }
 
 bool
@@ -1845,9 +1878,12 @@ free_tokens(cfg_obj_t *obj) {
 	if (obj->value.tokens == NULL) {
 		return;
 	}
-	for (char **t = obj->value.tokens; *t != NULL; t++) {
-		if (CFG_TOKEN_ISSTRING(*t)) {
-			isc_mem_free(isc_g_mctx, *t);
+	for (cfg_token_t *t = obj->value.tokens; t->kind != CFG_TOKEN_EOF; t++)
+	{
+		if (t->kind == CFG_TOKEN_STRING) {
+			char *text = UNCONST(t->text);
+			isc_mem_free(isc_g_mctx, text);
+			t->text = NULL;
 		}
 	}
 	isc_mem_free(isc_g_mctx, obj->value.tokens);
@@ -4340,7 +4376,7 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 		const cfg_obj_t *plugin = cfg_listelt_value(element);
 		const cfg_obj_t *obj;
 		const char *type, *library;
-		const char *const *parameters = NULL;
+		const cfg_token_t *parameters = NULL;
 
 		/* Get the path to the plugin module. */
 		obj = cfg_tuple_get(plugin, "type");

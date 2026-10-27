@@ -19,6 +19,8 @@
 
 #include <dns/types.h>
 
+typedef struct cfg_token cfg_token_t;
+
 /*!
  * \brief
  * Context for initializing a dyndb module.
@@ -52,13 +54,13 @@ struct dns_dyndbctx {
  * if not, set DNS_DYNDB_AGE to 0.
  */
 #ifndef DNS_DYNDB_VERSION
-#define DNS_DYNDB_VERSION 4
+#define DNS_DYNDB_VERSION 5
 #define DNS_DYNDB_AGE	  0
 #endif /* ifndef DNS_DYNDB_VERSION */
 
 typedef isc_result_t
 dns_dyndb_register_t(isc_mem_t *mctx, const char *name,
-		     const char *const *parameters, const char *file,
+		     const cfg_token_t *parameters, const char *file,
 		     unsigned long line, const dns_dyndbctx_t *dctx,
 		     void **instp);
 /*%
@@ -99,7 +101,7 @@ dns_dyndb_version_t(unsigned int *flags);
 
 isc_result_t
 dns_dyndb_load(const char *libname, const char *name,
-	       const char *const *parameters, const char *file,
+	       const cfg_token_t *parameters, const char *file,
 	       unsigned long line, isc_mem_t *mctx, const dns_dyndbctx_t *dctx);
 /*%
  * Load a dyndb module.

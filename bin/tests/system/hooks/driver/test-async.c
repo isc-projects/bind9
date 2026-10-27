@@ -115,7 +115,7 @@ logmsg(const char *fmt, ...) {
  * register hook functions into the view hook table.
  */
 isc_result_t
-plugin_register(const char *const *parameters, const void *cfg,
+plugin_register(const cfg_token_t *parameters, const void *cfg,
 		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
 		void *aclctx, ns_hooktable_t *hooktable,
 		const ns_pluginctx_t *ctx, void **instp) {
@@ -148,7 +148,7 @@ plugin_register(const char *const *parameters, const void *cfg,
 }
 
 isc_result_t
-plugin_check(const char *const *parameters, const void *cfg,
+plugin_check(const cfg_token_t *parameters, const void *cfg,
 	     const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
 	     void *aclctx, const ns_pluginctx_t *ctx) {
 	UNUSED(parameters);

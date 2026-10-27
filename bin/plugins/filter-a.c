@@ -192,7 +192,7 @@ parse_filter_a_on(cfg_tokens_t *tok, const char *name, filter_a_t *dstp) {
 }
 
 static isc_result_t
-parse_parameters(const char *const *parameters, const char *cfg_file,
+parse_parameters(const cfg_token_t *parameters, const char *cfg_file,
 		 unsigned long cfg_line, filter_params_t *params) {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_tokens_t tok;
@@ -284,7 +284,7 @@ cleanup:
 }
 
 static isc_result_t
-configure_instance(filter_instance_t *inst, const char *const *parameters,
+configure_instance(filter_instance_t *inst, const cfg_token_t *parameters,
 		   const void *cfg, const char *cfg_file,
 		   unsigned long cfg_line, isc_mem_t *mctx, void *aclctx) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -324,7 +324,7 @@ cleanup:
  * register hook functions into the view hook table.
  */
 isc_result_t
-plugin_register(const char *const *parameters, const void *cfg,
+plugin_register(const cfg_token_t *parameters, const void *cfg,
 		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
 		void *aclctx, ns_hooktable_t *hooktable,
 		const ns_pluginctx_t *ctx, void **instp) {
@@ -366,7 +366,7 @@ cleanup:
 }
 
 isc_result_t
-plugin_check(const char *const *parameters, const void *cfg,
+plugin_check(const cfg_token_t *parameters, const void *cfg,
 	     const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
 	     void *aclctx, const ns_pluginctx_t *ctx ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;

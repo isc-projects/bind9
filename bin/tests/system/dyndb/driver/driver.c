@@ -85,7 +85,7 @@ dns_dyndb_version_t dyndb_version;
  *                        (for one dyndb section).
  */
 isc_result_t
-dyndb_init(isc_mem_t *mctx, const char *name, const char *const *parameters,
+dyndb_init(isc_mem_t *mctx, const char *name, const cfg_token_t *parameters,
 	   const char *file, unsigned long line, const dns_dyndbctx_t *dctx,
 	   void **instp) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -99,7 +99,7 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *const *parameters,
 	REQUIRE(dctx != NULL);
 
 	/* Every parameter is a plain string: build argv from them. */
-	for (const char *const *t = parameters; *t != NULL; t++) {
+	for (const cfg_token_t *t = parameters; t->kind != CFG_TOKEN_EOF; t++) {
 		size++;
 	}
 	argv = isc_mem_cget(mctx, size + 1, sizeof(*argv));
