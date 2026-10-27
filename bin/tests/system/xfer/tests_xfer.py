@@ -507,6 +507,28 @@ def test_ixfr_too_many_records(named_port, ns6):
         )
 
 
+# test that though a zone with too many records is rejected, the next primary is tried
+def test_retry_too_many_records(named_port, ns6):
+    with ns6.watch_log_from_here() as watcher:
+        ns6.rndc("retransfer retry-too-big.")
+        watcher.wait_for_line(
+            isctest.transfer.transfer_message(
+                "retry-too-big",
+                "10.53.0.1",
+                "Transfer status: too many records",
+                named_port,
+            )
+        )
+        watcher.wait_for_line(
+            isctest.transfer.transfer_message(
+                "retry-too-big",
+                "10.53.0.9",
+                "Transfer status: success",
+                named_port,
+            )
+        )
+
+
 # checking whether dig calculates AXFR statistics correctly
 def test_dig_and_named_axfr_stats(named_port, ns3):
     # Use ns3 logs for checking incoming transfer statistics as ns3 is a
