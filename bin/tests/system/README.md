@@ -422,6 +422,9 @@ whose matcher matches a query handles it.  Please see
 `isctest/asyncserver/handlers.py` for up-to-date information on available handler classes
 and existing `ans.py` files for how they can be used in practice.  Consult the
 log files (`ans.run`) in case a query is not matched by its intended handler.
+An exception raised by a handler stops the whole server, not just that
+response: later queries go unanswered, the traceback ends up in `ans.run`, and
+the stale `ans.pid` causes a test failure at teardown.
 
 **NOTE:** For readability (of both code and logs), defining separate handler
 classes for distinct queries is strongly preferred over using a single handler
