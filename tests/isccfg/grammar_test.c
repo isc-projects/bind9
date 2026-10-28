@@ -153,8 +153,62 @@ ISC_RUN_TEST_IMPL(query_source_print_addr) {
 				 "options { query-source-v6 ::1; }; ");
 }
 
+ISC_RUN_TEST_IMPL(zone_options_validity) {
+	const struct {
+		const char *zone;
+		const char *template;
+		unsigned int ztype;
+		bool valid;
+	} cases[] = {
+		{ "{}", NULL, CFG_ZONE_PRIMARY, true },
+		{ "{ type primary; file \"example.db\"; }", NULL,
+		  CFG_ZONE_PRIMARY, true },
+		{ "{ type primary; allow-update { none; }; }", NULL,
+		  CFG_ZONE_SECONDARY, false },
+		{ "{}", "{ allow-update { none; }; }", CFG_ZONE_SECONDARY,
+		  false },
+		{ "{ notify yes; }", "{ notify no; }", CFG_ZONE_PRIMARY, true },
+		{ "{ allow-update { none; }; }", "{ allow-update { any; }; }",
+		  CFG_ZONE_SECONDARY, false },
+		{ "{ in-view \"other\"; }", NULL, CFG_ZONE_INVIEW, true },
+		{ "{ in-view \"other\"; notify yes; }", NULL, CFG_ZONE_INVIEW,
+		  false },
+	};
+
+	for (size_t i = 0; i < ARRAY_SIZE(cases); i++) {
+		const char *texts[] = { cases[i].zone, cases[i].template };
+		cfg_obj_t *maps[] = { NULL, NULL };
+
+		for (size_t j = 0; j < ARRAY_SIZE(texts); j++) {
+			isc_buffer_t buffer;
+			if (texts[j] == NULL) {
+				continue;
+			}
+			isc_buffer_constinit(&buffer, texts[j],
+					     strlen(texts[j]));
+			isc_buffer_add(&buffer, strlen(texts[j]));
+			assert_int_equal(cfg_parse_buffer(&buffer,
+							  "zone-options", 0,
+							  &cfg_type_zoneopts, 0,
+							  &maps[j]),
+					 ISC_R_SUCCESS);
+		}
+
+		assert_int_equal(cfg_zoneopts_validforzone(maps[0], maps[1],
+							   cases[i].ztype),
+				 cases[i].valid);
+
+		for (size_t j = 0; j < ARRAY_SIZE(maps); j++) {
+			if (maps[j] != NULL) {
+				cfg_obj_detach(&maps[j]);
+			}
+		}
+	}
+}
+
 ISC_TEST_LIST_START
 
+ISC_TEST_ENTRY(zone_options_validity)
 ISC_TEST_ENTRY(query_source)
 ISC_TEST_ENTRY(query_source_v6)
 ISC_TEST_ENTRY(server_query_source)
