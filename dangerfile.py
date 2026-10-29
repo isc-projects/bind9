@@ -45,9 +45,11 @@ rdata_regex = re.compile(r"lib/dns/rdata/")
 
 # Source: https://docs.gitlab.com/user/project/issues/managing_issues/#default-closing-pattern
 ISSUE_CLOSING_REGEX = r"\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)"
-ISSUE_REF = r"(?P<prefix>(isc-projects/bind9)?#|https://gitlab\.isc\.org/isc-projects/bind9/-/issues/)(?P<id>[0-9]+)"
+ISSUE_URL = r"https://gitlab\.isc\.org/isc-projects/bind9/-/(?:issues|work_items)/"
+ISSUE_REF = rf"(?P<prefix>(isc-projects/bind9)?#|{ISSUE_URL})(?P<id>[0-9]+)"
 full_regex = ISSUE_CLOSING_REGEX.replace("%{issue_ref}", ISSUE_REF)
 mr_issue_link_regex = re.compile(full_regex, re.IGNORECASE | re.MULTILINE)
+issue_ref_regex = re.compile(ISSUE_REF, re.IGNORECASE)
 
 modified_files = danger.git.modified_files
 affected_files = (
@@ -365,6 +367,11 @@ elif not approved:
 #
 #     * This merge request updates release notes, but no GitLab issue was
 #       linked with the `Closes` or `Fixes` keyword in the MR description.
+#
+#     * The MR description links an issue with the `Closes` or `Fixes` keyword,
+#       but it does not follow the preferred `Closes #xxxx, #yyyy, ...` style
+#       in the public BIND 9 project. For MRs in any other project it becomes
+#       `Closes isc-projects/bind9#xxxx, isc-projects/bind9#yyyy, ...`.
 
 release_notes_changed = mr_title_audience in ["usr", "pkg"]
 if not release_notes_changed:
@@ -386,9 +393,25 @@ if not release_notes_changed:
         )
 
 if release_notes_changed and not mr_issue_link_regex.search(
-    danger.gitlab.mr.description
+    danger.gitlab.mr.description or ""
 ):
     warn("No issue was linked via `Closes`|`Fixes` in the MR description.")
+
+proj_path = ""
+if proj.path_with_namespace != "isc-projects/bind9":
+    proj_path = "isc-projects/bind9"
+
+for mr_issue_link in mr_issue_link_regex.finditer(danger.gitlab.mr.description or ""):
+    text = mr_issue_link.group(0)
+    if not re.fullmatch(rf"Closes {proj_path}#\d+(, {proj_path}#\d+)*", text):
+        issue_ids = sorted(
+            int(issue.group("id")) for issue in issue_ref_regex.finditer(text)
+        )
+        issue_ids_hint = ", ".join(f"{proj_path}#{issue_id}" for issue_id in issue_ids)
+        warn(
+            "The MR description does not follow the preferred format to link issues."
+            f" Use `Closes {issue_ids_hint}` instead."
+        )
 
 ###############################################################################
 # CVE IDENTIFIERS
