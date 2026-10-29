@@ -842,8 +842,8 @@ dns_notifyctx_defer(dns_notifyctx_t *nctx, isc_time_t now) {
 	REQUIRE(nctx != NULL);
 
 	if (nctx->notifydefer != 0 &&
-	    !dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NODEFER) &&
-	    !dns_notifyctx_hasflag(nctx, DNS_NOTIFY_DEFERRED))
+	    !dns_notifyctx_hasflag(nctx,
+				   DNS_NOTIFY_NODEFER | DNS_NOTIFY_DEFERRED))
 	{
 		if (isc_time_compare(&now, &nctx->notifytime) > 0) {
 			nctx->notifytime = now;
@@ -858,7 +858,7 @@ bool
 dns_notifyctx_notify_needed(dns_notifyctx_t *nctx, isc_time_t now) {
 	REQUIRE(nctx != NULL);
 
-	return (dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND) ||
-		dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSTARTUP)) &&
+	return dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND |
+						   DNS_NOTIFY_NEEDSTARTUP) &&
 	       isc_time_compare(&now, &nctx->notifytime) >= 0;
 }

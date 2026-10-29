@@ -13276,8 +13276,8 @@ zone_shutdown(void *arg) {
 
 static bool
 notify_needed(dns_notifyctx_t *nctx) {
-	return dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND) ||
-	       dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSTARTUP);
+	return dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND |
+						   DNS_NOTIFY_NEEDSTARTUP);
 }
 
 static void
