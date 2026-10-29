@@ -19172,6 +19172,15 @@ zone_rekey(dns_zone_t *zone) {
 
 		dns_notifyctx_setflag(&zone->notifysoa, DNS_NOTIFY_NEEDSEND);
 
+		/*
+		 * If the CDS/CDNSKEY RRset has changed, send NOTIFY(CDS)
+		 * to endpoints.
+		 */
+		if (notifycds) {
+			dns_notifyctx_setflag(&zone->notifycds,
+					      DNS_NOTIFY_NEEDSEND);
+		}
+
 		zone_needdump(zone, DNS_DUMP_DELAY);
 
 		dns__zone_settimer(zone, timenow);
@@ -19412,15 +19421,6 @@ zone_rekey(dns_zone_t *zone) {
 
 		dns_name_format(&zone->origin, namebuf, sizeof(namebuf));
 		dnssec_log(zone, ISC_LOG_DEBUG(3), "keymgr: %s done", namebuf);
-	}
-
-	/*
-	 * If the CDS/CDNSKEY RRset has changed, send NOTIFY(CDS)
-	 * to endpoints.
-	 */
-	if (notifycds) {
-		dns_notifyctx_setflag(&zone->notifycds,
-				      DNS_NOTIFY_NEEDSEND);
 	}
 
 	result = ISC_R_SUCCESS;
