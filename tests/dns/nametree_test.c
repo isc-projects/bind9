@@ -41,7 +41,6 @@
 
 dns_nametree_t *booltree = NULL;
 dns_nametree_t *bitstree = NULL;
-dns_nametree_t *counttree = NULL;
 
 /*
  * Test utilities.  In general, these assume input parameters are valid
@@ -60,8 +59,6 @@ setup(void **state ISC_ATTR_UNUSED) {
 			    &booltree);
 	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_BITS, "bits test",
 			    &bitstree);
-	dns_nametree_create(isc_g_mctx, DNS_NAMETREE_COUNT, "count test",
-			    &counttree);
 
 	/* Add a positive boolean node */
 	dns_test_namefromstring("example.com.", &fn);
@@ -91,7 +88,6 @@ static int
 teardown(void **state ISC_ATTR_UNUSED) {
 	dns_nametree_detach(&booltree);
 	dns_nametree_detach(&bitstree);
-	dns_nametree_detach(&counttree);
 	rcu_barrier();
 	return 0;
 }
@@ -158,38 +154,6 @@ ISC_RUN_TEST_IMPL(add_bits) {
 	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
-}
-
-ISC_RUN_TEST_IMPL(add_count) {
-	dns_fixedname_t fn;
-	dns_name_t *name = dns_name(&fn);
-
-	/* add a counter node five times */
-	dns_test_namefromstring("example.com.", &fn);
-	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
-
-	/* delete it five times, checking coverage each time */
-	assert_true(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
-
-	assert_true(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
-
-	assert_true(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
-
-	assert_true(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
-
-	assert_true(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
-
-	assert_false(dns_nametree_covered(counttree, name, NULL, 0));
-	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_NOTFOUND);
 }
 
 ISC_RUN_TEST_IMPL(covered_bool) {
@@ -325,7 +289,6 @@ ISC_RUN_TEST_IMPL(find) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(add_bool, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(add_bits, setup, teardown)
-ISC_TEST_ENTRY_CUSTOM(add_count, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(covered_bool, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(covered_bits, setup, teardown)
 ISC_TEST_ENTRY_CUSTOM(delete, setup, teardown)
