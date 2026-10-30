@@ -21,7 +21,10 @@ zone "f055.test" {
 	server-addresses { 10.53.0.1; };
 };
 
+{% if ZONE_DNSKEY is defined %}
 trust-anchors {
-	f025.test. static-key 257 3 13 "@ZONE_DNSKEY@";
 	f055.test. static-key 257 3 13 "@ZONE_DNSKEY@";
 };
+{% else %}
+{% include "_common/trusted.conf.j2" %}
+{% endif %}
