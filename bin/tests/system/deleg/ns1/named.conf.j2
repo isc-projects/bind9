@@ -24,6 +24,8 @@ options {
 	recursion no;
 	dnssec-validation no;
 	allow-transfer { any; };
+	check-names response warn;
+	allow-update { localhost; };
 };
 
 dnssec-policy nsec {
