@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+
+import glob
 import os
 import re
 
@@ -86,3 +89,25 @@ def test_large_answer():
     message = frames[0]["message"]
     assert message["response_message_data"]["opcode"] == "QUERY"
     assert "opcode: QUERY" in message["response_message"]
+
+
+@pytest.mark.parametrize(
+    "ns",
+    [
+        pytest.param("ns3", id="default"),
+        pytest.param("ns2", id="unlimited"),
+    ],
+)
+@pytest.mark.parametrize("versions", [6, 3, 1])
+def test_roll(servers, ns, versions):
+    for i in range(12):
+        Path(f"{ns}/dnstap.out.{i}").touch()
+
+    servers[ns].rndc(f"dnstap -roll {versions}")
+
+    def check():
+        files = glob.glob(f"{ns}/dnstap.out.[0-9]")
+        assert len(files) == versions, sorted(files)
+        return True
+
+    isctest.run.retry_with_timeout(check, 10)

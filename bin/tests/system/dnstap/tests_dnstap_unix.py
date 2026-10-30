@@ -10,8 +10,7 @@
 # information regarding copyright ownership.
 
 """
-Check the "rndc dnstap" commands: -reopen against a unix socket output read
-by fstrm_capture.
+Check the dnstap unix socket output of ns4, read by fstrm_capture.
 """
 
 from dataclasses import dataclass
