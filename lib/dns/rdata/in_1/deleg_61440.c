@@ -88,6 +88,10 @@ deleg_validate(uint16_t key, isc_region_t *region) {
 
 	for (i = 0; i < ARRAY_SIZE(direg); i++) {
 		if (direg[i].value == key) {
+			dns_fixedname_t fn;
+			dns_name_t *name = dns_fixedname_initname(&fn);
+			isc_buffer_t b;
+
 			switch (direg[i].encoding) {
 			case deleg_ipv4:
 				if ((region->length % 4) != 0 ||
@@ -106,6 +110,18 @@ deleg_validate(uint16_t key, isc_region_t *region) {
 			case deleg_namelist:
 				if (region->length == 0) {
 					return DNS_R_FORMERR;
+				}
+				while (region->length > 0U) {
+					isc_buffer_init(&b, region->base,
+							region->length);
+					isc_buffer_add(&b, region->length);
+					isc_buffer_setactive(&b,
+							     region->length);
+					RETERR(dns_name_fromwire(name, &b, NULL,
+								 NULL));
+					isc_region_consume(
+						region,
+						isc_buffer_consumedlength(&b));
 				}
 				break;
 			case deleg_keylist: {
@@ -912,15 +928,13 @@ generic_checknames_in_deleg(ARGS_CHECKNAMES) {
 			dns_name_fromregion(&name, &r);
 			isc_region_consume(&r, name.length);
 
-			if (bad != NULL) {
-				dns_name_clone(&name, bad);
-			}
-			if (!dns_name_ishostname(&name, false)) {
-				return false;
-			}
-			if (rdata->type == dns_rdatatype_deleg &&
-			    dns_name_issubdomain(&name, owner))
+			if (!dns_name_ishostname(&name, false) ||
+			    (rdata->type == dns_rdatatype_deleg &&
+			     dns_name_issubdomain(&name, owner)))
 			{
+				if (bad != NULL) {
+					dns_name_clone(&name, bad);
+				}
 				return false;
 			}
 		}
