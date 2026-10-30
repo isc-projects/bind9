@@ -41,7 +41,7 @@ def rrset(
 
 
 def minimal_covering_nsec3(
-    name: dns.name.Name, origin: dns.name.Name
+    name: dns.name.Name, origin: dns.name.Name, opt_out: bool = False
 ) -> dns.rrset.RRset:
     nsec3_hash = dns.dnssec.nsec3_hash(name, None, 0, 1)
     nsec3_hash_just_before = base32hex_delta(nsec3_hash, -1)
@@ -50,5 +50,5 @@ def minimal_covering_nsec3(
     return rrset(
         nsec3_owner,
         dns.rdatatype.NSEC3,
-        f"1 0 0 - {nsec3_hash_just_after} TXT RRSIG",
+        f'1 {"1" if opt_out else "0"} 0 - {nsec3_hash_just_after} TXT RRSIG',
     )
