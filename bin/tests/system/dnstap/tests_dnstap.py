@@ -15,19 +15,16 @@ import re
 import dns.rcode
 import dns.rrset
 import pytest
+import yaml
+
+from dnstap.common import ARTIFACTS, dnstap_read
 
 import isctest
 import isctest.mark
 
 pytestmark = [
     isctest.mark.with_dnstap,
-    pytest.mark.extra_artifacts(
-        [
-            "dnstap.out.*",
-            "ns*/dnstap.out*",
-            "ns2/example.db",
-        ]
-    ),
+    pytest.mark.extra_artifacts(ARTIFACTS),
 ]
 
 
@@ -77,3 +74,15 @@ def test_dnstap_dispatch_socket_addresses(ns3):
     ), "{} out of {} inspected frames contain unexpected addresses:\n\n{}".format(
         len(bad_frames), inspected_frames, "\n".join(bad_frames)
     )
+
+
+def test_large_answer():
+    """
+    Check that a large DNS message is printed completely, both as the parsed
+    message and as the response_message_data text.
+    """
+    frames = list(yaml.safe_load_all(dnstap_read("large-answer.fstrm", "-y").out))
+    assert len(frames) == 1
+    message = frames[0]["message"]
+    assert message["response_message_data"]["opcode"] == "QUERY"
+    assert "opcode: QUERY" in message["response_message"]

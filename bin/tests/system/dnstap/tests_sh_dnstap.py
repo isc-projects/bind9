@@ -18,11 +18,9 @@ pytestmark = [
     pytest.mark.extra_artifacts(
         [
             "dig.out*",
-            "dnstap.hex*",
             "dnstap.out*",
             "fstrm_capture.out.*",
             "nsupdate.out*",
-            "ydump.out*",
             "ns*/dnstap.out*",
             "ns2/example.db",
             "ns2/example.db.jnl",
