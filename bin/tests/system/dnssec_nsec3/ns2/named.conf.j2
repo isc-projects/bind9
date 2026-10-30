@@ -18,10 +18,7 @@ zone "f025.test" {
 
 zone "f055.test" {
 	type static-stub;
-	server-addresses { 10.53.0.1; };
+	server-addresses { 10.53.0.3; };
 };
 
-trust-anchors {
-	f025.test. static-key 257 3 13 "@ZONE_DNSKEY@";
-	f055.test. static-key 257 3 13 "@ZONE_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}

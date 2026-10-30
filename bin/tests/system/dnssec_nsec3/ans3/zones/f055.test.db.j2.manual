@@ -1,0 +1,5 @@
+{% include "_common/zones/template.db.j2.manual" %}
+
+safe	A	198.51.100.55
+ctl	A	127.0.0.1
+cut	A	127.0.0.1
