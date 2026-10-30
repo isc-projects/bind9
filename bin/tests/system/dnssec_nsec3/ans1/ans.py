@@ -60,12 +60,8 @@ class AncestorWildcardNsec3Handler(ResponseHandler):
 
 
 def main() -> None:
-    keys = common.load_keys()
-    server = AsyncDnsServer(default_aa=True)
-    server.install_response_handlers(
-        AncestorWildcardNsec3Handler(),
-        f055.F055Handler(keys),
-    )
+    server = AsyncDnsServer()
+    server.install_response_handlers(AncestorWildcardNsec3Handler())
     server.run()
 
 

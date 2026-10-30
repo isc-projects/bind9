@@ -9,14 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -24,6 +16,8 @@ import pytest
 
 import isctest
 import isctest.mark
+import isctest.template
+import isctest.zone
 
 F055_ZONE = "f055.test."
 SAFE = f"safe.{F055_ZONE}"
@@ -33,44 +27,26 @@ ATTACK = f"a.{CUT}"
 CONTROL_ATTACK = f"a.{CONTROL}"
 SAFE_A = "198.51.100.55"
 FORGED_A = "192.0.2.55"
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
+AUTH = isctest.template.ANS3.ip
+RESOLVER = isctest.template.NS2.ip
 
 pytestmark = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
-            "ans*/keys.json",
+            "ans*/dsset-*",
+            "ans*/zones/*.db",
+            "ans*/zones/*.db.signed",
         ]
     ),
 ]
 
 
-def _make_key(zone: str):
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    ds = dns.dnssec.make_ds(dns.name.from_text(zone), dnskey, "SHA256")
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-        "ds": ds.to_text(),
-    }
-
-
 def bootstrap():
-    keys = {F055_ZONE: _make_key(F055_ZONE)}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    zone_dnskey = "".join(keys[F055_ZONE]["dnskey"].split()[3:])
-    return {"ZONE_DNSKEY": zone_dnskey}
+    zone = isctest.zone.Zone("f055.test.", isctest.template.ANS3, signed=True)
+    zone.configure(csk=True, sign_params="-3 -")
+
+    return {"trust_anchors": zone.trust_anchors()}
 
 
 def _query(server, qname, qtype):
