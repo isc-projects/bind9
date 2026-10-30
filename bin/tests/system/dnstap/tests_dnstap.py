@@ -34,7 +34,7 @@ pytestmark = [
 def test_dnstap_dispatch_socket_addresses(ns3):
     # Send some query to ns3 so that it records something in its dnstap file.
     msg = isctest.query.create("mail.example.", "A")
-    res = isctest.query.tcp(msg, "10.53.0.2", expected_rcode=dns.rcode.NOERROR)
+    res = isctest.query.tcp(msg, ns3.ip, expected_rcode=dns.rcode.NOERROR)
     assert res.answer == [
         dns.rrset.from_text("mail.example.", 300, "IN", "A", "10.0.0.2")
     ]
@@ -71,6 +71,7 @@ def test_dnstap_dispatch_socket_addresses(ns3):
         if not re.match(addr_regex, addr1) or not re.match(addr_regex, addr2):
             bad_frames.append(line)
 
+    assert inspected_frames > 0, "no resolver frames were captured"
     assert (
         len(bad_frames) == 0
     ), "{} out of {} inspected frames contain unexpected addresses:\n\n{}".format(
