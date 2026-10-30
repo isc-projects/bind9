@@ -17,13 +17,8 @@ pytestmark = [
     isctest.mark.with_dnstap,
     pytest.mark.extra_artifacts(
         [
-            "dig.out*",
-            "dnstap.out*",
-            "fstrm_capture.out.*",
-            "nsupdate.out*",
             "ns*/dnstap.out*",
             "ns2/example.db",
-            "ns2/example.db.jnl",
         ]
     ),
 ]

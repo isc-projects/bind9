@@ -135,6 +135,11 @@ with_curl = pytest.mark.skipif(
     not shutil.which(os.getenv("CURL", "")), reason="curl is required"
 )
 
+with_fstrm_capture = pytest.mark.skipif(
+    not shutil.which(os.getenv("FSTRM_CAPTURE", "")),
+    reason="fstrm_capture is required",
+)
+
 
 def _openssl_provider_available(provider: str) -> bool:
     dylib = f".{os.environ.get('DYLIB', 'so')}"
