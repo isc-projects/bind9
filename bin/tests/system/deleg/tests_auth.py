@@ -449,3 +449,18 @@ def test_deleg_noadt_warning(ns1):
     count2 = len(ns1.log.grep(Re("signing DELEG but no DNSKEY")))
     assert count1 != 0
     assert count1 == count2
+
+
+def test_deleg_checknames(ns1):
+    # regression test for #6491: add a DELEG with an invalid name,
+    # then look it up with "check-names response warn"
+    up = update.UpdateMessage("unsigned.")
+    # pylint: disable=anomalous-backslash-in-string
+    up.add("nsonly.unsigned.", 300, 61440, "\# 8 0003000403616263")
+    res = isctest.query.tcp(up, ns1.ip)
+    isctest.check.formerr(res)
+
+    msg = isctest.query.create("nsonly.unsigned.", 61440, deleg=True)
+    res = isctest.query.tcp(msg, ns1.ip)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
