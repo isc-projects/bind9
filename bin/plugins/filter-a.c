@@ -39,7 +39,7 @@
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
-#include <isccfg/grammar.h>
+#include <isccfg/tokens.h>
 
 #include <ns/client.h>
 #include <ns/hooks.h>
@@ -160,78 +160,106 @@ install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 /*
  * Support for parsing of parameters.
  */
-static const char *filter_a_enums[] = { "break-dnssec", NULL };
+typedef struct filter_params {
+	cfg_obj_t *aclobj;
+	filter_a_t v4_a;
+	filter_a_t v6_a;
+} filter_params_t;
 
 static isc_result_t
-parse_filter_a(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret);
-}
+parse_filter_a_on(cfg_tokens_t *tok, const char *name, filter_a_t *dstp) {
+	const char *value = NULL;
 
-static void
-doc_filter_a(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_doc_enum_or_other(pctx, type, &cfg_type_boolean);
-}
+	RETERR(cfg_tokens_getstring(tok, &value));
 
-static cfg_type_t cfg_type_filter_a = {
-	"filter_a",   parse_filter_a,  cfg_print_ustring,
-	doc_filter_a, &cfg_rep_string, filter_a_enums,
-};
-
-static cfg_clausedef_t param_clauses[] = {
-	{ "filter-a", &cfg_type_bracketed_aml, 0, NULL },
-	{ "filter-a-on-v6", &cfg_type_filter_a, 0, NULL },
-	{ "filter-a-on-v4", &cfg_type_filter_a, 0, NULL },
-};
-
-static cfg_clausedef_t *param_clausesets[] = { param_clauses, NULL };
-
-static cfg_type_t cfg_type_parameters = { "filter-a-params", cfg_parse_mapbody,
-					  cfg_print_mapbody, cfg_doc_mapbody,
-					  &cfg_rep_map,	     param_clausesets };
-
-static isc_result_t
-parse_filter_a_on(const cfg_obj_t *param_obj, const char *param_name,
-		  filter_a_t *dstp) {
-	const cfg_obj_t *obj = NULL;
-	isc_result_t result;
-
-	result = cfg_map_get(param_obj, param_name, &obj);
-	if (result != ISC_R_SUCCESS) {
-		return ISC_R_SUCCESS;
-	}
-
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj)) {
-			*dstp = FILTER;
-		} else {
-			*dstp = NONE;
-		}
-	} else if (strcasecmp(cfg_obj_asstring(obj), "break-dnssec") == 0) {
+	if (strcasecmp(value, "yes") == 0 || strcasecmp(value, "true") == 0 ||
+	    strcmp(value, "1") == 0)
+	{
+		*dstp = FILTER;
+	} else if (strcasecmp(value, "no") == 0 ||
+		   strcasecmp(value, "false") == 0 || strcmp(value, "0") == 0)
+	{
+		*dstp = NONE;
+	} else if (strcasecmp(value, "break-dnssec") == 0) {
 		*dstp = BREAK_DNSSEC;
 	} else {
-		result = ISC_R_UNEXPECTED;
+		cfg_tokens_log(tok, ISC_LOG_ERROR, "'%s': invalid value '%s'",
+			       name, value);
+		return ISC_R_UNEXPECTEDTOKEN;
 	}
 
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+parse_parameters(const cfg_token_t *parameters, const char *cfg_file,
+		 unsigned long cfg_line, filter_params_t *params) {
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_tokens_t tok;
+	bool seen_v4 = false, seen_v6 = false;
+
+	*params = (filter_params_t){ .v4_a = NONE, .v6_a = NONE };
+
+	cfg_tokens_init(&tok, parameters, cfg_file, cfg_line);
+	while (cfg_tokens_peek(&tok) != NULL) {
+		const char *name = NULL;
+
+		CHECK(cfg_tokens_getstring(&tok, &name));
+
+		if (strcasecmp(name, "filter-a") == 0) {
+			if (params->aclobj != NULL) {
+				cfg_tokens_log(&tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			CHECK(cfg_tokens_getaml(&tok, &params->aclobj));
+		} else if (strcasecmp(name, "filter-a-on-v6") == 0) {
+			if (seen_v6) {
+				cfg_tokens_log(&tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			seen_v6 = true;
+			CHECK(parse_filter_a_on(&tok, name, &params->v6_a));
+		} else if (strcasecmp(name, "filter-a-on-v4") == 0) {
+			if (seen_v4) {
+				cfg_tokens_log(&tok, ISC_LOG_ERROR,
+					       "'%s' redefined", name);
+				CLEANUP(ISC_R_EXISTS);
+			}
+			seen_v4 = true;
+			CHECK(parse_filter_a_on(&tok, name, &params->v4_a));
+		} else {
+			cfg_tokens_log(&tok, ISC_LOG_ERROR,
+				       "unknown option '%s'", name);
+			CLEANUP(ISC_R_FAILURE);
+		}
+
+		CHECK(cfg_tokens_expect(&tok, CFG_TOKEN_END));
+	}
+
+cleanup:
+	cfg_tokens_clear(&tok);
+	if (result != ISC_R_SUCCESS && params->aclobj != NULL) {
+		cfg_obj_detach(&params->aclobj);
+	}
 	return result;
 }
 
 static isc_result_t
-check_syntax(cfg_obj_t *fmap, const void *cfg, isc_mem_t *mctx, void *aclctx) {
+check_syntax(const filter_params_t *params, const void *cfg, isc_mem_t *mctx,
+	     void *aclctx) {
 	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_obj_t *aclobj = NULL;
+	const cfg_obj_t *aclobj = params->aclobj;
 	dns_acl_t *acl = NULL;
-	filter_a_t f4 = NONE, f6 = NONE;
+	filter_a_t f4 = params->v4_a, f6 = params->v6_a;
 
-	cfg_map_get(fmap, "filter-a", &aclobj);
 	if (aclobj == NULL) {
 		return result;
 	}
 
 	CHECK(cfg_acl_fromconfig(aclobj, (const cfg_obj_t *)cfg,
 				 (cfg_aclconfctx_t *)aclctx, mctx, 0, &acl));
-
-	CHECK(parse_filter_a_on(fmap, "filter-a-on-v6", &f6));
-	CHECK(parse_filter_a_on(fmap, "filter-a-on-v4", &f4));
 
 	if ((f4 != NONE || f6 != NONE) && dns_acl_isnone(acl)) {
 		cfg_obj_log(aclobj, ISC_LOG_WARNING,
@@ -256,25 +284,19 @@ cleanup:
 }
 
 static isc_result_t
-parse_parameters(filter_instance_t *inst, const char *parameters,
-		 const void *cfg, const char *cfg_file, unsigned long cfg_line,
-		 isc_mem_t *mctx, void *aclctx) {
+configure_instance(filter_instance_t *inst, const cfg_token_t *parameters,
+		   const void *cfg, const char *cfg_file,
+		   unsigned long cfg_line, isc_mem_t *mctx, void *aclctx) {
 	isc_result_t result = ISC_R_SUCCESS;
-	cfg_obj_t *param_obj = NULL;
-	const cfg_obj_t *obj = NULL;
-	isc_buffer_t b;
+	filter_params_t params;
 
-	isc_buffer_constinit(&b, parameters, strlen(parameters));
-	isc_buffer_add(&b, strlen(parameters));
-	CHECK(cfg_parse_buffer(&b, cfg_file, cfg_line, &cfg_type_parameters, 0,
-			       &param_obj));
+	CHECK(parse_parameters(parameters, cfg_file, cfg_line, &params));
 
-	CHECK(parse_filter_a_on(param_obj, "filter-a-on-v6", &inst->v6_a));
-	CHECK(parse_filter_a_on(param_obj, "filter-a-on-v4", &inst->v4_a));
+	inst->v4_a = params.v4_a;
+	inst->v6_a = params.v6_a;
 
-	result = cfg_map_get(param_obj, "filter-a", &obj);
-	if (result == ISC_R_SUCCESS) {
-		CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *)cfg,
+	if (params.aclobj != NULL) {
+		CHECK(cfg_acl_fromconfig(params.aclobj, (const cfg_obj_t *)cfg,
 					 (cfg_aclconfctx_t *)aclctx, mctx, 0,
 					 &inst->a_acl));
 	} else {
@@ -282,8 +304,8 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 	}
 
 cleanup:
-	if (param_obj != NULL) {
-		cfg_obj_detach(&param_obj);
+	if (params.aclobj != NULL) {
+		cfg_obj_detach(&params.aclobj);
 	}
 	return result;
 }
@@ -302,10 +324,10 @@ cleanup:
  * register hook functions into the view hook table.
  */
 isc_result_t
-plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
-		unsigned long cfg_line, isc_mem_t *mctx, void *aclctx,
-		ns_hooktable_t *hooktable, const ns_pluginctx_t *ctx,
-		void **instp) {
+plugin_register(const cfg_token_t *parameters, const void *cfg,
+		const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
+		void *aclctx, ns_hooktable_t *hooktable,
+		const ns_pluginctx_t *ctx, void **instp) {
 	filter_instance_t *inst = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -321,8 +343,8 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	isc_mem_attach(mctx, &inst->mctx);
 
 	if (parameters != NULL) {
-		CHECK(parse_parameters(inst, parameters, cfg, cfg_file,
-				       cfg_line, mctx, aclctx));
+		CHECK(configure_instance(inst, parameters, cfg, cfg_file,
+					 cfg_line, mctx, aclctx));
 	}
 
 	isc_ht_init(&inst->ht, mctx, 1, ISC_HT_CASE_SENSITIVE);
@@ -344,23 +366,18 @@ cleanup:
 }
 
 isc_result_t
-plugin_check(const char *parameters, const void *cfg, const char *cfg_file,
-	     unsigned long cfg_line, isc_mem_t *mctx, void *aclctx,
-	     const ns_pluginctx_t *ctx ISC_ATTR_UNUSED) {
+plugin_check(const cfg_token_t *parameters, const void *cfg,
+	     const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
+	     void *aclctx, const ns_pluginctx_t *ctx ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
-	cfg_obj_t *param_obj = NULL;
-	isc_buffer_t b;
+	filter_params_t params;
 
-	isc_buffer_constinit(&b, parameters, strlen(parameters));
-	isc_buffer_add(&b, strlen(parameters));
-	CHECK(cfg_parse_buffer(&b, cfg_file, cfg_line, &cfg_type_parameters, 0,
-			       &param_obj));
-
-	CHECK(check_syntax(param_obj, cfg, mctx, aclctx));
+	CHECK(parse_parameters(parameters, cfg_file, cfg_line, &params));
+	CHECK(check_syntax(&params, cfg, mctx, aclctx));
 
 cleanup:
-	if (param_obj != NULL) {
-		cfg_obj_detach(&param_obj);
+	if (params.aclobj != NULL) {
+		cfg_obj_detach(&params.aclobj);
 	}
 	return result;
 }

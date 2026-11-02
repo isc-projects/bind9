@@ -228,6 +228,7 @@ struct cfg_obj {
 		uint32_t	   uint32;
 		uint64_t	   uint64;
 		char		  *string; /*%< null terminated */
+		cfg_token_t	  *tokens; /*%< see <isccfg/tokens.h> */
 		bool		   boolean;
 		cfg_map_t	  *map;
 		cfg_list_t	  *list;
@@ -316,6 +317,7 @@ struct cfg_parser {
 extern cfg_rep_t cfg_rep_uint32;
 extern cfg_rep_t cfg_rep_uint64;
 extern cfg_rep_t cfg_rep_string;
+extern cfg_rep_t cfg_rep_tokens;
 extern cfg_rep_t cfg_rep_boolean;
 extern cfg_rep_t cfg_rep_map;
 extern cfg_rep_t cfg_rep_list;
@@ -341,8 +343,8 @@ extern cfg_type_t cfg_type_astring;
 extern cfg_type_t cfg_type_ustring;
 extern cfg_type_t cfg_type_sstring;
 extern cfg_type_t cfg_type_bracketed_aml;
-extern cfg_type_t cfg_type_bracketed_text;
-extern cfg_type_t cfg_type_optional_bracketed_text;
+extern cfg_type_t cfg_type_bracketed_tokens;
+extern cfg_type_t cfg_type_optional_bracketed_tokens;
 extern cfg_type_t cfg_type_keyref;
 extern cfg_type_t cfg_type_sockaddr;
 extern cfg_type_t cfg_type_sockaddrtls;
@@ -506,6 +508,16 @@ cfg_print_chars(cfg_printer_t *pctx, const char *text, int len);
 void
 cfg_print_cstr(cfg_printer_t *pctx, const char *s);
 /*%< Print the null-terminated string 's' */
+
+void
+cfg_print_tokens(cfg_printer_t *pctx, const cfg_token_t *tokens,
+		 const cfg_token_t *end, unsigned long line);
+/*%<
+ * Print the token array 'tokens' (see <isccfg/tokens.h>) as a
+ * bracketed block, stopping at 'end' or at the terminating CFG_TOKEN_EOF,
+ * whichever comes first. 'end' may be NULL. 'line' is the source line
+ * of the opening bracket.
+ */
 
 isc_result_t
 cfg_parse_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);

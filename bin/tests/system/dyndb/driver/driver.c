@@ -42,7 +42,6 @@
  * it is undesirable.
  */
 
-#include <isc/commandline.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/util.h>
@@ -50,6 +49,8 @@
 #include <dns/db.h>
 #include <dns/dyndb.h>
 #include <dns/types.h>
+
+#include <isccfg/tokens.h>
 
 #include "db.h"
 #include "instance.h"
@@ -73,9 +74,10 @@ dns_dyndb_version_t dyndb_version;
  * @param[in] name        User-defined string from dyndb "name" {}; definition
  *                        in named.conf.
  *                        The example above will have name = "example-name".
- * @param[in] parameters  User-defined parameters from dyndb section as one
- *                        string. The example above will have
- *                        params = "param1 param2";
+ * @param[in] parameters  User-defined parameters from dyndb section as a
+ *                        token array (see <isccfg/tokens.h>). The example
+ *                        above will have
+ *                        parameters = { "param1", "param2", NULL };
  * @param[in] file	  The name of the file from which the parameters
  *                        were read.
  * @param[in] line	  The line number from which the parameters were read.
@@ -83,26 +85,29 @@ dns_dyndb_version_t dyndb_version;
  *                        (for one dyndb section).
  */
 isc_result_t
-dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
+dyndb_init(isc_mem_t *mctx, const char *name, const cfg_token_t *parameters,
 	   const char *file, unsigned long line, const dns_dyndbctx_t *dctx,
 	   void **instp) {
-	isc_result_t result;
-	unsigned int argc;
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int argc = 0, size = 0;
 	char **argv = NULL;
-	char *s = NULL;
+	const char *token = NULL;
+	cfg_tokens_t tok;
 	sample_instance_t *sample_inst = NULL;
 
 	REQUIRE(name != NULL);
 	REQUIRE(dctx != NULL);
 
-	s = isc_mem_strdup(mctx, parameters);
+	/* Every parameter is a plain string: build argv from them. */
+	for (const cfg_token_t *t = parameters; t->kind != CFG_TOKEN_EOF; t++) {
+		size++;
+	}
+	argv = isc_mem_cget(mctx, size + 1, sizeof(*argv));
 
-	result = isc_commandline_strtoargv(mctx, s, &argc, &argv, 0);
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "dyndb_init: isc_commandline_strtoargv -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
+	cfg_tokens_init(&tok, parameters, file, line);
+	while (cfg_tokens_peek(&tok) != NULL) {
+		CHECK(cfg_tokens_getstring(&tok, &token));
+		argv[argc++] = UNCONST(token);
 	}
 
 	log_write(ISC_LOG_DEBUG(9), "loading params for dyndb '%s' from %s:%lu",
@@ -133,10 +138,8 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	*instp = sample_inst;
 
 cleanup:
-	isc_mem_free(mctx, s);
-	if (argv != NULL) {
-		isc_mem_cput(mctx, argv, argc, sizeof(*argv));
-	}
+	cfg_tokens_clear(&tok);
+	isc_mem_cput(mctx, argv, size + 1, sizeof(*argv));
 
 	return result;
 }

@@ -426,4 +426,4 @@ named_server_getmemprof(void);
 isc_result_t
 named_register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 			  cfg_aclconfctx_t *aclctx, const char *plugin_path,
-			  const char *parameters, void *callback_data);
+			  const cfg_token_t *parameters, void *callback_data);

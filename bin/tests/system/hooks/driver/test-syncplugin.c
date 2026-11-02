@@ -13,7 +13,7 @@
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
-#include <isccfg/grammar.h>
+#include <isccfg/tokens.h>
 
 #include <ns/hooks.h>
 
@@ -58,30 +58,51 @@ syncplugin__hook(void *arg, void *cbdata, isc_result_t *resp) {
 	return NS_HOOK_RETURN;
 }
 
-static cfg_clausedef_t syncplugin__cfgclauses[] = {
-	{ "rcode", &cfg_type_astring, 0, NULL },
-	{ "source", &cfg_type_astring, 0, NULL },
-	{ "firstlbl", &cfg_type_qstring, CFG_CLAUSEFLAG_OPTIONAL, NULL }
-};
-
-static cfg_clausedef_t *syncplugin__cfgparamsclausesets[] = {
-	syncplugin__cfgclauses, NULL
-};
-
-static cfg_type_t syncplugin__cfgparams = {
-	"syncplugin-params", cfg_parse_mapbody, cfg_print_mapbody,
-	cfg_doc_mapbody,     &cfg_rep_map,	syncplugin__cfgparamsclausesets
-};
+typedef struct {
+	cfg_tokens_t tokens;
+	const char *rcode;
+	const char *source;
+	const char *firstlbl;
+} syncplugin_params_t;
 
 static isc_result_t
-syncplugin__parse_rcode(const cfg_obj_t *syncplugincfg, uint8_t *rcode) {
+syncplugin__parse_params(const cfg_token_t *parameters, const char *cfgfile,
+			 unsigned long cfgline, syncplugin_params_t *params) {
+	cfg_tokens_t *tok = &params->tokens;
+
+	*params = (syncplugin_params_t){ 0 };
+
+	cfg_tokens_init(tok, parameters, cfgfile, cfgline);
+	while (cfg_tokens_peek(tok) != NULL) {
+		const char *name = NULL;
+		const char **valuep = NULL;
+
+		RETERR(cfg_tokens_getstring(tok, &name));
+		if (strcmp(name, "rcode") == 0) {
+			valuep = &params->rcode;
+		} else if (strcmp(name, "source") == 0) {
+			valuep = &params->source;
+		} else if (strcmp(name, "firstlbl") == 0) {
+			valuep = &params->firstlbl;
+		} else {
+			cfg_tokens_log(tok, ISC_LOG_ERROR,
+				       "unknown option '%s'", name);
+			return ISC_R_FAILURE;
+		}
+		RETERR(cfg_tokens_getstring(tok, valuep));
+		RETERR(cfg_tokens_expect(tok, CFG_TOKEN_END));
+	}
+
+	if (params->rcode == NULL || params->source == NULL) {
+		return ISC_R_NOTFOUND;
+	}
+
+	return ISC_R_SUCCESS;
+}
+
+static isc_result_t
+syncplugin__parse_rcode(const char *rcodestr, uint8_t *rcode) {
 	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_obj_t *obj = NULL;
-	const char *rcodestr = NULL;
-
-	RETERR(cfg_map_get(syncplugincfg, "rcode", &obj));
-
-	rcodestr = obj->value.string;
 
 	if (strcmp("servfail", rcodestr) == 0) {
 		*rcode = dns_rcode_servfail;
@@ -101,17 +122,15 @@ syncplugin__parse_rcode(const cfg_obj_t *syncplugincfg, uint8_t *rcode) {
 }
 
 isc_result_t
-plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
-		unsigned long cfgline, isc_mem_t *mctx, void *aclctx,
-		ns_hooktable_t *hooktable, const ns_pluginctx_t *ctx,
-		void **instp) {
+plugin_register(const cfg_token_t *parameters, const void *cfg,
+		const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
+		void *aclctx, ns_hooktable_t *hooktable,
+		const ns_pluginctx_t *ctx, void **instp) {
 	isc_result_t result;
-	cfg_obj_t *syncplugincfg = NULL;
-	const cfg_obj_t *obj = NULL;
-	isc_buffer_t b;
+	syncplugin_params_t params;
 	ns_hook_t hook;
 	syncplugin_t *inst = NULL;
-	char *sourcestr = NULL;
+	const char *sourcestr = NULL;
 	dns_name_t example2com = DNS_NAME_INITEMPTY;
 	dns_name_t example3com = DNS_NAME_INITEMPTY;
 	dns_name_t example4com = DNS_NAME_INITEMPTY;
@@ -124,25 +143,18 @@ plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
 	*inst = (syncplugin_t){ .mctx = mctx };
 	*instp = inst;
 
-	isc_buffer_constinit(&b, parameters, strlen(parameters));
-	isc_buffer_add(&b, strlen(parameters));
+	CHECK(syncplugin__parse_params(parameters, cfgfile, cfgline, &params));
 
-	CHECK(cfg_parse_buffer(&b, cfgfile, cfgline, &syncplugin__cfgparams, 0,
-			       &syncplugincfg));
+	CHECK(syncplugin__parse_rcode(params.rcode, &inst->rcode));
 
-	CHECK(syncplugin__parse_rcode(syncplugincfg, &inst->rcode));
-
-	if (cfg_map_get(syncplugincfg, "firstlbl", &obj) == ISC_R_SUCCESS) {
-		const char *firstlbl = cfg_obj_asstring(obj);
-		size_t len = strlen(firstlbl) + 1;
+	if (params.firstlbl != NULL) {
+		size_t len = strlen(params.firstlbl) + 1;
 
 		inst->firstlbl = isc_mem_allocate(mctx, len);
-		strncpy(inst->firstlbl, firstlbl, len);
+		strncpy(inst->firstlbl, params.firstlbl, len);
 	}
 
-	obj = NULL;
-	CHECK(cfg_map_get(syncplugincfg, "source", &obj));
-	sourcestr = obj->value.string;
+	sourcestr = params.source;
 
 	if (strcmp(sourcestr, "zone") == 0) {
 		if (ctx->source != NS_HOOKSOURCE_ZONE) {
@@ -187,6 +199,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfgfile,
 	ns_hook_add(hooktable, mctx, NS_QUERY_NXDOMAIN_BEGIN, &hook);
 
 cleanup:
+	cfg_tokens_clear(&params.tokens);
 	if (dns_name_dynamic(&example2com)) {
 		dns_name_free(&example2com, isc_g_mctx);
 	}
@@ -199,17 +212,13 @@ cleanup:
 		dns_name_free(&example4com, isc_g_mctx);
 	}
 
-	if (syncplugincfg != NULL) {
-		cfg_obj_detach(&syncplugincfg);
-	}
-
 	return result;
 }
 
 isc_result_t
-plugin_check(const char *parameters, const void *cfg, const char *cfgfile,
-	     unsigned long cfgline, isc_mem_t *mctx, void *aclctx,
-	     const ns_pluginctx_t *ctx) {
+plugin_check(const cfg_token_t *parameters, const void *cfg,
+	     const char *cfgfile, unsigned long cfgline, isc_mem_t *mctx,
+	     void *aclctx, const ns_pluginctx_t *ctx) {
 	UNUSED(parameters);
 	UNUSED(cfg);
 	UNUSED(cfgfile);

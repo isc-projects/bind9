@@ -67,6 +67,7 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
+#include <isccfg/tokens.h>
 
 /*
  * cfg_obj_t is used _a lot_ when building the configuration tree, which
@@ -120,6 +121,9 @@ create_list(cfg_obj_t *file, size_t line, const cfg_type_t *type,
 
 static void
 free_string(cfg_obj_t *obj);
+
+static void
+free_tokens(cfg_obj_t *obj);
 
 static void
 free_sockaddr(cfg_obj_t *obj);
@@ -234,6 +238,24 @@ copy_string(cfg_obj_t *to, const cfg_obj_t *from) {
 }
 
 static void
+copy_tokens(cfg_obj_t *to, const cfg_obj_t *from) {
+	size_t n = 0;
+
+	while (from->value.tokens[n].kind != CFG_TOKEN_EOF) {
+		n++;
+	}
+	to->value.tokens = isc_mem_allocate(
+		isc_g_mctx, (n + 1) * sizeof(*to->value.tokens));
+	for (size_t i = 0; i <= n; i++) {
+		to->value.tokens[i] = from->value.tokens[i];
+		if (from->value.tokens[i].kind == CFG_TOKEN_STRING) {
+			to->value.tokens[i].text = isc_mem_strdup(
+				isc_g_mctx, from->value.tokens[i].text);
+		}
+	}
+}
+
+static void
 copy_map_destroy(char *key ISC_ATTR_UNUSED, unsigned int type ISC_ATTR_UNUSED,
 		 isc_symvalue_t symval, void *arg ISC_ATTR_UNUSED) {
 	cfg_obj_t *obj = symval.as_pointer;
@@ -333,6 +355,7 @@ copy_noop(cfg_obj_t *to ISC_ATTR_UNUSED,
 cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop, copy_uint32 };
 cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop, copy_uint64 };
 cfg_rep_t cfg_rep_string = { "string", free_string, copy_string };
+cfg_rep_t cfg_rep_tokens = { "tokens", free_tokens, copy_tokens };
 cfg_rep_t cfg_rep_boolean = { "boolean", free_noop, copy_boolean };
 cfg_rep_t cfg_rep_map = { "map", free_map, copy_map };
 cfg_rep_t cfg_rep_list = { "list", free_list, copy_list };
@@ -1473,42 +1496,221 @@ cleanup:
 	return result;
 }
 
-static isc_result_t
-parse_btext(cfg_parser_t *pctx, const cfg_type_t *type ISC_ATTR_UNUSED,
-	    cfg_obj_t **ret) {
-	isc_result_t result;
+static void
+tokens_append(cfg_obj_t *obj, size_t *countp, size_t *sizep,
+	      cfg_token_t token) {
+	if (*countp + 1 >= *sizep) {
+		*sizep = (*sizep == 0) ? 16 : *sizep * 2;
+		obj->value.tokens = isc_mem_reallocate(
+			isc_g_mctx, obj->value.tokens,
+			*sizep * sizeof(obj->value.tokens[0]));
+	}
+	obj->value.tokens[(*countp)++] = token;
+	obj->value.tokens[*countp] = (cfg_token_t){ .kind = CFG_TOKEN_EOF };
+}
 
-	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_BTEXT));
-	if (pctx->token.type != isc_tokentype_btext) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "expected bracketed text");
+static size_t
+count_newlines(const char *text, size_t length) {
+	size_t count = 0;
+
+	for (size_t i = 0; i < length; i++) {
+		if (text[i] == '\n') {
+			count++;
+		}
+	}
+	return count;
+}
+
+static isc_result_t
+parse_btokens(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	size_t count = 0, size = 0;
+	unsigned int depth = 0;
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_special ||
+	    pctx->token.value.as_char != '{')
+	{
+		cfg_parser_error(pctx, CFG_LOG_NEAR, "expected '{'");
 		return ISC_R_UNEXPECTEDTOKEN;
 	}
-	cfg_string_create(pctx, TOKEN_STRING(pctx), &cfg_type_bracketed_text,
-			  ret);
-	return ISC_R_SUCCESS;
+
+	/*
+	 * Create the object now, so that it carries the line number of
+	 * the opening bracket. Start with an empty, EOF-terminated array.
+	 */
+	cfg_obj_create(cfg_parser_currentfile(pctx), pctx->line, type, &obj);
+	obj->value.tokens = NULL;
+	tokens_append(obj, &count, &size,
+		      (cfg_token_t){ .kind = CFG_TOKEN_EOF });
+	count = 0;
+	unsigned long line = pctx->line;
+
+	for (;;) {
+		cfg_token_t token = { 0 };
+		isc_region_t region = { 0 };
+
+		CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
+		/* cfg_gettoken() closes the input source at EOF. */
+		if (pctx->token.type != isc_tokentype_eof) {
+			isc_lex_getlasttokentext(pctx->lexer, &pctx->token,
+						 &region);
+		}
+		const size_t next = pctx->line -
+				    count_newlines((const char *)region.base,
+						   region.length);
+
+		/* Set the starting line, including after multiline strings. */
+		if (next != line) {
+			tokens_append(obj, &count, &size,
+				      (cfg_token_t){ .kind = CFG_TOKEN_LINE,
+						     .line = next });
+			line = next;
+		}
+
+		switch (pctx->token.type) {
+		case isc_tokentype_string:
+		case isc_tokentype_qstring: {
+			char *text = isc_mem_allocate(isc_g_mctx,
+						      region.length + 1);
+			memmove(text, region.base, region.length);
+			text[region.length] = '\0';
+			token = (cfg_token_t){ .kind = CFG_TOKEN_STRING,
+					       .text = text };
+			break;
+		}
+		case isc_tokentype_special:
+			switch (pctx->token.value.as_char) {
+			case '{':
+				depth++;
+				token.kind = CFG_TOKEN_OPEN;
+				break;
+			case '}':
+				if (depth == 0) {
+					*ret = obj;
+					return ISC_R_SUCCESS;
+				}
+				depth--;
+				token.kind = CFG_TOKEN_CLOSE;
+				break;
+			case ';':
+				token.kind = CFG_TOKEN_END;
+				break;
+			case '/':
+				token.kind = CFG_TOKEN_SLASH;
+				break;
+			case '!':
+				token.kind = CFG_TOKEN_BANG;
+				break;
+			default:
+				UNREACHABLE();
+			}
+			break;
+		case isc_tokentype_eof:
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "unexpected end of input");
+			CLEANUP(ISC_R_UNEXPECTEDEND);
+		default:
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "unexpected token");
+			CLEANUP(ISC_R_UNEXPECTEDTOKEN);
+		}
+		tokens_append(obj, &count, &size, token);
+	}
 
 cleanup:
+	if (obj != NULL) {
+		cfg_obj_detach(&obj);
+	}
 	return result;
 }
 
-static void
-print_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+void
+cfg_print_tokens(cfg_printer_t *pctx, const cfg_token_t *tokens,
+		 const cfg_token_t *end, unsigned long line) {
+	bool oneline = (pctx->flags & CFG_PRINTER_ONELINE) != 0;
+	bool newline = false;
+
 	/*
-	 * We need to print "{" instead of running print_open()
-	 * in order to preserve the exact original formatting
-	 * of the bracketed text. But we increment the indent value
-	 * so that print_close() will leave us back in our original
-	 * state.
+	 * Preserve source line spacing for ACL reconstruction and derive
+	 * indentation from the bracket depth.
 	 */
 	pctx->indent++;
 	cfg_print_cstr(pctx, "{");
-	cfg_print_chars(pctx, obj->value.string, strlen(obj->value.string));
-	print_close(pctx);
+	for (; tokens != end && tokens->kind != CFG_TOKEN_EOF; tokens++) {
+		const cfg_token_t *t = tokens;
+
+		if (t->kind == CFG_TOKEN_LINE) {
+			if (!oneline) {
+				while (line < t->line) {
+					cfg_print_cstr(pctx, "\n");
+					newline = true;
+					line++;
+				}
+			}
+			line = t->line;
+			continue;
+		}
+
+		if (t->kind == CFG_TOKEN_CLOSE) {
+			pctx->indent--;
+		}
+
+		if (newline) {
+			cfg_print_indent(pctx);
+			newline = false;
+		} else if (t->kind != CFG_TOKEN_END) {
+			cfg_print_cstr(pctx, " ");
+		}
+
+		if (t->kind == CFG_TOKEN_OPEN) {
+			cfg_print_cstr(pctx, "{");
+			pctx->indent++;
+		} else if (t->kind == CFG_TOKEN_CLOSE) {
+			cfg_print_cstr(pctx, "}");
+		} else if (t->kind == CFG_TOKEN_END) {
+			cfg_print_cstr(pctx, ";");
+		} else if (t->kind == CFG_TOKEN_SLASH) {
+			cfg_print_cstr(pctx, "/");
+		} else if (t->kind == CFG_TOKEN_BANG) {
+			cfg_print_cstr(pctx, "!");
+		} else {
+			cfg_print_cstr(pctx, t->text);
+			line += count_newlines(t->text, strlen(t->text));
+		}
+	}
+
+	pctx->indent--;
+	if (newline) {
+		cfg_print_indent(pctx);
+	} else {
+		cfg_print_cstr(pctx, " ");
+	}
+	cfg_print_cstr(pctx, "}");
 }
 
 static void
-doc_btext(cfg_printer_t *pctx, const cfg_type_t *type ISC_ATTR_UNUSED) {
+print_btokens(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_print_tokens(pctx, cfg_obj_astokens(obj), NULL, obj->line);
+}
+
+static void
+doc_btokens(cfg_printer_t *pctx, const cfg_type_t *type ISC_ATTR_UNUSED) {
 	cfg_print_cstr(pctx, "{ <unspecified-text> }");
+}
+
+bool
+cfg_obj_istokens(const cfg_obj_t *obj) {
+	REQUIRE(VALID_CFGOBJ(obj));
+	return obj->type->rep == &cfg_rep_tokens;
+}
+
+const cfg_token_t *
+cfg_obj_astokens(const cfg_obj_t *obj) {
+	REQUIRE(VALID_CFGOBJ(obj));
+	REQUIRE(obj->type->rep == &cfg_rep_tokens);
+	return obj->value.tokens;
 }
 
 bool
@@ -1672,6 +1874,22 @@ free_string(cfg_obj_t *obj) {
 }
 
 static void
+free_tokens(cfg_obj_t *obj) {
+	if (obj->value.tokens == NULL) {
+		return;
+	}
+	for (cfg_token_t *t = obj->value.tokens; t->kind != CFG_TOKEN_EOF; t++)
+	{
+		if (t->kind == CFG_TOKEN_STRING) {
+			char *text = UNCONST(t->text);
+			isc_mem_free(isc_g_mctx, text);
+			t->text = NULL;
+		}
+	}
+	isc_mem_free(isc_g_mctx, obj->value.tokens);
+}
+
+static void
 free_sockaddr(cfg_obj_t *obj) {
 	isc_mem_put(isc_g_mctx, obj->value.sockaddr, sizeof(isc_sockaddr_t));
 }
@@ -1722,13 +1940,14 @@ cfg_type_t cfg_type_sstring = { "string",	 cfg_parse_sstring,
 				&cfg_rep_string, NULL };
 
 /*
- * Text enclosed in brackets. Used to pass a block of configuration
- * text to dynamic library or external application. Checked for
- * bracket balance, but not otherwise parsed.
+ * Tokens enclosed in brackets. Used to pass a block of configuration
+ * to a dynamic library, which walks the tokens itself (see
+ * <isccfg/tokens.h>). Checked for bracket balance, but not otherwise
+ * parsed.
  */
-cfg_type_t cfg_type_bracketed_text = { "bracketed_text", parse_btext,
-				       print_btext,	 doc_btext,
-				       &cfg_rep_string,	 NULL };
+cfg_type_t cfg_type_bracketed_tokens = { "bracketed_tokens", parse_btokens,
+					 print_btokens,	     doc_btokens,
+					 &cfg_rep_tokens,    NULL };
 
 #if defined(HAVE_GEOIP2)
 /*
@@ -1915,16 +2134,19 @@ cfg_type_t cfg_type_bracketed_aml = { "bracketed_aml",
 				      &cfg_type_addrmatchelt };
 
 /*
- * Optional bracketed text
+ * Optional bracketed tokens
  */
 static isc_result_t
-parse_optional_btext(cfg_parser_t *pctx, const cfg_type_t *type ISC_ATTR_UNUSED,
-		     cfg_obj_t **ret) {
+parse_optional_btokens(cfg_parser_t *pctx,
+		       const cfg_type_t *type ISC_ATTR_UNUSED,
+		       cfg_obj_t **ret) {
 	isc_result_t result;
 
-	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_BTEXT));
-	if (pctx->token.type == isc_tokentype_btext) {
-		CHECK(cfg_parse_obj(pctx, &cfg_type_bracketed_text, ret));
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_special &&
+	    pctx->token.value.as_char == '{')
+	{
+		CHECK(cfg_parse_obj(pctx, &cfg_type_bracketed_tokens, ret));
 	} else {
 		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
 	}
@@ -1933,29 +2155,26 @@ cleanup:
 }
 
 static void
-print_optional_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+print_optional_btokens(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (obj->type == &cfg_type_void) {
 		return;
 	}
 
-	pctx->indent++;
-	cfg_print_cstr(pctx, "{");
-	cfg_print_chars(pctx, obj->value.string, strlen(obj->value.string));
-	print_close(pctx);
+	print_btokens(pctx, obj);
 }
 
 static void
-doc_optional_btext(cfg_printer_t *pctx,
-		   const cfg_type_t *type ISC_ATTR_UNUSED) {
+doc_optional_btokens(cfg_printer_t *pctx,
+		     const cfg_type_t *type ISC_ATTR_UNUSED) {
 	cfg_print_cstr(pctx, "[ { <unspecified-text> } ]");
 }
 
-cfg_type_t cfg_type_optional_bracketed_text = { "optional_btext",
-						parse_optional_btext,
-						print_optional_btext,
-						doc_optional_btext,
-						NULL,
-						NULL };
+cfg_type_t cfg_type_optional_bracketed_tokens = { "optional_btokens",
+						  parse_optional_btokens,
+						  print_optional_btokens,
+						  doc_optional_btokens,
+						  NULL,
+						  NULL };
 
 /*
  * Booleans
@@ -4157,7 +4376,7 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 		const cfg_obj_t *plugin = cfg_listelt_value(element);
 		const cfg_obj_t *obj;
 		const char *type, *library;
-		const char *parameters = NULL;
+		const cfg_token_t *parameters = NULL;
 
 		/* Get the path to the plugin module. */
 		obj = cfg_tuple_get(plugin, "type");
@@ -4173,8 +4392,8 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 		library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
 
 		obj = cfg_tuple_get(plugin, "parameters");
-		if (obj != NULL && cfg_obj_isstring(obj)) {
-			parameters = cfg_obj_asstring(obj);
+		if (obj != NULL && cfg_obj_istokens(obj)) {
+			parameters = cfg_obj_astokens(obj);
 		}
 
 		result = callback(config, obj, aclctx, library, parameters,

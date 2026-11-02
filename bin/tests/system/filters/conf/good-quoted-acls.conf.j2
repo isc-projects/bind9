@@ -1,0 +1,14 @@
+acl "key" { localhost; };
+acl "geoip" { localhost; };
+acl "192.0.2.1" { localhost; };
+acl "::1" { localhost; };
+
+plugin query "@TOP_BUILDDIR@/filter-a.@DYLIB@" {
+	filter-a { "key"; "geoip"; "192.0.2.1"; "::1"; };
+	filter-a-on-v4 "yes";
+};
+
+plugin query "@TOP_BUILDDIR@/filter-aaaa.@DYLIB@" {
+	filter-aaaa { "key"; "geoip"; "192.0.2.1"; "::1"; };
+	filter-aaaa-on-v4 "yes";
+};
