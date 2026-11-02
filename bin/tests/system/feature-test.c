@@ -17,6 +17,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <openssl/opensslv.h>
+
 #include <isc/md.h>
 #include <isc/net.h>
 #include <isc/print.h>
@@ -37,6 +39,7 @@ usage(void) {
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
+	fprintf(stderr, "\t--have-openssl-4.1-or-newer\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--md5\n");
 	fprintf(stderr, "\t--tsan\n");
@@ -130,6 +133,14 @@ main(int argc, char **argv) {
 #else  /* ifdef HAVE_LIBXML2 */
 		return 1;
 #endif /* ifdef HAVE_LIBXML2 */
+	}
+
+	if (strcmp(argv[1], "--have-openssl-4.1-or-newer") == 0) {
+#if OPENSSL_VERSION_NUMBER >= 0x40100000L
+		return 0;
+#else
+		return 1;
+#endif
 	}
 
 	if (strcmp(argv[1], "--tsan") == 0) {
