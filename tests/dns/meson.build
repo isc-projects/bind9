@@ -27,6 +27,7 @@ dns_tests = [
     'dsdigest',
     'dst',
     'ede',
+    'kasp',
     'keymgr',
     'keytable',
     'master',

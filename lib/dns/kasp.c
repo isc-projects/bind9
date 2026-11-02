@@ -422,7 +422,6 @@ dns_kasp_key_algorithm(dns_kasp_key_t *key) {
 unsigned int
 dns_kasp_key_size(dns_kasp_key_t *key) {
 	unsigned int size = 0;
-	unsigned int min = 0;
 
 	REQUIRE(key != NULL);
 
@@ -433,11 +432,10 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 	case DST_ALG_RSASHA512:
 	case DST_ALG_RSASHA256PRIVATEOID:
 	case DST_ALG_RSASHA512PRIVATEOID:
-		min = (key->algorithm == DST_ALG_RSASHA512) ? 1024 : 512;
 		if (key->length > -1) {
 			size = (unsigned int)key->length;
-			if (size < min) {
-				size = min;
+			if (size < 1024) {
+				size = 1024;
 			}
 			if (size > 4096) {
 				size = 4096;
