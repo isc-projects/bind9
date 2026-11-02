@@ -713,15 +713,21 @@ if [ -n "$run_san_tests" ]; then
   status=$((status + ret))
 fi
 
-# SubjectAltName is not required for HTTPS. Having a properly set
-# Common Name in the Subject field is enough.
-n=$((n + 1))
-echo_i "checking DoH query (when SubjectAltName is not set) ($n)"
-ret=0
-dig_with_https_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT3}" +comm @10.53.0.1 . SOA >dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
+# With OpenSSL older than 4.1, SubjectAltName is not required for HTTPS:
+# having a properly set Common Name in the Subject field is enough. OpenSSL
+# 4.1 no longer falls back to the Common Name when SubjectAltName is missing,
+# so skip the check there.
+if $FEATURETEST --have-openssl-4.1-or-newer; then
+  echo_i "skipping DoH query check (when SubjectAltName is not set): OpenSSL 4.1 or newer"
+else
+  n=$((n + 1))
+  echo_i "checking DoH query (when SubjectAltName is not set) ($n)"
+  ret=0
+  dig_with_https_opts +tls-ca="$ca_file" +tls-hostname="srv01.crt02-no-san.example.com" -p "${EXTRAPORT3}" +comm @10.53.0.1 . SOA >dig.out.test$n || ret=1
+  grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+fi
 
 n=$((n + 1))
 echo_i "checking DoT query (expired certificate, Opportunistic TLS) ($n)"
