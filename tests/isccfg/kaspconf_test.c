@@ -109,17 +109,21 @@ ISC_RUN_TEST_IMPL(kaspkey_rsa_length) {
 		const char *conftext;
 		isc_result_t expected;
 	} testcases[] = {
-		/* The minimum for RSASHA512 based algorithms is 1024... */
-		{ CSK_POLICY("rsasha512 512"), ISC_R_RANGE },
+		/* The minimum for all RSA algorithms is 1024. */
+		{ CSK_POLICY("rsasha512 1023"), ISC_R_RANGE },
 		{ CSK_POLICY("rsasha512 1024"), ISC_R_SUCCESS },
-		{ CSK_POLICY("rsasha512oid 512"), ISC_R_RANGE },
+		{ CSK_POLICY("rsasha512oid 1023"), ISC_R_RANGE },
 		{ CSK_POLICY("rsasha512oid 1024"), ISC_R_SUCCESS },
-		/* ...but 512 for the other RSA algorithms. */
-		{ CSK_POLICY("rsasha256 512"), ISC_R_SUCCESS },
-		{ CSK_POLICY("rsasha256 511"), ISC_R_RANGE },
-		{ CSK_POLICY("rsasha256oid 512"), ISC_R_SUCCESS },
-		{ CSK_POLICY("rsasha1 512"), ISC_R_SUCCESS },
+		{ CSK_POLICY("rsasha256 1023"), ISC_R_RANGE },
+		{ CSK_POLICY("rsasha256 1024"), ISC_R_SUCCESS },
+		{ CSK_POLICY("rsasha256oid 1023"), ISC_R_RANGE },
+		{ CSK_POLICY("rsasha256oid 1024"), ISC_R_SUCCESS },
+		{ CSK_POLICY("rsasha1 1023"), ISC_R_RANGE },
+		{ CSK_POLICY("rsasha1 1024"), ISC_R_SUCCESS },
+		{ CSK_POLICY("nsec3rsasha1 1023"), ISC_R_RANGE },
+		{ CSK_POLICY("nsec3rsasha1 1024"), ISC_R_SUCCESS },
 		/* The maximum is 4096 for all of them. */
+		{ CSK_POLICY("rsasha256 4096"), ISC_R_SUCCESS },
 		{ CSK_POLICY("rsasha256 4097"), ISC_R_RANGE },
 	};
 
