@@ -35,6 +35,8 @@
 #include <isc/refcount.h>
 #include <isc/types.h>
 
+#include <isccfg/clause.h>
+
 /***
  *** Types
  ***/
@@ -137,8 +139,8 @@ cfg_parser_currentfile(cfg_parser_t *pctx);
  */
 
 isc_result_t
-cfg_map_add(cfg_obj_t *map, const cfg_obj_t *obj,
-	    const cfg_clausedef_t *clause);
+cfg_map_addclone(cfg_obj_t *map, const cfg_obj_t *obj,
+		 const cfg_clausedef_t *clause);
 /*%<
  * Clone 'obj' and add its clone to the specified clause in mapbody 'mapobj'.
  * If the clause is tagged with CFG_CLAUSEFLAG_MULTI, the function expects
@@ -205,14 +207,15 @@ cfg_obj_ispercentage(const cfg_obj_t *obj);
  */
 
 isc_result_t
-cfg_map_get(const cfg_obj_t *mapobj, const char *name, const cfg_obj_t **obj);
+cfg_map_get(const cfg_obj_t *mapobj, enum cfg_clause name,
+	    const cfg_obj_t **obj);
 /*%<
  * Extract an element from a configuration object, which
  * must be of a map type.
  *
  * Requires:
  * \li     'mapobj' points to a valid configuration object of a map type.
- * \li     'name' points to a null-terminated string.
+ * \li     'name' is a valid enum cfg_clause value.
  * \li	'obj' is non-NULL and '*obj' is NULL.
  *
  * Returns:
@@ -584,7 +587,7 @@ cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 		   unsigned int *idx);
 
 const cfg_clausedef_t *
-cfg_map_findclause(const cfg_type_t *map, const char *name);
+cfg_map_findclause(const cfg_type_t *map, enum cfg_clause name);
 
 typedef isc_result_t(pluginlist_cb_t)(const cfg_obj_t	*config,
 				      const cfg_obj_t	*obj,

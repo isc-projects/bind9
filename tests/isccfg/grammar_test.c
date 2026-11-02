@@ -34,6 +34,7 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
@@ -73,7 +74,7 @@ assert_text(const char *text) {
 }
 
 static void
-test__querysource(const char *clause_name, const char *name,
+test__querysource(enum cfg_clause clause_name, enum cfg_clause name,
 		  const char *expected) {
 	const cfg_clausedef_t *options_clause = NULL;
 	options_clause = cfg_map_findclause(&cfg_type_namedconf, clause_name);
@@ -87,22 +88,22 @@ test__querysource(const char *clause_name, const char *name,
 }
 
 ISC_RUN_TEST_IMPL(query_source) {
-	test__querysource("options", "query-source",
+	test__querysource(CFG_CLAUSE_OPTIONS, CFG_CLAUSE_QUERY_SOURCE,
 			  "[ address ] ( <ipv4_address> | * | none )");
 }
 
 ISC_RUN_TEST_IMPL(query_source_v6) {
-	test__querysource("options", "query-source-v6",
+	test__querysource(CFG_CLAUSE_OPTIONS, CFG_CLAUSE_QUERY_SOURCE_V6,
 			  "[ address ] ( <ipv6_address> | * | none )");
 }
 
 ISC_RUN_TEST_IMPL(server_query_source) {
-	test__querysource("server", "query-source",
+	test__querysource(CFG_CLAUSE_SERVER, CFG_CLAUSE_QUERY_SOURCE,
 			  "[ address ] ( <ipv4_address> | * )");
 }
 
 ISC_RUN_TEST_IMPL(server_query_source_v6) {
-	test__querysource("server", "query-source-v6",
+	test__querysource(CFG_CLAUSE_SERVER, CFG_CLAUSE_QUERY_SOURCE_V6,
 			  "[ address ] ( <ipv6_address> | * )");
 }
 

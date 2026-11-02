@@ -25,6 +25,7 @@
 #include <isc/types.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 #include <isccfg/duration.h>
 
 /*
@@ -87,7 +88,6 @@ enum {
 	CFG_ZONE_MIRROR = 1 << 23,
 };
 
-typedef struct cfg_clausedef	 cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
 typedef struct cfg_printer	 cfg_printer_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
@@ -138,7 +138,7 @@ typedef void (*cfg_mergefunc_t)(const cfg_obj_t *config,
 				const cfg_obj_t *defaultobj);
 
 struct cfg_clausedef {
-	const char     *name;
+	enum cfg_clause name;
 	cfg_type_t     *type;
 	unsigned int	flags;
 	cfg_mergefunc_t merge;
@@ -625,7 +625,7 @@ cfg_is_enum(const char *s, const char *const *enums);
 /*%< Return true iff the string 's' is one of the strings in 'enums' */
 
 bool
-cfg_clause_validforzone(const char *name, unsigned int ztype);
+cfg_clause_validforzone(enum cfg_clause name, unsigned int ztype);
 /*%<
  * Check whether an option is legal for the specified zone type.
  */

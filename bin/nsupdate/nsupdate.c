@@ -73,6 +73,7 @@
 
 #include <dst/dst.h>
 
+#include <isccfg/clause.h>
 #include <isccfg/namedconf.h>
 
 #include <irs/resconf.h>
@@ -585,10 +586,10 @@ read_sessionkey(isc_mem_t *mctx) {
 
 	CHECK(cfg_parse_file(keyfile, &cfg_type_sessionkey, 0, &sessionkey));
 
-	CHECK(cfg_map_get(sessionkey, "key", &key));
+	CHECK(cfg_map_get(sessionkey, CFG_CLAUSE_KEY, &key));
 
-	(void)cfg_map_get(key, "secret", &secretobj);
-	(void)cfg_map_get(key, "algorithm", &algorithmobj);
+	(void)cfg_map_get(key, CFG_CLAUSE_SECRET, &secretobj);
+	(void)cfg_map_get(key, CFG_CLAUSE_ALGORITHM, &algorithmobj);
 	if (secretobj == NULL || algorithmobj == NULL) {
 		fatal("key must have algorithm and secret");
 	}

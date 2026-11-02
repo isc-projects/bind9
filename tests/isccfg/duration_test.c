@@ -33,6 +33,7 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/clause.h>
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
@@ -151,7 +152,7 @@ ISC_RUN_TEST_IMPL(duration) {
 		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		(void)cfg_map_get(c1, "dnssec-policy", &kasps);
+		(void)cfg_map_get(c1, CFG_CLAUSE_DNSSEC_POLICY, &kasps);
 		assert_non_null(kasps);
 		CFG_LIST_FOREACH(kasps, element) {
 			const cfg_listelt_t *key_element;
@@ -165,7 +166,7 @@ ISC_RUN_TEST_IMPL(duration) {
 			assert_non_null(kconf);
 
 			kopts = cfg_tuple_get(kconf, "options");
-			result = cfg_map_get(kopts, "keys", &keys);
+			result = cfg_map_get(kopts, CFG_CLAUSE_KEYS, &keys);
 			assert_int_equal(result, ISC_R_SUCCESS);
 
 			key_element = cfg_list_first(keys);
