@@ -36,7 +36,7 @@ dns__ede_checkandupdateedeused(dns_edectx_t *edectx, uint16_t code) {
 void
 dns_ede_add(dns_edectx_t *edectx, uint16_t code, const char *text) {
 	REQUIRE(DNS_EDE_VALID(edectx));
-	REQUIRE(code <= DNS_EDE_MAX_CODE);
+	REQUIRE(code < DNS_EDE_MAX_CODE);
 
 	uint16_t becode = htobe16(code);
 	dns_ednsopt_t *edns = NULL;
