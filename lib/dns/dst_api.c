@@ -217,6 +217,9 @@ dst__lib_initialize(void) {
 #ifdef HAVE_OPENSSL_ED448
 	dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448], DST_ALG_ED448);
 #endif /* ifdef HAVE_OPENSSL_ED448 */
+#ifdef HAVE_OPENSSL_MLDSA44
+	dst__opensslmldsa_init(&dst_t_func[DST_ALG_MLDSA44]);
+#endif /* ifdef HAVE_OPENSSL_MLDSA44 */
 
 #if HAVE_GSSAPI
 	dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]);
@@ -1291,6 +1294,9 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_ED448:
 		*n = DNS_SIG_ED448SIZE;
 		break;
+	case DST_ALG_MLDSA44:
+		*n = DNS_SIG_MLDSA44SIZE;
+		break;
 	case DST_ALG_HMACMD5:
 		*n = ISC_MD5_DIGESTLENGTH;
 		break;
@@ -1754,6 +1760,7 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:
 	case DST_ALG_ED448:
+	case DST_ALG_MLDSA44:
 		return false;
 	case DST_ALG_HMACMD5:
 	case DST_ALG_HMACSHA1:

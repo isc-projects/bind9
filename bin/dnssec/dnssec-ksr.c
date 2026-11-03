@@ -353,6 +353,9 @@ create_key(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_kasp_key_t *kaspkey,
 	case DST_ALG_ED448:
 		ksr->size = 456;
 		break;
+	case DST_ALG_MLDSA44:
+		ksr->size = DNS_KEY_MLDSA44SIZE * 8;
+		break;
 	default:
 		show_progress = false;
 		break;
@@ -512,7 +515,7 @@ print_rdata(dns_rdataset_t *rrset) {
 	isc_buffer_t target;
 	isc_region_t r;
 	isc_result_t result;
-	char buf[4096];
+	char buf[65536];
 
 	isc_buffer_init(&target, buf, sizeof(buf));
 	result = dns_rdataset_totext(rrset, name, false, false, &target);

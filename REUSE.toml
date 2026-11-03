@@ -210,3 +210,14 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Internet Systems Consortium, Inc. (\"ISC\")"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+	"tests/dns/testdata/dst/Kexample.com.+018+59829.key",
+	"tests/dns/testdata/dst/Kexample.com.+018+59829.private",
+	"tests/dns/testdata/dst/mldsa.data",
+	"tests/dns/testdata/dst/mldsa.sig"
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 IETF Trust and the persons identified as the document authors"
+SPDX-License-Identifier = "BSD-3-Clause"

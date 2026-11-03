@@ -95,6 +95,7 @@ struct dst_key {
 		struct {
 			EVP_PKEY *pub;
 			EVP_PKEY *priv;
+			uint8_t *seed; /*%< ML-DSA private key */
 		} pkeypair;
 	} keydata; /*%< pointer to key in crypto pkg fmt */
 
@@ -197,6 +198,10 @@ void
 dst__opensslecdsa_init(struct dst_func **funcp);
 void
 dst__openssleddsa_init(struct dst_func **funcp, unsigned char algorithm);
+#ifdef HAVE_OPENSSL_MLDSA44
+void
+dst__opensslmldsa_init(struct dst_func **funcp);
+#endif /* HAVE_OPENSSL_MLDSA44 */
 #if HAVE_GSSAPI
 void
 dst__gssapi_init(struct dst_func **funcp);
