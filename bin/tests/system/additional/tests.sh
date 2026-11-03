@@ -319,6 +319,18 @@ if [ $ret -eq 1 ]; then
   status=$((status + 1))
 fi
 
+n=$((n + 1))
+echo_i "testing FORMERR response to RRSIG query ($n)"
+ret=0
+$DIG $DIGOPTS -t RRSIG www.rt.example @10.53.0.1 >dig.out.$n || ret=1
+grep "status: FORMERR" dig.out.$n >/dev/null || ret=1
+grep "ANSWER: 0" dig.out.$n >/dev/null || ret=1
+grep "EDE: 30" dig.out.$n >/dev/null || ret=1
+if [ $ret -eq 1 ]; then
+  echo_i "failed"
+  status=$((status + 1))
+fi
+
 echo_i "testing with 'minimal-responses no-auth;'"
 minimal=no-auth
 dotests

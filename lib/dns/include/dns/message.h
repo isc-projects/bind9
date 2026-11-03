@@ -148,6 +148,7 @@
 #define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
 #define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
 #define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
+#define DNS_EDE_INVALIDQTYPE	     30 /*%< Invalid Query Type */
 
 /*
  * From RFC 8914:
