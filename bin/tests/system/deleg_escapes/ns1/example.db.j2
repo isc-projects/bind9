@@ -1,0 +1,8 @@
+{% set deleg = deleg | default("") %}
+$TTL 300
+example.		SOA	ns1.example. hostmaster.example. 1 300 300 1200 300
+example.		NS	ns1.example.
+ns1.example.		A	10.53.0.1
+{% if deleg %}
+sub.example.		DELEG	@deleg@
+{% endif %}
