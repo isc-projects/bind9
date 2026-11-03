@@ -1,49 +1,62 @@
 <!--
-If the bug you are reporting is potentially security-related - for example,
-if it involves an assertion failure or other crash in `named` that can be
-triggered repeatedly - then please make sure that you make the new issue
-confidential by clicking the checkbox at the bottom!
+For potential security problems (e.g., repeatable assertions or crashes in `named`),
+use Security_issue template instead!
+
+BIND 9 threat model https://bind9.readthedocs.io/en/latest/chapter7.html#threat-model
+defines what constitutes a security issue.
 -->
 
 <!--
-If you found the problem in BIND 9 using generative AI tools and you have verified it
-yourself to be true: write the report yourself and explain the problem as you
-have learned it. This makes sure the AI-generated inaccuracies and invented
-issues are filtered out early before they waste more people's time.  Even if you
-write the report yourself, you must make sure to reveal the fact that
-generative AI was used in your report.
+If you used generative AI to find the bug, verify it yourself, explain it in your
+own words, and disclose AI use to avoid wasting time on AI errors or inventions.
 
-We ban users immediately who submit fake reports to the project.
+Provide ONLY the information requested by this template, with the minimum
+detail needed to reproduce and assess the issue.
+No code flow explanation, no affected version ranges, no history of code changes,
+no CVSS scoring, etc. Our team handles all that.
+
+Fake reports result in an immediate ban.
 -->
 
 ### Summary
 
-<!-- Concisely summarize the bug encountered. -->
+<!-- Summarize the bug, preferably in one paragraph or less. -->
 
 ### BIND version affected
 <!--
-Make sure you are testing with the **latest** supported version of BIND
-for a given branch. Many bugs have been fixed over time!
+Test the **latest** supported BIND version for your branch to rule out fixed bugs.
 
-See https://kb.isc.org/docs/supported-platforms for the current list.
-The latest source is available from https://www.isc.org/download/#BIND
+Supported versions: https://kb.isc.org/docs/supported-platforms
+Latest source: https://www.isc.org/download/#BIND
 
-Paste the output of `named -V` here.
+Paste `named -V` output.
+-->
+
+### Relevant configuration files
+
+<!--
+Paste relevant configuration files in code blocks (```).
+Attach as files if large.
+
+Hide secrets with `named-checkconf -px`.
 -->
 
 ### Steps to reproduce
 
 <!--
-This is extremely important! Be precise and use itemized lists, please.
+Give precise, minimal, itemized steps.
 
-Even if a default configuration is affected, please include the full configuration
-files _you were testing with_.
+Minimize the reproducer. Use named instances on one machine instead of multiple
+containers whenever possible. Use 10.53.0.x IP addresses configured by
+bin/tests/system/ifconfig.sh as needed.
+
+Include the full configuration files tested.
 
 Example:
-1. Use _attached_ configuration file
-2. Start BIND server with command: `named -g -c named.conf ...`
-3. Simulate legitimate clients using command `dnsperf -S1 -d legit-queries ...`
-4. Simulate attack traffic using command `dnsperf -S1 -d attack-queries ...`
+1. Use the attached configuration.
+2. Start BIND: `named -g -c named.conf ...`
+3. Simulate legitimate clients: `dnsperf -S1 -d legit-queries ...`
+4. Simulate attack traffic: `dnsperf -S1 -d attack-queries ...`
 -->
 
 1.
@@ -58,17 +71,8 @@ Example:
 
 <!-- What you should see instead. -->
 
-### Relevant configuration files
-
-<!-- Paste any relevant configuration files here - please use code blocks (```)
-to format console output. If submitting the contents of your
-configuration file in a non-confidential issue, it is advisable to
-obscure key secrets; this can be done automatically by using
-`named-checkconf -px`. -->
-
 ### Relevant logs
 
-<!-- Paste any relevant logs here - please use code blocks (```) to format console
-output, logs, and code, as it's very hard to read otherwise. -->
+<!-- Paste relevant logs, console output, and code in code blocks (```). -->
 
 /label ~Bug
