@@ -582,11 +582,11 @@ generic_fromtext_in_deleg(ARGS_FROMTEXT) {
 static isc_result_t
 comma_name_totext(const dns_name_t *name, isc_buffer_t *target) {
 	char in[DNS_NAME_FORMATSIZE];
-	size_t len = isc_buffer_availablelength(target);
 
 	dns_name_format(name, in, sizeof(in));
 
 	for (char *sp = in; *sp != '\0'; sp++) {
+		size_t len = isc_buffer_availablelength(target);
 		if (*sp == ',') {
 			if (len < 3) {
 				return ISC_R_NOSPACE;
@@ -606,7 +606,7 @@ comma_name_totext(const dns_name_t *name, isc_buffer_t *target) {
 		len--;
 	}
 
-	if (len < 1) {
+	if (isc_buffer_availablelength(target) < 1) {
 		return ISC_R_NOSPACE;
 	}
 	isc_buffer_putuint8(target, '.');
