@@ -5123,6 +5123,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
+	REQUIRE(type != dns_rdatatype_rrsig);
 
 	mctx = res->buckets[bucketnum].mctx;
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
@@ -8395,13 +8396,9 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * There can be multiple RRSIG records at a name so
-	 * we treat these types as a subset of ANY.
+	 * RRSIG fetches are never created, see fctx_create().
 	 */
 	rctx->type = fctx->type;
-	if (rctx->type == dns_rdatatype_rrsig) {
-		rctx->type = dns_rdatatype_any;
-	}
 
 	/*
 	 * Bigger than any valid DNAME label count.
@@ -9040,12 +9037,6 @@ rctx_answer_any(respctx_t *rctx) {
 		if (!validinanswer(rdataset, fctx)) {
 			rctx->result = DNS_R_FORMERR;
 			return (ISC_R_COMPLETE);
-		}
-
-		if (fctx->type == dns_rdatatype_rrsig &&
-		    rdataset->type != fctx->type)
-		{
-			continue;
 		}
 
 		if ((rdataset->type == dns_rdatatype_a ||
@@ -11219,6 +11210,11 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
 	/* XXXRTH  Check for meta type */
+
+	if (type == dns_rdatatype_rrsig) {
+		return DNS_R_FORMERR;
+	}
+
 	if (domain != NULL) {
 		REQUIRE(DNS_RDATASET_VALID(nameservers));
 		REQUIRE(nameservers->type == dns_rdatatype_ns);
