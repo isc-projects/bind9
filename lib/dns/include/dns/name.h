@@ -68,6 +68,7 @@
 #include <stdio.h>
 
 #include <isc/buffer.h>
+#include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -441,6 +442,18 @@ dns_name_hash(const dns_name_t *name);
  *
  * Returns:
  *\li	A hash value
+ */
+
+void
+dns_name_hash_ex(isc_hash32_t *hash, const dns_name_t *name);
+/*%<
+ * Add the hash of 'name' into the hash for incremental hashing.
+ *
+ * See dns_name_hash() for details.
+ *
+ * Requires:
+ *\li\t'hash' is a valid hash state
+ *\li\t'name' is a valid name
  */
 
 /*

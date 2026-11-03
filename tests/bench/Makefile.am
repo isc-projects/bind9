@@ -22,6 +22,7 @@ LDADD +=				\
 noinst_PROGRAMS =			\
 	ascii				\
 	compress			\
+	dns_diff_appendlistminimal	\
 	dns_name_fromwire		\
 	iterated_hash			\
 	load-names			\
