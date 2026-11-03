@@ -13,10 +13,8 @@ from re import compile as Re
 
 import glob
 import multiprocessing
-import os
 import re
 import shutil
-import signal
 import time
 
 import dns.message
@@ -43,11 +41,7 @@ pytestmark = pytest.mark.extra_artifacts(
 def test_xferquota(named_port, ns1, ns2):
     with newer_mtime("ns1/changing.db"):
         shutil.copyfile("ns1/changing2.db", "ns1/changing.db")
-    with open("ns1/named.pid", "r", encoding="utf-8") as pidfile:
-        pid = int(pidfile.read())
-    os.kill(pid, signal.SIGHUP)
-    with ns1.watch_log_from_start() as watcher:
-        watcher.wait_for_line("received SIGHUP signal to reload zones")
+    ns1.reload()
 
     def check_line_count():
         matching_line_count = 0
