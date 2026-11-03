@@ -2164,7 +2164,7 @@ assign-milestones:
       - commit.txt
     expire_in: "1 month"
 
-.monitor-rpm-job-common: &monitor_rpm_job_common
+.rpm-job-monitor-common: &rpm_job_monitor_common
   <<: *base_image
   environment:
     name: write-zulip
@@ -2185,14 +2185,14 @@ assign-milestones:
       - commit.txt
     expire_in: "1 month"
 
-.monitor-rpm-build-job: &monitor_rpm_build_job
-  <<: *monitor_rpm_job_common
+.rpm-build-job-monitor: &rpm_build_job_monitor
+  <<: *rpm_job_monitor_common
   script:
     - >
       "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py monitor-build --service "${SERVICE}" --version "${CI_COMMIT_TAG}" --commit "$(cat "commit.txt")"
 
-.monitor-rpm-publish-job: &monitor_rpm_publish_job
-  <<: *monitor_rpm_job_common
+.rpm-publish-job-monitor: &rpm_publish_job_monitor
+  <<: *rpm_job_monitor_common
   script:
     - >
       "${CI_PROJECT_DIR}"/bind9-qa/releng/update_rpms.py monitor-publish --service "${SERVICE}" --commit "$(cat "commit.txt")"
@@ -2209,8 +2209,8 @@ rpms-cloudsmith-build:
   rules:
     - *rule_tag_open_source_maintenance
 
-monitor-rpms-cloudsmith-build:
-  <<: *monitor_rpm_build_job
+rpms-cloudsmith-build-monitor:
+  <<: *rpm_build_job_monitor
   variables:
     SERVICE: cloudsmith
   rules:
@@ -2229,8 +2229,8 @@ rpms-cloudsmith-build-private:
   rules:
     - *rule_tag_security_or_subscription
 
-monitor-rpms-cloudsmith-build-private:
-  <<: *monitor_rpm_build_job
+rpms-cloudsmith-build-private-monitor:
+  <<: *rpm_build_job_monitor
   variables:
     SERVICE: cloudsmith
   rules:
@@ -2249,13 +2249,13 @@ rpms-cloudsmith-publish:
   variables:
     SERVICE: cloudsmith
   needs:
-    - job: monitor-rpms-cloudsmith-build
+    - job: rpms-cloudsmith-build-monitor
       artifacts: true
   rules:
     - *rule_tag_open_source_maintenance
 
-monitor-rpms-cloudsmith-publish:
-  <<: *monitor_rpm_publish_job
+rpms-cloudsmith-publish-monitor:
+  <<: *rpm_publish_job_monitor
   variables:
     SERVICE: cloudsmith
   needs:
@@ -2272,13 +2272,13 @@ rpms-cloudsmith-publish-private:
   variables:
     SERVICE: cloudsmith
   needs:
-    - job: monitor-rpms-cloudsmith-build-private
+    - job: rpms-cloudsmith-build-private-monitor
       artifacts: true
   rules:
     - *rule_tag_security_or_subscription
 
-monitor-rpms-cloudsmith-publish-private:
-  <<: *monitor_rpm_publish_job
+rpms-cloudsmith-publish-private-monitor:
+  <<: *rpm_publish_job_monitor
   variables:
     SERVICE: cloudsmith
   needs:
@@ -2299,8 +2299,8 @@ rpms-copr:
   rules:
     - *rule_tag_open_source
 
-monitor-rpms-copr:
-  <<: *monitor_rpm_build_job
+rpms-copr-monitor:
+  <<: *rpm_build_job_monitor
   variables:
     SERVICE: copr
   needs:
@@ -2358,7 +2358,7 @@ update-docker-image:
   rules:
     - *rule_tag_open_source
 
-monitor-update-docker-image:
+update-docker-image-monitor:
   <<: *base_image
   stage: release
   environment:
