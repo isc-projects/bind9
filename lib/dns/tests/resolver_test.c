@@ -34,6 +34,7 @@
 
 #include <dns/dispatch.h>
 #include <dns/name.h>
+#include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
 
@@ -105,6 +106,39 @@ create_test(void **state) {
 	UNUSED(state);
 
 	mkres(&resolver);
+	destroy_resolver(&resolver);
+}
+
+static void
+unexpected_fetch_done(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+	UNUSED(event);
+	fail_msg("an RRSIG query must not create a fetch");
+}
+
+/* dns_resolver_createfetch rejects RRSIG */
+static void
+rrsig_formerr_test(void **state) {
+	dns_resolver_t *resolver = NULL;
+	dns_fetch_t *fetch = NULL;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	UNUSED(state);
+
+	mkres(&resolver);
+	dns_resolver_freeze(resolver);
+	dns_rdataset_init(&rdataset);
+
+	result = dns_resolver_createfetch(resolver, dns_rootname,
+					  dns_rdatatype_rrsig, NULL, NULL,
+					  NULL, 0, maintask,
+					  unexpected_fetch_done, NULL,
+					  &rdataset, NULL, &fetch);
+	assert_int_equal(result, DNS_R_FORMERR);
+	assert_null(fetch);
+	assert_false(dns_rdataset_isassociated(&rdataset));
+
 	destroy_resolver(&resolver);
 }
 
@@ -208,6 +242,8 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(create_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(rrsig_formerr_test,
 						_setup, _teardown),
 		cmocka_unit_test_setup_teardown(gettimeout_test,
 						_setup, _teardown),

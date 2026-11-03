@@ -4331,6 +4331,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
+	REQUIRE(type != dns_rdatatype_rrsig);
 
 	mctx = res->buckets[bucketnum].mctx;
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
@@ -7213,15 +7214,11 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 
 	qname = &fctx->name;
 	view = fctx->res->view;
-	type = fctx->type;
 
 	/*
-	 * There can be multiple RRSIG records at a name so
-	 * we treat these types as a subset of ANY.
+	 * RRSIG fetches are never created, see fctx_create().
 	 */
-	if (type == dns_rdatatype_rrsig) {
-		type = dns_rdatatype_any;
-	}
+	type = fctx->type;
 
 	/*
 	 * Bigger than any valid DNAME label count.
@@ -7331,11 +7328,6 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 			dns_chkarg_t chkarg = { 0 };
 			if (!validinanswer(rdataset, fctx)) {
 				return (DNS_R_FORMERR);
-			}
-			if (fctx->type == dns_rdatatype_rrsig &&
-			    rdataset->type != fctx->type)
-			{
-				continue;
 			}
 			if ((rdataset->type == dns_rdatatype_a ||
 			     rdataset->type == dns_rdatatype_aaaa) &&
@@ -9846,6 +9838,10 @@ dns_resolver_createfetch3(dns_resolver_t *res, dns_name_t *name,
 	REQUIRE(sigrdataset == NULL ||
 		!dns_rdataset_isassociated(sigrdataset));
 	REQUIRE(fetchp != NULL && *fetchp == NULL);
+
+	if (type == dns_rdatatype_rrsig) {
+		return (DNS_R_FORMERR);
+	}
 
 	log_fetch(name, type);
 
