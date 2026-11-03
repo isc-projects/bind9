@@ -4636,6 +4636,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	 * Caller must be holding the lock for 'bucket'
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
+	REQUIRE(type != dns_rdatatype_rrsig);
 
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
 	*fctx = (fetchctx_t){
@@ -8143,13 +8144,9 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * There can be multiple RRSIG records at a name so
-	 * we treat these types as a subset of ANY.
+	 * RRSIG fetches are never created, see fctx_create().
 	 */
 	rctx->type = fctx->type;
-	if (rctx->type == dns_rdatatype_rrsig) {
-		rctx->type = dns_rdatatype_any;
-	}
 
 	/*
 	 * Bigger than any valid DNAME label count.
@@ -8806,12 +8803,6 @@ rctx_answer_any(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if (fctx->type == dns_rdatatype_rrsig &&
-		    rdataset->type != fctx->type)
-		{
-			continue;
-		}
-
 		if ((rdataset->type == dns_rdatatype_a ||
 		     rdataset->type == dns_rdatatype_aaaa) &&
 		    !is_answeraddress_allowed(fctx->res->view, rctx->aname,
@@ -8838,19 +8829,6 @@ rctx_answer_any(respctx_t *rctx) {
 
 		(void)dns_rdataset_additionaldata(rdataset, rctx->aname,
 						  check_related, rctx, 0);
-	}
-
-	/*
-	 * An RRSIG query is handled as a subset of ANY; if every record in
-	 * the answer was filtered out above, nothing was marked cacheable,
-	 * so there is nothing to cache, validate, or chase.  Treat that as a
-	 * broken answer instead of returning success with no answer, which
-	 * would leave the fetch waiting for a validator that is never
-	 * started.
-	 */
-	if (!rctx->aname->attributes.cache) {
-		rctx->result = DNS_R_FORMERR;
-		return ISC_R_COMPLETE;
 	}
 
 	return ISC_R_SUCCESS;
@@ -10828,6 +10806,11 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
 	/* XXXRTH  Check for meta type */
+
+	if (type == dns_rdatatype_rrsig) {
+		return DNS_R_FORMERR;
+	}
+
 	if (domain != NULL) {
 		REQUIRE(DNS_RDATASET_VALID(nameservers));
 		REQUIRE(nameservers->type == dns_rdatatype_ns);

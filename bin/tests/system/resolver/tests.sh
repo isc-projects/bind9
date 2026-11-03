@@ -316,7 +316,7 @@ if [ $ret = 2 ]; then echo_i "ncache priming failed"; fi
 dig_with_opts +tcp mx example.net @10.53.0.7 >dig.ns7.out.${n} || ret=3
 grep "status: NOERROR" dig.ns7.out.${n} >/dev/null || ret=3
 dig_with_opts +tcp rrsig mail.example.net +norec @10.53.0.7 >dig.ns7.out.${n} || ret=4
-grep "status: NOERROR" dig.ns7.out.${n} >/dev/null || ret=4
+grep "status: FORMERR" dig.ns7.out.${n} >/dev/null || ret=4
 grep "ANSWER: 0" dig.ns7.out.${n} >/dev/null || ret=4
 if [ $ret != 0 ]; then
   echo_i "failed"

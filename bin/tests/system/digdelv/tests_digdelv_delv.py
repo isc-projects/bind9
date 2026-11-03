@@ -236,6 +236,15 @@ def test_any_query(delv, ns3):
     assert check_ttl_range(result.out, "SOA", 300)
 
 
+def test_rrsig_query(delv, ns3):
+    """
+    Check that delv -t RRSIG fails; RRSIG queries are never sent.
+    """
+    result = delv(f"@{ns3.ip} -t RRSIG example")
+    assert ";; resolution failed: FORMERR" in result.err
+    assert Re(r"^example\.") not in result.out
+
+
 @pytest.mark.parametrize(
     "anchor",
     [

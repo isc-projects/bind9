@@ -2209,31 +2209,27 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# Check direct query for RRSIG.  If we first ask for normal (non RRSIG)
-# record, the corresponding RRSIG should be cached and subsequent query
-# for RRSIG will be returned with the cached record.
-echo_i "checking RRSIG query from cache ($n)"
+# RRSIG queries return FORMERR, no matter what the cache holds for the
+# queried name: prime the cache with a normal query, then follow it with
+# a query for the corresponding RRSIG.
+echo_i "checking RRSIG query for a cached name returns FORMERR ($n)"
 ret=0
 dig_with_opts normalthenrrsig.secure.example. @10.53.0.4 a >/dev/null || ret=1
-ans=$(dig_with_opts +short normalthenrrsig.secure.example. @10.53.0.4 rrsig) || ret=1
-expect=$(dig_with_opts +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^A') || ret=1
-test "$ans" = "$expect" || ret=1
-# also check that RA is set
-dig_with_opts normalthenrrsig.secure.example. @10.53.0.4 rrsig >dig.out.ns4.test$n || ret=1
-grep "flags:.*ra.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+for ns in 3 4; do
+  dig_with_opts normalthenrrsig.secure.example. @10.53.0.$ns rrsig >dig.out.ns$ns.test$n || ret=1
+  grep "status: FORMERR" dig.out.ns$ns.test$n >/dev/null || ret=1
+  grep "ANSWER: 0" dig.out.ns$ns.test$n >/dev/null || ret=1
+  grep "EDE: 30" dig.out.ns$ns.test$n >/dev/null || ret=1
+done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# Check direct query for RRSIG: If it's not cached with other records,
-# it should result in an empty response.
-echo_i "checking RRSIG query not in cache ($n)"
+echo_i "checking RRSIG query for a name not in cache returns FORMERR ($n)"
 ret=0
-ans=$(dig_with_opts +short rrsigonly.secure.example. @10.53.0.4 rrsig) || ret=1
-test -z "$ans" || ret=1
-# also check that RA is cleared
 dig_with_opts rrsigonly.secure.example. @10.53.0.4 rrsig >dig.out.ns4.test$n || ret=1
-grep "flags:.*ra.*QUERY" dig.out.ns4.test$n >/dev/null && ret=1
+grep "status: FORMERR" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))

@@ -31,11 +31,16 @@ META_TYPES = ["ANY", "AXFR", "IXFR", "MAILA", "MAILB", "OPT", "TSIG", "TKEY"]
 
 
 @pytest.mark.parametrize("meta_type", META_TYPES)
-def test_rrsig_covers_metatype_is_servfail(meta_type):
+def test_rrsig_query_returns_formerr(meta_type):
+    """
+    The resolver rejects RRSIG queries with FORMERR, so the malformed
+    RRSIG can never be pulled into the cache with a direct RRSIG
+    query.
+    """
     qname = f"{meta_type.lower()}.attacker.test."
     msg = isctest.query.create(qname, "RRSIG", dnssec=False, ad=False)
     res = isctest.query.tcp(msg, "10.53.0.2")
-    isctest.check.servfail(res)
+    isctest.check.formerr(res)
 
 
 @pytest.mark.parametrize("meta_type", META_TYPES)
