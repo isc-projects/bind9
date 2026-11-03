@@ -37,11 +37,16 @@ REJECTED_TYPES = META_TYPES + SIG_TYPES
 
 
 @pytest.mark.parametrize("covered_type", REJECTED_TYPES)
-def test_rrsig_covers_rejected_type_is_servfail(covered_type):
+def test_rrsig_query_returns_formerr(covered_type):
+    """
+    The resolver rejects RRSIG queries with FORMERR, so the malformed
+    RRSIG can never be pulled into the cache with a direct RRSIG
+    query.
+    """
     qname = f"{covered_type.lower()}.attacker.test."
     msg = isctest.query.create(qname, "RRSIG", dnssec=False, ad=False)
     res = isctest.query.tcp(msg, "10.53.0.2")
-    isctest.check.servfail(res)
+    isctest.check.formerr(res)
 
 
 @pytest.mark.parametrize("covered_type", REJECTED_TYPES)

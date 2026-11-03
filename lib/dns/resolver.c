@@ -4609,8 +4609,7 @@ resume_qmin(void *arg) {
 		if ((result == DNS_R_CNAME || result == DNS_R_DNAME) &&
 		    fctx->qmin_labels == dns_name_countlabels(fctx->name) &&
 		    fctx->type != dns_rdatatype_nsec &&
-		    fctx->type != dns_rdatatype_any &&
-		    fctx->type != dns_rdatatype_rrsig)
+		    fctx->type != dns_rdatatype_any)
 		{
 			pull_from_resp(resp, fctx);
 
@@ -4940,6 +4939,7 @@ fctx__create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	 * Caller must be holding the lock for 'bucket'
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
+	REQUIRE(!dns_rdatatype_issig(type));
 
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
 	*fctx = (fetchctx_t){ .type = type,
@@ -8200,13 +8200,9 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * There can be multiple RRSIG records at a name so
-	 * we treat these types as a subset of ANY.
+	 * RRSIG fetches are never created, see fctx__create().
 	 */
 	rctx->type = fctx->type;
-	if (dns_rdatatype_issig(fctx->type)) {
-		rctx->type = dns_rdatatype_any;
-	}
 
 	/*
 	 * Bigger than any valid DNAME label count.
@@ -8828,12 +8824,6 @@ rctx_answer_any(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if (dns_rdatatype_issig(fctx->type) &&
-		    rdataset->type != fctx->type)
-		{
-			continue;
-		}
-
 		if (dns_rdatatype_isaddr(rdataset->type) &&
 		    !is_answeraddress_allowed(fctx->res->view, rctx->aname,
 					      rdataset))
@@ -8859,19 +8849,6 @@ rctx_answer_any(respctx_t *rctx) {
 		}
 		rdataset->attributes.cache = true;
 		rdataset->trust = rctx->trust;
-	}
-
-	/*
-	 * An RRSIG query is handled as a subset of ANY; if every record in
-	 * the answer was filtered out above, nothing was marked cacheable,
-	 * so there is nothing to cache, validate, or chase.  Treat that as a
-	 * broken answer instead of returning success with no answer, which
-	 * would leave the fetch waiting for a validator that is never
-	 * started.
-	 */
-	if (!dns_linkedname_attrs(rctx->aname)->cache) {
-		rctx->result = DNS_R_FORMERR;
-		return ISC_R_COMPLETE;
 	}
 
 	return ISC_R_SUCCESS;
@@ -10712,6 +10689,11 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
 	/* XXXRTH  Check for meta type */
+
+	if (dns_rdatatype_issig(type)) {
+		return DNS_R_FORMERR;
+	}
+
 	if (domain != NULL) {
 		REQUIRE(DNS_DELEGSET_VALID(delegset));
 	} else {
