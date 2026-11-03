@@ -1498,7 +1498,7 @@ qpcache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 * but belongs to the parent zone and must be looked up independently.
 	 */
 	if (type == dns_rdatatype_nsec || type == dns_rdatatype_rrsig ||
-	    dns_rdatatype_atparent(type) || type == dns_rdatatype_any)
+	    type == dns_rdatatype_any)
 	{
 		cname_ok = false;
 	}

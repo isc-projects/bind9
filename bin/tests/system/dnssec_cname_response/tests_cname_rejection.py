@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from dns.rdtypes.dnskeybase import Flag
 
 import dns.dnssec
+import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
@@ -124,8 +125,8 @@ EXPECTED_A = dns.rrset.from_text(
 )
 
 
-def _query_insecure_parent(ns, qtype):
-    return isctest.query.tcp(isctest.query.create("insecure.parent.", qtype), ns.ip)
+def _query(ns, qname, qtype):
+    return isctest.query.tcp(isctest.query.create(qname, qtype), ns.ip)
 
 
 def _check_insecure_cname_chain(res):
@@ -243,24 +244,90 @@ def test_cname_at_insecure_delegation_is_accepted(servers, resolver):
     """
     ns = servers[resolver]
 
-    res = _query_insecure_parent(ns, "A")
+    res = _query(ns, "insecure.parent.", "A")
     _check_insecure_cname_chain(res)
 
-    res = _query_insecure_parent(ns, "DS")
+    res = _query(ns, "insecure.parent.", "DS")
     isctest.check.noerror(res)
     isctest.check.empty_answer(res)
 
-    res = _query_insecure_parent(ns, "NS")
+    res = _query(ns, "insecure.parent.", "NS")
     isctest.check.noerror(res)
     answers = {rrset.rdtype: rrset for rrset in res.answer}
     assert answers.get(dns.rdatatype.CNAME) == EXPECTED_CNAME, res
 
     # Repeat with a warm cache.
-    res = _query_insecure_parent(ns, "A")
+    res = _query(ns, "insecure.parent.", "A")
     _check_insecure_cname_chain(res)
 
     assert not ns.log.grep(Re(r"deadlock found resolving 'insecure\.parent"))
     assert not ns.log.grep(Re(r"fetch loop detected resolving 'insecure\.parent"))
+
+
+# Ordinary (non-apex) CNAMEs in the signed 'parent.' and the unsigned
+# 'insecure.parent.' zones; the 'primed' ones are cached by an A query first.
+CNAME_DS_CASES = [
+    ("alias.parent.", False),
+    ("primed.parent.", True),
+    ("alias.insecure.parent.", False),
+    ("primed.insecure.parent.", True),
+]
+
+
+@pytest.mark.parametrize("resolver", RESOLVERS)
+@pytest.mark.parametrize(
+    "qname,primed", CNAME_DS_CASES, ids=[qname for qname, _ in CNAME_DS_CASES]
+)
+def test_ds_query_at_cname_is_answered_from_cache(servers, resolver, qname, primed):
+    """
+    A cached CNAME answers DS queries like any other type: a DS query at an
+    uncached name is fetched once and then served from the cache, and a CNAME
+    already cached by an A query is used right away (GL#6455).
+    """
+    ns = servers[resolver]
+    name = qname.rstrip(".").replace(".", r"\.")
+    fetch = Re(f"fetch: {name}/DS")
+
+    if primed:
+        res = _query(ns, qname, "A")
+        isctest.check.noerror(res)
+        assert res.answer[0].rdtype == dns.rdatatype.CNAME, res
+
+    for _ in range(2):
+        res = _query(ns, qname, "DS")
+        isctest.check.noerror(res)
+        assert res.answer, res
+        assert res.answer[0].rdtype == dns.rdatatype.CNAME, res
+        assert res.answer[0].name == dns.name.from_text(qname), res
+
+    fetches = len(ns.log.grep(fetch))
+    assert fetches == (0 if primed else 1), f"{qname}/DS fetched {fetches} times"
+
+
+@pytest.mark.parametrize("resolver", RESOLVERS)
+def test_ds_denial_beside_apex_cname_is_served_from_cache(servers, resolver):
+    """
+    ans2 answers "insecure.parent/A" with a CNAME to
+    "cname-target.insecure.parent" and every other query normally.
+    Validating that chain caches the nonexistence of "insecure.parent/DS".
+    The cached denial, not the CNAME, must answer a later DS query, without
+    another upstream fetch (GL#6455).
+    """
+    ns = servers[resolver]
+    fetch = Re(r"fetch: insecure\.parent/DS")
+
+    ns.rndc("flush")
+
+    # Validating the unsigned CNAME chain caches the parent's denial of DS.
+    res = _query(ns, "insecure.parent.", "A")
+    _check_insecure_cname_chain(res)
+    fetched = len(ns.log.grep(fetch))
+
+    res = _query(ns, "insecure.parent.", "DS")
+    isctest.check.noerror(res)
+    isctest.check.adflag(res)
+    isctest.check.empty_answer(res)
+    assert len(ns.log.grep(fetch)) == fetched, "the DS query was fetched upstream"
 
 
 def test_apex_cname_coexists_with_other_types(ns3):
@@ -283,13 +350,13 @@ def test_apex_cname_coexists_with_other_types(ns3):
     # Cache MX first; a cached CNAME would answer the MX query via the alias.
     ns3.rndc("flushtree insecure.parent")
 
-    res = _query_insecure_parent(ns3, "MX")
+    res = _query(ns3, "insecure.parent.", "MX")
     check_mx(res)
 
-    res = _query_insecure_parent(ns3, "A")
+    res = _query(ns3, "insecure.parent.", "A")
     _check_insecure_cname_chain(res)
 
-    res = _query_insecure_parent(ns3, "MX")
+    res = _query(ns3, "insecure.parent.", "MX")
     check_mx(res)
 
     with ns3.watch_log_from_here() as watcher:

@@ -451,8 +451,8 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.expected_type = cname,
 			.expected_stale = true,
 		},
-		/* A lone CNAME answers ordinary types, including NS, but not
-		   DS. */
+		/* A lone CNAME answers every ordinary type, NS and DS
+		   included. */
 		{
 			.type1 = cname,
 			.rank1 = fresh,
@@ -479,12 +479,11 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.type2 = none,
 			.rank2 = 0,
 			.qtype = ds,
-			.expected_result = ISC_R_NOTFOUND,
-			.expected_type = none,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
 			.expected_stale = false,
 		},
-		/* A lone stale CNAME answers ordinary types, including NS, but
-		   not DS. */
+		/* A lone stale CNAME does the same. */
 		{
 			.type1 = cname,
 			.rank1 = stale,
@@ -511,9 +510,9 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.type2 = none,
 			.rank2 = 0,
 			.qtype = ds,
-			.expected_result = ISC_R_NOTFOUND,
-			.expected_type = none,
-			.expected_stale = false,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = true,
 		},
 		/* Delegation data beside a CNAME is found by its own type. */
 		{
@@ -535,6 +534,38 @@ ISC_LOOP_TEST_IMPL(cname_precedence) {
 			.expected_result = ISC_R_SUCCESS,
 			.expected_type = ns,
 			.expected_stale = false,
+		},
+		/* DS beside a CNAME follows the same rules as any other type:
+		   fresher wins, the requested type wins a tie. */
+		{
+			.type1 = cname,
+			.rank1 = fresh,
+			.type2 = ds,
+			.rank2 = stale,
+			.qtype = ds,
+			.expected_result = DNS_R_CNAME,
+			.expected_type = cname,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = ds,
+			.rank2 = fresh,
+			.qtype = ds,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = ds,
+			.expected_stale = false,
+		},
+		{
+			.type1 = cname,
+			.rank1 = stale,
+			.type2 = ds,
+			.rank2 = stale,
+			.qtype = ds,
+			.expected_result = ISC_R_SUCCESS,
+			.expected_type = ds,
+			.expected_stale = true,
 		},
 		/* DS does not hide a CNAME from ordinary queries. */
 		{
