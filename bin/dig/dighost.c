@@ -757,6 +757,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->edns = lookold->edns;
 	looknew->original_edns = lookold->original_edns;
 	looknew->recurse = lookold->recurse;
+	looknew->recurse_set = lookold->recurse_set;
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;

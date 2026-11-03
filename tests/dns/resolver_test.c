@@ -106,7 +106,7 @@ ISC_LOOP_TEST_IMPL(create) {
 static void
 unexpected_fetch_done(void *arg) {
 	UNUSED(arg);
-	fail_msg("an RRSIG query must not create a fetch");
+	fail_msg("a rejected query must not create a fetch");
 }
 
 ISC_LOOP_TEST_IMPL(rrsig_formerr) {
@@ -126,6 +126,35 @@ ISC_LOOP_TEST_IMPL(rrsig_formerr) {
 	assert_int_equal(result, DNS_R_FORMERR);
 	assert_null(fetch);
 	assert_false(dns_rdataset_isassociated(&rdataset));
+
+	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown();
+}
+
+ISC_LOOP_TEST_IMPL(metatype_refused) {
+	dns_resolver_t *resolver = NULL;
+	dns_rdataset_t rdataset;
+	const dns_rdatatype_t types[] = {
+		dns_rdatatype_any,   dns_rdatatype_axfr,  dns_rdatatype_ixfr,
+		dns_rdatatype_maila, dns_rdatatype_mailb, dns_rdatatype_opt,
+		dns_rdatatype_tsig,  dns_rdatatype_tkey,
+	};
+
+	mkres(&resolver);
+	dns_resolver_freeze(resolver);
+	dns_rdataset_init(&rdataset);
+
+	for (size_t i = 0; i < ARRAY_SIZE(types); i++) {
+		dns_fetch_t *fetch = NULL;
+		isc_result_t result = dns_resolver_createfetch(
+			resolver, dns_rootname, types[i], NULL, NULL, NULL,
+			NULL, 0, 0, 0, NULL, NULL, NULL, isc_loop(),
+			unexpected_fetch_done, NULL, NULL, &rdataset, NULL,
+			&fetch);
+		assert_int_equal(result, DNS_R_REFUSED);
+		assert_null(fetch);
+		assert_false(dns_rdataset_isassociated(&rdataset));
+	}
 
 	destroy_resolver(&resolver);
 	isc_loopmgr_shutdown();
@@ -219,6 +248,7 @@ ISC_LOOP_TEST_IMPL(settimeout_overmax) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(create, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(rrsig_formerr, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(metatype_refused, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(gettimeout, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(settimeout, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(settimeout_default, setup_test, teardown_test)

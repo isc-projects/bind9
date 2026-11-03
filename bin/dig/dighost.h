@@ -103,27 +103,71 @@ typedef struct dig_searchlist dig_searchlist_t;
 struct dig_lookup {
 	unsigned int magic;
 	isc_refcount_t references;
-	bool aaonly, adflag, badcookie, besteffort, cdflag, cleared, coflag,
-		comments, dns64prefix, deflag, dnssec, doing_xfr, done_as_is,
-		ednsneg, expandaaaa, svcparamkeycompat, expire, fuzzing,
-		header_only, identify,	/*%< Append "on server <foo>" message */
-		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
-					   message, with newline and tab */
-		idnin, idnout, ignore, multiline, need_search, new_search,
-		noclass, nocrypto, nottl, ns_search_only, /*%< dig +nssearch,
-							     host -C */
-		ns_search_success, nsid, /*% Name Server ID (RFC 5001) */
-		onesoa, pending,	 /*%< Pending a successful answer */
-		print_unknown_format, qr, raflag, recurse, section_additional,
-		section_answer, section_authority, section_question,
-		seenbadcookie, sendcookie, servfail_stops,
-		setqid, /*% use a speciied query ID */
-		showbadcookie, showbadvers, showtruncated, stats, tcflag,
-		tcp_keepalive, tcp_mode, tcp_mode_set, tls_mode, /*% connect
-								    using TLS */
-		trace,	    /*% dig +trace */
-		trace_root, /*% initial query for either +trace or +nssearch */
-		ttlunits, use_usec, waiting_connect, zflag, zoneversion;
+	bool aaonly;
+	bool adflag;
+	bool badcookie;
+	bool besteffort;
+	bool cdflag;
+	bool cleared;
+	bool coflag;
+	bool comments;
+	bool dns64prefix;
+	bool deflag;
+	bool dnssec;
+	bool doing_xfr;
+	bool done_as_is;
+	bool ednsneg;
+	bool expandaaaa;
+	bool svcparamkeycompat;
+	bool expire;
+	bool fuzzing;
+	bool header_only;
+	bool identify;		     /*%< Append "on server <foo>" message */
+	bool identify_previous_line; /*% Prepend a "Nameserver <foo>:" message,
+					with newline and tab */
+	bool idnin;
+	bool idnout;
+	bool ignore;
+	bool multiline;
+	bool need_search;
+	bool new_search;
+	bool noclass;
+	bool nocrypto;
+	bool nottl;
+	bool ns_search_only; /*%< dig +nssearch, host -C */
+	bool ns_search_success;
+	bool nsid; /*% Name Server ID (RFC 5001) */
+	bool onesoa;
+	bool pending; /*%< Pending a successful answer */
+	bool print_unknown_format;
+	bool qr;
+	bool raflag;
+	bool recurse;
+	bool recurse_set;
+	bool section_additional;
+	bool section_answer;
+	bool section_authority;
+	bool section_question;
+	bool seenbadcookie;
+	bool sendcookie;
+	bool servfail_stops;
+	bool setqid; /*% use a speciied query ID */
+	bool showbadcookie;
+	bool showbadvers;
+	bool showtruncated;
+	bool stats;
+	bool tcflag;
+	bool tcp_keepalive;
+	bool tcp_mode;
+	bool tcp_mode_set;
+	bool tls_mode;	 /*% connect using TLS */
+	bool trace;	 /*% dig +trace */
+	bool trace_root; /*% initial query for either +trace or +nssearch */
+	bool ttlunits;
+	bool use_usec;
+	bool waiting_connect;
+	bool zflag;
+	bool zoneversion;
 	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;

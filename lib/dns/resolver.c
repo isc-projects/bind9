@@ -901,9 +901,7 @@ get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
  *      query (rctx_answer_scan()).
  *    - For whichever type of response was found, call a separate routine
  *      to handle it: matching QNAME/QTYPE (rctx_answer_match()),
- *      CNAME (rctx_answer_cname()), covering DNAME (rctx_answer_dname()),
- *      or any records returned in response to a query of type ANY
- *      (rctx_answer_any()).
+ *      CNAME (rctx_answer_cname()), or covering DNAME (rctx_answer_dname()).
  *    - Scan the authority section for NS or other records that may be
  *      included with a positive answer (rctx_authority_positive()).
  *
@@ -1002,9 +1000,6 @@ rctx_answer_scan(respctx_t *rctx);
 
 static void
 rctx_authority_positive(respctx_t *rctx);
-
-static isc_result_t
-rctx_answer_any(respctx_t *rctx);
 
 static isc_result_t
 rctx_answer_match(respctx_t *rctx);
@@ -4606,8 +4601,7 @@ resume_qmin(void *arg) {
 		 */
 		if ((result == DNS_R_CNAME || result == DNS_R_DNAME) &&
 		    fctx->qmin_labels == dns_name_countlabels(fctx->name) &&
-		    fctx->type != dns_rdatatype_nsec &&
-		    fctx->type != dns_rdatatype_any)
+		    fctx->type != dns_rdatatype_nsec)
 		{
 			pull_from_resp(resp, fctx);
 
@@ -4938,6 +4932,7 @@ fctx__create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
 	REQUIRE(!dns_rdatatype_issig(type));
+	REQUIRE(!dns_rdatatype_ismeta(type));
 
 	fctx = isc_mem_get(mctx, sizeof(*fctx));
 	*fctx = (fetchctx_t){ .type = type,
@@ -8618,9 +8613,9 @@ rctx_answer(respctx_t *rctx) {
 /*
  * rctx_answer_positive():
  * Handles positive responses. Depending which type of answer this is
- * (matching QNAME/QTYPE, CNAME, DNAME, ANY) calls the proper routine
+ * (matching QNAME/QTYPE, CNAME, DNAME) calls the proper routine
  * to handle it (rctx_answer_match(), rctx_answer_cname(),
- * rctx_answer_dname(), rctx_answer_any()).
+ * rctx_answer_dname()).
  */
 static isc_result_t
 rctx_answer_positive(respctx_t *rctx) {
@@ -8634,15 +8629,10 @@ rctx_answer_positive(respctx_t *rctx) {
 
 	/*
 	 * Determine which type of positive answer this is:
-	 * type ANY, CNAME, DNAME, or an answer matching QNAME/QTYPE.
+	 * CNAME, DNAME, or an answer matching QNAME/QTYPE.
 	 * Call the appropriate routine to handle the answer type.
 	 */
-	if (rctx->aname != NULL && fctx->type == dns_rdatatype_any) {
-		result = rctx_answer_any(rctx);
-		if (result == ISC_R_COMPLETE) {
-			return rctx->result;
-		}
-	} else if (rctx->aname != NULL) {
+	if (rctx->aname != NULL) {
 		result = rctx_answer_match(rctx);
 		if (result == ISC_R_COMPLETE) {
 			return rctx->result;
@@ -8725,13 +8715,9 @@ rctx_answer_scan(respctx_t *rctx) {
 		switch (namereln) {
 		case dns_namereln_equal:
 			ISC_LIST_FOREACH(name->list, rdataset, link) {
-				if (rdataset->type == fctx->type ||
-				    fctx->type == dns_rdatatype_any)
-				{
+				if (rdataset->type == fctx->type) {
 					rctx->aname = name;
-					if (fctx->type != dns_rdatatype_any) {
-						rctx->ardataset = rdataset;
-					}
+					rctx->ardataset = rdataset;
 					break;
 				}
 				if (rdataset->type == dns_rdatatype_cname) {
@@ -8802,52 +8788,6 @@ rctx_answer_scan(respctx_t *rctx) {
 }
 
 /*
- * rctx_answer_any():
- * Handle responses to queries of type ANY. Scan the answer section,
- * and as long as each RRset is of a type that is valid in the answer
- * section, and the rdata isn't filtered, cache it.
- */
-static isc_result_t
-rctx_answer_any(respctx_t *rctx) {
-	fetchctx_t *fctx = rctx->fctx;
-
-	ISC_LIST_FOREACH(rctx->aname->list, rdataset, link) {
-		if (!validinanswer(rdataset, fctx)) {
-			rctx->result = DNS_R_FORMERR;
-			return ISC_R_COMPLETE;
-		}
-
-		if (dns_rdatatype_isaddr(rdataset->type) &&
-		    !is_answeraddress_allowed(fctx->res->view, rctx->aname,
-					      rdataset))
-		{
-			rctx->result = DNS_R_SERVFAIL;
-			return ISC_R_COMPLETE;
-		}
-
-		if (dns_rdatatype_isalias(rdataset->type) &&
-		    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
-					     rdataset, NULL))
-		{
-			rctx->result = DNS_R_SERVFAIL;
-			return ISC_R_COMPLETE;
-		}
-
-		dns_linkedname_attrs(rctx->aname)->cache = true;
-		dns_linkedname_attrs(rctx->aname)->answer = true;
-		if (dns_rdatatype_issig(rdataset->type)) {
-			rdataset->attributes.answersig = true;
-		} else {
-			rdataset->attributes.answer = true;
-		}
-		rdataset->attributes.cache = true;
-		rdataset->trust = rctx->trust;
-	}
-
-	return ISC_R_SUCCESS;
-}
-
-/*
  * rctx_answer_match():
  * Handle responses that match the QNAME/QTYPE of the resolver query.
  * If QTYPE is valid in the answer section and the rdata isn't filtered,
@@ -8872,7 +8812,6 @@ rctx_answer_match(respctx_t *rctx) {
 	}
 	if (dns_rdatatype_isalias(rctx->ardataset->type) &&
 	    fctx->type != rctx->ardataset->type &&
-	    fctx->type != dns_rdatatype_any &&
 	    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
 				     rctx->ardataset, NULL))
 	{
@@ -10681,10 +10620,12 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
-	/* XXXRTH  Check for meta type */
 
 	if (dns_rdatatype_issig(type)) {
 		return DNS_R_FORMERR;
+	}
+	if (dns_rdatatype_ismeta(type)) {
+		return DNS_R_REFUSED;
 	}
 
 	if (domain != NULL) {

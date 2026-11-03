@@ -306,13 +306,14 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *\li	Fetches for type RRSIG are rejected with #DNS_R_FORMERR;
  *	no such queries are sent to authoritative servers.
  *
+ *\li	Fetches for meta types (including ANY) are refused with
+ *	#DNS_R_REFUSED; no such queries are sent to authoritative servers.
+ *
  * Requires:
  *
  *\li	'res' is a valid resolver that has been frozen.
  *
  *\li	'name' is a valid name.
- *
- *\li	'type' is not a meta type other than ANY.
  *
  *\li	'domain' is a valid name or NULL.
  *
@@ -337,6 +338,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *\li	#DNS_R_DUPLICATE
  *\li	#DNS_R_DROP
  *\li	#DNS_R_FORMERR		'type' is RRSIG
+ *\li	#DNS_R_REFUSED		'type' is a meta type
  *
  *\li	Many other values are possible, all of which indicate failure.
  */

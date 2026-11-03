@@ -194,8 +194,9 @@ The global query options are:
 
 .. option:: +tcp, +notcp
 
-   This option uses [or does not use] TCP when querying name servers. The default behavior
-   is to use UDP.
+   This option uses [or does not use] TCP when querying name servers. The
+   default behavior is to use UDP unless a type ANY query is requested, in
+   which case the default is TCP.
 
 .. option:: +ttlid, +nottlid
 
@@ -226,8 +227,8 @@ Local Options
 
    This option sets the query type to ``type``. It can be any valid
    query type which is supported in BIND 9. The default query type is "A",
-   unless the :option:`-x` option is supplied to indicate a reverse lookup with
-   the "PTR" query type.
+   unless the :option:`-x` option is supplied to indicate a reverse lookup
+   with the "PTR" query type.
 
 .. option:: -x addr
 
@@ -314,7 +315,8 @@ The local query options are:
 
    This toggles the setting of the RD (recursion desired) bit in the query.
    This bit is set by default, which means :program:`mdig` normally sends
-   recursive queries.
+   recursive queries, unless a type ANY query is requested, in which
+   case the default is not to set it.
 
 .. option:: +retry=T
 

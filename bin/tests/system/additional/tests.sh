@@ -383,13 +383,12 @@ if [ $ret -eq 1 ]; then
 fi
 
 n=$((n + 1))
-echo_i "testing NS handling in ANY responses (recursive) ($n)"
+echo_i "testing REFUSED response to ANY queries (recursive) ($n)"
 ret=0
-# pre-cache the address record
-$DIG $DIGOPTS -t A ns1.rt.example @10.53.0.3 >/dev/null || ret=1
-$DIG $DIGOPTS -t ANY rt.example @10.53.0.3 >dig.out.$n || ret=1
-grep "AUTHORITY: 0" dig.out.$n >/dev/null || ret=1
-grep "NS[ 	]*ns" dig.out.$n >/dev/null || ret=1
+$DIG $DIGOPTS -t ANY +rec rt.example @10.53.0.3 >dig.out.$n || ret=1
+grep "status: REFUSED" dig.out.$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 0," dig.out.$n >/dev/null || ret=1
+grep "EDE: 21" dig.out.$n >/dev/null || ret=1
 if [ $ret -eq 1 ]; then
   echo_i "failed"
   status=$((status + 1))

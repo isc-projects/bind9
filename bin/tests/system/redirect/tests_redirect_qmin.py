@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import dns.rcode
 import pytest
 
 import isctest
@@ -96,25 +97,14 @@ def test_nxdomain_redirect_qmin_a_dnssec(ns11):
     isctest.check.nxdomain(response)
 
 
-def test_nxdomain_redirect_qmin_any_dnssec(ns11):
+@pytest.mark.parametrize("dnssec", [True, False])
+def test_nxdomain_redirect_qmin_any_refused(ns11, dnssec):
     ns11.rndc("flush")
-    msg = isctest.query.create("nosuch.fake.test.", "ANY", dnssec=True)
+    msg = isctest.query.create("nosuch.fake.test.", "ANY", dnssec=dnssec)
 
-    # cold cache answer doesn't include proofs, so redirection is allowed
-    response = isctest.query.tcp(msg, ns11.ip)
-    isctest.check.has_answer(response)
-    isctest.check.noerror(response)
-
-    # hot cache answer does include proofs, so redirection is skipped
-    response = isctest.query.tcp(msg, ns11.ip)
-    isctest.check.empty_answer(response)
-    isctest.check.nxdomain(response)
-
-
-def test_nxdomain_redirect_qmin_any_no_dnssec(ns11):
-    ns11.rndc("flush")
-    msg = isctest.query.create("nosuch.spurious.test.", "ANY", dnssec=False)
+    # recursive ANY queries are refused, with a cold or a hot cache,
+    # instead of being redirected
     for _ in range(2):
-        response = isctest.query.tcp(msg, ns11.ip)
-        isctest.check.noerror(response)
-        isctest.check.has_answer(response)
+        response = isctest.query.tcp(msg, ns11.ip, expected_rcode=dns.rcode.REFUSED)
+        isctest.check.refused(response)
+        isctest.check.empty_answer(response)

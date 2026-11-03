@@ -4650,6 +4650,16 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 	/*
+	 * ANY queries are never resolved (see ns__query_start()): unless
+	 * the redirect namespace is served locally, there is nothing to
+	 * redirect to that would not depend on the cache contents.
+	 */
+	if (qtype == dns_rdatatype_any && !is_zone) {
+		dns_db_detach(&db);
+		return ISC_R_NOTFOUND;
+	}
+
+	/*
 	 * Lookup the requested data in the redirect zone.
 	 */
 	result = dns_db_findext(db, redirectname, version, qtype, 0,
@@ -5452,6 +5462,32 @@ ns__query_start(query_ctx_t *qctx) {
 		default:
 			UNREACHABLE();
 		}
+	}
+
+	/*
+	 * ANY queries are never resolved: the resolver does not send
+	 * them upstream, and there is no other way to learn which types
+	 * exist at a name.  When recursion is requested and available,
+	 * an ANY query that cannot be answered from authoritative data
+	 * is therefore refused, in the spirit of RFC 8482, whether or
+	 * not the cache already holds records for the name.  The
+	 * alternative to an error is a positive answer, never a NODATA
+	 * one: resolvers cache a NODATA answer to an ANY query as the
+	 * absence of all records at the name, so it would blank the
+	 * name in any forwarder that still forwards ANY queries.
+	 *
+	 * ANY queries that do not recurse (RD=0, or recursion not
+	 * available to the client) are processed as usual, so the
+	 * cache can still be inspected with them.
+	 */
+	if (qctx->qtype == dns_rdatatype_any &&
+	    qctx->client->query.recursionok &&
+	    (!qctx->authoritative || qctx->is_staticstub_zone))
+	{
+		dns_ede_add(&qctx->client->edectx, DNS_EDE_NOTSUPPORTED,
+			    "recursive ANY queries are not supported");
+		QUERY_ERROR(qctx, DNS_R_REFUSED);
+		return ns_query_done(qctx);
 	}
 
 	/*
@@ -8258,6 +8294,21 @@ query_zone_delegation(query_ctx_t *qctx) {
 
 			return query_lookup(qctx);
 		}
+	}
+
+	/*
+	 * An ANY query for a name delegated from this zone could only be
+	 * answered by recursing, which is never done for ANY queries (see
+	 * ns__query_start()): refuse it, rather than answering with the
+	 * referral, when recursion was requested.
+	 */
+	if (qctx->qtype == dns_rdatatype_any && qctx->client->query.cacheok &&
+	    qctx->client->query.recursionok)
+	{
+		dns_ede_add(&qctx->client->edectx, DNS_EDE_NOTSUPPORTED,
+			    "recursive ANY queries are not supported");
+		QUERY_ERROR(qctx, DNS_R_REFUSED);
+		return ns_query_done(qctx);
 	}
 
 	if (qctx->client->query.cacheok &&

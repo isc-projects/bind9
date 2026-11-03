@@ -36,6 +36,17 @@ def rrsig_covering(
     )
 
 
+def address(owner: dns.name.Name | str) -> dns.rrset.RRset:
+    """
+    The resolver only fetches ordinary types (standalone RRSIG queries and
+    recursive ANY queries are rejected before any fetch is made), so every
+    answer carries an address record for the RRSIGs to ride along with.
+    """
+    return dns.rrset.from_text(
+        owner, 3600, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.3"
+    )
+
+
 class RrsigCoversRrsigHandler(StaticResponseHandler):
     """
     An RRSIG covering RRSIG only trips the QP-cache RRSIG-pairing assertion when
@@ -46,6 +57,7 @@ class RrsigCoversRrsigHandler(StaticResponseHandler):
 
     matcher = Qname("rrsig.attacker.test.")
     answer = [
+        address(matcher.qnames[0]),
         rrsig_covering(matcher.qnames[0], dns.rdatatype.A),
         rrsig_covering(matcher.qnames[0], dns.rdatatype.AAAA),
         rrsig_covering(matcher.qnames[0], dns.rdatatype.RRSIG),
@@ -54,9 +66,10 @@ class RrsigCoversRrsigHandler(StaticResponseHandler):
 
 class RrsigCoversTypeHandler(ResponseHandler):
     """
-    Answer any other query with a single RRSIG whose Type-Covered field is the
-    leftmost QNAME label parsed as a DNS type, so the resolver can be probed
-    with any meta-type (e.g. any.attacker.test., axfr.attacker.test.).
+    Answer any other query with an address record and a single RRSIG whose
+    Type-Covered field is the leftmost QNAME label parsed as a DNS type, so
+    the resolver can be probed with any meta-type (e.g. any.attacker.test.,
+    axfr.attacker.test.).
     """
 
     async def get_responses(
@@ -64,6 +77,7 @@ class RrsigCoversTypeHandler(ResponseHandler):
     ) -> AsyncGenerator[DnsResponseSend, None]:
         covered_label = qctx.qname.labels[0].decode("ascii").upper()
         covered = dns.rdatatype.from_text(covered_label)
+        qctx.response.answer.append(address(qctx.qname))
         qctx.response.answer.append(rrsig_covering(qctx.qname, covered))
         yield DnsResponseSend(qctx.response)
 

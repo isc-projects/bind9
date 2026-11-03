@@ -92,6 +92,17 @@ def test_rrsig_query_formerr(transport, use_edns, dnssec):
                 isctest.check.ede(res, 30)
 
 
+def test_any_query_refused():
+    # a resolver refuses ANY queries with EDE 21 (Not Supported),
+    # with or without DNSSEC requested
+    for do in (False, True):
+        msg = isctest.query.create("foo.example", "ANY", dnssec=do)
+        res = isctest.query.tcp(msg, "10.53.0.4")
+        isctest.check.refused(res)
+        isctest.check.empty_answer(res)
+        isctest.check.ede(res, EDECode.NOT_SUPPORTED)
+
+
 def test_adflag():
     # compare auth and recursive answers
     msg = isctest.query.create("a.example", "A", dnssec=False)
@@ -230,13 +241,16 @@ def answer_has(r, rdtype):
 
 
 def test_chain_validation():
-    # check validation of ANY response
+    # The authoritative server (ns2) answers ANY, while the resolver
+    # (ns4) refuses the query.
     msg = isctest.query.create("foo.example", "ANY")
     res1 = isctest.query.tcp(msg, "10.53.0.2")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.noerror(res2)
-    isctest.check.rr_count_eq(res2.answer, 6)  # 2 records, 1 NSEC, 3 RRSIGs
+    isctest.check.noerror(res1)
+    isctest.check.rr_count_eq(res1.answer, 6)  # 2 records, 1 NSEC, 3 RRSIGs
+    isctest.check.refused(res2)
+    isctest.check.empty_answer(res2)
+    isctest.check.ede(res2, EDECode.NOT_SUPPORTED)
 
     # check validation of CNAME response
     msg = isctest.query.create("cname1.example", "TXT")
@@ -254,21 +268,24 @@ def test_chain_validation():
     isctest.check.noerror(res2)
     isctest.check.rr_count_eq(res2.answer, 5)  # DNAME, TXT, 2 RRSIGs, synth CNAME
 
-    # check validation of CNAME response to ANY query
+    # check CNAME response to ANY query; the resolver does not even
+    # look the name up and refuses the query
     msg = isctest.query.create("cname2.example", "ANY")
     res1 = isctest.query.tcp(msg, "10.53.0.2")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.noerror(res2)
-    isctest.check.rr_count_eq(res2.answer, 4)  # CNAME, NSEC, 2 RRSIGs
+    isctest.check.noerror(res1)
+    isctest.check.rr_count_eq(res1.answer, 4)  # CNAME, NSEC, 2 RRSIGs
+    isctest.check.refused(res2)
+    isctest.check.empty_answer(res2)
 
-    # check validation of DNAME response to ANY query
+    # check DNAME response to ANY query
     msg = isctest.query.create("foo.dname2.example", "ANY")
     res1 = isctest.query.tcp(msg, "10.53.0.2")
     res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.noerror(res2)
-    isctest.check.rr_count_eq(res2.answer, 3)  # DNAME, RSRIG, synth CNAME
+    isctest.check.noerror(res1)
+    isctest.check.rr_count_eq(res1.answer, 3)  # DNAME, RRSIG, synth CNAME
+    isctest.check.refused(res2)
+    isctest.check.empty_answer(res2)
 
     # check bad CNAME signature is caught after +CD query
     msg = isctest.query.create("bad-cname.example", "A", dnssec=False, cd=True)
@@ -1415,12 +1432,14 @@ def test_cd_any(ns4):
     msg = isctest.query.create("a.secure.example", "AAAA", cd=1)
     isctest.query.tcp(msg, "10.53.0.4")
 
-    msg = isctest.query.create("a.secure.example", "ANY", cd=1)
+    # recursive ANY queries are refused; inspect the cache with
+    # non-recursive ones instead
+    msg = isctest.query.create("a.secure.example", "ANY", cd=1, rd=False)
     res = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.rr_count_eq(res.answer, 4)
     isctest.check.noadflag(res)
 
-    msg = isctest.query.create("a.secure.example", "ANY")
+    msg = isctest.query.create("a.secure.example", "ANY", rd=False)
     res = isctest.query.tcp(msg, "10.53.0.4")
     isctest.check.rr_count_eq(res.answer, 2)
     isctest.check.adflag(res)

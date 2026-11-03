@@ -2123,6 +2123,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				if (state) {
 					lookup->trace_root = true;
 					lookup->recurse = true;
+					lookup->recurse_set = true;
 					lookup->identify = true;
 					lookup->stats = false;
 					lookup->comments = false;
@@ -2251,12 +2252,14 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		case 'd': /* rdflag */
 			FULLCHECK("rdflag");
 			lookup->recurse = state;
+			lookup->recurse_set = true;
 			break;
 		case 'e':
 			switch (cmd[2]) {
 			case 'c': /* recurse */
 				FULLCHECK("recurse");
 				lookup->recurse = state;
+				lookup->recurse_set = true;
 				break;
 			case 't': /* retry / retries */
 				FULLCHECK2("retry", "retries");
@@ -2495,6 +2498,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				lookup->trace_root = state;
 				if (state) {
 					lookup->recurse = true;
+					lookup->recurse_set = true;
 					lookup->identify = true;
 					lookup->comments = false;
 					lookup->rrcomments = 0;
@@ -2628,6 +2632,27 @@ exit_or_usage:
 	cleanup_openssl_refs();
 	digexit();
 #endif /* if !TARGET_OS_IPHONE */
+}
+
+static void
+adjust_lookup_for_rdtype(dns_rdatatype_t rdtype, bool config_only,
+			 dig_lookup_t *lookup) {
+	lookup->rdtype = rdtype;
+	if (!config_only) {
+		lookup->rdtypeset = true;
+	}
+	if (rdtype == dns_rdatatype_axfr) {
+		lookup->section_question = plusquest;
+		lookup->comments = pluscomm;
+	} else if (rdtype == dns_rdatatype_any) {
+		if (!lookup->tcp_mode_set) {
+			lookup->tcp_mode = true;
+		}
+		if (!lookup->recurse_set) {
+			lookup->recurse = false;
+		}
+	}
+	lookup->ixfr_serial = false;
 }
 
 /*%
@@ -2854,19 +2879,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					(*lookup)->tcp_mode = true;
 				}
 			} else {
-				(*lookup)->rdtype = rdtype;
-				if (!config_only) {
-					(*lookup)->rdtypeset = true;
-				}
-				if (rdtype == dns_rdatatype_axfr) {
-					(*lookup)->section_question = plusquest;
-					(*lookup)->comments = pluscomm;
-				} else if (rdtype == dns_rdatatype_any) {
-					if (!(*lookup)->tcp_mode_set) {
-						(*lookup)->tcp_mode = true;
-					}
-				}
-				(*lookup)->ixfr_serial = false;
+				adjust_lookup_for_rdtype(rdtype, config_only,
+							 *lookup);
 			}
 		} else {
 			fprintf(stderr,
@@ -3224,23 +3238,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 							lookup->tcp_mode = true;
 						}
 					} else {
-						lookup->rdtype = rdtype;
-						lookup->rdtypeset = true;
-						if (rdtype ==
-						    dns_rdatatype_axfr)
-						{
-							lookup->section_question =
-								plusquest;
-							lookup->comments =
-								pluscomm;
-						}
-						if (rdtype ==
-							    dns_rdatatype_any &&
-						    !lookup->tcp_mode_set)
-						{
-							lookup->tcp_mode = true;
-						}
-						lookup->ixfr_serial = false;
+						adjust_lookup_for_rdtype(
+							rdtype, false, lookup);
 					}
 					continue;
 				}

@@ -51,12 +51,15 @@ Options
 
 .. option:: -a
 
-   The :option:`-a` ("all") option is equivalent to :option:`-v` :option:`-t ANY <-t>`.
+   The :option:`-a` ("all") option is equivalent to :option:`-v`
+   :option:`-t ANY <-t>`. (Note that many name servers, including
+   ``named``, refuse to answer type-ANY queries recursively.)
 
 .. option:: -A
 
-   The :option:`-A` ("almost all") option is equivalent to :option:`-a`, except that RRSIG,
-   NSEC, and NSEC3 records are omitted from the output.
+   The :option:`-A` ("almost all") option is equivalent to :option:`-a`,
+   except that RRSIG, NSEC, and NSEC3 records are omitted from the output,
+   if any.
 
 .. option:: -c class
 
@@ -135,7 +138,7 @@ Options
    This option specifies TCP or UDP. By default, :program:`host` uses UDP when making queries; the
    :option:`-T` option makes it use a TCP connection when querying the name
    server. TCP is automatically selected for queries that require
-   it, such as zone transfer (AXFR) requests. Type ``ANY`` queries default
+   it, such as zone transfer (AXFR) requests. Type ANY queries default
    to TCP, but can be forced to use UDP initially via :option:`-U`.
 
 .. option:: -m flag

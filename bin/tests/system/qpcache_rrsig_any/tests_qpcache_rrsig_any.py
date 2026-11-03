@@ -38,19 +38,20 @@ SIG_TYPES = ["RRSIG"]
 REJECTED_TYPES = META_TYPES + SIG_TYPES
 
 
-def any_query(qname):
+def address_query(qname):
     """
-    Standalone RRSIG queries are rejected before any fetch is made, so
-    use an ANY query to make the resolver fetch the lone RRSIG from ans3;
-    with DO set, a cached signature would be returned in the answer.
+    Standalone RRSIG queries and recursive ANY queries are both rejected
+    before any fetch is made, so use an address query to make the resolver
+    fetch the RRSIG from ans3 along with the address record; with DO set,
+    a cached signature would be returned in the answer.
     """
-    msg = isctest.query.create(qname, "ANY", dnssec=True, ad=False)
+    msg = isctest.query.create(qname, "A", dnssec=True, ad=False)
     return isctest.query.tcp(msg, "10.53.0.2")
 
 
 @pytest.mark.parametrize("covered_type", REJECTED_TYPES)
 def test_rrsig_covers_rejected_type_is_servfail(covered_type):
-    res = any_query(f"{covered_type.lower()}.attacker.test.")
+    res = address_query(f"{covered_type.lower()}.attacker.test.")
     isctest.check.servfail(res)
 
 
@@ -59,9 +60,12 @@ def test_rrsig_covers_ordinary_type_is_answered():
     The same query is answered when the RRSIG covers an ordinary type,
     so the SERVFAIL above is caused by the malformed RRSIG.
     """
-    res = any_query("a.attacker.test.")
+    res = address_query("a.attacker.test.")
     isctest.check.noerror(res)
-    assert [rrset.rdtype for rrset in res.answer] == [rdatatype.RRSIG], res
+    assert [rrset.rdtype for rrset in res.answer] == [
+        rdatatype.A,
+        rdatatype.RRSIG,
+    ], res
 
 
 @pytest.mark.parametrize("covered_type", REJECTED_TYPES)

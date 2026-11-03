@@ -38,7 +38,7 @@ rndc_stats() {
 }
 
 echo_i "fetching a.example from ns2's initial configuration ($n)"
-$DIGCMD +noauth a.example. @10.53.0.2 any >dig.out.ns2.1 || ret=1
+$DIGCMD +noauth a.example. @10.53.0.2 a >dig.out.ns2.1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
@@ -72,7 +72,7 @@ n=$((n + 1))
 
 ret=0
 echo_i "checking for 2 entries in adb hash table in named.stats ($n)"
-$DIGCMD a.example.info. @10.53.0.2 any >/dev/null 2>&1
+$DIGCMD a.example.info. @10.53.0.2 a >/dev/null 2>&1
 rndc_stats ns2 10.53.0.2 || ret=1
 grep "2 Addresses in hash table" $last_stats >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -89,7 +89,7 @@ status=$((status + ret))
 n=$((n + 1))
 
 echo_i "sending queries to ns3"
-$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any >/dev/null 2>&1 || true
+$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. a >/dev/null 2>&1 || true
 
 ret=0
 echo_i "dumping updated stats for ns3 ($n)"
