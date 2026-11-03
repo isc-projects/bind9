@@ -32,28 +32,21 @@ dns_zonefetch_run(void *arg) {
 	isc_loop_t *loop;
 	isc_result_t result;
 	dns_resolver_t *resolver = NULL;
+	dns_fetchresponse_t *resp = NULL;
+	isc_mem_t *mctx = NULL;
 
 	zone = fetch->zone;
-	if (dns__zone_exiting(zone)) {
-		result = ISC_R_SHUTTINGDOWN;
-		goto cancel;
-	}
 	view = dns_zone_getview(zone);
 	loop = dns_zone_getloop(zone);
 
 	INSIST(view != NULL);
 	INSIST(loop != NULL);
 
-	result = fetch->fetchmethods.start_fetch(fetch);
-	if (result != ISC_R_SUCCESS) {
-		goto cancel;
+	if (dns__zone_exiting(zone)) {
+		CLEANUP(ISC_R_SHUTTINGDOWN);
 	}
 
-	result = dns_view_getresolver(view, &resolver);
-	if (result != ISC_R_SUCCESS) {
-		goto cancel;
-	}
-
+	CHECK(fetch->fetchmethods.start_fetch(fetch));
 	if (isc_log_wouldlog(ISC_LOG_DEBUG(3))) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -63,17 +56,19 @@ dns_zonefetch_run(void *arg) {
 			      "Do fetch for %s/%s request", namebuf, typebuf);
 	}
 
+	fetch->canceled = false;
+	CHECK(dns_view_getresolver(view, &resolver));
 	result = dns_resolver_createfetch(
 		resolver, fetch->qname, fetch->qtype, NULL, NULL, NULL, NULL, 0,
 		fetch->options, 0, NULL, NULL, NULL, loop, dns_zonefetch_done,
 		fetch, NULL, &fetch->rrset, &fetch->sigset, &fetch->fetch);
-
 	dns_resolver_detach(&resolver);
-
-cancel:
 	if (result == ISC_R_SUCCESS) {
 		return;
-	} else if (result != ISC_R_SHUTTINGDOWN) {
+	}
+
+cleanup:
+	if (result != ISC_R_SHUTTINGDOWN) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
 		if (DNS_NAME_VALID(fetch->qname)) {
@@ -82,37 +77,29 @@ cancel:
 			dns_rdatatype_format(fetch->qtype, typebuf,
 					     sizeof(typebuf));
 			dns_zone_log(zone, ISC_LOG_WARNING,
-				     "Failed fetch for %s/%s request", namebuf,
-				     typebuf);
+				     "Failed fetch for %s/%s (%s)", namebuf,
+				     typebuf, isc_result_totext(result));
 		} else {
 			dns_zone_nameonly(zone, namebuf, sizeof(namebuf));
 			dns_zone_log(zone, ISC_LOG_WARNING,
-				     "Failed fetch for zone %s", namebuf);
+				     "Failed fetch for zone %s (%s)", namebuf,
+				     isc_result_totext(result));
 		}
 	}
 
 	/*
-	 * Fetch failed, cancel.
+	 * Fetch failed: call the completion handler.
 	 */
-	dns__zone_lock(zone);
-
-	dns_name_t *zname = dns_name(&fetch->name);
-	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	bool free_needed;
-
-	isc_refcount_decrement(dns__zone_irefs(zone));
-	dns_name_free(zname, mctx);
-
-	fetch->fetchmethods.cancel_fetch(fetch);
-
-	isc_mem_putanddetach(&fetch->mctx, fetch, sizeof(*fetch));
-	free_needed = dns__zone_free_check(zone);
-
-	dns__zone_unlock(zone);
-
-	if (free_needed) {
-		dns__zone_free(zone);
-	}
+	fetch->canceled = true;
+	mctx = dns_zone_getmctx(zone);
+	resp = isc_mem_get(mctx, sizeof(*resp));
+	*resp = (dns_fetchresponse_t){
+		.result = result,
+		.arg = fetch,
+		.link = ISC_LINK_INITIALIZER,
+	};
+	isc_mem_attach(mctx, &resp->mctx);
+	isc_async_run(loop, dns_zonefetch_done, resp);
 }
 
 void
@@ -149,16 +136,17 @@ dns_zonefetch_done(void *arg) {
 	if (resp->cache != NULL) {
 		dns_db_detach(&resp->cache);
 	}
-	dns_resolver_destroyfetch(&fetch->fetch);
-
-	dns__zone_lock(zone);
-	if (dns__zone_exiting(zone) || view == NULL) {
-		goto cleanup;
+	if (fetch->fetch != NULL) {
+		dns_resolver_destroyfetch(&fetch->fetch);
 	}
 
-	result = fetch->fetchmethods.done_fetch(fetch, eresult);
+	/* Call the done handler if we're not shutting down */
+	dns__zone_lock(zone);
+	if (view != NULL && !dns__zone_exiting(zone)) {
+		result = fetch->fetchmethods.done_fetch(fetch, eresult);
+	}
 
-cleanup:
+	/* Clean up */
 	isc_refcount_decrement(dns__zone_irefs(zone));
 
 	dns_rdataset_cleanup(rrset);

@@ -48,7 +48,6 @@ typedef struct dns_zonefetch  dns_zonefetch_t;
 typedef struct dns_zonefetch_methods {
 	isc_result_t (*start_fetch)(dns_zonefetch_t *fetch);
 	void (*continue_fetch)(dns_zonefetch_t *fetch);
-	void (*cancel_fetch)(dns_zonefetch_t *fetch);
 	void (*cleanup_fetch)(dns_zonefetch_t *fetch);
 	isc_result_t (*done_fetch)(dns_zonefetch_t *fetch,
 				   isc_result_t	    eresult);
@@ -83,6 +82,9 @@ struct dns_zonefetch {
 	isc_mem_t      *mctx;
 	dns_zone_t     *zone;
 	dns_fixedname_t name;
+
+	/* Status */
+	bool canceled;
 
 	/* Query */
 	dns_name_t     *qname;

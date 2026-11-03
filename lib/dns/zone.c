@@ -9084,42 +9084,6 @@ keyfetch_continue(dns_zonefetch_t *fetch) {
 }
 
 static void
-keyfetch_cancel(dns_zonefetch_t *fetch) {
-	dns_keyfetch_t *kfetch;
-	dns_zone_t *zone;
-
-	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_KEY);
-	REQUIRE(DNS_ZONE_VALID(fetch->zone));
-	REQUIRE(LOCKED_ZONE(fetch->zone));
-
-	kfetch = &fetch->fetchdata.keyfetch;
-	zone = fetch->zone;
-
-	/*
-	 * Error during a key fetch; cancel and retry in an hour.
-	 */
-	zone->fetchcount[ZONEFETCHTYPE_KEY]--;
-
-	dns_db_detach(&kfetch->db);
-	dns_rdataset_disassociate(&kfetch->keydataset);
-
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		/* Don't really retry if we are exiting */
-		isc_time_t timenow, timethen;
-		char timebuf[80];
-
-		timenow = isc_time_now();
-		DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
-		zone->refreshkeytime = timethen;
-		dns__zone_settimer(zone, timenow);
-
-		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-		dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
-			   timebuf);
-	}
-}
-
-static void
 keyfetch_cleanup(dns_zonefetch_t *fetch) {
 	dns_keyfetch_t *kfetch = NULL;
 
@@ -9173,6 +9137,27 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 
 	kfetch = &fetch->fetchdata.keyfetch;
 	zone = fetch->zone;
+
+	zone->fetchcount[ZONEFETCHTYPE_KEY]--;
+
+	if (fetch->canceled) {
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+			/* Don't really retry if we are exiting */
+			isc_time_t timenow, timethen;
+			char timebuf[80];
+			timenow = isc_time_now();
+			DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour,
+					  &timethen);
+			zone->refreshkeytime = timethen;
+			dns__zone_settimer(zone, timenow);
+			isc_time_formattimestamp(&zone->refreshkeytime, timebuf,
+						 80);
+			dnssec_log(zone, ISC_LOG_DEBUG(1),
+				   "retry key refresh: %s", timebuf);
+		}
+		return eresult;
+	}
+
 	mctx = fetch->mctx;
 	keyname = dns_name(&fetch->name);
 	dnskeys = &fetch->rrset;
@@ -9190,7 +9175,6 @@ keyfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 
 	CHECK(dns_db_newversion(kfetch->db, &ver));
 
-	zone->fetchcount[ZONEFETCHTYPE_KEY]--;
 	alldone = (zone->fetchcount[ZONEFETCHTYPE_KEY] == 0);
 
 	if (alldone) {
@@ -9889,7 +9873,6 @@ zone_refreshkeys(dns_zone_t *zone) {
 						.start_fetch = keyfetch_start,
 						.continue_fetch =
 							keyfetch_continue,
-						.cancel_fetch = keyfetch_cancel,
 						.cleanup_fetch =
 							keyfetch_cleanup,
 						.done_fetch = keyfetch_done,
@@ -17918,19 +17901,18 @@ nsfetch_start(dns_zonefetch_t *fetch) {
 
 	nsfetch = &fetch->fetchdata.nsfetch;
 
-	/* Derive parent domain. Check for root domain. */
-	if (!dns_name_belowroot(&nsfetch->pname)) {
-		return ISC_R_NOTFOUND;
-	}
-
-	dns_name_split(&nsfetch->pname,
-		       dns_name_countlabels(&nsfetch->pname) - 1U, NULL,
-		       &nsfetch->pname);
-
 	fetch->qtype = dns_rdatatype_ns;
 	fetch->qname = &nsfetch->pname;
 
-	return ISC_R_SUCCESS;
+	/* Derive parent domain, unless we're at the root. */
+	if (dns_name_belowroot(&nsfetch->pname)) {
+		dns_name_split(&nsfetch->pname,
+			       dns_name_countlabels(&nsfetch->pname) - 1U, NULL,
+			       &nsfetch->pname);
+		return ISC_R_SUCCESS;
+	} else {
+		return ISC_R_NOTFOUND;
+	}
 }
 
 /*
@@ -17965,19 +17947,6 @@ nsfetch_continue(dns_zonefetch_t *fetch) {
 }
 
 static void
-nsfetch_cancel(dns_zonefetch_t *fetch) {
-	dns_zone_t *zone;
-
-	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_NS);
-	REQUIRE(DNS_ZONE_VALID(fetch->zone));
-	REQUIRE(LOCKED_ZONE(fetch->zone));
-
-	zone = fetch->zone;
-
-	zone->fetchcount[ZONEFETCHTYPE_NS]--;
-}
-
-static void
 nsfetch_cleanup(dns_zonefetch_t *fetch) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_NS);
 }
@@ -18007,6 +17976,10 @@ nsfetch_checkds(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	pname = &nsfetch->pname;
 
 	zone->fetchcount[ZONEFETCHTYPE_NS]--;
+
+	if (fetch->canceled) {
+		return eresult;
+	}
 
 	dns_name_format(pname, pnamebuf, sizeof(pnamebuf));
 	dnssec_log(zone, ISC_LOG_DEBUG(3),
@@ -18141,7 +18114,6 @@ zone_checkds(dns_zone_t *zone) {
 				(dns_zonefetch_methods_t){
 					.start_fetch = nsfetch_start,
 					.continue_fetch = nsfetch_continue,
-					.cancel_fetch = nsfetch_cancel,
 					.cleanup_fetch = nsfetch_cleanup,
 					.done_fetch = nsfetch_checkds,
 				},
@@ -18174,16 +18146,18 @@ static dns_name_t _dsync = DNS_NAME_INITNONABSOLUTE(_dsync_data);
 static isc_result_t
 dsyncfetch_start(dns_zonefetch_t *fetch) {
 	dns_dsyncfetch_t *dsyncfetch;
-	dns_zone_t *zone;
-	dns_name_t *dsyncname, prefix;
+	dns_zone_t *zone = fetch->zone;
+	dns_name_t *dsyncname = NULL, prefix = DNS_NAME_INITEMPTY;
 	unsigned int nlabels;
 	isc_result_t result;
 
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_DSYNC);
-	REQUIRE(DNS_ZONE_VALID(fetch->zone));
+	REQUIRE(DNS_ZONE_VALID(zone));
 
 	dsyncfetch = &fetch->fetchdata.dsyncfetch;
-	zone = fetch->zone;
+
+	fetch->qtype = dns_rdatatype_dsync;
+	fetch->qname = dns_name(&fetch->name); /* placeholder value */
 
 	/*
 	 * The dsync owner name is build up of <prefix>._dsync.<parent-name>.
@@ -18193,7 +18167,6 @@ dsyncfetch_start(dns_zonefetch_t *fetch) {
 	dsyncname = dns_fixedname_initname(&dsyncfetch->dsyncname);
 
 	nlabels = dns_name_countlabels(&dsyncfetch->pname);
-	dns_name_init(&prefix);
 	dns_name_split(dns_name(&fetch->name), nlabels, &prefix, NULL);
 
 	result = dns_name_concatenate(&prefix, &_dsync, dsyncname);
@@ -18214,7 +18187,6 @@ dsyncfetch_start(dns_zonefetch_t *fetch) {
 		return result;
 	}
 
-	fetch->qtype = dns_rdatatype_dsync;
 	fetch->qname = dsyncname;
 
 	return ISC_R_SUCCESS;
@@ -18252,19 +18224,6 @@ dsyncfetch_continue(dns_zonefetch_t *fetch) {
 }
 
 static void
-dsyncfetch_cancel(dns_zonefetch_t *fetch) {
-	dns_zone_t *zone;
-
-	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_DSYNC);
-	REQUIRE(DNS_ZONE_VALID(fetch->zone));
-	REQUIRE(LOCKED_ZONE(fetch->zone));
-
-	zone = fetch->zone;
-
-	zone->fetchcount[ZONEFETCHTYPE_DSYNC]--;
-}
-
-static void
 dsyncfetch_cleanup(dns_zonefetch_t *fetch) {
 	REQUIRE(fetch->fetchtype == ZONEFETCHTYPE_DSYNC);
 }
@@ -18297,6 +18256,10 @@ dsyncfetch_done(dns_zonefetch_t *fetch, isc_result_t eresult) {
 	dsyncname = dns_name(&dsyncfetch->dsyncname);
 
 	zone->fetchcount[ZONEFETCHTYPE_DSYNC]--;
+
+	if (fetch->canceled) {
+		return eresult;
+	}
 
 	dns_name_format(dsyncname, dsyncnamebuf, sizeof(dsyncnamebuf));
 	dns_zone_log(zone, ISC_LOG_DEBUG(3),
@@ -18443,6 +18406,10 @@ nsfetch_dsync(dns_zonefetch_t *fetch, isc_result_t eresult) {
 
 	zone->fetchcount[ZONEFETCHTYPE_NS]--;
 
+	if (fetch->canceled) {
+		return eresult;
+	}
+
 	dns_name_format(pname, pnamebuf, sizeof(pnamebuf));
 	dnssec_log(zone, ISC_LOG_DEBUG(3),
 		   "Returned from '%s' NS fetch in nsfetch_dsync(): %s",
@@ -18473,7 +18440,6 @@ nsfetch_dsync(dns_zonefetch_t *fetch, isc_result_t eresult) {
 				(dns_zonefetch_methods_t){
 					.start_fetch = dsyncfetch_start,
 					.continue_fetch = dsyncfetch_continue,
-					.cancel_fetch = dsyncfetch_cancel,
 					.cleanup_fetch = dsyncfetch_cleanup,
 					.done_fetch = dsyncfetch_done,
 				},
@@ -18525,7 +18491,6 @@ zone_notifycds(dns_zone_t *zone) {
 				(dns_zonefetch_methods_t){
 					.start_fetch = nsfetch_start,
 					.continue_fetch = nsfetch_continue,
-					.cancel_fetch = nsfetch_cancel,
 					.cleanup_fetch = nsfetch_cleanup,
 					.done_fetch = nsfetch_dsync,
 				},
