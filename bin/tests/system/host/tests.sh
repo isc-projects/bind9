@@ -117,9 +117,8 @@ ret=0
 $HOST -p ${PORT} -t ANY example.net 10.53.0.1 2>host.err${n} >host.out${n} || ret=1
 lines=$(grep -c 'Address:.10\.53\.0\.1#'"${PORT}" host.out${n})
 test $lines -eq 1 || ret=1
-lines=$(grep -c 'example.net has SOA record ns1.example.net. hostmaster.example.net. 1397051952 5 5 1814400 3600' host.out${n})
-test $lines -eq 1 || ret=1
-lines=$(grep -c 'example.net name server ns1.example.net.' host.out${n})
+# the answer is minimized to a single RRset (SOA or NS)
+lines=$(grep -c -e 'example.net has SOA record ns1.example.net. hostmaster.example.net. 1397051952 5 5 1814400 3600' -e 'example.net name server ns1.example.net.' host.out${n})
 test $lines -eq 1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
