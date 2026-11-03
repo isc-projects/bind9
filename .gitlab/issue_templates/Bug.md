@@ -7,9 +7,6 @@ defines what constitutes a security issue.
 -->
 
 <!--
-If you used generative AI to find the bug, verify it yourself, explain it in your
-own words, and disclose AI use to avoid wasting time on AI errors or inventions.
-
 Provide ONLY the information requested by this template, with the minimum
 detail needed to reproduce and assess the issue.
 No code flow explanation, no affected version ranges, no history of code changes,
