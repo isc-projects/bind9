@@ -877,7 +877,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 * apex CNAME but must be looked up independently.
 	 */
 	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec ||
-	    dns_rdatatype_atparent(type) || type == dns_rdatatype_any)
+	    type == dns_rdatatype_any)
 	{
 		cname_ok = false;
 	}
