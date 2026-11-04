@@ -17,6 +17,7 @@ zone "changing." {
 	type secondary;
 	primaries { 10.53.0.1; };
 	file "changing.bk";
+	min-retry-time 1;
 };
 
 include "zones.conf";

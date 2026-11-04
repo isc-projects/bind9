@@ -3,7 +3,7 @@ $TTL	600
 @               IN      SOA     dns1.changing. postmaster.changing. (
                         1               ;; serial
                         3600            ;; refresh period
-                        1800            ;; retry interval
+                        5               ;; retry interval
                         604800          ;; expire time
                         600 )           ;; default TTL
 
