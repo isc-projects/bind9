@@ -40,7 +40,7 @@ bool debug = false;
  */
 
 static isc_mem_t *mctx = NULL;
-static dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
+static dns_rdatatype_t typelist[256] = { 65333 }; /* private use, unknown */
 static unsigned int types = 1;
 
 int
