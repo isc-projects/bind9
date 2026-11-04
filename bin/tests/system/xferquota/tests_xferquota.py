@@ -13,10 +13,8 @@ from re import compile as Re
 
 import glob
 import multiprocessing
-import os
 import re
 import shutil
-import signal
 import time
 
 import dns.message
@@ -43,11 +41,7 @@ pytestmark = pytest.mark.extra_artifacts(
 def test_xferquota(named_port, ns1, ns2):
     with newer_mtime("ns1/changing.db"):
         shutil.copyfile("ns1/changing2.db", "ns1/changing.db")
-    with open("ns1/named.pid", "r", encoding="utf-8") as pidfile:
-        pid = int(pidfile.read())
-    os.kill(pid, signal.SIGHUP)
-    with ns1.watch_log_from_start() as watcher:
-        watcher.wait_for_line("received SIGHUP signal to reload zones")
+    ns1.reload()
 
     def check_line_count():
         matching_line_count = 0
@@ -83,7 +77,10 @@ def test_xferquota(named_port, ns1, ns2):
     pattern = isctest.transfer.transfer_message(
         "changing", "10.53.0.1", Re(r"Transfer completed: .*\(serial 2\)"), named_port
     )
-    with ns2.watch_log_from_start(timeout=30) as watcher:
+    # The quota may refuse the transfer of 'changing' too. Once ns2 holds
+    # serial 1, the zone's short SOA retry has it try again within seconds;
+    # without a copy yet, ns2 retries after up to a minute, then up to two.
+    with ns2.watch_log_from_start(timeout=180) as watcher:
         watcher.wait_for_line(pattern)
     query_and_compare(a_msg)
 
