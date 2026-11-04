@@ -2057,9 +2057,34 @@ foreach name, sources : fuzz_binaries
         dependencies: fuzz_deps,
     )
 
+    corpus_dir = meson.project_source_root() / 'fuzz' / (name.substring(5) + '.in')
+    assert(
+        fs.is_dir(corpus_dir),
+        'missing fuzz corpus directory: ' + corpus_dir,
+    )
+    replay_bin = fuzz_bin
+    replay_args = ['--corpus', corpus_dir]
+    if fuzzing_backend_opt == 'libfuzzer'
+        replay_args = [corpus_dir, '-runs=0']
+    elif fuzzing_backend_opt in ['afl', 'oss-fuzz']
+        # Replay seeds without relying on the engine's command-line interface.
+        replay_bin = executable(
+            name + '_replay',
+            sources,
+            export_dynamic: true,
+            implicit_include_directories: true,
+            install: false,
+            c_args: ['-Wno-vla', '-DFUZZING_REPLAY=1'],
+            include_directories: test_inc,
+            sources: default_sanitize_options,
+            dependencies: fuzz_deps,
+        )
+    endif
+
     test(
         name,
-        fuzz_bin,
+        replay_bin,
+        args: replay_args,
         protocol: 'exitcode',
         suite: 'fuzz',
         timeout: 60,

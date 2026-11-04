@@ -27,7 +27,8 @@
 
 #include "fuzz.h"
 
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#if defined(FUZZING_REPLAY) || \
+	!defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
 
 #include <dirent.h>
 
@@ -133,6 +134,10 @@ main(int argc, char **argv) {
 	if (ret != 0) {
 		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
 		return 1;
+	}
+
+	if (argc == 3 && strcmp(argv[1], "--corpus") == 0) {
+		return test_all_from(argv[2]);
 	}
 
 	if (argv[1] != NULL && strcmp(argv[1], "-d") == 0) {
