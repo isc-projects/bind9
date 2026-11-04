@@ -40,10 +40,28 @@ bool debug = false;
  */
 
 static isc_mem_t *mctx = NULL;
+static dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
+static unsigned int types = 1;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_mem_create("fuzz", &mctx);
+
+	/*
+	 * Append known types to list.
+	 */
+	for (unsigned int t = 1; t <= 0x10000; t++) {
+		char typebuf[256];
+		if (dns_rdatatype_ismeta(t)) {
+			continue;
+		}
+		dns_rdatatype_format(t, typebuf, sizeof(typebuf));
+		if (!isc_string_hasprefix(typebuf, "TYPE")) {
+			/* Assert when we need to grow typelist. */
+			assert(types < sizeof(typelist) / sizeof(typelist[0]));
+			typelist[types++] = t;
+		}
+	}
 
 	return 0;
 }
@@ -70,7 +88,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_compress_t cctx;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
 	dns_rdataclass_t classlist[] = { dns_rdataclass_in, dns_rdataclass_hs,
 					 dns_rdataclass_ch, dns_rdataclass_any,
 					 60 };
@@ -83,7 +100,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	unsigned char fromwire[1024];
 	unsigned char towire[1024];
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
-	unsigned int types = 1, flags, t;
+	unsigned int flags;
 
 	/*
 	 * First 2 bytes are used to select type and class.
@@ -91,22 +108,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 */
 	if (size < 2 || size > 0xffff + 2) {
 		return 0;
-	}
-
-	/*
-	 * Append known types to list.
-	 */
-	for (t = 1; t <= 0x10000; t++) {
-		char typebuf[256];
-		if (dns_rdatatype_ismeta(t)) {
-			continue;
-		}
-		dns_rdatatype_format(t, typebuf, sizeof(typebuf));
-		if (!isc_string_hasprefix(typebuf, "TYPE")) {
-			/* Assert when we need to grow typelist. */
-			assert(types < sizeof(typelist) / sizeof(typelist[0]));
-			typelist[types++] = t;
-		}
 	}
 
 	/*
