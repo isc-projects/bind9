@@ -7270,18 +7270,6 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	return ISC_R_SUCCESS;
 }
 
-/*
- * This event callback is invoked to do periodic network interface
- * scanning.
- */
-
-static void
-interface_timer_tick(void *arg) {
-	named_server_t *server = (named_server_t *)arg;
-
-	(void)ns_interfacemgr_scan(server->interfacemgr, false, false);
-}
-
 static void
 heartbeat_timer_tick(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
@@ -9125,7 +9113,6 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "interface-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	interface_interval = cfg_obj_asduration(obj);
-	server->interface_interval = interface_interval;
 
 	/*
 	 * Enable automatic interface scans.
@@ -9136,33 +9123,14 @@ load_configuration(const char *filename, named_server_t *server,
 	server->sctx->interface_auto = cfg_obj_asboolean(obj);
 
 	if (server->sctx->interface_auto) {
-		if (ns_interfacemgr_dynamic_updates_are_reliable() &&
-		    server->interface_interval != 0)
-		{
-			/*
-			 * In some cases the user might expect a certain
-			 * behaviour from the rescan timer, let's try to deduce
-			 * that from the configuration options.
-			 */
-			isc_log_write(
-				named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				"Disabling periodic interface re-scans timer");
-			server->interface_interval = 0;
-		}
-
 		ns_interfacemgr_routeconnect(server->interfacemgr);
 	} else {
 		ns_interfacemgr_routedisconnect(server->interfacemgr);
 	}
 
-	if (server->interface_interval == 0) {
-		isc_timer_stop(server->interface_timer);
-	} else {
-		isc_interval_set(&interval, interface_interval, 0);
-		isc_timer_start(server->interface_timer, isc_timertype_ticker,
-				&interval);
-	}
+	ns_interfacemgr_routetimer(
+		server->interfacemgr,
+		&(isc_interval_t){ .seconds = interface_interval });
 
 	/*
 	 * Configure the dialup heartbeat timer.
@@ -10186,9 +10154,6 @@ run_server(void *arg) {
 					  &server->interfacemgr),
 		   "creating interface manager");
 
-	isc_timer_create(named_g_mainloop, interface_timer_tick, server,
-			 &server->interface_timer);
-
 	isc_timer_create(named_g_mainloop, heartbeat_timer_tick, server,
 			 &server->heartbeat_timer);
 
@@ -10301,7 +10266,6 @@ shutdown_server(void *arg) {
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
 	}
 
-	isc_timer_destroy(&server->interface_timer);
 	isc_timer_destroy(&server->heartbeat_timer);
 	isc_timer_destroy(&server->pps_timer);
 	isc_timer_destroy(&server->tat_timer);

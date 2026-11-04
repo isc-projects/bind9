@@ -22,6 +22,7 @@
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -81,7 +82,11 @@ struct ns_interfacemgr {
 	int backlog;		     /*%< Listen queue size */
 	atomic_bool shuttingdown;    /*%< Interfacemgr shutting down */
 	ns_clientmgr_t **clientmgrs; /*%< Client managers */
-	isc_nmhandle_t *route;
+	isc_nmhandle_t *route_handle;
+	isc_timer_t *route_timer;
+	isc_interval_t interface_interval;
+	bool route_lost;
+	bool route_seen;
 };
 
 static void
@@ -89,6 +94,36 @@ purge_old_interfaces(ns_interfacemgr_t *mgr);
 
 static void
 clearlistenon(ns_interfacemgr_t *mgr);
+
+/*
+ * This event callback is invoked to do periodic network interface
+ * scanning.
+ */
+
+static void
+interface_timer_tick(void *arg) {
+	ns_interfacemgr_t *mgr = arg;
+
+	(void)ns_interfacemgr_scan(mgr, false, false);
+
+	if (mgr->route_seen) {
+		mgr->route_seen = false;
+		if (mgr->route_lost) {
+			isc_timer_start(mgr->route_timer, isc_timertype_once,
+					isc_interval_zero);
+			return;
+		}
+	}
+	if (mgr->route_lost) {
+		mgr->route_lost = false;
+	}
+
+	/* Re-arm the periodic timer as needed */
+	if (isc_interval_tonanosecs(&mgr->interface_interval) != 0) {
+		isc_timer_start(mgr->route_timer, isc_timertype_once,
+				&mgr->interface_interval);
+	}
+}
 
 #if defined(RTM_NEWADDR) && defined(RTM_DELADDR)
 static bool
@@ -203,7 +238,8 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	   void *arg) {
 	ns_interfacemgr_t *mgr = (ns_interfacemgr_t *)arg;
 	struct MSGHDR *rtm = NULL;
-	size_t rtmlen;
+	size_t rtmlen = 0;
+	bool rtm_desync = false;
 
 	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_DEBUG(9), "route_recv: %s",
 		      isc_result_totext(eresult));
@@ -214,7 +250,48 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
-		break;
+		rtm = (struct MSGHDR *)region->base;
+		rtmlen = region->length;
+
+#ifdef RTM_VERSION
+		if (rtm->rtm_version != RTM_VERSION) {
+			isc_log_write(
+				IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+				"automatic interface rescanning disabled: "
+				"rtm->rtm_version mismatch (%u != %u) "
+				"recompile required",
+				rtm->rtm_version, RTM_VERSION);
+			isc_nmhandle_detach(&mgr->route_handle);
+			ns_interfacemgr_detach(&mgr);
+			return;
+		}
+#endif /* ifdef RTM_VERSION */
+
+#if defined(RTM_DESYNC)
+		/*
+		 * On OpenBSD, the route socket overflow is reported as
+		 * a RTM_DESYNC message, so we need to fall through to
+		 * ISC_R_NORESOURCES.
+		 */
+		if (rtm->rtm_type == RTM_DESYNC) {
+			rtm_desync = true;
+		}
+#endif
+		if (!rtm_desync) {
+			break;
+		}
+		FALLTHROUGH;
+	case ISC_R_NORESOURCES:
+		if (mgr->sctx->interface_auto) {
+			/* There might have been route that we missed */
+			mgr->route_seen = true;
+			mgr->route_lost = true;
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
+				      "automatic interface scanning missed "
+				      "messages: route socket overflowed");
+			break;
+		}
+		FALLTHROUGH;
 	default:
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "automatic interface scanning terminated: %s",
@@ -227,29 +304,28 @@ route_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		return;
 	}
 
-	rtm = (struct MSGHDR *)region->base;
-	rtmlen = region->length;
-
-#ifdef RTM_VERSION
-	if (rtm->rtm_version != RTM_VERSION) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "automatic interface rescanning disabled: "
-			      "rtm->rtm_version mismatch (%u != %u) "
-			      "recompile required",
-			      rtm->rtm_version, RTM_VERSION);
-		isc_nmhandle_detach(&mgr->route);
-		ns_interfacemgr_detach(&mgr);
-		return;
-	}
-#endif /* ifdef RTM_VERSION */
-
-	REQUIRE(mgr->route != NULL);
+	REQUIRE(mgr->route_handle != NULL);
 
 #if defined(RTM_NEWADDR) && defined(RTM_DELADDR)
-	if (need_rescan(mgr, rtm, rtmlen) && mgr->sctx->interface_auto) {
-		ns_interfacemgr_scan(mgr, false, false);
+	if (mgr->route_lost) {
+		/*
+		 * If we are recovering from the lost route, any route message
+		 * needs to trigger the interface re-scan.
+		 */
+		mgr->route_seen = true;
+	} else if (mgr->sctx->interface_auto && need_rescan(mgr, rtm, rtmlen)) {
+		mgr->route_seen = true;
 	}
 #endif /* if defined(RTM_NEWADDR) && defined(RTM_DELADDR) */
+
+	if (mgr->route_seen) {
+		/*
+		 * Fire up the timer if we have seen a new route,
+		 * this will restart the timer if already running.
+		 */
+		isc_timer_start(mgr->route_timer, isc_timertype_once,
+				isc_interval_zero);
+	}
 
 	isc_nm_read(handle, route_recv, mgr);
 	return;
@@ -267,9 +343,9 @@ route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		return;
 	}
 
-	INSIST(mgr->route == NULL);
+	INSIST(mgr->route_handle == NULL);
 
-	isc_nmhandle_attach(handle, &mgr->route);
+	isc_nmhandle_attach(handle, &mgr->route_handle);
 	isc_nm_read(handle, route_recv, mgr);
 }
 
@@ -333,6 +409,9 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
+	isc_timer_create(isc_loop_main(mgr->loopmgr), interface_timer_tick, mgr,
+			 &mgr->route_timer);
+
 	return ISC_R_SUCCESS;
 
 cleanup_lock:
@@ -347,7 +426,7 @@ ns_interfacemgr_routeconnect(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 	REQUIRE(isc_tid() == 0);
 
-	if (mgr->route != NULL) {
+	if (mgr->route_handle != NULL) {
 		return;
 	}
 
@@ -368,12 +447,12 @@ ns_interfacemgr_routedisconnect(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 	REQUIRE(isc_tid() == 0);
 
-	if (mgr->route == NULL) {
+	if (mgr->route_handle == NULL) {
 		return;
 	}
 
-	isc_nmhandle_close(mgr->route);
-	isc_nmhandle_detach(&mgr->route);
+	isc_nmhandle_close(mgr->route_handle);
+	isc_nmhandle_detach(&mgr->route_handle);
 	ns_interfacemgr_detach(&mgr);
 }
 
@@ -438,13 +517,15 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 
 	purge_old_interfaces(mgr);
 
-	if (mgr->route != NULL) {
-		isc_nm_cancelread(mgr->route);
+	if (mgr->route_handle != NULL) {
+		isc_nm_cancelread(mgr->route_handle);
 	}
 
 	for (size_t i = 0; i < mgr->ncpus; i++) {
 		ns_clientmgr_shutdown(mgr->clientmgrs[i]);
 	}
+
+	isc_timer_destroy(&mgr->route_timer);
 }
 
 void
@@ -1480,16 +1561,33 @@ ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr) {
 	return mgr->clientmgrs[tid];
 }
 
-bool
-ns_interfacemgr_dynamic_updates_are_reliable(void) {
+void
+ns_interfacemgr_routetimer(ns_interfacemgr_t *mgr,
+			   isc_interval_t *interface_interval) {
+	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
+
+	mgr->interface_interval = *interface_interval;
+
+	if (isc_interval_tonanosecs(&mgr->interface_interval) == 0) {
+		isc_timer_stop(mgr->route_timer);
+		return;
+	}
+
 #if defined(LINUX_NETLINK_AVAILABLE)
 	/*
 	 * Let's disable periodic interface rescans on Linux, as there a
 	 * reliable kernel-based mechanism for tracking interface state
 	 * changes is available.
 	 */
-	return true;
-#else
-	return false;
-#endif /* LINUX_NETLINK_AVAILABLE */
+	if (mgr->sctx->interface_auto) {
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+			      "Disabling periodic interface re-scans timer");
+		mgr->interface_interval = *isc_interval_zero;
+		isc_timer_stop(mgr->route_timer);
+		return;
+	}
+#endif /*LINUX_NETLINK_AVAILABLE */
+
+	isc_timer_start(mgr->route_timer, isc_timertype_once,
+			&mgr->interface_interval);
 }
