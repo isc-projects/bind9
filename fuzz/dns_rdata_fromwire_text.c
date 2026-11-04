@@ -50,7 +50,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	/*
 	 * Append known types to list.
 	 */
-	for (unsigned int t = 1; t <= 0x10000; t++) {
+	for (unsigned int t = 1; t <= UINT16_MAX; t++) {
 		char typebuf[256];
 		if (dns_rdatatype_ismeta(t)) {
 			continue;
