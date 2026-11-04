@@ -54,13 +54,13 @@ default:
       - runner_system_failure
 
 stages:
-  - precheck
+  - quick-checks
+  - other-checks
   - build
   - unit
   - system
   - performance
   - docs
-  - postcheck
   - postmerge
   - release
 
@@ -169,10 +169,19 @@ stages:
     - *rule_tag
     - *rule_source_other_than_mr
 
-.precheck: &precheck_job
+.quick-check: &quick_checks_job
   <<: *default_triggering_rules
   <<: *base_image
-  stage: precheck
+  stage: quick-checks
+  needs: []
+  tags:
+    - smalljob
+
+.other-check: &other_checks_job
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: other-checks
+  needs: []
 
 .configure: &configure
     - ${CONFIGURE}
@@ -291,10 +300,10 @@ stages:
 
 ### Job Definitions
 
-# Jobs in the precheck stage
+# Jobs in the quick-checks stage
 
 misc:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/check-ans-prereq.sh
     - sh util/checklibs.sh > checklibs.out
@@ -309,7 +318,7 @@ misc:
     when: on_failure
 
 changes:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
@@ -318,19 +327,31 @@ changes:
     - rm CHANGES.tmp
 
 ci-orphaned-anchors:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - *git_clone_bind9-qa
     - >
       "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
-  needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
         - .gitlab-ci.yml
 
+danger:
+  <<: *quick_checks_job
+  environment:
+    name: danger
+    action: access
+  script:
+    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
+    - hazard
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# Jobs in the other-checks stage
+
 coccinelle:
-  <<: *precheck_job
+  <<: *other_checks_job
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
@@ -344,21 +365,9 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
-danger:
-  <<: *precheck_job
-  environment:
-    name: danger
-    action: access
-  script:
-    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
-    - hazard
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-
 tarball-create:
-  stage: precheck
+  <<: *build_job
   <<: *base_image
-  <<: *default_triggering_rules
   script:
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
@@ -772,6 +781,8 @@ abi-check:
   <<: *base_image
   stage: postmerge
   needs: []
+  tags:
+    - smalljob
   # post-merge processes should run even if another MR was merged while the job was running (or queued)
   interruptible: false
   variables:
