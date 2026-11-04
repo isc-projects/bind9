@@ -40,21 +40,10 @@ bool debug = false;
  */
 
 static isc_mem_t *mctx = NULL;
-static isc_lex_t *lex = NULL;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
-	isc_lexspecials_t specials;
-
 	isc_mem_create("fuzz", &mctx);
-	isc_lex_create(mctx, 64, &lex);
-
-	memset(specials, 0, sizeof(specials));
-	specials['('] = 1;
-	specials[')'] = 1;
-	specials['"'] = 1;
-	isc_lex_setspecials(lex, specials);
-	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	return 0;
 }
@@ -75,6 +64,8 @@ nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+	isc_lex_t *lex = NULL;
+	isc_lexspecials_t specials;
 	char totext[64 * 1044 * 4];
 	dns_compress_t cctx;
 	dns_rdatatype_t rdtype;
@@ -162,6 +153,14 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	/*
 	 * Convert to wire from text.
 	 */
+	isc_lex_create(mctx, 64, &lex);
+	memset(specials, 0, sizeof(specials));
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
 	isc_buffer_constinit(&source, totext, isc_buffer_usedlength(&target));
 	isc_buffer_add(&source, isc_buffer_usedlength(&target));
 	CHECK(isc_lex_openbuffer(lex, &source));
@@ -169,6 +168,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata2, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	isc_lex_close(lex);
 	if (debug && result != ISC_R_SUCCESS) {
 		fprintf(stderr, "'%s'\n", totext);
 	}
@@ -195,6 +195,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata3, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	isc_lex_close(lex);
 	assert(result == ISC_R_SUCCESS);
 	assert(rdata3.length == size);
 	assert(!memcmp(rdata3.data, data, size));
@@ -211,5 +212,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	assert(!memcmp(target.base, data, size));
 
 cleanup:
+	if (lex != NULL) {
+		isc_lex_destroy(&lex);
+	}
 	return 0;
 }

@@ -31,18 +31,17 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
 static isc_mem_t *mctx = NULL;
-static isc_lex_t *lex = NULL;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_mem_create("fuzz", &mctx);
-	isc_lex_create(mctx, 1024, &lex);
 
 	return 0;
 }
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+	isc_lex_t *lex = NULL;
 	isc_buffer_t buf;
 	isc_result_t result;
 	isc_token_t token;
@@ -61,6 +60,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	data += 1;
 	size -= 1;
 
+	isc_lex_create(mctx, 1024, &lex);
+
 	isc_buffer_constinit(&buf, data, size);
 	isc_buffer_add(&buf, size);
 	isc_buffer_setactive(&buf, size);
@@ -72,5 +73,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	} while (result == ISC_R_SUCCESS && token.type != isc_tokentype_eof);
 
 cleanup:
+	isc_lex_destroy(&lex);
 	return 0;
 }
