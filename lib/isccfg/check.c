@@ -3354,6 +3354,37 @@ get_zoneopt(const cfg_obj_t *opts1, const cfg_obj_t *opts2,
 	return result;
 }
 
+typedef struct {
+	unsigned int ztype;
+	const char *typestr;
+	const char *znamestr;
+	const char *tmplname;
+} zone_options_check_t;
+
+static bool
+check_zone_option(char *key ISC_ATTR_UNUSED, unsigned int type,
+		  isc_symvalue_t value, void *arg) {
+	const zone_options_check_t *check = arg;
+
+	if (cfg_clause_validforzone(type, check->ztype)) {
+		return false;
+	}
+
+	if (check->tmplname == NULL) {
+		cfg_obj_log(value.as_pointer, ISC_LOG_WARNING,
+			    "option '%s' is not allowed in '%s' zone '%s'",
+			    cfg_clause_as_string[type], check->typestr,
+			    check->znamestr);
+	} else {
+		cfg_obj_log(value.as_pointer, ISC_LOG_WARNING,
+			    "option '%s' is not allowed in '%s' zone '%s' "
+			    "(referencing template '%s')",
+			    cfg_clause_as_string[type], check->typestr,
+			    check->znamestr, check->tmplname);
+	}
+	return false;
+}
+
 isc_result_t
 isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		      const cfg_obj_t *config, isc_symtab_t *symtab,
@@ -3383,8 +3414,6 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool kasp_inlinesigning = false;
 	bool inline_signing = false;
 	bool check_keys = (flags & BIND_CHECK_KEYS) != 0;
-	const void *clauses = NULL;
-	const cfg_clausedef_t *option = NULL;
 	const char *kaspname = NULL;
 	const char *dir = NULL;
 	static const enum cfg_clause acls[] = {
@@ -3711,28 +3740,21 @@ isccfg_check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check validity of the zone options.
 	 */
-	option = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);
-	while (option != NULL) {
-		obj = NULL;
-		bool topt = false;
-		(void)cfg_map_get(zoptions, option->name, &obj);
-		if (obj == NULL && toptions != NULL) {
-			(void)cfg_map_get(toptions, option->name, &obj);
-			topt = true;
+	if (!cfg_zoneopts_validforzone(zoptions, toptions, ztype)) {
+		zone_options_check_t check = {
+			.ztype = ztype,
+			.typestr = typestr,
+			.znamestr = znamestr,
+		};
+
+		isc_symtab_foreach(zoptions->value.map->symtab,
+				   check_zone_option, &check);
+		if (toptions != NULL) {
+			check.tmplname = tmplname;
+			isc_symtab_foreach(toptions->value.map->symtab,
+					   check_zone_option, &check);
 		}
-		if (obj != NULL &&
-		    !cfg_clause_validforzone(option->name, ztype))
-		{
-			cfg_obj_log(obj, ISC_LOG_WARNING,
-				    "option '%s' is not allowed "
-				    "in '%s' zone '%s'%s%s%s",
-				    cfg_clause_as_string[option->name], typestr,
-				    znamestr,
-				    topt ? " (referencing template '" : "",
-				    topt ? tmplname : "", topt ? "')" : "");
-			result = ISC_R_FAILURE;
-		}
-		option = cfg_map_nextclause(&cfg_type_zoneopts, &clauses, &i);
+		result = ISC_R_FAILURE;
 	}
 
 	/*

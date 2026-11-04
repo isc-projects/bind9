@@ -630,6 +630,11 @@ cfg_clause_validforzone(enum cfg_clause name, unsigned int ztype);
  * Check whether an option is legal for the specified zone type.
  */
 
+bool
+cfg_zoneopts_validforzone(const cfg_obj_t *zoptions, const cfg_obj_t *toptions,
+			  unsigned int ztype);
+/*%< Check whether all zone and template options allow the zone type. */
+
 void
 cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		      void (*f)(void *closure, const char *text, int textlen),

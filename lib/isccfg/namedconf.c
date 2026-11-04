@@ -21,8 +21,10 @@
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/once.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
 #include <dns/ttl.h>
@@ -4320,36 +4322,62 @@ cmp_clause(const void *ap, const void *bp) {
 		      cfg_clause_as_string[b->name]);
 }
 
+static unsigned int zone_flags[CFG_CLAUSE__COUNT];
+static isc_once_t zone_flags_once = ISC_ONCE_INITIALIZER;
+
+static void
+initialize_zone_flags(void) {
+	const void *clauses = NULL;
+	unsigned int i = 0;
+
+	for (const cfg_clausedef_t *clause =
+		     cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);
+	     clause != NULL;
+	     clause = cfg_map_nextclause(&cfg_type_zoneopts, &clauses, &i))
+	{
+		INSIST(zone_flags[clause->name] == 0);
+		INSIST(clause->flags != 0);
+		zone_flags[clause->name] = clause->flags;
+	}
+}
+
 bool
 cfg_clause_validforzone(enum cfg_clause name, unsigned int ztype) {
-	const cfg_clausedef_t *clause;
-	bool valid = false;
+	REQUIRE(name > CFG_CLAUSE__NONE && name < CFG_CLAUSE__COUNT);
 
-	for (clause = zone_clauses; clause->name != CFG_CLAUSE__NONE; clause++)
-	{
-		if ((clause->flags & ztype) == 0 || clause->name != name) {
+	isc_once_do(&zone_flags_once, initialize_zone_flags);
+	return (zone_flags[name] & ztype) != 0;
+}
+
+static bool
+intersect_zone_flags(char *key ISC_ATTR_UNUSED, unsigned int type,
+		     isc_symvalue_t value ISC_ATTR_UNUSED, void *arg) {
+	unsigned int *allowed = arg;
+
+	*allowed &= zone_flags[type];
+	return false;
+}
+
+bool
+cfg_zoneopts_validforzone(const cfg_obj_t *zoptions, const cfg_obj_t *toptions,
+			  unsigned int ztype) {
+	const cfg_obj_t *maps[] = { zoptions, toptions };
+	unsigned int allowed = ~0U;
+
+	REQUIRE(zoptions != NULL);
+
+	isc_once_do(&zone_flags_once, initialize_zone_flags);
+	for (size_t i = 0; i < ARRAY_SIZE(maps); i++) {
+		if (maps[i] == NULL) {
 			continue;
 		}
-		valid = true;
-	}
-	for (clause = zone_only_clauses; clause->name != CFG_CLAUSE__NONE;
-	     clause++)
-	{
-		if ((clause->flags & ztype) == 0 || clause->name != name) {
-			continue;
-		}
-		valid = true;
-	}
-	for (clause = non_template_clauses; clause->name != CFG_CLAUSE__NONE;
-	     clause++)
-	{
-		if ((clause->flags & ztype) == 0 || clause->name != name) {
-			continue;
-		}
-		valid = true;
+		REQUIRE(cfg_obj_ismap(maps[i]));
+
+		isc_symtab_foreach(maps[i]->value.map->symtab,
+				   intersect_zone_flags, &allowed);
 	}
 
-	return valid;
+	return (allowed & ztype) != 0;
 }
 
 void
