@@ -95,7 +95,7 @@ constexpr unsigned int NS_PER_SEC = 1000 * 1000 * 1000;
  */
 
 #define isc_interval_fromnanosecs(ns) isc_time_fromnanosecs(ns)
-#define isc_interval_tonanosecs(i)    isc_time_tonanosecs(i)
+#define isc_interval_tonanosecs(i)    isc_nanosecs_fromtime(*(i))
 
 /***
  *** Absolute Times

@@ -371,23 +371,40 @@ isc_nm_listenudp(uint32_t workers, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 static isc_result_t
 route_socket(uv_os_sock_t *fdp) {
 	uv_os_sock_t fd = -1;
-#ifdef USE_NETLINK
-	struct sockaddr_nl sa = { 0 };
-	int r;
-#endif
 
 	RETERR(isc__nm_socket(ROUTE_SOCKET_PF, SOCK_RAW, ROUTE_SOCKET_PROTOCOL,
 			      &fd));
+	INSIST(fd >= 0);
+
+	isc__nm_socket_error_reporting(fd);
 
 #ifdef USE_NETLINK
-	sa.nl_family = PF_NETLINK;
-	sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR;
-	r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
+	/* Linux */
+	struct sockaddr_nl sa = {
+		.nl_family = PF_NETLINK,
+		.nl_groups = RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR,
+	};
+
+	int r = bind(fd, (struct sockaddr *)&sa, sizeof(sa));
 	if (r < 0) {
 		isc_result_t result = isc_errno_toresult(errno);
 		isc__nm_closesocket(fd);
 		return result;
 	}
+#elif defined(RO_MSGFILTER)
+	/* FreeBSD and NetBSD */
+	unsigned char msgtypes[] = { RTM_NEWADDR, RTM_DELADDR };
+
+	(void)setsockopt(fd, PF_ROUTE, RO_MSGFILTER, &msgtypes,
+			 sizeof(msgtypes));
+#elif defined(ROUTE_MSGFILTER)
+	/* OpenBSD */
+	unsigned int rtfilter = ROUTE_FILTER(RTM_NEWADDR) |
+				ROUTE_FILTER(RTM_DELADDR) |
+				ROUTE_FILTER(RTM_DESYNC);
+
+	(void)setsockopt(fd, AF_ROUTE, ROUTE_MSGFILTER, &rtfilter,
+			 sizeof(rtfilter));
 #endif
 
 	*fdp = fd;
@@ -422,7 +439,9 @@ route_connect_direct(isc_nmsocket_t *sock) {
 		return isc_uverr2result(r);
 	}
 
-	isc__nm_set_network_buffers(&sock->uv_handle.handle);
+	/* Make the receive buffer size larger, but ignore any failure */
+	int32_t recv_buffer_size = 1 * 1024 * 1024;
+	(void)uv_recv_buffer_size(&sock->uv_handle.handle, &recv_buffer_size);
 
 	sock->connecting = false;
 	sock->connected = true;
@@ -558,7 +577,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc__nm_uvreq_t *req = NULL;
 	uint32_t maxudp;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t sockaddr, *sa = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -594,11 +613,14 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		 */
 		goto free;
 	}
-
 	/*
-	 * - If there was a networking error.
+	 * - If there was a networking error, except when route socket
+	 *   receives ENOBUFS - in that case, we want to pass the error
+	 *   and continue reading.
 	 */
-	if (nrecv < 0) {
+	if (sock->route_sock && nrecv == UV_ENOBUFS) {
+		result = ISC_R_NORESOURCES;
+	} else if (nrecv < 0) {
 		isc__nm_failed_read_cb(sock, isc_uverr2result(nrecv), false);
 		goto free;
 	}
@@ -617,6 +639,17 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if (!isc__nmsocket_active(sock)) {
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto free;
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * Route socket errors do not carry a datagram or a source
+		 * address, but are delivered using the normal read callback so
+		 * the caller can resume reading.
+		 */
+		req = isc__nm_get_read_req(sock, NULL);
+		req->uvbuf = (uv_buf_t){ 0 };
+		goto callback;
 	}
 
 	/*
@@ -645,12 +678,13 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	req = isc__nm_get_read_req(sock, sa);
 
 	/*
-	 * The callback will be called synchronously, because result is
-	 * ISC_R_SUCCESS, so we are ok of passing the buf directly.
+	 * The callback will be called synchronously, so we are ok passing the
+	 * buffer directly.
 	 */
 	req->uvbuf.base = buf->base;
 	req->uvbuf.len = nrecv;
 
+callback:
 	sock->reading = false;
 
 	/*
@@ -666,7 +700,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	REQUIRE(!sock->processing);
 	sock->processing = true;
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
+	isc__nm_readcb(sock, req, result, false);
 	sock->processing = false;
 
 free:
