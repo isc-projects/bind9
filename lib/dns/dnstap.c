@@ -58,14 +58,18 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/overflow.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
 #include <isc/time.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/dnstap.h>
@@ -98,6 +102,13 @@ struct dns_dthandle {
 	isc_mem_t *mctx;
 };
 
+typedef struct dt__io {
+	struct fstrm_iothr *iothr;
+	struct fstrm_iothr_queue **ioqs;
+	_Atomic(off_t) approx_size;
+	struct fstrm_iothr_queue *ioqs_s[];
+} dt__io_t;
+
 struct dns_dtenv {
 	unsigned int magic;
 	isc_refcount_t references;
@@ -105,11 +116,9 @@ struct dns_dtenv {
 	isc_mem_t *mctx;
 	isc_loop_t *loop;
 
-	struct fstrm_iothr *iothr;
 	struct fstrm_iothr_options *fopt;
 
-	isc_mutex_t reopen_lock; /* locks 'reopen_queued' */
-	bool reopen_queued;
+	atomic_bool reopen_queued;
 
 	isc_region_t identity;
 	isc_region_t version;
@@ -119,25 +128,69 @@ struct dns_dtenv {
 	int rolls;
 	isc_log_rollsuffix_t suffix;
 	isc_stats_t *stats;
-};
 
-typedef struct ioq {
-	unsigned int generation;
-	struct fstrm_iothr_queue *ioq;
-} dt__ioq_t;
+	dt__io_t *io; /* RCU-protected */
+};
 
 static void
 destroy(dns_dtenv_t *env);
-
-static thread_local dt__ioq_t dt_ioq = { 0 };
-
-static atomic_uint_fast32_t global_generation;
 
 #if DNS_DTENV_TRACE
 ISC_REFCOUNT_TRACE_IMPL(dns_dtenv, destroy);
 #else
 ISC_REFCOUNT_IMPL(dns_dtenv, destroy);
 #endif /* DNS_DTENV_TRACE */
+
+static size_t
+io_size(void) {
+	dt__io_t *io = NULL;
+	return sizeof(*io) +
+	       ISC_CHECKED_MUL(sizeof(io->ioqs[0]), isc_tid_count() + 1);
+}
+
+/*
+ * Start a new I/O thread writing to '*fwp'; on success, the I/O thread
+ * takes over the writer.  The result is not published yet.
+ */
+static dt__io_t *
+io_new(dns_dtenv_t *env, struct fstrm_iothr_options *fopt,
+       struct fstrm_writer **fwp) {
+	struct fstrm_iothr *iothr = fstrm_iothr_init(fopt, fwp);
+	if (iothr == NULL) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
+			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
+			      "unable to initialize dnstap I/O thread");
+		return NULL;
+	}
+
+	size_t size = io_size();
+	dt__io_t *io = isc_mem_get(env->mctx, size);
+	memset(io, 0, size);
+	*io = (dt__io_t){
+		.iothr = iothr,
+		.ioqs = &io->ioqs_s[1],
+	};
+
+	io->ioqs[-1] = fstrm_iothr_get_input_queue(io->iothr);
+
+	return io;
+}
+
+/*
+ * Publish 'iothr' (which may be NULL) as the I/O thread the senders
+ * submit to, together with the input queue for each thread, and return
+ * the previous I/O thread.  The caller may only stop that one after a
+ * grace period, as senders can still be using it and its queues.
+ */
+static void
+io_publish(dns_dtenv_t *env, dt__io_t *io) {
+	dt__io_t *old_io = rcu_xchg_pointer(&env->io, io);
+	if (old_io != NULL) {
+		synchronize_rcu();
+		fstrm_iothr_destroy(&old_io->iothr);
+		isc_mem_put(env->mctx, old_io, io_size());
+	}
+}
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
@@ -155,10 +208,11 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	REQUIRE(envp != NULL && *envp == NULL);
 	REQUIRE(foptp != NULL && *foptp != NULL);
 
+	/* Number of loops + ISC_TID_UNKNOWN (-1) */
+	fstrm_iothr_options_set_num_input_queues(*foptp, isc_tid_count() + 1);
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
 		      ISC_LOG_INFO, "opening dnstap destination '%s'", path);
-
-	atomic_fetch_add_release(&global_generation, 1);
 
 	env = isc_mem_get(mctx, sizeof(*env));
 	*env = (dns_dtenv_t){
@@ -167,7 +221,6 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	};
 
 	isc_mem_attach(mctx, &env->mctx);
-	isc_mutex_init(&env->reopen_lock);
 	env->path = isc_mem_strdup(env->mctx, path);
 	isc_refcount_init(&env->references, 1);
 	isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max);
@@ -204,11 +257,8 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	env->iothr = fstrm_iothr_init(*foptp, &fw);
-	if (env->iothr == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
-			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
-			      "unable to initialize dnstap I/O thread");
+	env->io = io_new(env, *foptp, &fw);
+	if (env->io == NULL) {
 		fstrm_writer_destroy(&fw);
 		CHECK(ISC_R_FAILURE);
 	}
@@ -235,7 +285,6 @@ cleanup:
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		isc_mutex_destroy(&env->reopen_lock);
 		isc_mem_free(env->mctx, env->path);
 		if (env->stats != NULL) {
 			isc_stats_detach(&env->stats);
@@ -276,17 +325,14 @@ isc_result_t
 dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
-	isc_logfile_t file;
 	struct fstrm_unix_writer_options *fuwopt = NULL;
 	struct fstrm_file_options *ffwopt = NULL;
 	struct fstrm_writer_options *fwopt = NULL;
 	struct fstrm_writer *fw = NULL;
-	isc_loopmgr_t *loopmgr = NULL;
+	dt__io_t *io = NULL;
 
 	REQUIRE(VALID_DTENV(env));
-
-	loopmgr = isc_loop_getloopmgr(env->loop);
-	isc_loopmgr_pause(loopmgr);
+	REQUIRE(env->loop == NULL || env->loop == isc_loop());
 
 	/*
 	 * Check that we can create a new fw object.
@@ -323,22 +369,22 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	/*
-	 * We are committed here.
-	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
-		      ISC_LOG_INFO, "%s dnstap destination '%s'",
-		      (roll < 0) ? "reopening" : "rolling", env->path);
-
-	atomic_fetch_add_release(&global_generation, 1);
-
-	if (env->iothr != NULL) {
-		fstrm_iothr_destroy(&env->iothr);
-	}
-
 	if (roll == 0) {
 		roll = env->rolls;
 	}
+
+	/*
+	 * Depublish the old input queues.  This waits for the senders
+	 * that may still be using the old ones to leave their
+	 * read-side critical sections before stopping the old I/O
+	 * thread, which flushes the data frames still queued for it
+	 * into the (already rolled) old output and closes it.
+	 *
+	 * This is needed to prevent the old writers and new writers
+	 * trashing the same file in case when the new and the old
+	 * file is the same.
+	 */
+	io_publish(env, NULL);
 
 	if (env->mode == dns_dtmode_file && roll != 0) {
 		/*
@@ -346,24 +392,34 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		 * take advantage of the logfile rolling facility.
 		 */
 		char *filename = isc_mem_strdup(env->mctx, env->path);
-		file.name = filename;
-		file.stream = NULL;
-		file.versions = roll;
-		file.maximum_size = 0;
-		file.maximum_reached = false;
-		file.suffix = env->suffix;
+		isc_logfile_t file = {
+			.name = filename,
+			.stream = NULL,
+			.versions = roll,
+			.suffix = env->suffix,
+		};
 		result = isc_logfile_roll(&file);
 		isc_mem_free(env->mctx, filename);
 		CHECK(result);
 	}
 
-	env->iothr = fstrm_iothr_init(env->fopt, &fw);
-	if (env->iothr == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
-			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
-			      "unable to initialize dnstap I/O thread");
-		CHECK(ISC_R_FAILURE);
+	/*
+	 * We are committed here.
+	 */
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP, DNS_LOGMODULE_DNSTAP,
+		      ISC_LOG_INFO, "%s dnstap destination '%s'",
+		      (roll == ISC_LOG_ROLLNEVER) ? "reopening" : "rolling",
+		      env->path);
+
+	/*
+	 * Create the new input queue and publish the new I/O thread
+	 * and its per-thread input queues.
+	 */
+	io = io_new(env, env->fopt, &fw);
+	if (io == NULL) {
+		CLEANUP(ISC_R_FAILURE);
 	}
+	io_publish(env, io);
 
 cleanup:
 	if (fw != NULL) {
@@ -381,8 +437,6 @@ cleanup:
 	if (fwopt != NULL) {
 		fstrm_writer_options_destroy(&fwopt);
 	}
-
-	isc_loopmgr_resume(loopmgr);
 
 	return result;
 }
@@ -424,35 +478,6 @@ dns_dt_setversion(dns_dtenv_t *env, const char *version) {
 	return toregion(env, &env->version, version);
 }
 
-static void
-set_dt_ioq(unsigned int generation, struct fstrm_iothr_queue *ioq) {
-	dt_ioq.generation = generation;
-	dt_ioq.ioq = ioq;
-}
-
-static struct fstrm_iothr_queue *
-dt_queue(dns_dtenv_t *env) {
-	REQUIRE(VALID_DTENV(env));
-
-	unsigned int generation;
-
-	if (env->iothr == NULL) {
-		return NULL;
-	}
-
-	generation = atomic_load_acquire(&global_generation);
-	if (dt_ioq.ioq != NULL && dt_ioq.generation != generation) {
-		set_dt_ioq(0, NULL);
-	}
-	if (dt_ioq.ioq == NULL) {
-		struct fstrm_iothr_queue *ioq =
-			fstrm_iothr_get_input_queue(env->iothr);
-		set_dt_ioq(generation, ioq);
-	}
-
-	return dt_ioq.ioq;
-}
-
 isc_result_t
 dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp) {
 	REQUIRE(VALID_DTENV(env));
@@ -471,11 +496,7 @@ destroy(dns_dtenv_t *env) {
 		      ISC_LOG_INFO, "closing dnstap");
 	env->magic = 0;
 
-	atomic_fetch_add(&global_generation, 1);
-
-	if (env->iothr != NULL) {
-		fstrm_iothr_destroy(&env->iothr);
-	}
+	io_publish(env, NULL);
 	if (env->fopt != NULL) {
 		fstrm_iothr_options_destroy(&env->fopt);
 	}
@@ -527,24 +548,50 @@ pack_dt(const Dnstap__Dnstap *d, void **buf, size_t *sz) {
 }
 
 static void
-send_dt(dns_dtenv_t *env, void *buf, size_t len) {
-	struct fstrm_iothr_queue *ioq;
-	fstrm_res res;
+check_file_size_and_maybe_reopen(dns_dtenv_t *env, off_t size);
 
+static void
+send_dt(dns_dtenv_t *env, void *buf, size_t len) {
 	REQUIRE(env != NULL);
 
 	if (buf == NULL) {
 		return;
 	}
 
-	ioq = dt_queue(env);
-	if (ioq == NULL) {
-		free(buf);
-		return;
-	}
+	/*
+	 * dns_dt_reopen() can replace the I/O thread at any time from the
+	 * main loop; the read-side critical section keeps the one we picked
+	 * alive until the (non-blocking) submit has returned.  While there
+	 * is none, the data frame is dropped.
+	 */
+	fstrm_res res = fstrm_res_failure;
+	off_t fstrm_size = len + sizeof(uint32_t);
 
-	res = fstrm_iothr_submit(env->iothr, ioq, buf, len, fstrm_free_wrapper,
-				 NULL);
+	rcu_read_lock();
+	dt__io_t *io = rcu_dereference(env->io);
+	if (io != NULL) {
+		uint32_t tid = isc_tid();
+		struct fstrm_iothr_queue *ioq = NULL;
+		if (tid == ISC_TID_UNKNOWN) {
+			ioq = io->ioqs[-1];
+		} else if (io->ioqs[tid] == NULL) {
+			/* Lazy initialization */
+			ioq = io->ioqs[tid] =
+				fstrm_iothr_get_input_queue(io->iothr);
+		} else {
+			ioq = io->ioqs[tid];
+		}
+		res = fstrm_iothr_submit(io->iothr, ioq, buf, len,
+					 fstrm_free_wrapper, NULL);
+
+		if (res == fstrm_res_success && env->max_size != 0) {
+			fstrm_size += atomic_fetch_add_acq_rel(
+				&io->approx_size, len + sizeof(uint32_t));
+			check_file_size_and_maybe_reopen(env, fstrm_size);
+		}
+	}
+	rcu_read_unlock();
+
 	if (res != fstrm_res_success) {
 		if (env->stats != NULL) {
 			isc_stats_increment(env->stats, dns_dnstapcounter_drop);
@@ -682,48 +729,38 @@ perform_reopen(void *arg) {
 	dns_dt_reopen(env, env->rolls);
 
 	/* Re-allow output file rolling. */
-	LOCK(&env->reopen_lock);
-	env->reopen_queued = false;
-	UNLOCK(&env->reopen_lock);
+	atomic_store_release(&env->reopen_queued, false);
 
 	dns_dtenv_detach(&env);
 }
 
 /*%
- * Check whether a dnstap output file roll is due and if so, initiate it (the
- * actual roll happens asynchronously).
+ * Check whether a dnstap output file roll is due and if so, initiate it
+ * (the actual roll happens asynchronously).
  */
 static void
-check_file_size_and_maybe_reopen(dns_dtenv_t *env) {
-	struct stat statbuf;
-
+check_file_size_and_maybe_reopen(dns_dtenv_t *env, off_t size) {
 	/* If a loopmgr wasn't specified, abort. */
 	if (env->loop == NULL) {
 		return;
 	}
 
-	/*
-	 * If an output file roll is not currently queued, check the current
-	 * size of the output file to see whether a roll is needed.  Return if
-	 * it is not.
-	 */
-	LOCK(&env->reopen_lock);
-	if (env->reopen_queued || stat(env->path, &statbuf) < 0 ||
-	    statbuf.st_size <= env->max_size)
+	if (size <= env->max_size) {
+		return;
+	}
+
+	/* Return if the reload is already queued */
+	if (!atomic_compare_exchange_strong_acq_rel(&env->reopen_queued,
+						    &(bool){ false }, true))
 	{
-		goto unlock_and_return;
+		return;
 	}
 
 	/*
-	 * Send an event to roll the output file, then disallow output file
-	 * rolling until the roll we queue is completed.
+	 * Asynchronously roll the output file.
 	 */
 	dns_dtenv_ref(env);
 	isc_async_run(env->loop, perform_reopen, env);
-	env->reopen_queued = true;
-
-unlock_and_return:
-	UNLOCK(&env->reopen_lock);
 }
 
 void
@@ -731,7 +768,8 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 	    isc_sockaddr_t *raddr, dns_transport_type_t transport,
 	    isc_region_t *zone, isc_time_t *qtime, isc_time_t *rtime,
 	    isc_buffer_t *buf) {
-	isc_time_t now, *t;
+	isc_time_t now = isc_time_now();
+	isc_time_t *t = &now;
 	dns_dtmsg_t dm;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -745,13 +783,6 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 	}
 
 	REQUIRE(VALID_DTENV(view->dtenv));
-
-	if (view->dtenv->max_size != 0) {
-		check_file_size_and_maybe_reopen(view->dtenv);
-	}
-
-	now = isc_time_now();
-	t = &now;
 
 	init_msg(view->dtenv, &dm, dnstap_type(msgtype));
 
