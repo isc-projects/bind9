@@ -849,6 +849,7 @@ merged-metadata:
     # avoid leftover branches from previous jobs
     GIT_STRATEGY: clone
     GIT_DEPTH: 1000
+    CFLAGS: "${CFLAGS_COMMON} -DOPENSSL_SUPPRESS_DEPRECATED"
   script:
     # CI job token is not sufficient for push operations
     - git remote get-url origin | sed -e "s/gitlab-ci-token:${CI_JOB_TOKEN}/oauth2:${BIND_TEAM_WRITE_TOKEN}/" | xargs git remote set-url --push origin
