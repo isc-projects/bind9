@@ -17,7 +17,6 @@
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/string.h>
 #include <isc/util.h>
 
 #include "fuzz.h"
@@ -48,17 +47,16 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_tokentype_t expect;
 	bool eol;
 
-	if (size < sizeof(expect) + sizeof(eol)) {
+	/* One byte selects the token type; one byte enables end-of-line tokens.
+	 */
+	if (size < 2) {
 		return 0;
 	}
 
-	(void)memmove(&expect, data, sizeof(expect));
-	data += sizeof(expect);
-	size -= sizeof(expect);
-
-	eol = *data != 0;
-	data += 1;
-	size -= 1;
+	expect = (isc_tokentype_t)(data[0] % (isc_tokentype_qvpair + 1));
+	eol = data[1] != 0;
+	data += 2;
+	size -= 2;
 
 	isc_lex_create(mctx, 1024, &lex);
 
