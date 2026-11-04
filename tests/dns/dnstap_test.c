@@ -90,7 +90,6 @@ ISC_LOOP_TEST_IMPL(dns_dt_create) {
 
 	fopt = fstrm_iothr_options_init();
 	assert_non_null(fopt);
-	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
 	result = dns_dt_create(isc_g_mctx, dns_dtmode_file, TAPFILE, &fopt,
 			       NULL, &dtenv);
@@ -106,7 +105,6 @@ ISC_LOOP_TEST_IMPL(dns_dt_create) {
 
 	fopt = fstrm_iothr_options_init();
 	assert_non_null(fopt);
-	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
 	result = dns_dt_create(isc_g_mctx, dns_dtmode_unix, TAPSOCK, &fopt,
 			       NULL, &dtenv);
@@ -123,7 +121,6 @@ ISC_LOOP_TEST_IMPL(dns_dt_create) {
 
 	fopt = fstrm_iothr_options_init();
 	assert_non_null(fopt);
-	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
 	result = dns_dt_create(isc_g_mctx, 33, TAPSOCK, &fopt, NULL, &dtenv);
 	assert_int_equal(result, ISC_R_FAILURE);
@@ -169,7 +166,6 @@ ISC_LOOP_TEST_IMPL(dns_dt_send) {
 
 	fopt = fstrm_iothr_options_init();
 	assert_non_null(fopt);
-	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
 	result = dns_dt_create(isc_g_mctx, dns_dtmode_file, TAPFILE, &fopt,
 			       NULL, &dtenv);
