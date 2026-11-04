@@ -2520,6 +2520,8 @@ update-stable-tag:
 
 .customer-git: &customer_git
   <<: *base_image
+  tags:
+    - smalljob
   stage: release
   when: manual
   variables:  # ensure clean git environment and sufficient history
