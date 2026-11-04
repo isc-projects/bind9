@@ -84,7 +84,11 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_lex_t *lex = NULL;
 	isc_lexspecials_t specials;
-	char totext[64 * 1044 * 4];
+	/*
+	 * Room for 4x expansion of the largest RDATA, plus a full type bitmap
+	 * with every type printed as the longest mnemonic and a separator.
+	 */
+	static char totext[64 * 1044 * 4 + (11 + 1) * 65536];
 	dns_compress_t cctx;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -96,9 +100,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_rdatacallbacks_t callbacks;
 	isc_buffer_t source, target;
 	isc_result_t result;
-	unsigned char fromtext[1024];
-	unsigned char fromwire[1024];
-	unsigned char towire[1024];
+	unsigned char fromtext[UINT16_MAX];
+	unsigned char fromwire[UINT16_MAX];
+	unsigned char towire[UINT16_MAX];
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
 	unsigned int flags;
 
