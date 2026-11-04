@@ -75,15 +75,6 @@ stages:
     - runner-manager
     - amd64
 
-# Autoscaling GitLab Runner on AWS EC2 (arm64)
-
-.linux-arm64: &linux_arm64
-  tags:
-    - linux
-    - aws
-    - runner-manager
-    - aarch64
-
 ### Docker Image Templates
 
 # Alpine Linux
@@ -122,10 +113,6 @@ stages:
   image: "$CI_REGISTRY_IMAGE:fedora-40-amd64"
   <<: *linux_amd64
 
-.fedora-40-arm64: &fedora_40_arm64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-40-arm64"
-  <<: *linux_arm64
-
 # Ubuntu
 
 .ubuntu-jammy-amd64: &ubuntu_jammy_amd64_image
@@ -144,32 +131,72 @@ stages:
 
 ### Job Templates
 
-.api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
+.rule_mr_code: &rule_mr_code
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.c'
+      - '**/*.h'
+      - '**/meson.build'
 
-.api-pipelines-schedules-triggers-web-triggering-rules: &api_pipelines_schedules_triggers_web_triggering_rules
-  only:
-    - api
-    - pipelines
-    - schedules
-    - triggers
-    - web
+.rule_mr_shell: &rule_mr_shell
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.sh'
+      - '**/*.sh.in'
+      - 'bin/tests/system/org.isc.bind.system'
+
+.rule_mr_python: &rule_mr_python
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    changes:
+      - '**/*.py'
+
+.rule_mr_manual: &rule_mr_manual
+  - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+    when: manual  # only run on MR if requested
+    allow_failure: true  # don't block the pipeline or the pipeline result
+
+.rule_tag: &rule_tag
+  - if: '$CI_COMMIT_TAG != null'
+
+.rule_source_other_than_mr: &rule_source_other_than_mr
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|pipeline|schedule|trigger|web)$/'
+
+.rule_source_all: &rule_source_all
+  - if: '$CI_PIPELINE_SOURCE =~ /^(api|merge_request_event|pipeline|schedule|trigger|web)$/'
+
+.api-pipelines-schedules-tags-triggers-web-triggering-rules: &api_pipelines_schedules_tags_triggers_web_triggering_rules
+  rules:
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.default-triggering-rules_list: &default_triggering_rules_list
+  - *rule_tag
+  - *rule_source_all
 
 .default-triggering-rules: &default_triggering_rules
-  only:
-    - api
-    - merge_requests
-    - pipelines
-    - schedules
-    - tags
-    - triggers
-    - web
+  rules:
+    - *default_triggering_rules_list
+
+.code-triggering-rules: &code_triggering_rules
+  rules:
+    - *rule_mr_code
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.shell-triggering-rules: &shell_triggering_rules
+  rules:
+    - *rule_mr_shell
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
+
+.python-triggering-rules: &python_triggering_rules
+  rules:
+    - *rule_mr_python
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
 
 .precheck: &precheck_job
   <<: *default_triggering_rules
@@ -191,6 +218,9 @@ stages:
       --without-python
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
+
+.git-clone-bind9-qa: &git_clone_bind9-qa
+  - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git "$CI_PROJECT_DIR"/bind9-qa
 
 .build: &build_job
   <<: *default_triggering_rules
@@ -281,12 +311,13 @@ stages:
     when: always
 
 .respdiff: &respdiff_job
+  <<: *code_triggering_rules
   stage: system
   before_script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
   after_script:
     - cd "$CI_PROJECT_DIR"/bind9-qa/respdiff
@@ -317,8 +348,6 @@ misc:
 
 changes:
   <<: *precheck_job
-  except:
-    - pipelines
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
@@ -329,6 +358,7 @@ changes:
 
 black:
   <<: *precheck_job
+  <<: *python_triggering_rules
   # Do not follow black updates in the base image so we don't have to change
   # Python script formatting.
   before_script:
@@ -343,8 +373,29 @@ black:
     expire_in: "1 week"
     when: on_failure
 
+ci-orphaned-anchors:
+  <<: *precheck_job
+  script:
+    - *git_clone_bind9-qa
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
+  needs: []
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes:
+        - .gitlab-ci.yml
+
 coccinelle:
   <<: *precheck_job
+  rules:
+    - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
+      changes:
+        - '**/*.c'
+        - '**/*.h'
+        - 'cocci/**'
+    - *rule_mr_manual
+    - *rule_tag
+    - *rule_source_other_than_mr
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -359,6 +410,7 @@ reuse:
 
 shfmt:
   <<: *precheck_job
+  <<: *shell_triggering_rules
   needs: []
   script:
     - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
@@ -378,12 +430,11 @@ danger:
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
-  only:
-    refs:
-      - merge_requests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 pylint:
-  <<: *default_triggering_rules
+  <<: *python_triggering_rules
   <<: *base_image
   stage: postcheck
   script:
@@ -396,6 +447,7 @@ pylint:
 
 checkbashisms:
   <<: *precheck_job
+  <<: *shell_triggering_rules
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
 
@@ -650,7 +702,7 @@ system:gcc:trixie:amd64:
   <<: *debian_trixie_amd64_image
   <<: *system_test_gcov_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
   needs:
     - job: unit:gcc:trixie:amd64
       artifacts: true
@@ -659,7 +711,7 @@ unit:gcc:trixie:amd64:
   <<: *debian_trixie_amd64_image
   <<: *unit_test_gcov_job
   variables:
-    CI_ENABLE_ALL_TESTS: 1
+    CI_ENABLE_LONG_TESTS: 1
   needs:
     - job: gcc:trixie:amd64
       artifacts: true
@@ -829,78 +881,6 @@ unit:clang:trixie:amd64:
     - job: clang:trixie:amd64
       artifacts: true
 
-# Job producing a release directory
-
-release:
-  <<: *base_image
-  stage: release
-  script:
-    # Determine BIND version
-    - source version
-    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Prepare release tarball contents (tarballs + zips + documentation)
-    - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
-    - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.xz" .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
-    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
-    - rm -rf "${BIND_DIRECTORY}"
-    - mv "../doc/arm/_build/html" doc/arm/
-    - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
-    - popd
-  needs:
-    - job: tarball-create
-      artifacts: true
-    - job: docs
-      artifacts: true
-  only:
-    - tags
-  artifacts:
-    paths:
-      - "*-release"
-    expire_in: "1 month"
-
-# Job signing the source tarballs in the release directory
-
-sign:
-  stage: release
-  tags:
-    - signer
-  script:
-    - export RELEASE_DIRECTORY="$(echo *-release)"
-    - pushd "${RELEASE_DIRECTORY}"
-    - |
-      echo
-      cat > /tmp/sign-bind9.sh <<EOF
-      #!/bin/sh
-      {
-          for FILE in \$(find "${PWD}" -name "*.tar.xz" | sort); do
-              echo ">>> Signing \${FILE}..."
-              gpg2 --local-user "\${SIGNING_KEY_FINGERPRINT}" --armor --digest-algo SHA512 --detach-sign --output "\${FILE}.asc" "\${FILE}"
-          done
-      } 2>&1 | tee "${CI_PROJECT_DIR}/signing.log"
-      EOF
-      chmod +x /tmp/sign-bind9.sh
-      echo -e "\e[31m*** Please sign the releases by following the instructions at:\e[0m"
-      echo -e "\e[31m*** \e[0m"
-      echo -e "\e[31m*** ${SIGNING_HELP_URL}\e[0m"
-      echo -e "\e[31m*** \e[0m"
-      echo -e "\e[31m*** Sleeping until files in ${PWD} are signed... ⌛\e[0m"
-      while [ "$(find . -name "*.asc" -size +0 | sed "s|\.asc$||" | sort)" != "$(find . -name "*.tar.xz" | sort)" ]; do sleep 10; done
-    - popd
-    - tar --create --file="${RELEASE_DIRECTORY}.tar.gz" --gzip "${RELEASE_DIRECTORY}"
-  artifacts:
-    paths:
-      - "*.tar.gz"
-      - signing.log
-    expire_in: never
-  needs:
-    - job: release
-      artifacts: true
-  only:
-    - tags
-  when: manual
-  allow_failure: false
 
 .customer-git: &customer_git
   <<: *base_image
@@ -928,32 +908,31 @@ customer-git:branch:
         BRANCH: '$CI_COMMIT_BRANCH'
   before_script:
     - test -n "$CUSTOMER"
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
   script:
     - git checkout -b "$BRANCH"  # ensure refs/heads/$BRANCH exists; GitLab clones with detached HEAD
-    - bind9-qa/releng/push_to_customer_repository.py --branch "$BRANCH" --customer "$CUSTOMER" --force
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/push_to_customer_repository.py --branch "$BRANCH" --customer "$CUSTOMER" --force
 
 customer-git:tag:
   <<: *customer_git
   environment:
     name: customer
     action: access
-  needs:
-    - job: release
-      artifacts: false
+  needs: []
   rules:
     - if: '$CI_PROJECT_NAMESPACE == "isc-private" && $CI_COMMIT_TAG != null'
   before_script:
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
     - git clone --depth 1 "https://token:${ISC_CUSTOMERS_WRITE_TOKEN}@gitlab.isc.org/isc-customers/isc-customer-settings.git"
   script:
-    - bind9-qa/releng/push_to_customer_repository.py --tag "$CI_COMMIT_TAG" --entitlements isc-customer-settings/entitlements.yaml --force
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/push_to_customer_repository.py --tag "$CI_COMMIT_TAG" --entitlements isc-customer-settings/entitlements.yaml --force
 
 # Respdiff tests
 
 respdiff:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -964,7 +943,6 @@ respdiff:
 
 respdiff:asan:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -976,7 +954,6 @@ respdiff:asan:
 
 respdiff-third-party:
   <<: *respdiff_job
-  <<: *default_triggering_rules
   <<: *base_image
   variables:
     CC: gcc
@@ -1027,9 +1004,8 @@ pairwise:
       - pairwise-model.txt
       - pairwise-output.*.txt
     when: on_failure
-  only:
-    variables:
-      - $PAIRWISE_TESTING
+  rules:
+    - if: '$PAIRWISE_TESTING != null'
   needs: []
 
 .post_merge_template: &post_merge
@@ -1057,7 +1033,7 @@ pairwise:
     - >
       : stop if this is not a merge request in the current project\'s namespace
     - test -n "$MERGE_REQUEST_ID"
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
+    - *git_clone_bind9-qa
 
 merged-metadata:
   <<: *post_merge
@@ -1067,4 +1043,5 @@ merged-metadata:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME =~ /^security-(main|bind-9\.[0-9]+)$/ || $CI_COMMIT_REF_NAME =~ /^bind-9\.[0-9]+(-sub)?$/ || $CI_COMMIT_REF_NAME =~ /^v9\.[0-9]+\.[0-9]+-release$/ || $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH)'
   script:
-    - bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
+    - >
+      "$CI_PROJECT_DIR"/bind9-qa/releng/after_merge.py "$CI_PROJECT_ID" "$MERGE_REQUEST_ID"
