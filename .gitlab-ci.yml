@@ -60,13 +60,13 @@ default:
       - runner_system_failure
 
 stages:
-  - precheck
+  - quick-checks
+  - other-checks
   - build
   - unit
   - system
   - performance
   - docs
-  - postcheck
   - postmerge
   - release
 
@@ -204,10 +204,19 @@ stages:
     - *rule_tag
     - *rule_source_other_than_mr
 
-.precheck: &precheck_job
+.quick-check: &quick_checks_job
   <<: *default_triggering_rules
   <<: *base_image
-  stage: precheck
+  stage: quick-checks
+  needs: []
+  tags:
+    - smalljob
+
+.other-check: &other_checks_job
+  <<: *default_triggering_rules
+  <<: *base_image
+  stage: other-checks
+  needs: []
 
 .configure: &configure
     - ${CONFIGURE}
@@ -340,10 +349,10 @@ stages:
 
 ### Job Definitions
 
-# Jobs in the precheck stage
+# Jobs in the quick-checks stage
 
 misc:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/check-ans-prereq.sh
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
@@ -353,17 +362,16 @@ misc:
     when: on_failure
 
 changes:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
     - perl util/check-changes CHANGES
     - sh util/check-line-length.sh CHANGES
     - rm CHANGES.tmp
-  needs: []
 
 black:
-  <<: *precheck_job
+  <<: *quick_checks_job
   <<: *python_triggering_rules
   # Do not follow black updates in the base image so we don't have to change
   # Python script formatting.
@@ -380,19 +388,68 @@ black:
     when: on_failure
 
 ci-orphaned-anchors:
-  <<: *precheck_job
+  <<: *quick_checks_job
   script:
     - *git_clone_bind9-qa
     - >
       "$CI_PROJECT_DIR"/bind9-qa/ci-orphaned-anchors/check_orphaned_anchors_ci.py .gitlab-ci.yml
-  needs: []
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
         - .gitlab-ci.yml
 
+pylint:
+  <<: *quick_checks_job
+  <<: *python_triggering_rules
+  script:
+    - *configure
+    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
+      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
+    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
+
+reuse:
+  <<: *quick_checks_job
+  image:
+    name: docker.io/fsfe/reuse:5.0
+    entrypoint: [""]
+  script:
+    - reuse lint
+
+shfmt:
+  <<: *quick_checks_job
+  <<: *shell_triggering_rules
+  script:
+    - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
+    - git diff > shfmt.patch
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+  artifacts:
+    paths:
+      - shfmt.patch
+    expire_in: "1 week"
+    when: on_failure
+
+danger:
+  <<: *quick_checks_job
+  environment:
+    name: danger
+    action: access
+  script:
+    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
+    - hazard
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# Jobs in the other-checks stage
+
+checkbashisms:
+  <<: *other_checks_job
+  <<: *shell_triggering_rules
+  script:
+    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
+
 coccinelle:
-  <<: *precheck_job
+  <<: *other_checks_job
   rules:
     - if: '$CI_MERGE_REQUEST_DIFF_BASE_SHA != null'
       changes:
@@ -406,61 +463,9 @@ coccinelle:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
-reuse:
-  <<: *precheck_job
-  image:
-    name: docker.io/fsfe/reuse:5.0
-    entrypoint: [""]
-  script:
-    - reuse lint
-
-shfmt:
-  <<: *precheck_job
-  <<: *shell_triggering_rules
-  needs: []
-  script:
-    - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
-    - git diff > shfmt.patch
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-  artifacts:
-    paths:
-      - shfmt.patch
-    expire_in: "1 week"
-    when: on_failure
-
-danger:
-  <<: *precheck_job
-  environment:
-    name: danger
-    action: access
-  script:
-    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
-    - hazard
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-
-pylint:
-  <<: *python_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  script:
-    - *configure
-    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/|^contrib/)')
-      # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
-  needs: []
-
-checkbashisms:
-  <<: *precheck_job
-  <<: *shell_triggering_rules
-  script:
-    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
-
 tarball-create:
-  stage: precheck
+  <<: *build_job
   <<: *base_image
-  <<: *default_triggering_rules
   script:
     - source version
     - export BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
@@ -969,9 +974,9 @@ respdiff-third-party:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" -r "${PWD}/respdiff" "${CI_PROJECT_DIR}"
 
 gcov:
-  <<: *base_image
   <<: *default_triggering_rules
-  stage: postcheck
+  <<: *base_image
+  stage: system
   needs:
     - job: system:gcc:trixie:amd64
       artifacts: true
@@ -1018,6 +1023,8 @@ pairwise:
   <<: *base_image
   stage: postmerge
   needs: []
+  tags:
+    - smalljob
   # post-merge processes should run even if another MR was merged while the job was running (or queued)
   interruptible: false
   variables:
