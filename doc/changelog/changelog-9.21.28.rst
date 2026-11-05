@@ -54,14 +54,14 @@ New Features
 - Support for authoritative DELEG. ``fc79a7496d5``
 
   Implement authoritative support for extensible DNS delegation records
-  (DELEG), based on the draft in progress at https://ietf-wg-deleg.githu
-  b.io/draft-ietf-deleg-base/draft-ietf-deleg.html.
+  (DELEG), based on the draft in progress at
+  https://ietf-wg-deleg.github.io/draft-ietf-deleg-base/draft-ietf-deleg.html.
 
   DELEG is assigned to type 61440, DELEGPARAM to 54.
 
   If a zone contains a DELEG referral, it will be used to answer clients
   if they signal their understanding of DELEG records by setting the DE
-  (DELEG OK) flag in queries. `dig +deflag` (or `+de` for short) can use
+  (DELEG OK) flag in queries. `dig +deflag` (or `+de` for short) can be
   used to set the flag on queries.
 
   The DELEG specification relaxes the requirement that all zones must
@@ -75,7 +75,7 @@ New Features
   A new flag has been added to DNSKEY records: Authoritative Delegation
   Types (ADT). If this flag is set for any key in the DNSKEY RRset, it
   indicates to a validator that this server implements authoritative
-  DELEG: if a referral response that does not contain a DELEG record, it
+  DELEG: if a referral response does not contain a DELEG record, it
   _will_ contain a cryptographic proof that the DELEG record does not
   exist. If no ADT-flagged keys are present when signing a zone that
   contains DELEG, a warning will be logged. Before any DELEG records are
