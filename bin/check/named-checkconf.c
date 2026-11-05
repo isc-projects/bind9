@@ -575,7 +575,8 @@ main(int argc, char **argv) {
 	bool builtin = false;
 	unsigned int flags = 0;
 	unsigned int parserflags = 0;
-	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS;
+	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS |
+				  BIND_CHECK_DEPRECATED;
 
 	isc_commandline_init(argc, argv);
 
@@ -628,6 +629,7 @@ main(int argc, char **argv) {
 
 		case 'i':
 			parserflags |= CFG_PCTX_NODEPRECATED;
+			checkflags &= ~BIND_CHECK_DEPRECATED;
 			break;
 
 		case 'j':

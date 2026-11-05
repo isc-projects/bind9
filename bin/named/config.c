@@ -82,7 +82,9 @@ named_config_parsefile(cfg_obj_t **conf) {
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	CHECK(isccfg_check_namedconf(*conf, BIND_CHECK_ALGORITHMS, isc_g_mctx));
+	CHECK(isccfg_check_namedconf(
+		*conf, BIND_CHECK_ALGORITHMS | BIND_CHECK_DEPRECATED,
+		isc_g_mctx));
 
 	goto out;
 
