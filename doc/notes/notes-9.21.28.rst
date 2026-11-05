@@ -123,6 +123,12 @@ Bug Fixes
   plugin in conjunction with a truncated answer to a client. This has
   been fixed. :gl:`#6185`
 
+- Fix a crash when dumping zone statistics during zone removal.
+
+  When :option:`rndc stats` dumped per-zone statistics while a zone was
+  being removed (for example, by a catalog zone update), :iscman:`named`
+  could terminate unexpectedly. This has been fixed. :gl:`#6401`
+
 - Prevent the server from stalling when reopening or rolling the
   :any:`dnstap` output.
 
