@@ -11,16 +11,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# touch dnsrps-off to not test with DNSRPS
-
 set -e
 
 . ../conf.sh
 
 $PERL testgen.pl
-
-touch dnsrps.conf
-touch dnsrps.cache
 
 # setup policy zones for a 64-zone test
 i=1

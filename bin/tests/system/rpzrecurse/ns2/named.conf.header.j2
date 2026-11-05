@@ -16,9 +16,12 @@ options {
 	session-keyfile "session.key";
 	dnssec-validation no;
 	querylog yes;
+{% if dnsrps | default(False) %}
 
-	# let ns3 start dnsrpzd
-	include "../dnsrps.conf";
+	dnsrps-options { log-level 3 };
+	dnsrps-enable yes;
+	dnsrps-library "@TOP_BUILDDIR@/bin/tests/system/rpz/testlib/.libs/libdummyrpz.so";
+{% endif %}
 };
 
 {% include "_common/controls.conf.j2" %}

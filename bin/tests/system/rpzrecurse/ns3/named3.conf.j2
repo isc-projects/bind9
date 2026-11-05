@@ -18,8 +18,6 @@ options {
 	dnssec-validation no;
 	response-policy { zone "policy"; } nsdname-wait-recurse no
 	nsdname-enable yes;
-
-	include "../dnsrps.conf";
 };
 
 zone "policy" { type primary; file "policy.db"; };

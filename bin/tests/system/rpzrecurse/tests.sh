@@ -13,9 +13,6 @@
 
 set -e
 
-# touch dnsrps-off to not test with DNSRPS
-# touch dnsrps-only to not test with classic RPZ
-
 . ../conf.sh
 
 status=0
@@ -24,7 +21,7 @@ t=0
 
 export DNSRPS_TEST_UPDATE_FILE=$(pwd)/dnsrps.cache
 ARGS=
-if grep 'dnsrps-enable yes;' dnsrps.conf >/dev/null; then
+if grep 'dnsrps-enable yes;' ns2/named.conf.header >/dev/null; then
   MODE=dnsrps
 else
   MODE=native
