@@ -592,7 +592,8 @@ main(int argc, char **argv) {
 	bool print = false;
 	bool nodeprecate = false;
 	unsigned int flags = 0;
-	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS;
+	unsigned int checkflags = BIND_CHECK_PLUGINS | BIND_CHECK_ALGORITHMS |
+				  BIND_CHECK_DEPRECATED;
 
 	isc_commandline_errprint = false;
 
@@ -640,6 +641,7 @@ main(int argc, char **argv) {
 
 		case 'i':
 			nodeprecate = true;
+			checkflags &= ~BIND_CHECK_DEPRECATED;
 			break;
 
 		case 'j':

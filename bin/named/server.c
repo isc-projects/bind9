@@ -8522,8 +8522,9 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	result = isccfg_check_namedconf(config, BIND_CHECK_ALGORITHMS,
-					named_g_lctx, named_g_mctx);
+	result = isccfg_check_namedconf(
+		config, BIND_CHECK_ALGORITHMS | BIND_CHECK_DEPRECATED,
+		named_g_lctx, named_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_config;
 	}
