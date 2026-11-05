@@ -15,23 +15,6 @@ Notes for BIND 9.21.28
 New Features
 ~~~~~~~~~~~~
 
-- Allow setting the SEP and ADT key flags in :any:`dnssec-policy`.
-
-  The ``keys`` statement in :any:`dnssec-policy` now accepts a
-  ``flags`` parameter, which sets the SEP and/or ADT key flags using the
-  ``sep`` and ``adt`` keywords. :gl:`#6432`
-
-- Add support for the ML-DSA-44 post-quantum DNSSEC algorithm.
-
-  BIND 9 can now generate keys, sign zones, and validate signatures
-  using ML-DSA-44 (DNSSEC algorithm number 18), the post-quantum
-  signature scheme specified in ``draft-westerbaan-dnssec-mldsa``. The
-  algorithm is available in :iscman:`dnssec-keygen`,
-  :iscman:`dnssec-signzone`, and :any:`dnssec-policy` when BIND 9 is
-  built against OpenSSL 3.5 or newer. ML-DSA-44 public keys are about
-  1.3 KB and signatures about 2.4 KB, so signed responses are
-  considerably larger than with the existing algorithms. :gl:`!12769`
-
 - Add authoritative support for DELEG.
 
   Authoritative support for extensible DNS delegation records (DELEG)
@@ -66,6 +49,23 @@ New Features
   not set the DE flag when sending iterative queries, and DELEG-based
   referrals are not processed. :gl:`!10995`
 
+- Add support for the ML-DSA-44 post-quantum DNSSEC algorithm.
+
+  BIND 9 can now generate keys, sign zones, and validate signatures
+  using ML-DSA-44 (DNSSEC algorithm number 18), the post-quantum
+  signature scheme specified in ``draft-westerbaan-dnssec-mldsa``. The
+  algorithm is available in :iscman:`dnssec-keygen`,
+  :iscman:`dnssec-signzone`, and :any:`dnssec-policy` when BIND 9 is
+  built against OpenSSL 3.5 or newer. ML-DSA-44 public keys are about
+  1.3 KB and signatures about 2.4 KB, so signed responses are
+  considerably larger than with the existing algorithms. :gl:`!12769`
+
+- Allow setting the SEP and ADT key flags in :any:`dnssec-policy`.
+
+  The ``keys`` statement in :any:`dnssec-policy` now accepts a
+  ``flags`` parameter, which sets the SEP and/or ADT key flags using the
+  ``sep`` and ``adt`` keywords. :gl:`#6432`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -74,6 +74,13 @@ Removed Features
   The :any:`nxdomain-redirect` option and :any:`type redirect` zones are
   now deprecated. A warning is logged when they are encountered in
   :iscman:`named.conf`. :gl:`#6451`
+
+- Deprecate NSEC3 salt.
+
+  BCP 236 (:rfc:`9276`) recommends using neither extra NSEC3 iterations
+  nor salt. Extra iterations have been disallowed for some time; a
+  warning is now also logged when :any:`nsec3param` in a
+  :any:`dnssec-policy` sets a non-zero ``salt-length``. :gl:`!12755`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -94,50 +101,8 @@ Feature Changes
   strings, and limits the use of ``include`` within a :any:`plugin`
   statement. :gl:`!12920`
 
-- Deprecate NSEC3 salt.
-
-  BCP 236 (:rfc:`9276`) recommends using neither extra NSEC3 iterations
-  nor salt. Extra iterations have been disallowed for some time; a
-  warning is now also logged when :any:`nsec3param` in a
-  :any:`dnssec-policy` sets a non-zero ``salt-length``. :gl:`!12755`
-
 Bug Fixes
 ~~~~~~~~~
-
-- Fix slow :iscman:`rndc` responses under a high request rate.
-
-  The :iscman:`rndc` command could run slowly if a large number of
-  requests was made over a short period of time. This has been fixed.
-  :gl:`#3698`
-
-- Fix Offline KSK signing when the KSK and a ZSK share a key tag.
-
-  With :any:`offline-ksk` in :any:`dnssec-policy`, the KSK and the ZSKs
-  are generated separately, so a ZSK can have the same key tag as the
-  KSK. :iscman:`named` then mistook the ZSK for the KSK when signing the
-  zone; this meant the DNSKEY RRset was left without the KSK signature
-  from the imported SKR, or, depending on the signing algorithm, the
-  import of the SKR failed with a ``not exact`` error. This has been
-  fixed. :gl:`#5540`
-
-- Omit unvalidated data from type-ANY cache responses.
-
-  When answering a type-ANY query from the cache, :iscman:`named` could
-  include data that had not yet been validated. Such data is now only
-  included in the response if the query has the CD bit set. :gl:`#5984`
-
-- Prevent :iscman:`rndc` from accepting stale or mismatched signed
-  responses.
-
-  The :iscman:`rndc` command could accept reflected requests as answers,
-  as well as replayed responses. This has been fixed. :gl:`#6101`
-
-- Make :option:`rndc -r` work when :iscman:`rndc` and :iscman:`named`
-  are from different builds.
-
-  Previously, :option:`rndc -r` was only guaranteed to display the
-  correct result code when :iscman:`rndc` and :iscman:`named` were from
-  the same build. This has been fixed. :gl:`#6102`
 
 - Fix a crash when using the :iscman:`synthrecord` plugin.
 
@@ -145,12 +110,18 @@ Bug Fixes
   plugin in conjunction with a truncated answer to a client. This has
   been fixed. :gl:`#6185`
 
-- Try the next primary server instead of aborting the zone transfer.
+- Prevent the server from stalling when reopening or rolling the
+  :any:`dnstap` output.
 
-  If a misconfigured primary server returned, for example, a zone with
-  too many records or a zone that failed verification, the secondary
-  server could abort the zone transfer altogether instead of trying the
-  next configured primary. This has been fixed. :gl:`#6352`
+  Previously, reopening or rolling the :any:`dnstap-output` file, either
+  with :option:`rndc dnstap` or automatically at its size limit, stopped
+  all of :iscman:`named`'s processing until whatever was already
+  running, such as an RPZ zone update, had finished and the old output
+  had been replaced. The output is now switched over while the server
+  keeps running; the few :any:`dnstap` messages produced during the
+  switch itself are dropped and counted in the :any:`dnstap` statistics.
+  Logging to a size-limited output also no longer checks the file on
+  disk for every message. :gl:`#6461`
 
 - Prevent automatic interface scanning from stopping after a burst of
   address changes.
@@ -166,6 +137,23 @@ Bug Fixes
   and to queue more of them, so that notifications are lost less often.
   :gl:`#6389`
 
+- Try the next primary server instead of aborting the zone transfer.
+
+  If a misconfigured primary server returned, for example, a zone with
+  too many records or a zone that failed verification, the secondary
+  server could abort the zone transfer altogether instead of trying the
+  next configured primary. This has been fixed. :gl:`#6352`
+
+- Fix Offline KSK signing when the KSK and a ZSK share a key tag.
+
+  With :any:`offline-ksk` in :any:`dnssec-policy`, the KSK and the ZSKs
+  are generated separately, so a ZSK can have the same key tag as the
+  KSK. :iscman:`named` then mistook the ZSK for the KSK when signing the
+  zone; this meant the DNSKEY RRset was left without the KSK signature
+  from the imported SKR, or, depending on the signing algorithm, the
+  import of the SKR failed with a ``not exact`` error. This has been
+  fixed. :gl:`#5540`
+
 - Answer DS queries for CNAME names from the cache.
 
   Previously, a resolver answering a DS query for a name that was a
@@ -176,18 +164,11 @@ Bug Fixes
   while a DS record or a negative DS answer cached at the same name
   still takes precedence. :gl:`#6455`
 
-- Prevent the server from stalling when reopening or rolling the
-  :any:`dnstap` output.
+- Omit unvalidated data from type-ANY cache responses.
 
-  Previously, reopening or rolling the :any:`dnstap-output` file, either
-  with :option:`rndc dnstap` or automatically at its size limit, stopped
-  all of :iscman:`named`'s processing until whatever was already
-  running, such as an RPZ zone update, had finished and the old output
-  had been replaced. The output is now switched over while the server
-  keeps running; the few :any:`dnstap` messages produced during the
-  switch itself are dropped and counted in the :any:`dnstap` statistics.
-  Logging to a size-limited output also no longer checks the file on
-  disk for every message. :gl:`#6461`
+  When answering a type-ANY query from the cache, :iscman:`named` could
+  include data that had not yet been validated. Such data is now only
+  included in the response if the query has the CD bit set. :gl:`#5984`
 
 - Fix incorrect algorithm names for PRIVATEOID-based DNSSEC keys.
 
@@ -199,3 +180,22 @@ Bug Fixes
   shown as a different algorithm or a bare number (for example, ``0``
   instead of ``RSASHA256OID``). The correct algorithm mnemonic is now
   printed in all of these places. :gl:`!12712`
+
+- Fix slow :iscman:`rndc` responses under a high request rate.
+
+  The :iscman:`rndc` command could run slowly if a large number of
+  requests was made over a short period of time. This has been fixed.
+  :gl:`#3698`
+
+- Prevent :iscman:`rndc` from accepting stale or mismatched signed
+  responses.
+
+  The :iscman:`rndc` command could accept reflected requests as answers,
+  as well as replayed responses. This has been fixed. :gl:`#6101`
+
+- Make :option:`rndc -r` work when :iscman:`rndc` and :iscman:`named`
+  are from different builds.
+
+  Previously, :option:`rndc -r` was only guaranteed to display the
+  correct result code when :iscman:`rndc` and :iscman:`named` were from
+  the same build. This has been fixed. :gl:`#6102`
