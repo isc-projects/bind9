@@ -101,6 +101,19 @@ Feature Changes
   strings, and limits the use of ``include`` within a :any:`plugin`
   statement. :gl:`!12920`
 
+- Require a SubjectAltName in :option:`dig +https` server certificates.
+
+  When verifying the hostname of a DNS-over-HTTPS server,
+  :option:`dig +https` accepted a certificate whose only name was in the
+  Subject Common Name, while :option:`dig +tls` already required a
+  SubjectAltName. OpenSSL 4.1 no longer consults the Common Name, so the
+  same certificate was accepted or rejected depending on the OpenSSL
+  version. Both options now match the hostname against the
+  SubjectAltName only, so a DNS-over-HTTPS server certificate without
+  one is rejected with a peer verification failure. :iscman:`named` is
+  not affected, as its outgoing TLS connections already enforced this.
+  :gl:`!12942`
+
 Bug Fixes
 ~~~~~~~~~
 
