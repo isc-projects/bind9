@@ -15,8 +15,6 @@ import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
-        "dnsrps.cache",
-        "dnsrps.conf",
         "ans*/ans.run",
         "ns2/*.queries",
         "ns2/*.local",

@@ -11,17 +11,22 @@
 
 import pytest
 
+from rpzrecurse import common
+
 pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "dnsrps.cache",
-        "dnsrps.conf",
         "ns2/*.queries",
         "ns2/*.local",
         "ns2/named.*.conf",
         "ns2/named.conf.header",
     ]
 )
+
+
+def bootstrap():
+    common.bootstrap()
 
 
 def test_rpzrecurse(run_tests_sh):

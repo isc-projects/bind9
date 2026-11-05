@@ -11,6 +11,8 @@
 
 import pytest
 
+from rpzrecurse import common
+
 import isctest.mark
 
 pytestmark = [
@@ -19,7 +21,6 @@ pytestmark = [
         [
             "dig.out.*",
             "dnsrps.cache",
-            "dnsrps.conf",
             "ns2/*.queries",
             "ns2/*.local",
             "ns2/named.*.conf",
@@ -29,13 +30,10 @@ pytestmark = [
 ]
 
 
+def bootstrap():
+    common.bootstrap()
+    return {"dnsrps": True}
+
+
 def test_rpzrecurse_dnsrps(run_tests_sh):
-    with open("dnsrps.conf", "w", encoding="utf-8") as conf:
-        conf.writelines(
-            [
-                "dnsrps-options { log-level 3 };"
-                "dnsrps-enable yes;"
-                'dnsrps-library "../../rpz/testlib/.libs/libdummyrpz.so";'
-            ]
-        )
     run_tests_sh()
