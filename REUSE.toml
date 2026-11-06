@@ -103,7 +103,6 @@ path = [
 	"bin/tests/system/statschannel/traffic.expect.6",
 	"bin/tests/system/tcp/1996-alloc_dnsbuf-crash-test.pkt",
 	"bin/tests/system/tsig/badlocation",
-	"bin/tests/system/tsig/badtime",
 	"bin/tests/system/unknown/large.out",
 	"bin/tests/system/xfer/ans5/badkeydata",
 	"bin/tests/system/xfer/ans5/badmessageid",
