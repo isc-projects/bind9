@@ -14,8 +14,14 @@ from typing import Any
 
 import os
 
+import dns.dnssec
+import dns.rdataclass
+import dns.rdatatype
+import dns.rdtypes.ANY.DNSKEY
+import dns.update
 import pytest
 
+import isctest
 import isctest.mark
 import isctest.template
 
@@ -95,3 +101,20 @@ def bootstrap() -> dict[str, Any]:
 
 def test_enginepkcs11(run_tests_sh):
     run_tests_sh()
+
+
+def test_enginepkcs11_dnskey_with_zero_modulus(ns1):
+    # The native PKCS#11 code removed in 9.17 crashed on such a key (GL#2037)
+    dnskey = dns.rdtypes.ANY.DNSKEY.DNSKEY(
+        dns.rdataclass.IN,
+        dns.rdatatype.DNSKEY,
+        flags=256,
+        protocol=3,
+        algorithm=dns.dnssec.Algorithm.RSASHA256,
+        key=b"\x03\x01\x00\x01" + bytes(256),
+    )
+    update = dns.update.UpdateMessage("rsasha256.example.")
+    update.add("rsasha256.example.", 300, dnskey)
+
+    res = isctest.query.tcp(update, ns1.ip)
+    isctest.check.noerror(res)
