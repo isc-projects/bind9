@@ -14,9 +14,16 @@ import time
 
 import dns.message
 import dns.query
+import dns.rcode
+import dns.rdataclass
+import dns.rdatatype
+import dns.rdtypes.ANY.TSIG
+import dns.rrset
 import dns.tsig
 import dns.tsigkeyring
 import pytest
+
+import isctest
 
 pytestmark = pytest.mark.extra_artifacts(
     [
@@ -62,3 +69,26 @@ def test_tsig_badtime(named_port):
         dns.query.send_tcp(sock, wire, timeout())
         with pytest.raises(dns.tsig.PeerBadTime):
             dns.query.receive_tcp(sock, timeout(), keyring=keyring)
+
+
+def test_tsig_empty_mac_in_request(ns1):
+    # An empty MAC is acceptable in a response carrying BADSIG, never in a
+    # request (CVE-2020-8617).
+    msg = dns.message.make_query("isc.org.", "A", use_edns=False, flags=0)
+    msg.keyring = False  # the BADSIG reply is unsigned
+    tsig = dns.rdtypes.ANY.TSIG.TSIG(
+        dns.rdataclass.ANY,
+        dns.rdatatype.TSIG,
+        dns.tsig.HMAC_SHA256,
+        time_signed=0,
+        fudge=300,
+        mac=b"",
+        original_id=0,
+        error=dns.rcode.BADSIG,
+        other=b"",
+    )
+    msg.additional.append(dns.rrset.from_rdata("sha256.", 0, tsig))
+
+    res = isctest.query.tcp(msg, ns1.ip)
+    isctest.check.notauth(res)
+    assert res.tsig[0].error == dns.rcode.BADSIG

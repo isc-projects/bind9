@@ -248,16 +248,6 @@ ret=0
 $KEYGEN -a hmac-sha256 -b 128 -n host example.net >keygen.out3 2>&1 && ret=1
 grep "unknown algorithm" keygen.out3 >/dev/null || ret=1
 
-echo_i "check that a 'BADTIME' response with 'QR=0' is handled as a request"
-ret=0
-$PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp <badtime >/dev/null || ret=1
-$DIG -p ${PORT} @10.53.0.1 version.bind txt ch >dig.out.verify || ret=1
-grep "status: NOERROR" dig.out.verify >/dev/null || ret=1
-if [ $ret -eq 1 ]; then
-  echo_i "failed"
-  status=1
-fi
-
 if "$PERL" -e 'use Net::DNS; use Net::DNS::Packet;' >/dev/null 2>&1; then
   echo_i "check that TSIG in the wrong place returns FORMERR"
   ret=0
