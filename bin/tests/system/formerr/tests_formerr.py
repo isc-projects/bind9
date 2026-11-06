@@ -26,6 +26,7 @@ import dns.rdtypes.ANY.RRSIG
 import dns.rdtypes.ANY.SOA
 import dns.rdtypes.ANY.TSIG
 import dns.rdtypes.IN.A
+import dns.tsig
 import pytest
 
 
@@ -228,6 +229,7 @@ def tsig_rr(
     *,
     owner: bytes = root(),
     rdclass: dns.rdataclass.RdataClass = dns.rdataclass.RdataClass.ANY,
+    ttl: int = 1,
     algorithm: dns.name.Name = dns.name.root,
     time_signed: int = 0x010203040506,
     fudge: int = 0x0102,
@@ -240,6 +242,7 @@ def tsig_rr(
         owner,
         dns.rdatatype.RdataType.TSIG,
         rdclass,
+        ttl=ttl,
         rdata=dns.rdtypes.ANY.TSIG.TSIG(
             rdclass,
             dns.rdatatype.RdataType.TSIG,
@@ -511,6 +514,25 @@ def query_raw_tcp(host: str, port: int, packet_wire: bytes) -> bytes:
             ),
             formerr_response_header(opcode=dns.opcode.UPDATE),
             id="malformeddeltype",
+        ),
+        pytest.param(
+            wire(
+                header(qdcount=1, nscount=1),
+                question(name("isc.org.")),
+                tsig_rr(
+                    owner=name("sha256."),
+                    ttl=0,
+                    algorithm=dns.tsig.HMAC_SHA256,
+                    time_signed=0,
+                    fudge=300,
+                    mac=b"",
+                ),
+            ),
+            wire(
+                formerr_response_header(qdcount=1),
+                question(name("isc.org.")),
+            ),
+            id="tsigwrongsection",
         ),
         pytest.param(
             wire(
