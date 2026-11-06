@@ -99,6 +99,14 @@ Bug Fixes
   import of the SKR failed with a ``not exact`` error. This has been
   fixed. :gl:`#5540`
 
+- Sign NOTIFY messages retried over TCP with the configured TSIG key.
+
+  When a NOTIFY message to an :any:`also-notify` target with an explicit
+  TSIG key failed over UDP and was retried over TCP, the key was lost.
+  The retry then used the key from a matching :namedconf:ref:`server`
+  statement or, if there was none, was sent unsigned. This has been
+  fixed. :gl:`#6240`
+
 - Answer DS queries for CNAME names from the cache.
 
   Previously, a resolver answering a DS query for a name that was a
