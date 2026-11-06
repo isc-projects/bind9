@@ -11,7 +11,12 @@ options {
 };
 
 
-server 10.53.0.1 { tcp-only yes; };
+/*
+ * The unix socket checks expect only client-facing frames; marking the
+ * sole root server bogus makes every resolution fail without sending a
+ * single resolver query.
+ */
+server 10.53.0.1 { bogus yes; };
 
 {% include "_common/controls.conf.j2" %}
 
