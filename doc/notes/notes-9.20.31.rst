@@ -39,6 +39,19 @@ Feature Changes
   omits unnecessary authority and additional data regardless of
   transport. :gl:`!13056`
 
+- Keep accepting CN-only certificates in :option:`dig +https` with
+  OpenSSL 4.1.
+
+  When verifying the hostname of a DNS-over-HTTPS server,
+  :option:`dig +https` accepts a certificate whose only name is in the
+  Subject Common Name. OpenSSL 4.1 no longer consults the Common Name,
+  so when BIND 9 was built against it, such certificates were rejected
+  with a peer verification failure. :option:`dig +https` now asks
+  OpenSSL 4.1 and newer to check the Common Name explicitly, so these
+  certificates are accepted as with earlier OpenSSL versions. With
+  OpenSSL 4.1 and newer, the Common Name is now also consulted for
+  certificates that contain a SubjectAltName. :gl:`!12944`
+
 Bug Fixes
 ~~~~~~~~~
 
