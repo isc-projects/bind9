@@ -164,6 +164,11 @@ dnsrps_enabled = pytest.mark.skipif(
     not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
 
+with_fstrm_capture = pytest.mark.skipif(
+    not shutil.which(os.getenv("FSTRM_CAPTURE", "")),
+    reason="fstrm_capture is required",
+)
+
 
 def _openssl_provider_available(provider: str) -> bool:
     dylib = f".{os.environ.get('DYLIB', 'so')}"

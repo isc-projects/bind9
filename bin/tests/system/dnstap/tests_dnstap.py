@@ -9,32 +9,32 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from pathlib import Path
+
+import glob
 import os
 import re
 
 import dns.rcode
 import dns.rrset
 import pytest
+import yaml
+
+from dnstap.common import ARTIFACTS, dnstap_read
 
 import isctest
 import isctest.mark
 
 pytestmark = [
     isctest.mark.with_dnstap,
-    pytest.mark.extra_artifacts(
-        [
-            "dnstap.out.*",
-            "ns*/dnstap.out*",
-            "ns2/example.db",
-        ]
-    ),
+    pytest.mark.extra_artifacts(ARTIFACTS),
 ]
 
 
 def test_dnstap_dispatch_socket_addresses(ns3):
     # Send some query to ns3 so that it records something in its dnstap file.
     msg = isctest.query.create("mail.example.", "A")
-    res = isctest.query.tcp(msg, "10.53.0.2", expected_rcode=dns.rcode.NOERROR)
+    res = isctest.query.tcp(msg, ns3.ip, expected_rcode=dns.rcode.NOERROR)
     assert res.answer == [
         dns.rrset.from_text("mail.example.", 300, "IN", "A", "10.0.0.2")
     ]
@@ -71,8 +71,43 @@ def test_dnstap_dispatch_socket_addresses(ns3):
         if not re.match(addr_regex, addr1) or not re.match(addr_regex, addr2):
             bad_frames.append(line)
 
+    assert inspected_frames > 0, "no resolver frames were captured"
     assert (
         len(bad_frames) == 0
     ), "{} out of {} inspected frames contain unexpected addresses:\n\n{}".format(
         len(bad_frames), inspected_frames, "\n".join(bad_frames)
     )
+
+
+def test_large_answer():
+    """
+    Check that a large DNS message is printed completely, both as the parsed
+    message and as the response_message_data text.
+    """
+    frames = list(yaml.safe_load_all(dnstap_read("large-answer.fstrm", "-y").out))
+    assert len(frames) == 1
+    message = frames[0]["message"]
+    assert message["response_message_data"]["opcode"] == "QUERY"
+    assert "opcode: QUERY" in message["response_message"]
+
+
+@pytest.mark.parametrize(
+    "ns",
+    [
+        pytest.param("ns3", id="default"),
+        pytest.param("ns2", id="unlimited"),
+    ],
+)
+@pytest.mark.parametrize("versions", [6, 3, 1])
+def test_roll(servers, ns, versions):
+    for i in range(12):
+        Path(f"{ns}/dnstap.out.{i}").touch()
+
+    servers[ns].rndc(f"dnstap -roll {versions}")
+
+    def check():
+        files = glob.glob(f"{ns}/dnstap.out.[0-9]")
+        assert len(files) == versions, sorted(files)
+        return True
+
+    isctest.run.retry_with_timeout(check, 10)
