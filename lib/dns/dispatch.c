@@ -141,7 +141,8 @@ struct dns_dispatch {
 
 	uint_fast32_t requests; /*%< how many requests we have */
 
-	unsigned int timedout;
+	unsigned int timedout; /*%< how many timeouts/cancels we had, so we can
+				    ignore this many unexpected answers. */
 
 	struct cds_lfht_node ht_node;
 	struct rcu_head rcu_head;
@@ -857,7 +858,10 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 			 */
 			result = ISC_R_CANCELED;
 		} else if (disp->timedout > 0) {
-			/* There was active query that timed-out before */
+			/*
+			 * There was an active query that timed-out or canceled
+			 * before.
+			 */
 			disp->timedout--;
 		} else {
 			result = ISC_R_UNEXPECTED;
@@ -879,6 +883,13 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		if (resp->timeout > 0) {
 			timeout = resp->timeout - dispentry_runtime(resp, &now);
 			if (timeout <= 0) {
+				/*
+				 * Count this so we can later ignore the
+				 * outstanding answer (if it eventually
+				 * arrives).
+				 */
+				disp->timedout++;
+
 				tcp_recv_add(&resps, resp, ISC_R_TIMEDOUT);
 			}
 		}
@@ -1786,6 +1797,13 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 
 	case DNS_DISPATCHSTATE_CONNECTED:
 		if (resp->reading) {
+			/*
+			 * This is not a timeout, but we still count it as one
+			 * so we can later ignore the outstanding answer (if it
+			 * happens to eventually arrive).
+			 */
+			disp->timedout++;
+
 			tcp_recv_add(&resps, resp, ISC_R_CANCELED);
 		}
 
