@@ -2590,10 +2590,15 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_prefetch");
 
+	/*
+	 * Signatures are refreshed with the RRset they cover; they
+	 * cannot be fetched on their own.
+	 */
 	if (client->query.prefetch != NULL ||
 	    client->view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->view->prefetch_trigger ||
-	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
+	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0 ||
+	    rdataset->type == dns_rdatatype_rrsig)
 	{
 		return;
 	}
