@@ -245,6 +245,17 @@ def test_rrsig_query(delv, ns3):
     assert Re(r"^example\.") not in result.out
 
 
+def test_rrsig_query_yaml(delv, ns3):
+    """
+    Check that delv +yaml reports the failure of an RRSIG query.
+    """
+    result = delv(f"+yaml @{ns3.ip} -t RRSIG example")
+    data = parse_yaml(result.out)
+    assert data["status"] == "FORMERR"
+    assert data["query_name"] == "example"
+    assert data["records"] is None
+
+
 @pytest.mark.parametrize(
     "anchor",
     [
