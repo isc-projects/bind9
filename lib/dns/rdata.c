@@ -1713,7 +1713,7 @@ commatxt_fromtext(isc_textregion_t *source, bool comma, bool isname,
 		}
 		comma_escape = false;
 
-		if (nrem == (isname && c == '\\') ? 1 : 0) {
+		if (nrem <= ((isname && c == '\\') ? 1 : 0)) {
 			return (tregion.length <= 256U) ? ISC_R_NOSPACE
 							: DNS_R_SYNTAX;
 		}

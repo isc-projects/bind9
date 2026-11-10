@@ -587,6 +587,63 @@ ISC_RUN_TEST_IMPL(neworigin) {
 	assert_true(warn_expect_result);
 }
 
+static isc_result_t
+loaddump(const char *testfile) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *version = NULL;
+
+	CHECK(dns_db_create(isc_g_mctx, ZONEDB_DEFAULT, dns_origin,
+			    dns_dbtype_zone, dns_rdataclass_in, 0, NULL, &db));
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = setup_master(nullmsg, nullmsg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_dir_chdir(SRCDIR);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_load(db, testfile, dns_masterformat_text, 0);
+	assert_int_equal(isc_dir_chdir(BUILDDIR), ISC_R_SUCCESS);
+	CHECK(result);
+
+	dns_db_currentversion(db, &version);
+
+	CHECK(dns_master_dump(isc_g_mctx, db, version,
+			      &dns_master_style_default, "test.dump",
+			      dns_masterformat_text, NULL));
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = test_master(NULL, "test.dump", dns_masterformat_text, nullmsg,
+			     nullmsg);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+cleanup:
+	unlink("test.dump");
+	if (db != NULL) {
+		if (version != NULL) {
+			dns_db_closeversion(db, &version, false);
+		}
+		dns_db_detach(&db);
+	}
+
+	return result;
+}
+
+ISC_RUN_TEST_IMPL(deleg_escapes) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	/* load and dump a deleg with embedded backslash at character 255 */
+	result = loaddump(TESTS_DIR "/testdata/master/master19.data");
+	assert_int_equal(result, DNS_R_SYNTAX);
+
+	/* load and dump a deleg with complicated escaped characters */
+	result = loaddump(TESTS_DIR "/testdata/master/master20.data");
+	assert_int_equal(result, ISC_R_SUCCESS);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(load)
 ISC_TEST_ENTRY(nulbyte)
@@ -608,6 +665,7 @@ ISC_TEST_ENTRY(dumpraw)
 ISC_TEST_ENTRY(toobig)
 ISC_TEST_ENTRY(maxrdata)
 ISC_TEST_ENTRY(neworigin)
+ISC_TEST_ENTRY(deleg_escapes)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
