@@ -7714,7 +7714,6 @@ query_respond_any(query_ctx_t *qctx) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result = ISC_R_UNSET;
 	dns_rdatatype_t onetype = 0; /* type to use for minimal-any */
-	isc_buffer_t b;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_respond_any");
 
@@ -7750,20 +7749,11 @@ query_respond_any(query_ctx_t *qctx) {
 		/*
 		 * We found an NS RRset; no need to add one later.
 		 */
-		if (qctx->qtype == dns_rdatatype_any &&
-		    qctx->rdataset->type == dns_rdatatype_ns)
-		{
+		if (qctx->rdataset->type == dns_rdatatype_ns) {
 			qctx->answer_has_ns = true;
 		}
 
-		/*
-		 * Note: if we're in this function, then qctx->type
-		 * is guaranteed to be ANY, but qctx->qtype (i.e. the
-		 * original type requested) might have been RRSIG or
-		 * SIG; we need to check for that.
-		 */
-		if (qctx->is_zone && qctx->qtype == dns_rdatatype_any &&
-		    !dns_db_issecure(qctx->db) &&
+		if (qctx->is_zone && !dns_db_issecure(qctx->db) &&
 		    dns_rdatatype_isdnssec(qctx->rdataset->type))
 		{
 			/*
@@ -7774,7 +7764,6 @@ query_respond_any(query_ctx_t *qctx) {
 			hidden = true;
 		} else if (qctx->view->minimal_any &&
 			   !WANTDNSSEC(qctx->client) &&
-			   qctx->qtype == dns_rdatatype_any &&
 			   qctx->rdataset->type == dns_rdatatype_rrsig)
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
@@ -7792,10 +7781,7 @@ query_respond_any(query_ctx_t *qctx) {
 			   !PENDINGOK(qctx->client->query.dboptions))
 		{
 			dns_rdataset_disassociate(qctx->rdataset);
-		} else if ((qctx->qtype == dns_rdatatype_any ||
-			    qctx->rdataset->type == qctx->qtype) &&
-			   qctx->rdataset->type != 0)
-		{
+		} else if (qctx->rdataset->type != 0) {
 			if (NOQNAME(qctx->rdataset) && WANTDNSSEC(qctx->client))
 			{
 				qctx->noqname = qctx->rdataset;
@@ -7889,31 +7875,6 @@ query_respond_any(query_ctx_t *qctx) {
 		 * At least one matching rdataset was found
 		 */
 		query_addauth(qctx);
-	} else if (qctx->qtype == dns_rdatatype_rrsig) {
-		/*
-		 * No matching rdatasets were found, but we got
-		 * here on a search for RRSIG/SIG, so that's okay.
-		 */
-		if (!qctx->is_zone) {
-			qctx->authoritative = false;
-			qctx->client->attributes &= ~NS_CLIENTATTR_RA;
-			query_addauth(qctx);
-			return ns_query_done(qctx);
-		}
-
-		if (qctx->qtype == dns_rdatatype_rrsig &&
-		    dns_db_issecure(qctx->db))
-		{
-			char namebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(qctx->client->query.qname, namebuf,
-					sizeof(namebuf));
-			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "missing signature for %s", namebuf);
-		}
-
-		qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-		return query_sign_nodata(qctx);
 	} else if (!hidden) {
 		/*
 		 * No matching rdatasets were found and nothing was
