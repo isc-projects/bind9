@@ -8026,7 +8026,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Look for a NSEC3 record if we don't have a NSEC record.
 		 */
- nxrrset_rrsig:
 		if (redirected)
 			goto cleanup;
 		if (!dns_rdataset_isassociated(rdataset) &&
@@ -8750,14 +8749,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			/*
 			 * We found an NS RRset; no need to add one later.
 			 */
-			if (qtype == dns_rdatatype_any &&
-			    rdataset->type == dns_rdatatype_ns)
-			{
+			if (rdataset->type == dns_rdatatype_ns) {
 				answer_has_ns = true;
 			}
 
-			if (is_zone && qtype == dns_rdatatype_any &&
-			    !dns_db_issecure(db) &&
+			if (is_zone && !dns_db_issecure(db) &&
 			    dns_rdatatype_isdnssec(rdataset->type)) {
 				/*
 				 * The zone is transitioning from insecure
@@ -8767,7 +8763,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				dns_rdataset_disassociate(rdataset);
 			} else if (client->view->minimal_any &&
 				   !WANTDNSSEC(client) &&
-				   qtype == dns_rdatatype_any &&
 				   rdataset->type == dns_rdatatype_rrsig) {
 				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
 				       "minimal-any skip signature");
@@ -8779,8 +8774,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
 				       "minimal-any skip rdataset");
 				dns_rdataset_disassociate(rdataset);
-			} else if ((qtype == dns_rdatatype_any ||
-			     rdataset->type == qtype) && rdataset->type != 0) {
+			} else if (rdataset->type != 0) {
 #ifdef ALLOW_FILTER_AAAA
 				if (dns_rdatatype_isdnssec(rdataset->type))
 					have_sig = true;
@@ -8849,42 +8843,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		if (n == 0) {
 			/*
-			 * No matching rdatasets found in cache. If we were
-			 * searching for RRSIG, that's probably okay;
-			 * otherwise this is an error condition.
+			 * No matching rdatasets found in cache; this is
+			 * an error condition.
 			 */
-			if (qtype == dns_rdatatype_rrsig &&
-			    result == ISC_R_NOMORE) {
-				if (!is_zone) {
-					authoritative = false;
-					dns_rdatasetiter_destroy(&rdsiter);
-					client->attributes &= ~NS_CLIENTATTR_RA;
-					goto addauth;
-				}
-
-				if (qtype == dns_rdatatype_rrsig &&
-				    dns_db_issecure(db)) {
-					char namebuf[DNS_NAME_FORMATSIZE];
-					dns_name_format(client->query.qname,
-							namebuf,
-							sizeof(namebuf));
-					ns_client_log(client,
-						      DNS_LOGCATEGORY_DNSSEC,
-						      NS_LOGMODULE_QUERY,
-						      ISC_LOG_WARNING,
-						      "missing signature "
-						      "for %s", namebuf);
-				}
-
-				dns_rdatasetiter_destroy(&rdsiter);
-				fname = query_newname(client, dbuf, &b);
-				goto nxrrset_rrsig;
-			} else {
-				CTRACE(ISC_LOG_ERROR,
-				       "query_find: no matching rdatasets "
-				       "in cache");
-				result = DNS_R_SERVFAIL;
-			}
+			CTRACE(ISC_LOG_ERROR,
+			       "query_find: no matching rdatasets "
+			       "in cache");
+			result = DNS_R_SERVFAIL;
 		}
 
 		dns_rdatasetiter_destroy(&rdsiter);

@@ -728,8 +728,6 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 	 * zone.
 	 *
 	 * Also accept answers with RRSIG records from the child zone.
-	 * Direct queries for RRSIG records should not be answered from
-	 * the parent zone.
 	 */
 
 	if (message->counts[DNS_SECTION_ANSWER] != 0 &&
@@ -737,7 +735,6 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 	     fctx->type == dns_rdatatype_ds ||
 	     fctx->type == dns_rdatatype_soa ||
 	     fctx->type == dns_rdatatype_any ||
-	     fctx->type == dns_rdatatype_rrsig ||
 	     fctx->type == dns_rdatatype_dnskey)) {
 		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
 		while (result == ISC_R_SUCCESS) {
@@ -1424,8 +1421,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 
 		INSIST(event->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
-		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		       fctx->type == dns_rdatatype_any);
 
 		/*
 		 * Negative results must be indicated in event->result.
@@ -4989,8 +4985,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent != NULL) {
 		if (!negative && !chaining &&
-		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig)) {
+		    fctx->type == dns_rdatatype_any) {
 			/*
 			 * Don't bind rdatasets; the caller
 			 * will iterate the node.
@@ -5199,8 +5194,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
-		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		INSIST(fctx->type == dns_rdatatype_any);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -5519,14 +5513,13 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 			}
 			anodep = &event->node;
 			/*
-			 * If this is an ANY or RRSIG query, we're not
+			 * If this is an ANY query, we're not
 			 * going to return any rdatasets, unless we encountered
 			 * a CNAME or DNAME as "the answer".  In this case,
 			 * we're going to return DNS_R_CNAME or DNS_R_DNAME
 			 * and we must set up the rdatasets.
 			 */
-			if ((fctx->type != dns_rdatatype_any &&
-			     fctx->type != dns_rdatatype_rrsig) ||
+			if (fctx->type != dns_rdatatype_any ||
 			    (name->attributes & DNS_NAMEATTR_CHAINING) != 0)
 			{
 				ardataset = event->rdataset;
@@ -5762,9 +5755,7 @@ cache_name(fetchctx_t *fctx, dns_message_t *rmessage,
 			}
 
 			if (ANSWER(rdataset) && need_validation) {
-				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig)
-				{
+				if (fctx->type != dns_rdatatype_any) {
 					/*
 					 * This is The Answer.  We will
 					 * validate it, but first we cache
@@ -7214,10 +7205,6 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 
 	qname = &fctx->name;
 	view = fctx->res->view;
-
-	/*
-	 * RRSIG fetches are never created, see fctx_create().
-	 */
 	type = fctx->type;
 
 	/*
@@ -7400,9 +7387,7 @@ answer_response(resquery_t *query,  dns_message_t *message) {
 		if (!validinanswer(crdataset, fctx)) {
 			return (DNS_R_FORMERR);
 		}
-		if (type == dns_rdatatype_rrsig || type == dns_rdatatype_key ||
-		    type == dns_rdatatype_nsec)
-		{
+		if (type == dns_rdatatype_key || type == dns_rdatatype_nsec) {
 			char buf[DNS_RDATATYPE_FORMATSIZE];
 			dns_rdatatype_format(type, buf, sizeof(buf));
 			log_formerr(fctx, "CNAME response for %s RR", buf);
