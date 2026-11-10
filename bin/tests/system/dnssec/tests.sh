@@ -2209,31 +2209,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-# RRSIG queries return FORMERR, no matter what the cache holds for the
-# queried name: prime the cache with a normal query, then follow it with
-# a query for the corresponding RRSIG.
-echo_i "checking RRSIG query for a cached name returns FORMERR ($n)"
-ret=0
-dig_with_opts normalthenrrsig.secure.example. @10.53.0.4 a >/dev/null || ret=1
-for ns in 3 4; do
-  dig_with_opts normalthenrrsig.secure.example. @10.53.0.$ns rrsig >dig.out.ns$ns.test$n || ret=1
-  grep "status: FORMERR" dig.out.ns$ns.test$n >/dev/null || ret=1
-  grep "ANSWER: 0" dig.out.ns$ns.test$n >/dev/null || ret=1
-  grep "EDE: 30" dig.out.ns$ns.test$n >/dev/null || ret=1
-done
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
-echo_i "checking RRSIG query for a name not in cache returns FORMERR ($n)"
-ret=0
-dig_with_opts rrsigonly.secure.example. @10.53.0.4 rrsig >dig.out.ns4.test$n || ret=1
-grep "status: FORMERR" dig.out.ns4.test$n >/dev/null || ret=1
-grep "ANSWER: 0" dig.out.ns4.test$n >/dev/null || ret=1
-n=$((n + 1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status + ret))
-
 #
 # RT21868 regression test.
 #

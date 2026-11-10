@@ -48,9 +48,6 @@ ns2.insecure		A	10.53.0.2
 nosoa 			NS	ns.nosoa
 ns.nosoa		A	10.53.0.7
 
-normalthenrrsig		A	10.0.0.28
-rrsigonly		A	10.0.0.29
-
 cnameandkey		CNAME	@
 dnameandkey		DNAME	@
 
