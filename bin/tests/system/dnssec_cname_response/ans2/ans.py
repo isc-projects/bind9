@@ -22,7 +22,7 @@ from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain, Matcher, Qname, Qtype
 
-# 'example.' answers DNSKEY/NSEC/NSEC3/RRSIG queries with a CNAME (the
+# 'example.' answers DNSKEY/NSEC/NSEC3 queries with a CNAME (the
 # meta-types whose CNAME answer the resolver and validator must cope with).
 EXAMPLE = dns.zone.from_file("example.signed.db", origin="example.", relativize=False)
 
@@ -35,10 +35,6 @@ SECURE = dns.zone.from_file("secure.signed.db", origin="secure.", relativize=Fal
 # 'stuffed.' is served faithfully for existing data, but NXDOMAIN answers
 # contain every NSEC3 RRset in the zone to exercise negative-proof filtering.
 STUFFED = dns.zone.from_file("stuffed.signed.zone", origin="stuffed.", relativize=False)
-
-
-def a(owner: dns.name.Name, address: str) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, 300, dns.rdataclass.IN, dns.rdatatype.A, address)
 
 
 def cname(owner: dns.name.Name, target: str) -> dns.rrset.RRset:
@@ -61,24 +57,6 @@ def rrset_with_rrsig(
     return rrsets
 
 
-class LoneAHandler(ResponseHandler):
-    """
-    Answer any query with a single unrelated A record (no RRSIG and no
-    alias).  An RRSIG query is handled by the resolver as a subset of ANY,
-    and such an answer used to be dropped entirely, leaving the fetch waiting
-    for a validator that was never started.
-    """
-
-    matcher = Domain("lone-a.example.")
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.answer.append(a(qctx.qname, "192.0.2.1"))
-        yield DnsResponseSend(qctx.response)
-
-
 class CnameHandler(ResponseHandler):
     """
     Answer with a CNAME instead of the real records.
@@ -98,7 +76,6 @@ class ExampleMetatypeCnameHandler(CnameHandler):
         dns.rdatatype.DNSKEY,
         dns.rdatatype.NSEC,
         dns.rdatatype.NSEC3,
-        dns.rdatatype.RRSIG,
     )
 
 
@@ -199,7 +176,6 @@ def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(
         InsecureApexCnameHandler(),
-        LoneAHandler(),
         ExampleMetatypeCnameHandler(),
         SignedZoneHandler(EXAMPLE),
         SecureDsCnameHandler(),

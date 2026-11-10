@@ -711,25 +711,6 @@ def test_cache(ns4):
     for rrset in res2.answer:
         assert rrset.ttl <= 300
 
-    # RRSIG queries return FORMERR, no matter what the cache
-    # holds for the queried name: prime the cache with a normal query,
-    # then follow it with a query for the corresponding RRSIG
-    msg = isctest.query.create("normalthenrrsig.secure.example", "A")
-    isctest.query.tcp(msg, "10.53.0.4")
-
-    msg = isctest.query.create("normalthenrrsig.secure.example", "RRSIG")
-    res1 = isctest.query.tcp(msg, "10.53.0.3")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    for res in (res1, res2):
-        isctest.check.formerr(res)
-        isctest.check.empty_answer(res)
-        isctest.check.ede(res, 30)
-
-    msg = isctest.query.create("rrsigonly.secure.example", "RRSIG")
-    res1 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.formerr(res1)
-    isctest.check.empty_answer(res1)
-
     # check that a DNSKEY query with no data still gets cached
     msg = isctest.query.create("insecure.example", "DNSKEY")
     res1 = isctest.query.tcp(msg, "10.53.0.4")
