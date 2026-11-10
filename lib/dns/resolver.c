@@ -936,13 +936,11 @@ typedef struct respctx {
 	unsigned int retryopts; /* updated options to pass to
 				 * fctx_query() when resending */
 
-	dns_rdatatype_t type; /* type being sought (set to
-			       * ANY if qtype was RRSIG) */
-	bool aa;	      /* authoritative answer? */
-	dns_trust_t trust;    /* answer trust level */
-	bool chaining;	      /* CNAME/DNAME processing? */
-	bool next_server;     /* give up, try the next server
-			       * */
+	bool aa;	   /* authoritative answer? */
+	dns_trust_t trust; /* answer trust level */
+	bool chaining;	   /* CNAME/DNAME processing? */
+	bool next_server;  /* give up, try the next server
+			    * */
 
 	badnstype_t broken_type; /* type of name server problem
 				  * */
@@ -8200,11 +8198,6 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * RRSIG fetches are never created, see fctx__create().
-	 */
-	rctx->type = fctx->type;
-
-	/*
 	 * Bigger than any valid DNAME label count.
 	 */
 	rctx->dname_labels = dns_name_countlabels(fctx->name);
@@ -8644,7 +8637,7 @@ rctx_answer_positive(respctx_t *rctx) {
 	 * type ANY, CNAME, DNAME, or an answer matching QNAME/QTYPE.
 	 * Call the appropriate routine to handle the answer type.
 	 */
-	if (rctx->aname != NULL && rctx->type == dns_rdatatype_any) {
+	if (rctx->aname != NULL && fctx->type == dns_rdatatype_any) {
 		result = rctx_answer_any(rctx);
 		if (result == ISC_R_COMPLETE) {
 			return rctx->result;
@@ -8732,11 +8725,11 @@ rctx_answer_scan(respctx_t *rctx) {
 		switch (namereln) {
 		case dns_namereln_equal:
 			ISC_LIST_FOREACH(name->list, rdataset, link) {
-				if (rdataset->type == rctx->type ||
-				    rctx->type == dns_rdatatype_any)
+				if (rdataset->type == fctx->type ||
+				    fctx->type == dns_rdatatype_any)
 				{
 					rctx->aname = name;
-					if (rctx->type != dns_rdatatype_any) {
+					if (fctx->type != dns_rdatatype_any) {
 						rctx->ardataset = rdataset;
 					}
 					break;
@@ -8878,8 +8871,8 @@ rctx_answer_match(respctx_t *rctx) {
 		return ISC_R_COMPLETE;
 	}
 	if (dns_rdatatype_isalias(rctx->ardataset->type) &&
-	    rctx->type != rctx->ardataset->type &&
-	    rctx->type != dns_rdatatype_any &&
+	    fctx->type != rctx->ardataset->type &&
+	    fctx->type != dns_rdatatype_any &&
 	    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
 				     rctx->ardataset, NULL))
 	{
@@ -8902,7 +8895,7 @@ rctx_answer_match(respctx_t *rctx) {
 			return ISC_R_COMPLETE;
 		}
 
-		if (!dns_rdataset_issigtype(sigrdataset, rctx->type)) {
+		if (!dns_rdataset_issigtype(sigrdataset, fctx->type)) {
 			continue;
 		}
 

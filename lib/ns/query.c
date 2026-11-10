@@ -5636,7 +5636,7 @@ query_lookup(query_ctx_t *qctx) {
 	/*
 	 * Keep fname as the name query.c should answer with, while
 	 * qctx->foundname keeps the actual database owner for later
-	 * node resolution, such as ANY/RRSIG iteration.
+	 * node resolution, such as ANY iteration.
 	 */
 	if (qctx->dns64 && qctx->rpz) {
 		dns_name_copy(qctx->client->query.qname, dns_name(qctx->fname));
@@ -7342,7 +7342,6 @@ query_respond_any(query_ctx_t *qctx) {
 							 minimal-any */
 	dns_fixedname_t wildcardfixed;
 	dns_name_t *wildcardproof = NULL;
-	isc_buffer_t b;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_respond_any");
 
@@ -7400,20 +7399,11 @@ query_respond_any(query_ctx_t *qctx) {
 		/*
 		 * We found an NS RRset; no need to add one later.
 		 */
-		if (qctx->qtype == dns_rdatatype_any &&
-		    qctx->rdataset->type == dns_rdatatype_ns)
-		{
+		if (qctx->rdataset->type == dns_rdatatype_ns) {
 			qctx->answer_has_ns = true;
 		}
 
-		/*
-		 * Note: if we're in this function, then qctx->type
-		 * is guaranteed to be ANY, but qctx->qtype (i.e. the
-		 * original type requested) might have been RRSIG or
-		 * SIG; we need to check for that.
-		 */
-		if (qctx->is_zone && qctx->qtype == dns_rdatatype_any &&
-		    !dns_db_issecure(qctx->db) &&
+		if (qctx->is_zone && !dns_db_issecure(qctx->db) &&
 		    dns_rdatatype_isdnssec(qctx->rdataset->type))
 		{
 			/*
@@ -7424,8 +7414,7 @@ query_respond_any(query_ctx_t *qctx) {
 			hidden = true;
 		} else if (qctx->view->minimal_any &&
 			   !qctx->client->inner.wantdnssec &&
-			   qctx->qtype == dns_rdatatype_any &&
-			   (dns_rdatatype_issig(qctx->rdataset->type)))
+			   dns_rdatatype_issig(qctx->rdataset->type))
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip signature");
@@ -7443,10 +7432,7 @@ query_respond_any(query_ctx_t *qctx) {
 			   !PENDINGOK(qctx->client->query.dboptions))
 		{
 			dns_rdataset_disassociate(qctx->rdataset);
-		} else if ((qctx->qtype == dns_rdatatype_any ||
-			    qctx->rdataset->type == qctx->qtype) &&
-			   !qctx->rdataset->attributes.negative)
-		{
+		} else if (!qctx->rdataset->attributes.negative) {
 			if (qctx->rdataset->attributes.noqname &&
 			    qctx->client->inner.wantdnssec)
 			{
@@ -7536,32 +7522,6 @@ query_respond_any(query_ctx_t *qctx) {
 		 */
 		query_addauth_ns(qctx);
 		query_addauth_wildcardproof(qctx, wildcardproof);
-	} else if (dns_rdatatype_issig(qctx->qtype)) {
-		/*
-		 * No matching rdatasets were found, but we got
-		 * here on a search for RRSIG/SIG, so that's okay.
-		 */
-		if (!qctx->is_zone) {
-			qctx->authoritative = false;
-			qctx->client->inner.ra = false;
-			query_addauth_ns(qctx);
-			query_addauth_wildcardproof(qctx, wildcardproof);
-			return ns_query_done(qctx);
-		}
-
-		if (qctx->qtype == dns_rdatatype_rrsig &&
-		    dns_db_issecure(qctx->db))
-		{
-			char namebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(qctx->client->query.qname, namebuf,
-					sizeof(namebuf));
-			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "missing signature for %s", namebuf);
-		}
-
-		qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-		return query_sign_nodata(qctx);
 	} else if (!hidden) {
 		/*
 		 * No matching rdatasets were found and nothing was
