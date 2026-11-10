@@ -805,13 +805,11 @@ typedef struct respctx {
 	unsigned int retryopts; /* updated options to pass to
 				 * fctx_query() when resending */
 
-	dns_rdatatype_t type; /* type being sought (set to
-			       * ANY if qtype was RRSIG) */
-	bool aa;	      /* authoritative answer? */
-	dns_trust_t trust;    /* answer trust level */
-	bool chaining;	      /* CNAME/DNAME processing? */
-	bool next_server;     /* give up, try the next server
-			       * */
+	bool aa;	   /* authoritative answer? */
+	dns_trust_t trust; /* answer trust level */
+	bool chaining;	   /* CNAME/DNAME processing? */
+	bool next_server;  /* give up, try the next server
+			    * */
 
 	badnstype_t broken_type; /* type of name server problem
 				  * */
@@ -1081,15 +1079,12 @@ fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 	 * zone.
 	 *
 	 * Also accept answers with RRSIG records from the child zone.
-	 * Direct queries for RRSIG records should not be answered from
-	 * the parent zone.
 	 */
 
 	if (message->counts[DNS_SECTION_ANSWER] != 0 &&
 	    (fctx->type == dns_rdatatype_ns || fctx->type == dns_rdatatype_ds ||
 	     fctx->type == dns_rdatatype_soa ||
 	     fctx->type == dns_rdatatype_any ||
-	     fctx->type == dns_rdatatype_rrsig ||
 	     fctx->type == dns_rdatatype_dnskey))
 	{
 		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
@@ -1825,8 +1820,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 
 		INSIST(event->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
-		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		       fctx->type == dns_rdatatype_any);
 
 		/*
 		 * Negative results must be indicated in event->result.
@@ -5752,10 +5746,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent != NULL) {
-		if (!negative && !chaining &&
-		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig))
-		{
+		if (!negative && !chaining && fctx->type == dns_rdatatype_any) {
 			/*
 			 * Don't bind rdatasets; the caller
 			 * will iterate the node.
@@ -5999,8 +5990,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
-		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		INSIST(fctx->type == dns_rdatatype_any);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -6406,15 +6396,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			anodep = &event->node;
 
 			/*
-			 * If this is an ANY or RRSIG query, we're
+			 * If this is an ANY query, we're
 			 * not going to return any rdatasets, unless we
 			 * encountered a CNAME or DNAME as "the answer".
 			 * In this case, we're going to return
 			 * DNS_R_CNAME or DNS_R_DNAME and we must set up
 			 * the rdatasets.
 			 */
-			if ((fctx->type != dns_rdatatype_any &&
-			     fctx->type != dns_rdatatype_rrsig) ||
+			if (fctx->type != dns_rdatatype_any ||
 			    (name->attributes & DNS_NAMEATTR_CHAINING) != 0)
 			{
 				ardataset = event->rdataset;
@@ -6668,9 +6657,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			}
 
 			if (ANSWER(rdataset) && need_validation) {
-				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig)
-				{
+				if (fctx->type != dns_rdatatype_any) {
 					/*
 					 * This is The Answer.  We will
 					 * validate it, but first we
@@ -8405,11 +8392,6 @@ rctx_answer_init(respctx_t *rctx) {
 	}
 
 	/*
-	 * RRSIG fetches are never created, see fctx_create().
-	 */
-	rctx->type = fctx->type;
-
-	/*
 	 * Bigger than any valid DNAME label count.
 	 */
 	rctx->dname_labels = dns_name_countlabels(fctx->name);
@@ -8867,7 +8849,7 @@ rctx_answer_positive(respctx_t *rctx) {
 	 * type ANY, CNAME, DNAME, or an answer matching QNAME/QTYPE.
 	 * Call the appropriate routine to handle the answer type.
 	 */
-	if (rctx->aname != NULL && rctx->type == dns_rdatatype_any) {
+	if (rctx->aname != NULL && fctx->type == dns_rdatatype_any) {
 		result = rctx_answer_any(rctx);
 		if (result == ISC_R_COMPLETE) {
 			return rctx->result;
@@ -8967,11 +8949,11 @@ rctx_answer_scan(respctx_t *rctx) {
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link))
 			{
-				if (rdataset->type == rctx->type ||
-				    rctx->type == dns_rdatatype_any)
+				if (rdataset->type == fctx->type ||
+				    fctx->type == dns_rdatatype_any)
 				{
 					rctx->aname = name;
-					if (rctx->type != dns_rdatatype_any) {
+					if (fctx->type != dns_rdatatype_any) {
 						rctx->ardataset = rdataset;
 					}
 					break;
@@ -9121,8 +9103,8 @@ rctx_answer_match(respctx_t *rctx) {
 	}
 	if ((rctx->ardataset->type == dns_rdatatype_cname ||
 	     rctx->ardataset->type == dns_rdatatype_dname) &&
-	    rctx->type != rctx->ardataset->type &&
-	    rctx->type != dns_rdatatype_any &&
+	    fctx->type != rctx->ardataset->type &&
+	    fctx->type != dns_rdatatype_any &&
 	    !is_answertarget_allowed(fctx, fctx->name, rctx->aname,
 				     rctx->ardataset, NULL))
 	{
@@ -9148,7 +9130,7 @@ rctx_answer_match(respctx_t *rctx) {
 		}
 
 		if (sigrdataset->type != dns_rdatatype_rrsig ||
-		    sigrdataset->covers != rctx->type)
+		    sigrdataset->covers != fctx->type)
 		{
 			continue;
 		}
@@ -9177,11 +9159,10 @@ rctx_answer_cname(respctx_t *rctx) {
 		return ISC_R_COMPLETE;
 	}
 
-	if (rctx->type == dns_rdatatype_rrsig ||
-	    rctx->type == dns_rdatatype_key || rctx->type == dns_rdatatype_nsec)
+	if (fctx->type == dns_rdatatype_key || fctx->type == dns_rdatatype_nsec)
 	{
 		char buf[DNS_RDATATYPE_FORMATSIZE];
-		dns_rdatatype_format(rctx->type, buf, sizeof(buf));
+		dns_rdatatype_format(fctx->type, buf, sizeof(buf));
 		log_formerr(fctx, "CNAME response for %s RR", buf);
 		rctx->result = DNS_R_FORMERR;
 		return ISC_R_COMPLETE;
