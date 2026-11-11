@@ -68,7 +68,7 @@ def test_no_stale_data_times_out():
     msg = isctest.query.create("notincache.example.", "TXT", dnssec=False)
     start = time.monotonic()
     with pytest.raises(dns.exception.Timeout):
-        isctest.query.udp(msg, "10.53.0.3", timeout=1, attempts=1)
+        isctest.query.tcp(msg, "10.53.0.3", timeout=1, attempts=1)
     assert time.monotonic() - start >= 1
 
 
