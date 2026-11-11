@@ -1836,8 +1836,7 @@ cname_and_other(qpznode_t *node, uint32_t serial) {
 
 	/*
 	 * Look for CNAME and "other data" rdatasets active in our version.
-	 * ("Other data" is any rdataset whose type is not KEY, NSEC, SIG
-	 * or RRSIG.
+	 * ("Other data" is any rdataset whose type is not NSEC or RRSIG.
 	 */
 	ISC_SLIST_FOREACH(top, node->next_type, next_type) {
 		dns_rdatatype_t rdtype = DNS_TYPEPAIR_TYPE(top->typepair);
@@ -3715,12 +3714,10 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * If we're beneath a zone cut, we don't want to look for
 	 * CNAMEs because they're not legitimate zone glue. And
-	 * some DNSSEC types (KEY and NSEC) are not subject to CNAME
+	 * some DNSSEC types (NSEC) are not subject to CNAME
 	 * matching (see RFC4035, section 2.5, and RFC3007).
 	 */
-	if (search.zonecut != NULL || type == dns_rdatatype_key ||
-	    type == dns_rdatatype_nsec)
-	{
+	if (search.zonecut != NULL || type == dns_rdatatype_nsec) {
 		cname_ok = false;
 	}
 
