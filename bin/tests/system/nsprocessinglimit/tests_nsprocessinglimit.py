@@ -11,6 +11,8 @@
 
 import os
 
+import pytest
+
 import isctest
 import isctest.mark
 
@@ -96,26 +98,12 @@ def reconfig_maxdelegationservers_failure(ns, templates, count):
 
 
 @isctest.mark.with_querytrace
-def test_nsprocessinglimit_13ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 13)
-    check_nsprocessinglimit(ns4, "limit13", 13)
+@pytest.mark.parametrize("count", [13, 5, 20])
+def test_nsprocessinglimit_configured(ns4, templates, count):
+    reconfig_maxdelegationservers(ns4, templates, count)
+    check_nsprocessinglimit(ns4, f"limit{count}", count)
 
 
-@isctest.mark.with_querytrace
-def test_nsprocessinglimit_5ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 5)
-    check_nsprocessinglimit(ns4, "limit5", 5)
-
-
-@isctest.mark.with_querytrace
-def test_nsprocessinglimit_20ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 20)
-    check_nsprocessinglimit(ns4, "limit20", 20)
-
-
-def test_nsprocessinglimit_lower(ns4, templates):
-    reconfig_maxdelegationservers_failure(ns4, templates, 0)
-
-
-def test_nsprocessinglimit_upper(ns4, templates):
-    reconfig_maxdelegationservers_failure(ns4, templates, 101)
+@pytest.mark.parametrize("count", [0, 101])
+def test_nsprocessinglimit_out_of_range(ns4, templates, count):
+    reconfig_maxdelegationservers_failure(ns4, templates, count)
