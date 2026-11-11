@@ -10,6 +10,12 @@ options {
 	{% endif %}
 };
 
+/*
+ * The sub.example.tld servers: skipped once selected, so that the test
+ * does not depend on how fast the OS fails a query to them.
+ */
+server 127.0.0.0/8 { bogus yes; };
+
 {% include "_common/root.hint.conf" %}
 
 {% include "_common/controls.conf.j2" %}
