@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from dns import rdatatype
+from dns import rcode, rdatatype
 
 import pytest
 
@@ -56,6 +56,25 @@ def test_positive_validation_dname_at_apex():
     answers = {(str(rr.name), rr.rdtype) for rr in res.answer}
     assert ("dname-at-apex-nsec3.example.", rdatatype.DNAME) in answers
     assert ("a.example.", rdatatype.A) in answers
+
+
+@pytest.mark.parametrize("transport", ["udp", "tcp"])
+@pytest.mark.parametrize(
+    "use_edns,dnssec", [(False, False), (True, False), (True, True)]
+)
+def test_rrsig_query_formerr(transport, use_edns, dnssec):
+    # Standalone RRSIG queries fail for signed and unsigned names,
+    # on authoritative servers and resolvers, with and without EDNS.
+    for server in ("10.53.0.3", "10.53.0.4"):
+        for qname in ("secure.example", "a.insecure.example"):
+            msg = isctest.query.create(qname, "RRSIG", use_edns=use_edns, dnssec=dnssec)
+            res = getattr(isctest.query, transport)(
+                msg, server, expected_rcode=rcode.FORMERR
+            )
+            isctest.check.formerr(res)
+            isctest.check.empty_answer(res)
+            if use_edns:
+                isctest.check.ede(res, 30)
 
 
 def test_unknown_algorithms():

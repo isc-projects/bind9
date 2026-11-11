@@ -305,6 +305,9 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *	must remain stable until after 'action' has been called or
  *	dns_resolver_cancelfetch() is called.
  *
+ *\li	Fetches for type RRSIG are rejected with #DNS_R_FORMERR;
+ *	no such queries are sent to authoritative servers.
+ *
  * Requires:
  *
  *\li	'res' is a valid resolver that has been frozen.
@@ -335,6 +338,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *\li	#ISC_R_SUCCESS					Success
  *\li	#DNS_R_DUPLICATE
  *\li	#DNS_R_DROP
+ *\li	#DNS_R_FORMERR		'type' is RRSIG
  *
  *\li	Many other values are possible, all of which indicate failure.
  */

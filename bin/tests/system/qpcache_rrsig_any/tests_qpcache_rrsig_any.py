@@ -16,6 +16,8 @@ malformed and must be rejected by the resolver. ns3 picks the
 Type-Covered field from the leftmost label of QNAME.
 """
 
+from dns import rdatatype
+
 import pytest
 
 import isctest
@@ -30,12 +32,30 @@ pytestmark = pytest.mark.extra_artifacts(
 META_TYPES = ["ANY", "AXFR", "IXFR", "MAILA", "MAILB", "OPT", "TSIG", "TKEY"]
 
 
+def any_query(qname):
+    """
+    Standalone RRSIG queries are rejected before any fetch is made, so
+    use an ANY query to make the resolver fetch the lone RRSIG from ans3;
+    with DO set, a cached signature would be returned in the answer.
+    """
+    msg = isctest.query.create(qname, "ANY", dnssec=True, ad=False)
+    return isctest.query.tcp(msg, "10.53.0.2")
+
+
 @pytest.mark.parametrize("meta_type", META_TYPES)
 def test_rrsig_covers_metatype_is_servfail(meta_type):
-    qname = f"{meta_type.lower()}.attacker.test."
-    msg = isctest.query.create(qname, "RRSIG", dnssec=False, ad=False)
-    res = isctest.query.tcp(msg, "10.53.0.2")
+    res = any_query(f"{meta_type.lower()}.attacker.test.")
     isctest.check.servfail(res)
+
+
+def test_rrsig_covers_ordinary_type_is_answered():
+    """
+    The same query is answered when the RRSIG covers an ordinary type,
+    so the SERVFAIL above is caused by the malformed RRSIG.
+    """
+    res = any_query("a.attacker.test.")
+    isctest.check.noerror(res)
+    assert [rrset.rdtype for rrset in res.answer] == [rdatatype.RRSIG], res
 
 
 @pytest.mark.parametrize("meta_type", META_TYPES)

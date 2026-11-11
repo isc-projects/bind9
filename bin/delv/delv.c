@@ -1887,24 +1887,37 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 	}
 }
 
+/*
+ * Report the outcome of the resolution; in YAML mode, this starts the
+ * result document, which the answer records (if any) are appended to.
+ */
+static void
+print_result(const dns_name_t *query_name, isc_result_t result) {
+	char namestr[DNS_NAME_FORMATSIZE];
+
+	if (!yaml) {
+		if (result != ISC_R_SUCCESS) {
+			delv_log(ISC_LOG_ERROR, "resolution failed: %s",
+				 isc_result_totext(result));
+		}
+		return;
+	}
+
+	printf("type: DELV_RESULT\n");
+	if (query_name != NULL) {
+		dns_name_format(query_name, namestr, sizeof(namestr));
+		printf("query_name: %s\n", namestr);
+	}
+	printf("status: %s\n", isc_result_totext(result));
+	printf("records:\n");
+}
+
 static void
 resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 	   dns_namelist_t *namelist, isc_result_t result) {
-	char namestr[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 
-	if (result != ISC_R_SUCCESS && !yaml) {
-		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
-			 isc_result_totext(result));
-	}
-
-	if (yaml) {
-		printf("type: DELV_RESULT\n");
-		dns_name_format(query_name, namestr, sizeof(namestr));
-		printf("query_name: %s\n", namestr);
-		printf("status: %s\n", isc_result_totext(result));
-		printf("records:\n");
-	}
+	print_result(query_name, result);
 
 	for (dns_name_t *response_name = ISC_LIST_HEAD(*namelist);
 	     response_name != NULL;
@@ -1976,10 +1989,7 @@ run_resolve(void *arg) {
 				 resopt, namelist, resolve_cb));
 	return;
 cleanup:
-	if (!yaml) {
-		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
-			 isc_result_totext(result));
-	}
+	print_result(query_name, result);
 
 	isc_mem_put(mctx, namelist, sizeof(*namelist));
 	isc_loopmgr_shutdown(loopmgr);

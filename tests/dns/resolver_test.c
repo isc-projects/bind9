@@ -30,7 +30,9 @@
 
 #include <dns/dispatch.h>
 #include <dns/name.h>
+#include <dns/rdataset.h>
 #include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/view.h>
 
 #include <tests/dns.h>
@@ -95,6 +97,34 @@ ISC_LOOP_TEST_IMPL(create) {
 	dns_resolver_t *resolver = NULL;
 
 	mkres(&resolver);
+	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+static void
+unexpected_fetch_done(void *arg) {
+	UNUSED(arg);
+	fail_msg("an RRSIG query must not create a fetch");
+}
+
+ISC_LOOP_TEST_IMPL(rrsig_formerr) {
+	dns_resolver_t *resolver = NULL;
+	dns_fetch_t *fetch = NULL;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+
+	mkres(&resolver);
+	dns_resolver_freeze(resolver);
+	dns_rdataset_init(&rdataset);
+
+	result = dns_resolver_createfetch(
+		resolver, dns_rootname, dns_rdatatype_rrsig, NULL, NULL, NULL,
+		NULL, 0, 0, 0, NULL, NULL, NULL, isc_loop(),
+		unexpected_fetch_done, NULL, NULL, &rdataset, NULL, &fetch);
+	assert_int_equal(result, DNS_R_FORMERR);
+	assert_null(fetch);
+	assert_false(dns_rdataset_isassociated(&rdataset));
+
 	destroy_resolver(&resolver);
 	isc_loopmgr_shutdown(loopmgr);
 }
@@ -186,6 +216,7 @@ ISC_LOOP_TEST_IMPL(settimeout_overmax) {
 
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(create, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(rrsig_formerr, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(gettimeout, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(settimeout, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(settimeout_default, setup_test, teardown_test)

@@ -732,7 +732,8 @@ done
 # resolving foo.
 # nxdomain 32.3.2.1.127.rpz-ip
 end_group
-ckstats $ns3 bugs ns3 8
+# RRSIG queries are rejected before RPZ processing.
+ckstats $ns3 bugs ns3 6
 
 # Ensure ns3 manages to transfer the fast-expire zone before shutdown.
 nextpartreset ns3/named.run
