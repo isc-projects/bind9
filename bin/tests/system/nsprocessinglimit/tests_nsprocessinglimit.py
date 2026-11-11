@@ -37,14 +37,6 @@ def extract_dnstap(ns, expectedlen):
     return map(line_to_ips_and_queries, lines)
 
 
-def expect_query(expected_query, expected_query_count, ips_and_queries):
-    count = 0
-    for _, query in ips_and_queries:
-        if query == expected_query:
-            count += 1
-    assert count == expected_query_count
-
-
 def expect_next_ip_and_query(expected_ips_and_queries, ips_and_queries):
     for expected_ip, expected_query in expected_ips_and_queries:
         ip, query = next(ips_and_queries)
@@ -52,16 +44,15 @@ def expect_next_ip_and_query(expected_ips_and_queries, ips_and_queries):
         assert query == expected_query
 
 
+@isctest.mark.with_querytrace
 def test_selfpointedglue_nslimit(ns4):
-    msg = isctest.query.create("a.sub.example.tld.", "A")
+    qname = "a.sub.example.tld"
+    msg = isctest.query.create(qname, "A")
     res = isctest.query.tcp(msg, ns4.ip)
     isctest.check.servfail(res)
 
-    # The 4 formers lines are request to find sub.example2.tld NSs.
-    # The latest 20 are queries to sub.example2.tld NSs.
-    ips_and_queries = extract_dnstap(ns4, 24)
-
-    # Checking the begining of the resulution
+    # The only queries sent are those finding the sub.example.tld NSs.
+    ips_and_queries = extract_dnstap(ns4, 4)
     expect_next_ip_and_query(
         [
             ("10.53.0.1", "./IN/NS"),
@@ -71,4 +62,8 @@ def test_selfpointedglue_nslimit(ns4):
         ],
         ips_and_queries,
     )
-    expect_query("a.sub.example.tld/IN/A", 20, ips_and_queries)
+
+    # The sub.example.tld NSs are bogus: each one selected for the fetch is
+    # logged (in a query trace build) and skipped instead of being queried.
+    skipped = ns4.log.grep(f"({qname}/A): ignoring blackholed / bogus server")
+    assert len(skipped) == 20
