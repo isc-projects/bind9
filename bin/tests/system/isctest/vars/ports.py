@@ -13,7 +13,10 @@ import os
 
 from .. import log
 
-PORT_MIN = 5001
+# Stay above 5353 (mDNS) and 5355 (LLMNR): the OS name-resolution
+# responders (mDNSResponder, Avahi, systemd-resolved) hold them on the
+# wildcard address, so binding them on the test interfaces fails.
+PORT_MIN = 5400
 PORT_MAX = 32767
 PORTS_PER_TEST = 20
 
