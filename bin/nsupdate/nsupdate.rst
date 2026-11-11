@@ -282,6 +282,12 @@ The command formats and their meanings are as follows:
    If no ``zone`` statement is provided, :program:`nsupdate` attempts to
    determine the correct zone to update based on the rest of the input.
 
+   This command does not set an origin for names in update or prerequisite
+   commands. :program:`nsupdate` does not support zone-relative names: a name
+   without a trailing dot is interpreted relative to the DNS root. For example,
+   with ``zone example.com.``, ``host`` means ``host.``, not
+   ``host.example.com.``. Specify the full name to update a record in the zone.
+
 ``class classname``
    This command specifies the default class. If no ``class`` is specified, the default
    class is ``IN``.
