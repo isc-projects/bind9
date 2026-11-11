@@ -21,7 +21,8 @@ get_sorted_test_names() {
 total_tests=$(get_sorted_test_names | wc -l)
 ports_per_test=20
 
-port_min=5001
+# Stay above 5353 (mDNS) and 5355 (LLMNR), like PORT_MIN in conftest.py.
+port_min=5400
 port_max=$((32767 - (total_tests * ports_per_test)))
 
 baseport=0
