@@ -138,7 +138,7 @@ def _check_insecure_cname_chain(res):
     assert answers[dns.rdatatype.A] == EXPECTED_A, res
 
 
-@pytest.mark.parametrize("qtype", ["DNSKEY", "NSEC", "NSEC3", "RRSIG"])
+@pytest.mark.parametrize("qtype", ["DNSKEY", "NSEC", "NSEC3"])
 def test_direct_metatype_query_does_not_crash_resolver(qtype):
     """
     A direct recursive client query for a DNSSEC meta-type, answered by a
@@ -158,35 +158,12 @@ def test_direct_metatype_query_does_not_crash_resolver(qtype):
     res = isctest.query.tcp(msg, "10.53.0.3", timeout=8)
     elapsed_time = time.time() - start_time
 
-    # The resolver must answer promptly. An RRSIG query is handled as a
-    # subset of ANY, and a CNAME answer to it used to be dropped without
-    # caching or validation, leaving the fetch waiting ~12s for a
-    # validator that was never started.
+    # The resolver must answer promptly.
     assert elapsed_time < 5.0, f"{qtype} query took too long: {elapsed_time}s"
 
     # We do not assert a particular rcode here -- SERVFAIL or a chased
     # answer are both acceptable. The point is that named survives.
     assert res is not None, f"no response to direct {qtype} query"
-    _assert_alive("10.53.0.3")
-
-
-def test_rrsig_lone_record_does_not_stall_resolver():
-    """
-    A direct recursive RRSIG query answered with an unrelated record
-    (here a lone A, with no RRSIG and no alias) must not stall the
-    resolver. An RRSIG query is handled as a subset of ANY; every record
-    of the wrong type is filtered out, and when nothing is left the
-    answer used to be accepted as success with no answer bound, leaving
-    the fetch waiting ~12s for a validator that was never started.
-    """
-    msg = isctest.query.create("lone-a.example.", "RRSIG")
-
-    start_time = time.time()
-    res = isctest.query.tcp(msg, "10.53.0.3", timeout=8)
-    elapsed_time = time.time() - start_time
-
-    assert elapsed_time < 5.0, f"RRSIG query took too long: {elapsed_time}s"
-    assert res is not None, "no response to lone-record RRSIG query"
     _assert_alive("10.53.0.3")
 
 

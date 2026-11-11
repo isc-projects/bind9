@@ -730,11 +730,11 @@ dns_rdatatype_isknown(dns_rdatatype_t type) {
 
 /*%
  * Return true iff a query for the rdata type can have multiple
- * unrelated answers in a response: ANY, or RRSIG.
+ * unrelated answers in a response: ANY.
  */
 static inline bool
 dns_rdatatype_ismulti(dns_rdatatype_t type) {
-	return type == dns_rdatatype_any || type == dns_rdatatype_rrsig;
+	return type == dns_rdatatype_any;
 }
 
 /*%

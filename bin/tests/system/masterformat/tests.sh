@@ -63,7 +63,7 @@ ret=0
 set -- 1 2 3
 for zone in example example-explicit example-compat; do
   for server in "$@"; do
-    for qname in ns mx a aaaa cname dname txt rrsig nsec \
+    for qname in ns mx a aaaa cname dname txt nsec \
       dnskey ds cdnskey cds; do
       qtype="$qname"
       dig_with_opts @10.53.0.${server} -q ${qname}.${zone}. -t ${qtype}

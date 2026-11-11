@@ -14,7 +14,7 @@ from re import compile as Re
 import shutil
 import time
 
-from dns import flags, name, rdataclass, rdatatype
+from dns import flags, name, rcode, rdataclass, rdatatype
 from dns.edns import EDECode
 
 import pytest
@@ -73,18 +73,23 @@ def test_load_transfer(qname, qtype):
     isctest.check.noerror(res1)
 
 
-def test_insecure_rrsig():
-    # check that for a rrsig query against a validating resolver where the
-    # authoritative zone is unsigned (insecure delegation), noerror is
-    # returned.
-    msg = isctest.query.create("a.insecure.example", "RRSIG")
-    res = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.noerror(res)
-    isctest.check.rr_count_eq(res.answer, 0)
-    isctest.check.rr_count_eq(res.authority, 1)
-    isctest.check.rr_count_eq(res.additional, 0)
-    assert str(res.authority[0].name) == "insecure.example."
-    assert res.authority[0].rdtype == rdatatype.SOA
+@pytest.mark.parametrize("transport", ["udp", "tcp"])
+@pytest.mark.parametrize(
+    "use_edns,dnssec", [(False, False), (True, False), (True, True)]
+)
+def test_rrsig_query_formerr(transport, use_edns, dnssec):
+    # Standalone RRSIG queries fail for signed and unsigned names,
+    # on authoritative servers and resolvers, with and without EDNS.
+    for server in ("10.53.0.3", "10.53.0.4"):
+        for qname in ("secure.example", "a.insecure.example"):
+            msg = isctest.query.create(qname, "RRSIG", use_edns=use_edns, dnssec=dnssec)
+            res = getattr(isctest.query, transport)(
+                msg, server, expected_rcode=rcode.FORMERR
+            )
+            isctest.check.formerr(res)
+            isctest.check.empty_answer(res)
+            if use_edns:
+                isctest.check.ede(res, 30)
 
 
 def test_adflag():
@@ -705,28 +710,6 @@ def test_cache(ns4):
         assert 3000 <= rrset.ttl <= 3600
     for rrset in res2.answer:
         assert rrset.ttl <= 300
-
-    # first query for a NS record, to cache NSEC and RRSIG(NSEC)
-    msg = isctest.query.create("normalthenrrsig.secure.example", "NS")
-    isctest.query.tcp(msg, "10.53.0.4")
-    # query for a record, then follow it with a query for the
-    # corresponding RRSIG, check that it's answered from the cache
-    msg = isctest.query.create("normalthenrrsig.secure.example", "A")
-    isctest.query.tcp(msg, "10.53.0.4")
-
-    msg = isctest.query.create("normalthenrrsig.secure.example", "RRSIG")
-    res1 = isctest.query.tcp(msg, "10.53.0.3")
-    res2 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.same_answer(res1, res2)
-    isctest.check.noerror(res2)
-    isctest.check.raflag(res2)
-
-    # check direct query for RRSIG: if it's not cached with other records,
-    # it should result in an empty response.
-    msg = isctest.query.create("rrsigonly.secure.example", "RRSIG")
-    res1 = isctest.query.tcp(msg, "10.53.0.4")
-    isctest.check.empty_answer(res1)
-    isctest.check.noraflag(res1)
 
     # check that a DNSKEY query with no data still gets cached
     msg = isctest.query.create("insecure.example", "DNSKEY")

@@ -306,11 +306,23 @@ stop_server ns4
 rm ns4/named.noaa
 start_server --noclean --restart --port ${PORT} ns4 || ret=1
 
+# Check whether the cache dump in file $2 has an RRSIG covering A at the
+# name $1; the dump prints the owner name only with the first RRset.
+cached_rrsig_a() {
+  awk -v owner="$1" '
+    /^;/ { next }
+    /^[^ \t]/ { current = $1 }
+    current == owner && /[ \t]RRSIG[ \t]+A[ \t]/ { found = 1 }
+    END { exit !found }' "$2"
+}
+
 n=$((n + 1))
 echo_i "check that replacement of additional data by a negative cache no data entry clears the additional RRSIGs ($n)"
 ret=0
 dig_with_opts +tcp mx example.net @10.53.0.7 >dig.ns7.out.${n} || ret=1
 grep "status: NOERROR" dig.ns7.out.${n} >/dev/null || ret=1
+rndc_dumpdb ns7 -cache || ret=1
+cached_rrsig_a mail.example.net. ns7/named_dump.db.test${n} || ret=1
 if [ $ret = 1 ]; then echo_i "mx priming failed"; fi
 $NSUPDATE <<EOF
 server 10.53.0.6 ${PORT}
@@ -325,9 +337,8 @@ grep "ANSWER: 0" dig.ns7.out.${n} >/dev/null || ret=2
 if [ $ret = 2 ]; then echo_i "ncache priming failed"; fi
 dig_with_opts +tcp mx example.net @10.53.0.7 >dig.ns7.out.${n} || ret=3
 grep "status: NOERROR" dig.ns7.out.${n} >/dev/null || ret=3
-dig_with_opts +tcp rrsig mail.example.net +norec @10.53.0.7 >dig.ns7.out.${n} || ret=4
-grep "status: SERVFAIL" dig.ns7.out.${n} >/dev/null || ret=4
-grep "ANSWER: 0" dig.ns7.out.${n} >/dev/null || ret=4
+rndc_dumpdb ns7 -cache || ret=4
+cached_rrsig_a mail.example.net. ns7/named_dump.db.test${n} && ret=4
 dig_with_opts +tcp aaaa mail.example.net +norec @10.53.0.7 >dig.ns7.out.${n} || ret=5
 grep "status: SERVFAIL" dig.ns7.out.${n} >/dev/null || ret=5
 grep "ANSWER: 0" dig.ns7.out.${n} >/dev/null || ret=5

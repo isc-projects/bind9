@@ -82,6 +82,9 @@ def test_wildcard_rdtype_mismatch(
     """
     assume(rdtype != WILDCARD_RDTYPE)
 
+    # Standalone RRSIG queries are rejected with FORMERR.
+    assume(rdtype != dns.rdatatype.RRSIG)
+
     # NS and SOA are present in the zone and DS gets answered from parent.
     assume(
         not (

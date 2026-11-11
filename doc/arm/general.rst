@@ -477,3 +477,17 @@ archival, and they should not be quoted or cited in any formal documents
 unless accompanied by the disclaimer that they are "works in progress."
 IDs have a lifespan of six months, after which they are deleted unless
 updated by their authors.
+
+BIND 9 implements the following Internet Drafts:
+
+`draft-sury-dnsop-rrsig-refused`_ - O. Surý, J. Včelák, and P. Špaček.
+*Refusing DNS Queries That Have QTYPE=RRSIG.* Work in progress.
+
+Queries of type RRSIG are answered with FORMERR by both authoritative
+and recursive servers; when the query uses EDNS, the response includes
+Extended DNS Error code 30 (Invalid Query Type). The resolver and
+:iscman:`delv` never send such queries. To obtain signatures, query for
+the covered record type with DNSSEC enabled; its covering RRSIG records
+are included in the response.
+
+.. _draft-sury-dnsop-rrsig-refused: https://datatracker.ietf.org/doc/draft-sury-dnsop-rrsig-refused/
