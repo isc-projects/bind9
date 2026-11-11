@@ -2450,12 +2450,10 @@ cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 			 * Look for active extant "other data".
 			 *
 			 * "Other data" is any rdataset whose type is not
-			 * KEY, NSEC, SIG or RRSIG.
+			 * NSEC or RRSIG.
 			 */
 			rdtype = DNS_TYPEPAIR_TYPE(header->type);
-			if (rdtype != dns_rdatatype_key &&
-			    rdtype != dns_rdatatype_sig &&
-			    rdtype != dns_rdatatype_nsec &&
+			if (rdtype != dns_rdatatype_nsec &&
 			    rdtype != dns_rdatatype_rrsig)
 			{
 				/*

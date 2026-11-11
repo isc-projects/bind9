@@ -68,6 +68,31 @@ def test_unknown_algorithms():
     isctest.check.noadflag(res2)
 
 
+def test_legacy_dnssec_types_are_signed():
+    """
+    SIG (24), NXT (30) and KEY (25) records carry a covering RRSIG.
+
+    Per RFC 3755 SIG and NXT are obsolete and treated as opaque zone
+    data; KEY remains valid for SIG(0)/TKEY use.  All three are
+    ordinary zone data and must be signed like any other RRset.
+    """
+    for owner, rrtype in [
+        ("sigrr.secure.example", "SIG"),
+        ("nxtrr.secure.example", "NXT"),
+        ("keyrr.secure.example", "KEY"),
+    ]:
+        expected = rdatatype.from_text(rrtype)
+        msg = isctest.query.create(owner, rrtype, cd=True)
+        res = isctest.query.tcp(msg, "10.53.0.3")
+        isctest.check.noerror(res)
+        assert any(
+            rr.rdtype == expected for rr in res.answer
+        ), f"{rrtype} record missing in answer for {owner}: {res.answer}"
+        assert any(
+            rr.rdtype == rdatatype.RRSIG and rr.covers == expected for rr in res.answer
+        ), f"RRSIG({rrtype}) missing in answer for {owner}: {res.answer}"
+
+
 def test_ds_keytag_flood(ns4):
     # GL #5349: a securely-delegated zone whose parent DS RRset is flooded
     # with many mismatched DS records (each a unique key tag) must be

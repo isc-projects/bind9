@@ -510,7 +510,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		.ttl_known = ((options & DNS_MASTER_NOTTL) != 0),
 		.default_ttl_known = ((options & DNS_MASTER_NOTTL) != 0),
 		.warn_1035 = true,
-		.warn_tcr = true,
 		.warn_sigexpired = true,
 		.options = options,
 		.zclass = zclass,
@@ -1927,7 +1926,7 @@ load_text(dns_loadctx_t *lctx) {
 			}
 		}
 
-		if (type == dns_rdatatype_rrsig || type == dns_rdatatype_sig) {
+		if (type == dns_rdatatype_rrsig) {
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		} else {
 			covers = 0;
@@ -1985,16 +1984,6 @@ load_text(dns_loadctx_t *lctx) {
 						   source, line);
 				lctx->warn_sigexpired = false;
 			}
-		}
-
-		if ((type == dns_rdatatype_sig || type == dns_rdatatype_nxt) &&
-		    lctx->warn_tcr && dns_master_isprimary(lctx))
-		{
-			(*callbacks->warn)(callbacks,
-					   "%s:%lu: old style DNSSEC "
-					   " zone detected",
-					   source, line);
-			lctx->warn_tcr = false;
 		}
 
 		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {
