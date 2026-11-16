@@ -16,6 +16,7 @@
 #include <isc/netmgr.h>
 #include <isc/ratelimiter.h>
 #include <isc/result.h>
+#include <isc/time.h>
 
 #include <dns/adb.h>
 #include <dns/notify.h>
@@ -31,6 +32,23 @@
 
 #include "zone_p.h"
 
+/*%
+ * Notify and notify context flags.
+ */
+#define NOTIFY_FLAG(n, f)    ((atomic_load_relaxed(&(n)->flags) & (f)) != 0)
+#define NOTIFY_SETFLAG(n, f) atomic_fetch_or(&(n)->flags, (f))
+#define NOTIFY_CLRFLAG(n, f) atomic_fetch_and(&(n)->flags, ~(f))
+
+#define TIME_ADD(a, b, c)                                           \
+	do {                                                        \
+		isc_interval_t _i;                                  \
+		isc_interval_set(&_i, (b), 0);                      \
+		if (isc_time_add((a), &_i, (c)) != ISC_R_SUCCESS) { \
+			isc_interval_set(&_i, (b) / 2, 0);          \
+			(void)isc_time_add((a), &_i, (c));          \
+		}                                                   \
+	} while (0)
+
 static void
 notify_log(dns_notify_t *notify, int level, const char *fmt, ...) {
 	va_list ap;
@@ -42,10 +60,12 @@ notify_log(dns_notify_t *notify, int level, const char *fmt, ...) {
 }
 
 void
-dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type) {
+dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type,
+		   isc_time_t now) {
 	dns_notifyctx_t ctx = {
 		.type = type,
 		.notifytype = dns_notifytype_yes,
+		.notifytime = now,
 		.notifydelay = 5,
 		.notifies = ISC_LIST_INITIALIZER,
 	};
@@ -787,6 +807,7 @@ destroy:
 
 void
 dns_notify_cancel(dns_notifyctx_t *nctx) {
+	REQUIRE(nctx != NULL);
 	ISC_LIST_FOREACH(nctx->notifies, notify, link) {
 		INSIST(dns__zone_locked(notify->zone));
 		if (notify->find != NULL) {
@@ -796,4 +817,48 @@ dns_notify_cancel(dns_notifyctx_t *nctx) {
 			dns_request_cancel(notify->request);
 		}
 	}
+}
+
+void
+dns_notifyctx_setflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	NOTIFY_SETFLAG(nctx, flag);
+}
+
+void
+dns_notifyctx_clearflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	NOTIFY_CLRFLAG(nctx, flag);
+}
+
+bool
+dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag) {
+	REQUIRE(nctx != NULL);
+	return NOTIFY_FLAG(nctx, flag);
+}
+
+void
+dns_notifyctx_defer(dns_notifyctx_t *nctx, isc_time_t now) {
+	REQUIRE(nctx != NULL);
+
+	if (nctx->notifydefer != 0 &&
+	    !dns_notifyctx_hasflag(nctx,
+				   DNS_NOTIFY_NODEFER | DNS_NOTIFY_DEFERRED))
+	{
+		if (isc_time_compare(&now, &nctx->notifytime) > 0) {
+			nctx->notifytime = now;
+		}
+		dns_notifyctx_setflag(nctx, DNS_NOTIFY_DEFERRED);
+		TIME_ADD(&nctx->notifytime, nctx->notifydefer,
+			 &nctx->notifytime);
+	}
+}
+
+bool
+dns_notifyctx_notify_needed(dns_notifyctx_t *nctx, isc_time_t now) {
+	REQUIRE(nctx != NULL);
+
+	return dns_notifyctx_hasflag(nctx, DNS_NOTIFY_NEEDSEND |
+						   DNS_NOTIFY_NEEDSTARTUP) &&
+	       isc_time_compare(&now, &nctx->notifytime) >= 0;
 }

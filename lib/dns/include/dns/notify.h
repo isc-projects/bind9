@@ -32,7 +32,9 @@ struct dns_notifyctx {
 
 	dns_rdatatype_t type;
 
-	dns_notifylist_t notifies;
+	dns_notifylist_t     notifies;
+	isc_time_t	     notifytime;
+	atomic_uint_fast64_t flags;
 
 	/* Configuration data. */
 	dns_notifytype_t notifytype;
@@ -67,10 +69,17 @@ typedef enum dns_notify_flags {
 	DNS_NOTIFY_NOSOA = 1 << 0,
 	DNS_NOTIFY_STARTUP = 1 << 1,
 	DNS_NOTIFY_TCP = 1 << 2,
+	DNS_NOTIFY_NEEDSEND = 1 << 3, /*%< need to send out notify messages. */
+	DNS_NOTIFY_NEEDSTARTUP = 1 << 4, /*%< need to send out notify due to the
+					    zone just being loaded for the first
+					    time. */
+	DNS_NOTIFY_NODEFER = 1 << 5,	 /*%< ignore the notify-defer option. */
+	DNS_NOTIFY_DEFERRED = 1 << 6, /*%< notify was deferred according to the
+					 notify-defer option. */
 } dns_notify_flags_t;
 
 void
-dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type);
+dns_notifyctx_init(dns_notifyctx_t *nctx, dns_rdatatype_t type, isc_time_t now);
 /*%
  *	Initializes a notify context for the RRtype 'type'.
  *
@@ -146,4 +155,58 @@ dns_notify_cancel(dns_notifyctx_t *nctx);
  *
  *	Requires:
  *		'nctx' is not NULL
+ */
+
+void
+dns_notifyctx_setflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Set flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+void
+dns_notifyctx_clearflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Clear flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+bool
+dns_notifyctx_hasflag(dns_notifyctx_t *nctx, unsigned int flag);
+/*%<
+ *	Check flag on notify context. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ *
+ *      Returns:
+ *		true if the flag is set
+ *		false otherwise
+ */
+
+void
+dns_notifyctx_defer(dns_notifyctx_t *nctx, isc_time_t now);
+/*%<
+ *	Defer a notify. The corresponding zone must be locked.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ */
+
+bool
+dns_notifyctx_notify_needed(dns_notifyctx_t *nctx, isc_time_t now);
+/*%<
+ *	Returns if it is time to send out notifies. If the NEEDSEND or
+ *	NEEDSTARTUP flag is set, and the notifytime is in the past,
+ *	then it is time to do the notifies.
+ *
+ *	Requires:
+ *		'nctx' is not NULL
+ *      Returns:
+ *		true if we need to send out notifies
+ *		false otherwise
  */
