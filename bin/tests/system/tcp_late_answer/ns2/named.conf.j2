@@ -1,0 +1,11 @@
+options {
+	{% include_indented "_common/options.conf.j2" %}
+	recursion yes;
+	dnssec-validation no;
+	forward only;
+	forwarders { 10.53.0.1; };
+	recursive-clients 10;
+};
+
+{% include "_common/controls.conf.j2" %}
+{% include "_common/root.hint.conf" %}
