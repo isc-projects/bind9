@@ -5155,6 +5155,11 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	isc_result_t result;
 	dst_key_t *pubkey = NULL;
 	unsigned int count = 0;
+	bool offlineksk = false;
+
+	if (zone->kasp != NULL) {
+		offlineksk = dns_kasp_offlineksk(zone->kasp);
+	}
 
 	*nkeys = 0;
 	memset(keys, 0, sizeof(*keys) * maxkeys);
@@ -5231,10 +5236,14 @@ findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 					 algbuf, dst_key_id(pubkey));
 			}
 
-			isc_log_write(DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
-				      "dns_zone_findkeys: error reading %s: %s",
-				      filename, isc_result_totext(result));
+			if (!offlineksk || !KSK(pubkey)) {
+				isc_log_write(
+					DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+					"dns_zone_findkeys: error reading %s: "
+					"%s",
+					filename, isc_result_totext(result));
+			}
 		}
 
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
