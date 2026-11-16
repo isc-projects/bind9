@@ -105,6 +105,35 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
  * \li	#ISC_R_NOTFOUND
  */
 
+bool
+dns_zt_contains(dns_zt_t *zt, const dns_name_t *name);
+/*%<
+ * Return whether an exact entry for 'name' exists, without attaching the zone.
+ * Includes unloaded mirror zones.
+ *
+ * Requires:
+ * \li	'zt' to be valid
+ * \li	'name' to be absolute
+ */
+
+isc_result_t
+dns_zt_covers(dns_zt_t *zt, const dns_name_t *name, dns_name_t *foundname);
+/*%<
+ * Copy the origin of the closest enclosing zone, including an exact match,
+ * into 'foundname', without attaching the zone. All zones are considered,
+ * including unloaded mirror zones. On no match, 'foundname' is unchanged.
+ *
+ * Requires:
+ * \li	'zt' to be valid
+ * \li	'name' to be absolute
+ * \li	'foundname' to have a dedicated buffer large enough for the origin
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS for an exact match
+ * \li	#DNS_R_PARTIALMATCH for an ancestor match
+ * \li	#ISC_R_NOTFOUND if no covering zone exists
+ */
+
 void
 dns_zt_detach(dns_zt_t **ztp);
 /*%<

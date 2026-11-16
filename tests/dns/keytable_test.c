@@ -179,16 +179,14 @@ create_tables(void) {
 	dns_test_namefromstring("example.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 
 	/* Add an initializing managed key */
 	dns_test_namefromstring("managed.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -243,8 +241,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_test_namefromstring("example.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	dns_keynode_detach(&keynode);
 	assert_int_equal(
@@ -255,8 +252,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_keynode_detach(&keynode);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("example.com"), &keynode),
@@ -284,8 +280,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_test_namefromstring("managed.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("managed.com"), &keynode),
@@ -299,8 +294,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	 * to a non-initializing key and make sure there are still two key
 	 * nodes for managed.com, both containing non-initializing keys.
 	 */
-	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("managed.com"), &keynode),
@@ -315,8 +309,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_test_namefromstring("two.com.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, true, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("two.com"), &keynode),
@@ -332,8 +325,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	 */
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, true, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("two.com"), &keynode),
@@ -351,8 +343,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	dns_test_namefromstring("null.example.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, sizeof(digest),
 			&ds);
-	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
-					  NULL, NULL),
+	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds),
 			 ISC_R_SUCCESS);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("null.example"), &keynode),
@@ -388,21 +379,18 @@ ISC_LOOP_TEST_IMPL(delete) {
 	create_tables();
 
 	/* dns_keytable_delete requires exact match */
-	assert_int_equal(dns_keytable_delete(keytable, str2name("example.org"),
-					     NULL, NULL),
+	assert_int_equal(dns_keytable_delete(keytable, str2name("example.org")),
 			 ISC_R_NOTFOUND);
-	assert_int_equal(dns_keytable_delete(keytable,
-					     str2name("s.example.com"), NULL,
-					     NULL),
-			 ISC_R_NOTFOUND);
-	assert_int_equal(dns_keytable_delete(keytable, str2name("example.com"),
-					     NULL, NULL),
+	assert_int_equal(
+		dns_keytable_delete(keytable, str2name("s.example.com")),
+		ISC_R_NOTFOUND);
+	assert_int_equal(dns_keytable_delete(keytable, str2name("example.com")),
 			 ISC_R_SUCCESS);
 
 	/* works also for nodes with a null key */
-	assert_int_equal(dns_keytable_delete(keytable, str2name("null.example"),
-					     NULL, NULL),
-			 ISC_R_SUCCESS);
+	assert_int_equal(
+		dns_keytable_delete(keytable, str2name("null.example")),
+		ISC_R_SUCCESS);
 
 	/* or a negative trust anchor */
 	assert_int_equal(
@@ -458,8 +446,7 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 	 * after deleting the node, any deletekey or delete attempt should
 	 * result in NOTFOUND.
 	 */
-	assert_int_equal(dns_keytable_delete(keytable, keyname, NULL, NULL),
-			 ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_delete(keytable, keyname), ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 ISC_R_NOTFOUND);
 
@@ -471,8 +458,7 @@ ISC_LOOP_TEST_IMPL(deletekey) {
 	create_keystruct(257, 3, 5, keystr1, keydata, sizeof(keydata), &dnskey);
 	assert_int_equal(dns_keytable_deletekey(keytable, keyname, &dnskey),
 			 DNS_R_PARTIALMATCH);
-	assert_int_equal(dns_keytable_delete(keytable, keyname, NULL, NULL),
-			 ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_delete(keytable, keyname), ISC_R_SUCCESS);
 
 	destroy_tables();
 
@@ -615,8 +601,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	dns_test_namefromstring("example.", &fn);
 	create_dsstruct(keyname, 257, 3, 5, keystr1, digest, sizeof(digest),
 			&ds);
-	result = dns_keytable_add(keytable, false, false, keyname, &ds, NULL,
-				  NULL),
+	result = dns_keytable_add(keytable, false, false, keyname, &ds),
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_ntatable_add(ntatable, str2name("insecure.example"), false,

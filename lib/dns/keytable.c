@@ -334,8 +334,7 @@ new_keynode(const dns_name_t *name, dns_rdata_ds_t *ds,
  */
 static isc_result_t
 insert(dns_keytable_t *keytable, bool managed, bool initial,
-       const dns_name_t *keyname, dns_rdata_ds_t *ds,
-       dns_keytable_callback_t callback, void *callback_arg) {
+       const dns_name_t *keyname, dns_rdata_ds_t *ds) {
 	isc_result_t result;
 	dns_keynode_t *newnode = NULL;
 	dns_qp_t *qp = NULL;
@@ -356,9 +355,6 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 		 */
 		newnode = new_keynode(keyname, ds, keytable, managed, initial);
 		result = dns_qp_insert(qp, newnode, 0);
-		if (callback != NULL) {
-			(*callback)(keyname, callback_arg);
-		}
 	} else {
 		/*
 		 * A node already exists for "keyname" in "keytable".
@@ -378,23 +374,20 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
-		 dns_name_t *name, dns_rdata_ds_t *ds,
-		 dns_keytable_callback_t callback, void *callback_arg) {
+		 dns_name_t *name, dns_rdata_ds_t *ds) {
 	REQUIRE(ds != NULL);
 	REQUIRE(!initial || managed);
 
-	return insert(keytable, managed, initial, name, ds, callback,
-		      callback_arg);
+	return insert(keytable, managed, initial, name, ds);
 }
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return insert(keytable, true, false, name, NULL, NULL, NULL);
+	return insert(keytable, true, false, name, NULL);
 }
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
-		    dns_keytable_callback_t callback, void *callback_arg) {
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
 	isc_result_t result;
 	dns_qp_t *qp = NULL;
 	void *pval = NULL;
@@ -407,9 +400,6 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
 				   NULL);
 	if (result == ISC_R_SUCCESS) {
 		dns_keynode_t *n = pval;
-		if (callback != NULL) {
-			(*callback)(keyname, callback_arg);
-		}
 		dns_keynode_detach(&n);
 	}
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);

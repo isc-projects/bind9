@@ -150,7 +150,6 @@ struct dns_view {
 	dns_nametree_t	     *answeracl_exclude;
 	dns_nametree_t	     *denyanswernames;
 	dns_nametree_t	     *answernames_exclude;
-	dns_nametree_t	     *sfd;
 	dns_rrl_t	     *rrl;
 	bool		      provideixfr;
 	bool		      requestnsid;
@@ -732,6 +731,17 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
  *\li	#ISC_R_MULTIPLE         Multiple zones with the same name were found.
  */
 
+bool
+dns_view_containszone(dns_view_t *view, const dns_name_t *name);
+/*%<
+ * Return whether 'view' has a zone with exactly the origin 'name', without
+ * attaching the zone. Includes unloaded mirror zones.
+ *
+ * Requires:
+ * \li	'view' to be valid
+ * \li	'name' to be absolute
+ */
+
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  unsigned int options, dns_zone_t **zonep);
@@ -1111,34 +1121,11 @@ dns_view_flushonshutdown(dns_view_t *view, bool flush);
  */
 
 void
-dns_view_sfd_add(dns_view_t *view, const dns_name_t *name);
-/*%<
- * Add 'name' to the synth-from-dnssec namespace tree for the
- * view.  If the tree does not already exist create it.
- *
- * Requires:
- *\li	'view' to be valid.
- *\li	'name' to be valid.
- */
-
-void
-dns_view_sfd_del(dns_view_t *view, const dns_name_t *name);
-/*%<
- * Delete 'name' to the synth-from-dnssec namespace tree for
- * the view when the count of previous adds and deletes becomes
- * zero.
- *
- * Requires:
- *\li	'view' to be valid.
- *\li	'name' to be valid.
- */
-
-void
 dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 		  dns_name_t *foundname);
 /*%<
- * Find the enclosing name to the synth-from-dnssec namespace tree for 'name'
- * in the specified view.
+ * Find the enclosing synth-from-dnssec namespace boundary for 'name' in the
+ * specified view.
  *
  * Requires:
  *\li	'view' to be valid.

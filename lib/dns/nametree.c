@@ -160,17 +160,6 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 		new = newnode(nametree->mctx, name);
 		new->set = value;
 		break;
-
-	case DNS_NAMETREE_COUNT:
-		new = newnode(nametree->mctx, name);
-		new->set = true;
-		result = dns_qp_deletename(qp, name, DNS_DBNAMESPACE_NORMAL,
-					   (void **)&old, &count);
-		if (result == ISC_R_SUCCESS) {
-			count += 1;
-		}
-		break;
-
 	case DNS_NAMETREE_BITS:
 		result = dns_qp_getname(qp, name, DNS_DBNAMESPACE_NORMAL,
 					(void **)&old, NULL);
@@ -231,16 +220,6 @@ dns_nametree_delete(dns_nametree_t *nametree, const dns_name_t *name) {
 	case DNS_NAMETREE_BOOL:
 	case DNS_NAMETREE_BITS:
 		break;
-
-	case DNS_NAMETREE_COUNT:
-		if (result == ISC_R_SUCCESS && count-- != 0) {
-			dns_ntnode_t *new = newnode(nametree->mctx, name);
-			new->set = true;
-			result = dns_qp_insert(qp, new, count);
-			INSIST(result == ISC_R_SUCCESS);
-			dns_ntnode_detach(&new);
-		}
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -292,9 +271,6 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 		switch (nametree->type) {
 		case DNS_NAMETREE_BOOL:
 			ret = node->set;
-			break;
-		case DNS_NAMETREE_COUNT:
-			ret = true;
 			break;
 		case DNS_NAMETREE_BITS:
 			ret = matchbit(node->bits, bit);

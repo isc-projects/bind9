@@ -233,6 +233,43 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	return result;
 }
 
+bool
+dns_zt_contains(dns_zt_t *zt, const dns_name_t *name) {
+	isc_result_t result;
+	dns_qpread_t qpr;
+
+	REQUIRE(VALID_ZT(zt));
+	REQUIRE(dns_name_isabsolute(name));
+
+	dns_qpmulti_query(zt->multi, &qpr);
+	result = dns_qp_getname(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL);
+	dns_qpread_destroy(zt->multi, &qpr);
+
+	return result == ISC_R_SUCCESS;
+}
+
+isc_result_t
+dns_zt_covers(dns_zt_t *zt, const dns_name_t *name, dns_name_t *foundname) {
+	isc_result_t result;
+	dns_qpread_t qpr;
+	void *pval = NULL;
+
+	REQUIRE(VALID_ZT(zt));
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(foundname != NULL);
+
+	dns_qpmulti_query(zt->multi, &qpr);
+	result = dns_qp_lookup(&qpr, name, DNS_DBNAMESPACE_NORMAL, NULL, NULL,
+			       &pval, NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		dns_zone_t *zone = pval;
+		dns_name_copy(dns_zone_getorigin(zone), foundname);
+	}
+	dns_qpread_destroy(zt->multi, &qpr);
+
+	return result;
+}
+
 void
 dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
 	REQUIRE(VALID_ZT(zt));
