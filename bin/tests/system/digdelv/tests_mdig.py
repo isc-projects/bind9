@@ -88,7 +88,7 @@ def test_yaml_output(mdig, ns2):
     """
     Check the structure of mdig +yaml output.
     """
-    result = mdig(f"+yaml @{ns2.ip} -t any ns2.example")
+    result = mdig(f"+tcp +yaml @{ns2.ip} -t any ns2.example")
     response = parse_yaml(result.out)[0]["message"]["response_message_data"]
     assert response["status"] == "NOERROR"
     assert response["QUESTION_SECTION"][0] == "ns2.example. IN ANY"

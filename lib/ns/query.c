@@ -5186,8 +5186,18 @@ ns__query_start(query_ctx_t *qctx) {
 
 	/*
 	 * Respond with TC=1 if we need TCP for this request.
+	 *
+	 * ANY queries are only answered to clients whose address is known
+	 * not to be spoofed, that is over TCP (RFC 8482, Section 4.4) or
+	 * with a valid server cookie: otherwise the response is empty and
+	 * truncated, whatever the answer would be, so that ANY queries
+	 * cannot be used to reflect and amplify traffic towards a spoofed
+	 * address.
 	 */
-	if (!qctx->client->inner.tcp && qctx->client->inner.needtcp) {
+	if (!qctx->client->inner.tcp &&
+	    (qctx->client->inner.needtcp || (qctx->qtype == dns_rdatatype_any &&
+					     !qctx->client->inner.havecookie)))
+	{
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		qctx->client->message->flags |= DNS_MESSAGEFLAG_TC;

@@ -58,9 +58,9 @@ def bootstrap():
     }
 
 
-def check(ns, qtype, dnssec, has_ad, rcode, has_answer):
+def check(ns, qtype, dnssec, has_ad, rcode, has_answer, transport=isctest.query.udp):
     msg = isctest.query.create("foo.test.", qtype, dnssec=dnssec)
-    response = isctest.query.udp(msg, ns.ip)
+    response = transport(msg, ns.ip)
     isctest.check.rcode(response, rcode)
 
     if has_ad:
@@ -99,6 +99,6 @@ def test_redirect_zone_qmin(ns11, qtype, dnssec, has_ad, rcode, has_answer):
 def test_redirect_zone_qmin_any_refused(ns11, dnssec):
     ns11.rndc("flush")
     # recursive ANY queries are refused, with a cold or a warm cache,
-    # instead of being redirected
+    # instead of being redirected; ANY queries are only answered over TCP
     for _ in range(2):
-        check(ns11, "ANY", dnssec, False, dns.rcode.REFUSED, False)
+        check(ns11, "ANY", dnssec, False, dns.rcode.REFUSED, False, isctest.query.tcp)
