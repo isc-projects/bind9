@@ -979,7 +979,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_rdataclass_t zclass;
 	dns_rdataclass_t vclass;
 	const cfg_obj_t *maps[MAPS_SIZE];
-	const cfg_obj_t *nodefault[NODEFAULT_MAPS_SIZE];
 	const cfg_obj_t *nooptions[NOOPTIONS_MAPS_SIZE];
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *toptions = NULL;
@@ -1025,28 +1024,27 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	zoptions = cfg_tuple_get(zconfig, "options");
 	INSIST(zoptions != NULL);
-	nodefault[i] = nooptions[i] = maps[i] = zoptions;
+	nooptions[i] = maps[i] = zoptions;
 	i++;
 
 	toptions = named_zone_templateopts(config, zoptions);
 	if (toptions != NULL) {
-		nodefault[i] = nooptions[i] = maps[i] = toptions;
+		nooptions[i] = maps[i] = toptions;
 		i++;
 	}
 
 	nooptions[i] = NULL;
 	if (vconfig != NULL) {
-		nodefault[i] = maps[i] = cfg_tuple_get(vconfig, "options");
+		maps[i] = cfg_tuple_get(vconfig, "options");
 		i++;
 	}
 
 	(void)cfg_map_get(config, CFG_CLAUSE_OPTIONS, &options);
 	if (options != NULL) {
-		nodefault[i] = maps[i] = options;
+		maps[i] = options;
 		i++;
 	}
 
-	nodefault[i] = NULL;
 	maps[i] = NULL;
 
 	if (vconfig != NULL) {
@@ -1332,7 +1330,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			}
 		}
 		notifytype = process_notifysoatype(notifytype, ztype, zname,
-						   nodefault);
+						   maps);
 		if (raw != NULL) {
 			dns_zone_setnotifytype(raw, dns_rdatatype_soa,
 					       dns_notifytype_no);
