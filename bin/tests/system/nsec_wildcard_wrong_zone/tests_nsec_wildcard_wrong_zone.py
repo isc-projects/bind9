@@ -9,21 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import pytest
 
 import isctest
-import isctest.mark
+import isctest.template
+import isctest.zone
 
 VICTIM = "victim.example."
 ATTACKER = "abc.example."
@@ -31,133 +24,75 @@ ATTACK = f"foo.{VICTIM}"
 VALID_NXDOMAIN = f"bar.{ATTACKER}"
 CONTROL = f"wild1.{VICTIM}"
 CONTROL_NODATA = f"wild2.{VICTIM}"
-VICTIM_NSEC_OWNER = f"a.{VICTIM}"
-ATTACKER_NSEC_OWNER = f"z.{ATTACKER}"
 CONTROL_A = "192.0.2.1"
-AUTH = "10.53.0.1"
-RESOLVER = "10.53.0.2"
 
-pytestmark = [
-    isctest.mark.with_ecdsa_deterministic,
-    pytest.mark.extra_artifacts(
-        [
-            "ans*/keys.json",
-        ]
-    ),
-]
-
-
-def _make_key():
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-    }
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/dsset-*",
+        "ans*/zones/*.db",
+        "ans*/zones/*.db.signed",
+    ]
+)
 
 
 def bootstrap():
-    keys = {zone: _make_key() for zone in [VICTIM, ATTACKER]}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    return {
-        "VICTIM_DNSKEY": "".join(keys[VICTIM]["dnskey"].split()[3:]),
-        "ATTACKER_DNSKEY": "".join(keys[ATTACKER]["dnskey"].split()[3:]),
-    }
+    trust_anchors = []
+    for name in (VICTIM, ATTACKER):
+        zone = isctest.zone.Zone(name, isctest.template.ANS1, signed=True)
+        zone.configure(csk=True)
+        trust_anchors += zone.trust_anchors()
+    return {"trust_anchors": trust_anchors}
 
 
-def _query(server, qname, qtype):
-    query = isctest.query.create(qname, qtype)
-    return isctest.query.tcp(query, server)
+@pytest.fixture(autouse=True)
+def autouse_flush_resolver_cache(ns2):
+    ns2.rndc("flush")
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
-def _check_signer(response, section, owner, covered, signer):
-    rrsig = _rrset(
-        response,
-        section,
-        owner,
-        dns.rdatatype.RRSIG,
-        covers=covered,
-    )
-    assert rrsig is not None, response.to_text()
-    assert rrsig[0].signer == dns.name.from_text(signer), response.to_text()
-
-
-def test_forged_response_contains_cross_zone_nsec():
-    response = _query(AUTH, ATTACK, "A")
+def test_forged_response_contains_cross_zone_nsec(ans1):
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ans1.ip)
     isctest.check.nxdomain(response)
 
-    assert _rrset(response, response.authority, ATTACKER_NSEC_OWNER, dns.rdatatype.NSEC)
-    _check_signer(
-        response,
-        response.authority,
-        ATTACKER_NSEC_OWNER,
-        dns.rdatatype.NSEC,
-        ATTACKER,
-    )
-
-    assert _rrset(response, response.authority, VICTIM_NSEC_OWNER, dns.rdatatype.NSEC)
-    _check_signer(
-        response,
-        response.authority,
-        VICTIM_NSEC_OWNER,
-        dns.rdatatype.NSEC,
-        VICTIM,
-    )
+    signers = {
+        rrsig[0].signer
+        for rrsig in response.authority
+        if rrsig.rdtype == dns.rdatatype.RRSIG and rrsig.covers == dns.rdatatype.NSEC
+    }
+    assert signers == {
+        dns.name.from_text(VICTIM),
+        dns.name.from_text(ATTACKER),
+    }, response.to_text()
 
 
-def test_resolver_rejects_cross_zone_nowildcard_proof():
-    response = _query(RESOLVER, ATTACKER, "SOA")
+def test_resolver_rejects_cross_zone_nowildcard_proof(ns2):
+    response = isctest.query.tcp(isctest.query.create(ATTACKER, "SOA"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
 
-    response = _query(RESOLVER, ATTACK, "A")
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ns2.ip)
     isctest.check.servfail(response)
     isctest.check.noadflag(response)
 
 
-def test_valid_same_zone_nxdomain_still_validates():
-    response = _query(RESOLVER, VALID_NXDOMAIN, "A")
+def test_valid_same_zone_nxdomain_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(VALID_NXDOMAIN, "A"), ns2.ip)
     isctest.check.nxdomain(response)
     isctest.check.adflag(response)
 
 
-def test_valid_wildcard_still_validates():
-    response = _query(RESOLVER, CONTROL, "A")
+def test_valid_wildcard_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(CONTROL, "A"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
-    answer = _rrset(response, response.answer, CONTROL, dns.rdatatype.A)
-    assert answer is not None, response.to_text()
+    answer = response.get_rrset(
+        response.answer, CONTROL, dns.rdataclass.IN, dns.rdatatype.A
+    )
+    assert answer, response.to_text()
     assert any(rdata.address == CONTROL_A for rdata in answer), response.to_text()
 
 
-def test_valid_wildcard_nodata_still_validates():
-    response = _query(RESOLVER, CONTROL_NODATA, "AAAA")
+def test_valid_wildcard_nodata_still_validates(ns2):
+    response = isctest.query.tcp(isctest.query.create(CONTROL_NODATA, "AAAA"), ns2.ip)
     isctest.check.noerror(response)
     isctest.check.adflag(response)
-    isctest.check.rr_count_eq(response.answer, 0)
+    assert not response.answer, response.to_text()
