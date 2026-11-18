@@ -199,11 +199,9 @@ Currently supported commands are:
      YYYYMMDDHHMMSS. If not set the rollover will start immediately.
 
    .. program:: rndc dnssec
-   .. option:: -status [-v] zone [class [view]]
+   .. option:: -status zone [class [view]]
 
      This command shows the DNSSEC signing state for the specified zone.
-     Adding ``-v`` also lists no longer used keys and shows the key states of
-     the keys.
 
    .. program:: rndc dnssec
    .. option:: -step zone [class [view]]
