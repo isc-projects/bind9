@@ -15,10 +15,6 @@ serve it back, when the proof owner carries both NSEC and NSEC3 records in
 any wire order (#5985, #6369).
 """
 
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -43,24 +39,6 @@ AUTH = "10.53.0.4"
 RESOLVER = "10.53.0.9"
 
 pytestmark = [isctest.mark.with_ecdsa_deterministic, DNSSEC_PY_MARK]
-
-
-def _make_key():
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-    }
 
 
 def bootstrap():
