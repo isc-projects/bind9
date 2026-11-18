@@ -14,6 +14,7 @@ from typing import TypeVar
 
 import abc
 
+import dns.flags
 import dns.name
 import dns.rdatatype
 
@@ -243,6 +244,21 @@ class EdnsOptions(Matcher):
 
     def __str__(self) -> str:
         return "with EDNS options"
+
+
+class Flags(Matcher):
+    """
+    Match queries with all the given header flags set.
+    """
+
+    def __init__(self, flags: dns.flags.Flag) -> None:
+        self._flags = flags
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._flags in dns.flags.Flag(qctx.query.flags)
+
+    def __str__(self) -> str:
+        return f"with flags {dns.flags.to_text(self._flags)}"
 
 
 class LabelPredicate(Matcher):
