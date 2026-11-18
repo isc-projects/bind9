@@ -194,7 +194,7 @@ help(void) {
 	       "command line -\n"
 	       "                                      global option)\n"
 	       "                 +[no]coflag         (Set compact denial of "
-	       "existence ok flag)\n"
+	       "existence ok flag\n"
 	       "                                      in query)\n"
 	       "                 +[no]comments       (Control display of "
 	       "packet "
