@@ -11,6 +11,8 @@
 
 import os
 
+import pytest
+
 import isctest
 import isctest.mark
 
@@ -37,14 +39,6 @@ def extract_dnstap(ns, expectedlen):
     return map(line_to_ips_and_queries, lines)
 
 
-def expect_query(expected_query, expected_query_count, ips_and_queries):
-    count = 0
-    for _, query in ips_and_queries:
-        if query == expected_query:
-            count += 1
-    assert count == expected_query_count
-
-
 def expect_next_ip_and_query(expected_ips_and_queries, ips_and_queries):
     for expected_ip, expected_query in expected_ips_and_queries:
         ip, query = next(ips_and_queries)
@@ -52,16 +46,15 @@ def expect_next_ip_and_query(expected_ips_and_queries, ips_and_queries):
         assert query == expected_query
 
 
-def check_nsprocessinglimit(ns, queries_count):
-    msg = isctest.query.create("a.sub.example.tld.", "A")
+def check_nsprocessinglimit(ns, label, servers_count):
+    # A name of its own per check tells the fetches apart in the log.
+    qname = f"{label}.sub.example.tld"
+    msg = isctest.query.create(qname, "A")
     res = isctest.query.tcp(msg, ns.ip)
     isctest.check.servfail(res)
 
-    # The 4 formers lines are request to find sub.example.tld NSs.
-    # The latest are queries to sub.example.tld NSs.
-    ips_and_queries = extract_dnstap(ns, queries_count)
-
-    # Checking the begining of the resulution
+    # The only queries sent are those finding the sub.example.tld NSs.
+    ips_and_queries = extract_dnstap(ns, 4)
     expect_next_ip_and_query(
         [
             ("10.53.0.1", "./IN/NS"),
@@ -71,11 +64,16 @@ def check_nsprocessinglimit(ns, queries_count):
         ],
         ips_and_queries,
     )
-    expect_query("a.sub.example.tld/IN/A", queries_count - 4, ips_and_queries)
+
+    # The sub.example.tld NSs are bogus: each one selected for the fetch is
+    # logged (in a query trace build) and skipped instead of being queried.
+    skipped = ns.log.grep(f"({qname}/A): ignoring blackholed / bogus server")
+    assert len(skipped) == servers_count
 
 
+@isctest.mark.with_querytrace
 def test_nsprocessinglimit_default(ns4):
-    check_nsprocessinglimit(ns4, 17)
+    check_nsprocessinglimit(ns4, "default", 13)
 
 
 def reconfig_maxdelegationservers(ns, templates, count):
@@ -99,24 +97,13 @@ def reconfig_maxdelegationservers_failure(ns, templates, count):
         watcher.wait_for_line("reloading configuration failed: out of range")
 
 
-def test_nsprocessinglimit_13ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 13)
-    check_nsprocessinglimit(ns4, 17)
+@isctest.mark.with_querytrace
+@pytest.mark.parametrize("count", [13, 5, 20])
+def test_nsprocessinglimit_configured(ns4, templates, count):
+    reconfig_maxdelegationservers(ns4, templates, count)
+    check_nsprocessinglimit(ns4, f"limit{count}", count)
 
 
-def test_nsprocessinglimit_5ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 5)
-    check_nsprocessinglimit(ns4, 9)
-
-
-def test_nsprocessinglimit_20ns(ns4, templates):
-    reconfig_maxdelegationservers(ns4, templates, 20)
-    check_nsprocessinglimit(ns4, 24)
-
-
-def test_nsprocessinglimit_lower(ns4, templates):
-    reconfig_maxdelegationservers_failure(ns4, templates, 0)
-
-
-def test_nsprocessinglimit_upper(ns4, templates):
-    reconfig_maxdelegationservers_failure(ns4, templates, 101)
+@pytest.mark.parametrize("count", [0, 101])
+def test_nsprocessinglimit_out_of_range(ns4, templates, count):
+    reconfig_maxdelegationservers_failure(ns4, templates, count)

@@ -87,6 +87,12 @@ with_dnstap = pytest.mark.skipif(
 )
 
 
+with_querytrace = pytest.mark.skipif(
+    os.getenv("FEATURE_QUERYTRACE") != "1",
+    reason="query trace logging disabled in the build",
+)
+
+
 without_fips = pytest.mark.skipif(
     os.getenv("FEATURE_FIPS_MODE") == "1", reason="FIPS support enabled in the build"
 )
