@@ -22771,9 +22771,9 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (kasp != NULL && !offlineksk) {
 		/* Verify new keys. */
-		isc_result_t ret = zone_verifykeys(
-			zone, &keys, dns_kasp_purgekeys(kasp), now);
-		if (ret != ISC_R_SUCCESS) {
+		result = zone_verifykeys(zone, &keys, dns_kasp_purgekeys(kasp),
+					 now);
+		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:zone_verifykeys failed: "
 				   "some key files are missing");
@@ -22790,8 +22790,8 @@ zone_rekey(dns_zone_t *zone) {
 		ISC_LIST_INIT(zone->checkds_ok);
 		UNLOCK_ZONE(zone);
 
-		ret = dns_zone_getdnsseckeys(zone, db, ver, now,
-					     &zone->checkds_ok);
+		isc_result_t ret = dns_zone_getdnsseckeys(zone, db, ver, now,
+							  &zone->checkds_ok);
 		if (ret == ISC_R_SUCCESS) {
 			zone_checkds(zone);
 		} else {
@@ -22804,25 +22804,22 @@ zone_rekey(dns_zone_t *zone) {
 		}
 
 		/* Run keymgr. */
-		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
-			dns_zone_lock_keyfiles(zone);
-			result = dns_keymgr_run(&zone->origin, zone->rdclass,
-						mctx, &keys, &dnskeys, dir,
-						kasp, options, now, &nexttime);
-			dns_zone_unlock_keyfiles(zone);
+		dns_zone_lock_keyfiles(zone);
+		result = dns_keymgr_run(&zone->origin, zone->rdclass, mctx,
+					&keys, &dnskeys, dir, kasp, options,
+					now, &nexttime);
+		dns_zone_unlock_keyfiles(zone);
 
-			if (result == ISC_R_SUCCESS) {
-				kasp_change = true;
-			} else if (result == DNS_R_UNCHANGED) {
-				result = ISC_R_SUCCESS;
-			} else {
-				dnssec_log(zone, ISC_LOG_ERROR,
-					   "zone_rekey:dns_keymgr_run "
-					   "failed: %s",
-					   isc_result_totext(result));
-				KASP_UNLOCK(kasp);
-				goto cleanup;
-			}
+		if (result == ISC_R_SUCCESS) {
+			kasp_change = true;
+		} else if (result == DNS_R_UNCHANGED) {
+			result = ISC_R_SUCCESS;
+		} else {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:dns_keymgr_run failed: %s",
+				   isc_result_totext(result));
+			KASP_UNLOCK(kasp);
+			goto cleanup;
 		}
 	} else if (offlineksk) {
 		/*

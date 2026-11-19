@@ -325,6 +325,17 @@ def cb_legacy_keys(params, ksks=None, zsks=None):
     assert f"{keydir}/{zskfile}".strip() == zsks[0].path
 
 
+def check_verifykeys_logs(server, zone):
+    sequence = [
+        f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing",
+        f"zone {zone}/IN (signed): zone_rekey failure: not found (retry in 600 seconds)",
+    ]
+
+    with server.watch_log_from_here() as watcher:
+        server.rndc(f"loadkeys {zone}")
+        watcher.wait_for_sequence(sequence)
+
+
 def cb_remove_keyfiles(params, ksks=None, zsks=None):
     zone = params["zone"]
     servers = params["servers"]
@@ -339,11 +350,7 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
         os.remove(k.privatefile)
         os.remove(k.statefile)
 
-    with servers["ns3"].watch_log_from_here() as watcher:
-        servers["ns3"].rndc(f"loadkeys {zone}")
-        watcher.wait_for_line(
-            f"zone {zone}/IN (signed): zone_rekey:zone_verifykeys failed: some key files are missing"
-        )
+    check_verifykeys_logs(servers["ns3"], zone)
 
     # Check keys again, make sure no new keys are created.
     keys = isctest.kasp.keydir_to_keylist(zone, keydir)
@@ -353,6 +360,7 @@ def cb_remove_keyfiles(params, ksks=None, zsks=None):
 
 
 def cb_log_error_reading(roles, params, ksks=None, zsks=None):
+    zone = params["zone"]
     servers = params["servers"]
 
     isctest.log.info("check that it is logged if key files cannot be read")
@@ -375,6 +383,8 @@ def cb_log_error_reading(roles, params, ksks=None, zsks=None):
 
     with servers["ns3"].watch_log_from_start() as watcher:
         watcher.wait_for_sequence(messages)
+
+    check_verifykeys_logs(servers["ns3"], zone)
 
 
 @pytest.mark.parametrize(
