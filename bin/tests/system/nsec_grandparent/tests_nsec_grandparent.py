@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -56,9 +54,6 @@ FORGED_A = "6.6.6.60"
 GENUINE_ALGORITHM = 13  # ECDSAP256SHA256, the parent key
 DUMMY_ALGORITHM = 0  # keep in sync with ans1/ans.py
 MAX_VALIDATIONS_PER_FETCH = 16  # keep in sync with ans1/ans.py
-
-AUTH = "10.53.0.1"  # ans1, the attacker-controlled authoritative server
-RESOLVER = "10.53.0.2"  # ns2, the validating resolver under test
 
 REFUSED_NSEC_LOG = (
     "is_insecure_referral: NSEC signer above known secure DS; "
@@ -147,12 +142,11 @@ def _rrsig_signers(response, section, owner, covered):
     return [(rdata.signer.to_text(), int(rdata.algorithm)) for rdata in rrsig]
 
 
-def _auth_query_count(qname, qtype):
+def _ans_query_count(server, qname, qtype):
     """
     Number of times the mock auth server received qname/qtype.
     """
-    log = Path("ans1/ans.run").read_text(encoding="utf-8")
-    return log.count(f"Received {qname.rstrip('.')}/IN/{qtype} (ID=")
+    return len(server.log.grep(f"Received {qname.rstrip('.')}/IN/{qtype} (ID="))
 
 
 def _check_no_downgrade(response, qname):
@@ -180,7 +174,7 @@ def _check_refusal_logged(server, qname, expected_log):
         watcher.wait_for_line(f"validating {qname.rstrip('.')}/A: {expected_log}")
 
 
-def test_auth_serves_forged_grandparent_nsec():
+def test_auth_serves_forged_grandparent_nsec(ans1):
     """
     Check the attacker's server, not the resolver.
 
@@ -193,7 +187,7 @@ def test_auth_serves_forged_grandparent_nsec():
     ans1/ans.py ever stops serving that forgery, this fails here instead
     of quietly turning every test_resolver_rejects_* below into a pass.
     """
-    child_ds = isctest.query.tcp(isctest.query.create(CHILD, "DS"), AUTH)
+    child_ds = isctest.query.tcp(isctest.query.create(CHILD, "DS"), ans1.ip)
     isctest.check.noerror(child_ds)
     assert child_ds.get_rrset(
         child_ds.answer, CHILD, dns.rdataclass.IN, dns.rdatatype.DS
@@ -202,7 +196,7 @@ def test_auth_serves_forged_grandparent_nsec():
         (PARENT, GENUINE_ALGORITHM)
     ], child_ds.to_text()
 
-    grandchild_ds = isctest.query.tcp(isctest.query.create(GRANDCHILD, "DS"), AUTH)
+    grandchild_ds = isctest.query.tcp(isctest.query.create(GRANDCHILD, "DS"), ans1.ip)
     isctest.check.noerror(grandchild_ds)
     nsec = grandchild_ds.get_rrset(
         grandchild_ds.authority, GRANDCHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
@@ -216,7 +210,7 @@ def test_auth_serves_forged_grandparent_nsec():
     ) == [(PARENT, GENUINE_ALGORITHM)], grandchild_ds.to_text()
 
 
-def test_resolver_rejects_grandparent_nsec_downgrade(servers):
+def test_resolver_rejects_grandparent_nsec_downgrade(ns2, ans1):
     """
     Reproducer for #5967: an NSEC signed by the grandparent must not
     downgrade a secure delegation to insecure.  Here the forged proof
@@ -224,30 +218,30 @@ def test_resolver_rejects_grandparent_nsec_downgrade(servers):
     fetch_callback_ds().
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK, "A"), RESOLVER), ATTACK
+        isctest.query.tcp(isctest.query.create(ATTACK, "A"), ns2.ip), ATTACK
     )
-    _check_refusal_logged(servers["ns2"], ATTACK, REFUSED_NSEC_LOG)
+    _check_refusal_logged(ns2, ATTACK, REFUSED_NSEC_LOG)
 
     # The rejected proof must also stop the insecurity walk: without the
     # early stop, the validator descends and asks the (attacker-controlled)
     # server for a DS at the attack name.
-    assert _auth_query_count(ATTACK, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK, "DS") == 0
 
 
-def test_resolver_rejects_grandparent_nsec3_downgrade(servers):
+def test_resolver_rejects_grandparent_nsec3_downgrade(ns2, ans1):
     """
     The same downgrade as above, with the forgery expressed as an NSEC3,
     which reaches is_insecure_referral()'s trynsec3 arm instead.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK3, "A"), RESOLVER), ATTACK3
+        isctest.query.tcp(isctest.query.create(ATTACK3, "A"), ns2.ip), ATTACK3
     )
-    _check_refusal_logged(servers["ns2"], ATTACK3, REFUSED_NSEC3_LOG)
+    _check_refusal_logged(ns2, ATTACK3, REFUSED_NSEC3_LOG)
 
-    assert _auth_query_count(ATTACK3, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK3, "DS") == 0
 
 
-def test_resolver_rejects_sibling_zone_nsec3(servers):
+def test_resolver_rejects_sibling_zone_nsec3(ns2):
     """
     Reproducer for #6234 (sibling-zone NSEC3).
 
@@ -265,13 +259,13 @@ def test_resolver_rejects_sibling_zone_nsec3(servers):
     Before the fix this fails: the resolver returns the forged answer.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK3_SIBLING, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK3_SIBLING, "A"), ns2.ip),
         ATTACK3_SIBLING,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK3_SIBLING, IGNORED_NSEC3_LOG)
+    _check_refusal_logged(ns2, ATTACK3_SIBLING, IGNORED_NSEC3_LOG)
 
 
-def test_auth_serves_mixed_signer_grandparent_nsec():
+def test_auth_serves_mixed_signer_grandparent_nsec(ans1):
     """
     Premise check for the #6321 reproducers below, again against ans1
     directly rather than the resolver.
@@ -294,7 +288,9 @@ def test_auth_serves_mixed_signer_grandparent_nsec():
             [(PARENT, GENUINE_ALGORITHM), (GRANDCHILD_DUMMY_LAST, DUMMY_ALGORITHM)],
         ),
     ]:
-        grandchild_ds = isctest.query.tcp(isctest.query.create(grandchild, "DS"), AUTH)
+        grandchild_ds = isctest.query.tcp(
+            isctest.query.create(grandchild, "DS"), ans1.ip
+        )
         isctest.check.noerror(grandchild_ds)
         nsec = grandchild_ds.get_rrset(
             grandchild_ds.authority, grandchild, dns.rdataclass.IN, dns.rdatatype.NSEC
@@ -309,7 +305,7 @@ def test_auth_serves_mixed_signer_grandparent_nsec():
         assert signers == expected, grandchild_ds.to_text()
 
 
-def test_resolver_rejects_mixed_signer_nsec_dummy_first(servers):
+def test_resolver_rejects_mixed_signer_nsec_dummy_first(ns2, ans1):
     """
     Reproducer for #6321: the NSEC is still the grandparent's forgery from
     test_resolver_rejects_grandparent_nsec_downgrade(), and it still
@@ -322,17 +318,17 @@ def test_resolver_rejects_mixed_signer_nsec_dummy_first(servers):
     and the forged answer below the secure delegation is accepted.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_FIRST, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_FIRST, "A"), ns2.ip),
         ATTACK_DUMMY_FIRST,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_DUMMY_FIRST, REFUSED_MIXED_LOG)
+    _check_refusal_logged(ns2, ATTACK_DUMMY_FIRST, REFUSED_MIXED_LOG)
 
     # A mixed-signer set is forged outright, so the walk must stop there
     # just like the plain grandparent forgery does.
-    assert _auth_query_count(ATTACK_DUMMY_FIRST, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK_DUMMY_FIRST, "DS") == 0
 
 
-def test_resolver_rejects_mixed_signer_nsec_dummy_last(servers):
+def test_resolver_rejects_mixed_signer_nsec_dummy_last(ns2, ans1):
     """
     Control for the test above with the RRSIGs in the other order: the
     genuine grandparent signature first, the dummy second.  Whatever the
@@ -340,15 +336,15 @@ def test_resolver_rejects_mixed_signer_nsec_dummy_last(servers):
     wire order the attacker chooses.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_LAST, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_LAST, "A"), ns2.ip),
         ATTACK_DUMMY_LAST,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_DUMMY_LAST, REFUSED_MIXED_LOG)
+    _check_refusal_logged(ns2, ATTACK_DUMMY_LAST, REFUSED_MIXED_LOG)
 
-    assert _auth_query_count(ATTACK_DUMMY_LAST, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK_DUMMY_LAST, "DS") == 0
 
 
-def test_resolver_rejects_mixed_signer_nsec_from_cache(servers):
+def test_resolver_rejects_mixed_signer_nsec_from_cache(ns2, ans1):
     """
     The dummy-first forgery again, with a second name below the same
     grandchild so that whatever the first walk left in the cache (the
@@ -356,27 +352,25 @@ def test_resolver_rejects_mixed_signer_nsec_from_cache(servers):
     resolver accepted it) is what the insecurity walk finds this time.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_FIRST, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_FIRST, "A"), ns2.ip),
         ATTACK_DUMMY_FIRST,
     )
 
-    ds_fetches = _auth_query_count(GRANDCHILD_DUMMY_FIRST, "DS")
+    ds_fetches = _ans_query_count(ans1, GRANDCHILD_DUMMY_FIRST, "DS")
     _check_no_downgrade(
-        isctest.query.tcp(
-            isctest.query.create(ATTACK_DUMMY_FIRST_CACHED, "A"), RESOLVER
-        ),
+        isctest.query.tcp(isctest.query.create(ATTACK_DUMMY_FIRST_CACHED, "A"), ns2.ip),
         ATTACK_DUMMY_FIRST_CACHED,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_DUMMY_FIRST_CACHED, REFUSED_MIXED_LOG)
+    _check_refusal_logged(ns2, ATTACK_DUMMY_FIRST_CACHED, REFUSED_MIXED_LOG)
 
     # As in test_resolver_rejects_downgrade_from_cached_proof(): no new DS
     # fetch for the grandchild proves the mixed proof came from the cache,
     # none for the attack name proves the walk stopped there.
-    assert _auth_query_count(GRANDCHILD_DUMMY_FIRST, "DS") == ds_fetches
-    assert _auth_query_count(ATTACK_DUMMY_FIRST_CACHED, "DS") == 0
+    assert _ans_query_count(ans1, GRANDCHILD_DUMMY_FIRST, "DS") == ds_fetches
+    assert _ans_query_count(ans1, ATTACK_DUMMY_FIRST_CACHED, "DS") == 0
 
 
-def test_auth_serves_many_rrsig_grandparent_nsec():
+def test_auth_serves_many_rrsig_grandparent_nsec(ans1):
     """
     Premise check for the RRSIG-count tests below, against ans1 directly.
 
@@ -388,7 +382,9 @@ def test_auth_serves_many_rrsig_grandparent_nsec():
         (GRANDCHILD_TOO_MANY, MAX_VALIDATIONS_PER_FETCH),
         (GRANDCHILD_ALMOST_TOO_MANY, MAX_VALIDATIONS_PER_FETCH - 1),
     ]:
-        grandchild_ds = isctest.query.tcp(isctest.query.create(grandchild, "DS"), AUTH)
+        grandchild_ds = isctest.query.tcp(
+            isctest.query.create(grandchild, "DS"), ans1.ip
+        )
         isctest.check.noerror(grandchild_ds)
         assert grandchild_ds.get_rrset(
             grandchild_ds.authority, grandchild, dns.rdataclass.IN, dns.rdatatype.NSEC
@@ -403,7 +399,7 @@ def test_auth_serves_many_rrsig_grandparent_nsec():
         ], grandchild_ds.to_text()
 
 
-def test_resolver_rejects_nsec_with_too_many_rrsigs(servers):
+def test_resolver_rejects_nsec_with_too_many_rrsigs(ns2, ans1):
     """
     An NSEC proof carrying at least max-validations-per-fetch RRSIGs is
     refused outright, before any signer is looked at.  The signatures
@@ -412,15 +408,15 @@ def test_resolver_rejects_nsec_with_too_many_rrsigs(servers):
     instead; the log line pins which rule fired.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_TOO_MANY, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_TOO_MANY, "A"), ns2.ip),
         ATTACK_TOO_MANY,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_TOO_MANY, REFUSED_TOO_MANY_LOG)
+    _check_refusal_logged(ns2, ATTACK_TOO_MANY, REFUSED_TOO_MANY_LOG)
 
-    assert _auth_query_count(ATTACK_TOO_MANY, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK_TOO_MANY, "DS") == 0
 
 
-def test_resolver_bounds_nsec_just_below_rrsig_cap(servers):
+def test_resolver_bounds_nsec_just_below_rrsig_cap(ns2, ans1):
     """
     Control for the test above with one RRSIG fewer: the cap must not
     fire, the validator must still authenticate the NSEC through the
@@ -428,15 +424,15 @@ def test_resolver_bounds_nsec_just_below_rrsig_cap(servers):
     be refused by the ordinary grandparent-signer bound.
     """
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_ALMOST_TOO_MANY, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_ALMOST_TOO_MANY, "A"), ns2.ip),
         ATTACK_ALMOST_TOO_MANY,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_ALMOST_TOO_MANY, REFUSED_NSEC_LOG)
+    _check_refusal_logged(ns2, ATTACK_ALMOST_TOO_MANY, REFUSED_NSEC_LOG)
 
-    assert _auth_query_count(ATTACK_ALMOST_TOO_MANY, "DS") == 0
+    assert _ans_query_count(ans1, ATTACK_ALMOST_TOO_MANY, "DS") == 0
 
 
-def test_resolver_rejects_downgrade_from_cached_proof(servers):
+def test_resolver_rejects_downgrade_from_cached_proof(ns2, ans1):
     """
     The same downgrade as above, with the forged proof already in the
     cache when the insecurity walk reaches it, so the refusal runs in
@@ -445,18 +441,16 @@ def test_resolver_rejects_downgrade_from_cached_proof(servers):
     # Prime the cache: walking the insecurity proof for ATTACK fetches the
     # forged NODATA proof for GRANDCHILD/DS, which is validated and cached
     # independently of the failed A validation.
-    isctest.check.servfail(
-        isctest.query.tcp(isctest.query.create(ATTACK, "A"), RESOLVER)
-    )
+    isctest.check.servfail(isctest.query.tcp(isctest.query.create(ATTACK, "A"), ns2.ip))
 
-    ds_fetches = _auth_query_count(GRANDCHILD, "DS")
+    ds_fetches = _ans_query_count(ans1, GRANDCHILD, "DS")
     _check_no_downgrade(
-        isctest.query.tcp(isctest.query.create(ATTACK_CACHED, "A"), RESOLVER),
+        isctest.query.tcp(isctest.query.create(ATTACK_CACHED, "A"), ns2.ip),
         ATTACK_CACHED,
     )
-    _check_refusal_logged(servers["ns2"], ATTACK_CACHED, REFUSED_NSEC_LOG)
+    _check_refusal_logged(ns2, ATTACK_CACHED, REFUSED_NSEC_LOG)
 
     # No new DS fetch for GRANDCHILD confirms the proof really did come from
     # the cache; none for ATTACK_CACHED confirms the walk stopped there.
-    assert _auth_query_count(GRANDCHILD, "DS") == ds_fetches
-    assert _auth_query_count(ATTACK_CACHED, "DS") == 0
+    assert _ans_query_count(ans1, GRANDCHILD, "DS") == ds_fetches
+    assert _ans_query_count(ans1, ATTACK_CACHED, "DS") == 0
