@@ -23,6 +23,7 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import StaticResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 MAX_VALIDATIONS_PER_FETCH = 16
@@ -56,6 +57,11 @@ def nsec3(
         dns.rdatatype.NSEC3,
         f"1 0 {iterations} {salt.hex() if salt else '-'} {next_hash} NS",
     )
+
+
+class ChildNsHandler(StaticResponseHandler):
+    matcher = Qname("c.p031.test") & Qtype(dns.rdatatype.NS)
+    rcode = dns.rcode.NXDOMAIN
 
 
 class GrandchildAHandler(ResponseHandler):
@@ -274,6 +280,7 @@ class AlmostTooManyRrsigsGrandchildDsNsecHandler(ManyRrsigsGrandchildDsNsecHandl
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(
+        ChildNsHandler(),
         GrandchildAHandler(),
         GrandchildDsNsecHandler(),
         GrandchildDsNsec3Handler(),
