@@ -15,7 +15,6 @@ pytestmark = pytest.mark.extra_artifacts(
     [
         "dig.out.*",
         "keygen.out*",
-        "packet.out",
         "ns1/named-fips.conf",
     ]
 )
