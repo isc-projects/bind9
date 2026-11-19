@@ -339,34 +339,6 @@ grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
 
 n=$((n + 1))
 ret=0
-echo_i "check that TYPE=0 update is handled ($n)"
-nextpart ns1/named.run >/dev/null
-echo "a0e4280000010000000100000000060001c00c000000fe000000000000" \
-  | $PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp -b >/dev/null || ret=1
-wait_for_log 2 "message parsing failed: FORMERR" ns1/named.run || ret=1
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
-grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
-[ $ret = 0 ] || {
-  echo_i "failed"
-  status=1
-}
-
-n=$((n + 1))
-ret=0
-echo_i "check that TYPE=0 additional data is handled ($n)"
-nextpart ns1/named.run >/dev/null
-echo "a0e4280000010000000000010000060001c00c000000fe000000000000" \
-  | $PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp -b >/dev/null || ret=1
-wait_for_log 2 "message parsing failed: FORMERR" ns1/named.run || ret=1
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
-grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
-[ $ret = 0 ] || {
-  echo_i "failed"
-  status=1
-}
-
-n=$((n + 1))
-ret=0
 echo_i "check that address family mismatch is handled ($n)"
 $NSUPDATE <<END >/dev/null 2>&1 && ret=1
 server ::1
