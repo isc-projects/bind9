@@ -127,35 +127,14 @@ def _query(server, qname, qtype):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _has_a(response, section, owner, address):
-    rrset = _rrset(response, section, owner, dns.rdatatype.A)
+    rrset = response.get_rrset(section, owner, dns.rdataclass.IN, dns.rdatatype.A)
     return rrset is not None and any(rdata.address == address for rdata in rrset)
 
 
 def _check_signed_rrset(response, section, owner, rdtype, signer):
-    rrsig = _rrset(
-        response,
-        section,
-        owner,
-        dns.rdatatype.RRSIG,
-        covers=rdtype,
+    rrsig = response.get_rrset(
+        section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=rdtype
     )
     assert rrsig is not None, response.to_text()
     assert rrsig[0].signer == dns.name.from_text(signer), response.to_text()
@@ -165,7 +144,9 @@ def _rrsig_signers(response, section, owner, covered):
     """
     (signer, algorithm) of every RRSIG covering owner/covered, in wire order.
     """
-    rrsig = _rrset(response, section, owner, dns.rdatatype.RRSIG, covers=covered)
+    rrsig = response.get_rrset(
+        section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=covered
+    )
     assert rrsig is not None, response.to_text()
     return [(rdata.signer.to_text(), int(rdata.algorithm)) for rdata in rrsig]
 
@@ -218,13 +199,16 @@ def test_auth_serves_forged_grandparent_nsec():
     """
     child_ds = _query(AUTH, CHILD, "DS")
     isctest.check.noerror(child_ds)
-    assert _rrset(child_ds, child_ds.answer, CHILD, dns.rdatatype.DS) is not None
+    assert (
+        child_ds.get_rrset(child_ds.answer, CHILD, dns.rdataclass.IN, dns.rdatatype.DS)
+        is not None
+    )
     _check_signed_rrset(child_ds, child_ds.answer, CHILD, dns.rdatatype.DS, PARENT)
 
     grandchild_ds = _query(AUTH, GRANDCHILD, "DS")
     isctest.check.noerror(grandchild_ds)
-    nsec = _rrset(
-        grandchild_ds, grandchild_ds.authority, GRANDCHILD, dns.rdatatype.NSEC
+    nsec = grandchild_ds.get_rrset(
+        grandchild_ds.authority, GRANDCHILD, dns.rdataclass.IN, dns.rdatatype.NSEC
     )
     assert nsec is not None, grandchild_ds.to_text()
     assert nsec[0].next == dns.name.from_text(
@@ -312,8 +296,8 @@ def test_auth_serves_mixed_signer_grandparent_nsec():
     ]:
         grandchild_ds = _query(AUTH, grandchild, "DS")
         isctest.check.noerror(grandchild_ds)
-        nsec = _rrset(
-            grandchild_ds, grandchild_ds.authority, grandchild, dns.rdatatype.NSEC
+        nsec = grandchild_ds.get_rrset(
+            grandchild_ds.authority, grandchild, dns.rdataclass.IN, dns.rdatatype.NSEC
         )
         assert nsec is not None, grandchild_ds.to_text()
         assert nsec[0].next == dns.name.from_text(
@@ -395,8 +379,11 @@ def test_auth_serves_many_rrsig_grandparent_nsec():
         grandchild_ds = _query(AUTH, grandchild, "DS")
         isctest.check.noerror(grandchild_ds)
         assert (
-            _rrset(
-                grandchild_ds, grandchild_ds.authority, grandchild, dns.rdatatype.NSEC
+            grandchild_ds.get_rrset(
+                grandchild_ds.authority,
+                grandchild,
+                dns.rdataclass.IN,
+                dns.rdatatype.NSEC,
             )
             is not None
         ), grandchild_ds.to_text()
