@@ -11,12 +11,6 @@
 
 from pathlib import Path
 
-import json
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
@@ -24,6 +18,8 @@ import pytest
 
 import isctest
 import isctest.mark
+import isctest.template
+import isctest.zone
 
 PARENT = "p031.test."
 CHILD = f"c.{PARENT}"
@@ -88,36 +84,49 @@ pytestmark = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
-            "ans*/keys.json",
+            "ans*/dsset-*",
+            "ans*/zones/*.db",
+            "ans*/zones/*.db.signed",
         ]
     ),
 ]
 
 
-def _make_key():
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-    }
-
-
 def bootstrap():
-    keys = {PARENT: _make_key(), CHILD: _make_key(), SIBLING: _make_key()}
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
-    parent_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
+    grandchildren_nsec = []
+    for grandchild in (
+        GRANDCHILD,
+        GRANDCHILD_DUMMY_FIRST,
+        GRANDCHILD_DUMMY_LAST,
+        GRANDCHILD_TOO_MANY,
+        GRANDCHILD_ALMOST_TOO_MANY,
+    ):
+        zone = isctest.zone.Zone(grandchild, isctest.template.ANS1, signed=True)
+        zone.configure(csk=True)
+        grandchildren_nsec.append(zone)
+
+    grandchild_nsec3 = isctest.zone.Zone(
+        GRANDCHILD3, isctest.template.ANS1, signed=True
+    )
+    grandchild_nsec3.configure(csk=True, sign_params="-3 -")
+
+    child = isctest.zone.Zone(CHILD, isctest.template.ANS1, signed=True)
+    child.delegations = grandchildren_nsec + [grandchild_nsec3]
+    child.configure(csk=True, sign_params="-3 -")
+
+    # Salt for this zone is specifically chosen so that the NSEC3 hash for
+    # "grandsib.c.p031.test." salted with this zone's salt sorts before the
+    # NSEC3 hash for the same name salted with the "c.p031.test." zone's salt.
+    chosen_salt = 37
+    sibling = isctest.zone.Zone(SIBLING, isctest.template.ANS1, signed=True)
+    sibling.configure(csk=True, sign_params=f"-3 {chosen_salt}")
+
+    parent = isctest.zone.Zone(PARENT, isctest.template.ANS1, signed=True)
+    parent.delegations = [child, sibling]
+    parent.configure(csk=True)
+
     return {
-        "PARENT_DNSKEY": parent_dnskey,
+        "trust_anchors": parent.trust_anchors(),
         "MAX_VALIDATIONS": str(MAX_VALIDATIONS_PER_FETCH),
     }
 
