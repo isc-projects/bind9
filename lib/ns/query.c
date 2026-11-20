@@ -5110,14 +5110,19 @@ qctx_reportquery(query_ctx_t *qctx) {
 	if (isc_log_wouldlog(ISC_LOG_INFO)) {
 		char classbuf[DNS_RDATACLASS_FORMATSIZE];
 		char namebuf[DNS_NAME_FORMATSIZE];
+		char clientbuf[ISC_NETADDR_FORMATSIZE];
+		isc_netaddr_t netaddr;
 
 		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(client->inner.view->rdclass, classbuf,
 				      sizeof(classbuf));
+		isc_netaddr_fromsockaddr(&netaddr, &client->inner.peeraddr);
+		isc_netaddr_format(&netaddr, clientbuf, sizeof(clientbuf));
 
 		isc_log_write(NS_LOGCATEGORY_DRA, NS_LOGMODULE_QUERY,
-			      ISC_LOG_INFO, "dns-reporting-agent '%s/%s'",
-			      namebuf, classbuf);
+			      ISC_LOG_INFO,
+			      "dns-reporting-agent '%s/%s' from %s", namebuf,
+			      classbuf, clientbuf);
 	}
 }
 
