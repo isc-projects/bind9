@@ -1395,7 +1395,14 @@ def check_rollover_step(server, config, policy, step):
     check_subdomain(server, zone, ksks, zsks, smooth=smooth)
 
     def check_next_key_event():
-        return next_key_event_equals(server, zone, nextev)
+        if next_key_event_equals(server, zone, nextev):
+            return True
+        # A rekey request that arrives while a rekey is in progress is
+        # lost, e.g. "rndc dnssec -checkds" racing named's own DS check.
+        # The next key event then reflects stale DS timing; request
+        # another rekey before retrying.
+        server.rndc(f"loadkeys {zone}")
+        return False
 
     if nextev is not None:
         # Larger than the inner watch_log timeout (10s) so slow logging of
