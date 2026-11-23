@@ -23,7 +23,7 @@ import dns.rcode
 import dns.update
 import pytest
 
-from dnstap.common import ARTIFACTS, check_counts
+from dnstap.common import ARTIFACTS, check_counts, query
 
 import isctest
 import isctest.mark
@@ -87,14 +87,9 @@ def capture_fixture(request, ns4):
             proc.terminate()
 
 
-def query(ns4):
-    msg = isctest.query.create("a.example.", "A")
-    isctest.query.udp(msg, ns4.ip, expected_rcode=dns.rcode.SERVFAIL)
-
-
 @isctest.mark.with_fstrm_capture
 def test_unix_socket(ns4, capture):
-    query(ns4)
+    query(ns4, expected_rcode=dns.rcode.SERVFAIL)
     update = dns.update.Update("example")
     update.add("b.example.", 3600, "A", "10.10.10.10")
     ns4.nsupdate(update, expected_rcode=dns.rcode.NOTAUTH)
@@ -107,5 +102,5 @@ def test_unix_socket_reopen(ns4, capture):
     Check that named reconnects to a new listener on the socket after the
     previous one (from the test above) has gone away.
     """
-    query(ns4)
+    query(ns4, expected_rcode=dns.rcode.SERVFAIL)
     capture.wait_for_counts({"UDP": 2, "CQ": 1, "CR": 1})

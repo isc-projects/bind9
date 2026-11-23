@@ -17,6 +17,9 @@ from collections import Counter
 
 import os
 
+import dns.message
+import dns.rcode
+
 import isctest
 
 ARTIFACTS = [
@@ -26,6 +29,19 @@ ARTIFACTS = [
     "ns2/example.db",
     "ns2/example.db.jnl",
 ]
+
+
+def query(
+    server: isctest.instance.NamedInstance,
+    expected_rcode: dns.rcode.Rcode | None = None,
+) -> dns.message.Message:
+    """
+    Send an "a.example/A" UDP query to `server` to generate dnstap traffic
+    and return the response.  The rcode is only checked when
+    `expected_rcode` is given.
+    """
+    msg = isctest.query.create("a.example.", "A")
+    return isctest.query.udp(msg, server.ip, expected_rcode=expected_rcode)
 
 
 def dnstap_read(path: str, *opts: str) -> isctest.run.CmdResult:
