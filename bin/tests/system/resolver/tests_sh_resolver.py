@@ -20,6 +20,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "dig.*.prime.*",
         "nextpart.out.*",
         "resolve.out.*",
+        "rndc.out.test*",
         "ans*/query.log",
         "ns1/named.stats*",
         "ns4/tld.db",
@@ -34,6 +35,7 @@ pytestmark = pytest.mark.extra_artifacts(
         "ns6/example.net.db.signed.jnl",
         "ns6/to-be-removed.tld.db",
         "ns6/to-be-removed.tld.db.jnl",
+        "ns7/named_dump.db*",
         "ns7/server.db",
         "ns7/server.db.jnl",
     ]
