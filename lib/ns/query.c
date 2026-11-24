@@ -3173,9 +3173,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			}
 			dns_db_detachnode(*dbp, nodep);
 
-			if (qtype == dns_rdatatype_rrsig ||
-			    qtype == dns_rdatatype_sig)
-			{
+			if (qtype == dns_rdatatype_rrsig) {
 				result = DNS_R_NXRRSET;
 			} else {
 				result = dns_db_findext(*dbp, p_name, *versionp,
@@ -5280,11 +5278,9 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
 
 	/*
-	 * If it's an RRSIG or SIG query, we'll iterate the node.
+	 * If it's an RRSIG query, we'll iterate the node.
 	 */
-	if (qctx->qtype == dns_rdatatype_rrsig ||
-	    qctx->qtype == dns_rdatatype_sig)
-	{
+	if (qctx->qtype == dns_rdatatype_rrsig) {
 		qctx->type = dns_rdatatype_any;
 	}
 
@@ -6822,9 +6818,7 @@ query_resume(query_ctx_t *qctx) {
 	}
 	INSIST(qctx->rdataset != NULL);
 
-	if (qctx->qtype == dns_rdatatype_rrsig ||
-	    qctx->qtype == dns_rdatatype_sig)
-	{
+	if (qctx->qtype == dns_rdatatype_rrsig) {
 		qctx->type = dns_rdatatype_any;
 	} else {
 		qctx->type = qctx->qtype;
@@ -8063,8 +8057,7 @@ query_respond_any(query_ctx_t *qctx) {
 		} else if (qctx->view->minimal_any &&
 			   !WANTDNSSEC(qctx->client) &&
 			   qctx->qtype == dns_rdatatype_any &&
-			   (qctx->rdataset->type == dns_rdatatype_sig ||
-			    qctx->rdataset->type == dns_rdatatype_rrsig))
+			   qctx->rdataset->type == dns_rdatatype_rrsig)
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip signature");
@@ -8106,9 +8099,7 @@ query_respond_any(query_ctx_t *qctx) {
 			 * Remember the first RRtype we find so we
 			 * can skip others with minimal-any.
 			 */
-			if (qctx->rdataset->type == dns_rdatatype_sig ||
-			    qctx->rdataset->type == dns_rdatatype_rrsig)
-			{
+			if (qctx->rdataset->type == dns_rdatatype_rrsig) {
 				onetype = qctx->rdataset->covers;
 			} else {
 				onetype = qctx->rdataset->type;
@@ -8175,9 +8166,7 @@ query_respond_any(query_ctx_t *qctx) {
 		 * At least one matching rdataset was found
 		 */
 		query_addauth(qctx);
-	} else if (qctx->qtype == dns_rdatatype_rrsig ||
-		   qctx->qtype == dns_rdatatype_sig)
-	{
+	} else if (qctx->qtype == dns_rdatatype_rrsig) {
 		/*
 		 * No matching rdatasets were found, but we got
 		 * here on a search for RRSIG/SIG, so that's okay.
