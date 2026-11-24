@@ -13,6 +13,7 @@ import time
 
 from dns.edns import EDECode
 
+import dns.edns
 import dns.message
 import dns.rcode
 import dns.rdatatype
@@ -21,14 +22,82 @@ import pytest
 import isctest
 
 
-@pytest.mark.parametrize("transport", [isctest.query.udp, isctest.query.tcp])
-def test_resolver_any_mx_only(ns5, transport):
+@pytest.mark.parametrize(
+    "server,qname,rd",
+    [
+        pytest.param("10.53.0.4", "mx-only.tld.", False, id="authoritative"),
+        pytest.param("10.53.0.4", "nxdomain-any.tld.", False, id="nxdomain"),
+        pytest.param("10.53.0.5", "mx-only.tld.", True, id="recursive"),
+        pytest.param("10.53.0.5", "mx-only.tld.", False, id="non-recursive"),
+    ],
+)
+def test_any_udp_truncated(server, qname, rd):
+    # ANY queries are only answered over TCP. Over UDP the response is
+    # always empty and truncated, whatever the response over TCP would
+    # be: authoritative data or NXDOMAIN (ns4), REFUSED from a resolver
+    # (ns5) when recursion is requested, or the cache contents when it
+    # is not.
+    msg = isctest.query.create(qname, "ANY", rd=rd, dnssec=False)
+    res = isctest.query.udp(msg, server)
+    isctest.check.noerror(res)
+    isctest.check.tcflag(res)
+    isctest.check.noaaflag(res)
+    isctest.check.empty_answer(res)
+    isctest.check.empty_authority(res)
+    isctest.check.empty_additional(res)
+
+
+def test_any_udp_server_cookie():
+    # A valid server cookie proves that the client address is not
+    # spoofed, so the ANY query is answered over UDP.  Get the server
+    # cookie with a query of another type first.
+    client_cookie = dns.edns.GenericOption(dns.edns.OptionType.COOKIE, b"\x01" * 8)
+    msg = isctest.query.create("mx-only.tld.", "MX", rd=False, dnssec=False)
+    msg.use_edns(edns=0, options=[client_cookie])
+    res = isctest.query.udp(msg, "10.53.0.4")
+    isctest.check.noerror(res)
+    cookies = [
+        option.to_wire()
+        for option in res.options
+        if option.otype == dns.edns.OptionType.COOKIE
+    ]
+    assert len(cookies) == 1 and len(cookies[0]) > 8, res
+
+    # A client cookie alone proves nothing.
+    msg = isctest.query.create("mx-only.tld.", "ANY", rd=False, dnssec=False)
+    msg.use_edns(edns=0, options=[client_cookie])
+    res = isctest.query.udp(msg, "10.53.0.4")
+    isctest.check.noerror(res)
+    isctest.check.tcflag(res)
+    isctest.check.empty_answer(res)
+
+    full_cookie = dns.edns.GenericOption(dns.edns.OptionType.COOKIE, cookies[0])
+    msg = isctest.query.create("mx-only.tld.", "ANY", rd=False, dnssec=False)
+    msg.use_edns(edns=0, options=[full_cookie])
+    res = isctest.query.udp(msg, "10.53.0.4")
+    isctest.check.noerror(res)
+    isctest.check.notcflag(res)
+    isctest.check.aaflag(res)
+    assert [rrset.rdtype for rrset in res.answer] == [dns.rdatatype.MX]
+
+
+def test_any_tcp_authoritative():
+    # The authoritative answer withheld over UDP is given over TCP.
+    msg = isctest.query.create("mx-only.tld.", "ANY", rd=False, dnssec=False)
+    res = isctest.query.tcp(msg, "10.53.0.4")
+    isctest.check.noerror(res)
+    isctest.check.notcflag(res)
+    isctest.check.aaflag(res)
+    assert [rrset.rdtype for rrset in res.answer] == [dns.rdatatype.MX]
+
+
+def test_resolver_any_mx_only(ns5):
     ns5.rndc("flush")
 
     # A cache miss cannot tell us which types exist at the name. Refuse
     # ANY instead of substituting an address query or a NODATA answer.
     msg = isctest.query.create("mx-only.tld.", "ANY", dnssec=False)
-    res = transport(msg, ns5.ip, expected_rcode=dns.rcode.REFUSED)
+    res = isctest.query.tcp(msg, ns5.ip, expected_rcode=dns.rcode.REFUSED)
     isctest.check.refused(res)
     isctest.check.empty_answer(res)
     isctest.check.ede(res, EDECode.NOT_SUPPORTED)
@@ -36,20 +105,19 @@ def test_resolver_any_mx_only(ns5, transport):
     # An explicit MX query still resolves. Refuse ANY consistently even
     # after that RRset has been cached.
     msg = isctest.query.create("mx-only.tld.", "MX", dnssec=False)
-    mx = transport(msg, ns5.ip)
+    mx = isctest.query.tcp(msg, ns5.ip)
     isctest.check.noerror(mx)
     assert len(mx.answer) == 1
     assert mx.answer[0].rdtype == dns.rdatatype.MX
 
     msg = isctest.query.create("mx-only.tld.", "ANY", dnssec=False)
-    res = transport(msg, ns5.ip, expected_rcode=dns.rcode.REFUSED)
+    res = isctest.query.tcp(msg, ns5.ip, expected_rcode=dns.rcode.REFUSED)
     isctest.check.refused(res)
     isctest.check.empty_answer(res)
     isctest.check.ede(res, EDECode.NOT_SUPPORTED)
 
 
-@pytest.mark.parametrize("transport", [isctest.query.udp, isctest.query.tcp])
-def test_resolver_any_norecurse(ns5, transport):
+def test_resolver_any_norecurse(ns5):
     ns5.rndc("flush")
 
     # Without RD, an ANY query only inspects the cache. On a cache miss
@@ -58,7 +126,7 @@ def test_resolver_any_norecurse(ns5, transport):
     rcodes = {}
     for qtype in ("MX", "ANY"):
         msg = isctest.query.create("mx-only.tld.", qtype, rd=False, dnssec=False)
-        res = transport(msg, ns5.ip)
+        res = isctest.query.tcp(msg, ns5.ip)
         isctest.check.empty_answer(res)
         rcodes[qtype] = res.rcode()
     assert rcodes["ANY"] == rcodes["MX"]
@@ -67,21 +135,21 @@ def test_resolver_any_norecurse(ns5, transport):
     # Once a recursive query has populated the cache, the non-recursive
     # ANY query returns what is cached at the name.
     msg = isctest.query.create("mx-only.tld.", "MX", dnssec=False)
-    mx = transport(msg, ns5.ip)
+    mx = isctest.query.tcp(msg, ns5.ip)
     isctest.check.noerror(mx)
 
     msg = isctest.query.create("mx-only.tld.", "ANY", rd=False, dnssec=False)
-    res = transport(msg, ns5.ip)
+    res = isctest.query.tcp(msg, ns5.ip)
     isctest.check.noerror(res)
     assert [rrset.rdtype for rrset in res.answer] == [dns.rdatatype.MX]
 
     # A cached NXDOMAIN is returned for a non-recursive ANY query, too.
     msg = isctest.query.create("nxdomain-any.tld.", "A", dnssec=False)
-    res = transport(msg, ns5.ip, expected_rcode=dns.rcode.NXDOMAIN)
+    res = isctest.query.tcp(msg, ns5.ip, expected_rcode=dns.rcode.NXDOMAIN)
     isctest.check.nxdomain(res)
 
     msg = isctest.query.create("nxdomain-any.tld.", "ANY", rd=False, dnssec=False)
-    res = transport(msg, ns5.ip, expected_rcode=dns.rcode.NXDOMAIN)
+    res = isctest.query.tcp(msg, ns5.ip, expected_rcode=dns.rcode.NXDOMAIN)
     isctest.check.nxdomain(res)
     isctest.check.empty_answer(res)
 
@@ -164,7 +232,7 @@ def test_resolver_any_refused(ns1):
     # (Not Supported), without looking the name up or sending anything
     # upstream
     msg = isctest.query.create("www.example.org.", "ANY")
-    res = isctest.query.udp(msg, "10.53.0.1", expected_rcode=dns.rcode.REFUSED)
+    res = isctest.query.tcp(msg, "10.53.0.1", expected_rcode=dns.rcode.REFUSED)
     isctest.check.refused(res)
     isctest.check.empty_answer(res)
     isctest.check.ede(res, EDECode.NOT_SUPPORTED)
@@ -176,7 +244,7 @@ def test_resolver_any_refused(ns1):
     assert res.answer[0].rdtype == dns.rdatatype.A
 
     msg = isctest.query.create("www.example.org.", "ANY")
-    res = isctest.query.udp(msg, "10.53.0.1", expected_rcode=dns.rcode.REFUSED)
+    res = isctest.query.tcp(msg, "10.53.0.1", expected_rcode=dns.rcode.REFUSED)
     isctest.check.refused(res)
     isctest.check.empty_answer(res)
     isctest.check.ede(res, EDECode.NOT_SUPPORTED)
@@ -188,14 +256,14 @@ def test_resolver_any_refused_below_delegation():
     # only be answered by recursing, so it is refused when recursion
     # is requested...
     msg = isctest.query.create("foo.bar.sub.tld1.", "ANY")
-    res = isctest.query.udp(msg, "10.53.0.7", expected_rcode=dns.rcode.REFUSED)
+    res = isctest.query.tcp(msg, "10.53.0.7", expected_rcode=dns.rcode.REFUSED)
     isctest.check.refused(res)
     isctest.check.empty_answer(res)
     isctest.check.ede(res, EDECode.NOT_SUPPORTED)
 
     # ...and answered with the referral when it is not
     msg = isctest.query.create("foo.bar.sub.tld1.", "ANY", rd=False)
-    res = isctest.query.udp(msg, "10.53.0.7")
+    res = isctest.query.tcp(msg, "10.53.0.7")
     isctest.check.noerror(res)
     isctest.check.empty_answer(res)
     assert any(

@@ -112,7 +112,9 @@ def test_synthrecord_reverse_hasdata(qname, rname, ttl):
 )
 def test_synthrecord_forward(qname, qtype, rname, rtype, ttl):
     msg = isctest.query.create(qname, qtype)
-    res = isctest.query.udp(msg, SERVER)
+    # ANY queries are only answered over TCP
+    transport = isctest.query.tcp if qtype == "ANY" else isctest.query.udp
+    res = transport(msg, SERVER)
     isctest.check.noerror(res)
     if qname[-1] != ".":
         qname += "."
@@ -283,7 +285,8 @@ def test_synthrecord_defaults(qname, rname):
 )
 def test_synthrecord_reverse_anysoa(qname, qtype, rcode, answerscount):
     msg = isctest.query.create(qname, qtype)
-    res = isctest.query.udp(msg, SERVER)
+    # ANY queries are only answered over TCP
+    res = isctest.query.tcp(msg, SERVER)
     assert len(res.answer) == answerscount
     assert res.rcode() == rcode
 

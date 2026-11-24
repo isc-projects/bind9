@@ -2086,6 +2086,16 @@ Boolean Options
    unnecessary records are added to the authority or additional
    sections. The default is ``yes``.
 
+   Queries of type ANY are only answered when the client address
+   cannot be spoofed: over TCP and other connection-oriented
+   transports, or over UDP when the query carries a valid server
+   cookie. Any other query of type ANY received over UDP is answered
+   with an empty, truncated (TC=1) response, which prompts a legitimate
+   client to retry over TCP; :iscman:`dig`, :iscman:`host`, and
+   :iscman:`nslookup` already send ANY queries over TCP by default.
+   This option therefore only affects the responses to the queries
+   that are answered.
+
    Queries of type ANY are never resolved recursively. When recursion
    is requested and available to the client, a query of type ANY that
    cannot be answered from authoritative data is refused with the
