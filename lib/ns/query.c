@@ -2513,10 +2513,15 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_prefetch");
 
+	/*
+	 * Signatures are refreshed with the RRset they cover; they
+	 * cannot be fetched on their own.
+	 */
 	if (client->query.prefetch != NULL ||
 	    client->view->prefetch_trigger == 0U ||
 	    rdataset->ttl > client->view->prefetch_trigger ||
-	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0)
+	    (rdataset->attributes & DNS_RDATASETATTR_PREFETCH) == 0 ||
+	    rdataset->type == dns_rdatatype_rrsig)
 	{
 		return;
 	}
@@ -2993,6 +2998,12 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 
 	REQUIRE(nodep != NULL);
 
+	/*
+	 * RRSIG queries are rejected before any RPZ processing, see
+	 * ns_query_start().
+	 */
+	REQUIRE(qtype != dns_rdatatype_rrsig);
+
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_find_p");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
@@ -3079,14 +3090,9 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			}
 			dns_db_detachnode(*dbp, nodep);
 
-			if (qtype == dns_rdatatype_rrsig) {
-				result = DNS_R_NXRRSET;
-			} else {
-				result = dns_db_findext(*dbp, p_name, *versionp,
-							qtype, 0, client->now,
-							nodep, found, &cm, &ci,
-							*rdatasetp, NULL);
-			}
+			result = dns_db_findext(*dbp, p_name, *versionp, qtype,
+						0, client->now, nodep, found,
+						&cm, &ci, *rdatasetp, NULL);
 		}
 	}
 	switch (result) {
@@ -3276,13 +3282,6 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 	policy = dns_dnsrps_2policy(rpsdb->result.policy);
 	if (policy != DNS_RPZ_POLICY_RECORD) {
 		result = ISC_R_SUCCESS;
-	} else if (qtype == dns_rdatatype_rrsig) {
-		/*
-		 * dns_find_db() refuses to look for and fail to
-		 * find dns_rdatatype_rrsig.
-		 */
-		result = DNS_R_NXRRSET;
-		policy = DNS_RPZ_POLICY_NODATA;
 	} else {
 		/*
 		 * Get the next (and so first) RR from the policy node.
@@ -5179,13 +5178,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	qctx->result = ISC_R_SUCCESS;
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
 
-	/*
-	 * If it's an RRSIG query, we'll iterate the node.
-	 */
-	if (qctx->qtype == dns_rdatatype_rrsig) {
-		qctx->type = dns_rdatatype_any;
-	}
-
 	CALL_HOOK_NORETURN(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
@@ -6599,11 +6591,7 @@ query_resume(query_ctx_t *qctx) {
 	}
 	INSIST(qctx->rdataset != NULL);
 
-	if (qctx->qtype == dns_rdatatype_rrsig) {
-		qctx->type = dns_rdatatype_any;
-	} else {
-		qctx->type = qctx->qtype;
-	}
+	qctx->type = qctx->qtype;
 
 	CALL_HOOK(NS_QUERY_RESUME_RESTORED, qctx);
 
@@ -7539,7 +7527,6 @@ query_respond_any(query_ctx_t *qctx) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 	dns_rdatatype_t onetype = 0; /* type to use for minimal-any */
-	isc_buffer_t b;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_respond_any");
 
@@ -7575,20 +7562,11 @@ query_respond_any(query_ctx_t *qctx) {
 		/*
 		 * We found an NS RRset; no need to add one later.
 		 */
-		if (qctx->qtype == dns_rdatatype_any &&
-		    qctx->rdataset->type == dns_rdatatype_ns)
-		{
+		if (qctx->rdataset->type == dns_rdatatype_ns) {
 			qctx->answer_has_ns = true;
 		}
 
-		/*
-		 * Note: if we're in this function, then qctx->type
-		 * is guaranteed to be ANY, but qctx->qtype (i.e. the
-		 * original type requested) might have been RRSIG or
-		 * SIG; we need to check for that.
-		 */
-		if (qctx->is_zone && qctx->qtype == dns_rdatatype_any &&
-		    !dns_db_issecure(qctx->db) &&
+		if (qctx->is_zone && !dns_db_issecure(qctx->db) &&
 		    dns_rdatatype_isdnssec(qctx->rdataset->type))
 		{
 			/*
@@ -7599,7 +7577,6 @@ query_respond_any(query_ctx_t *qctx) {
 			hidden = true;
 		} else if (qctx->view->minimal_any &&
 			   !WANTDNSSEC(qctx->client) &&
-			   qctx->qtype == dns_rdatatype_any &&
 			   qctx->rdataset->type == dns_rdatatype_rrsig)
 		{
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
@@ -7612,10 +7589,7 @@ query_respond_any(query_ctx_t *qctx) {
 			CCTRACE(ISC_LOG_DEBUG(5), "query_respond_any: "
 						  "minimal-any skip rdataset");
 			dns_rdataset_disassociate(qctx->rdataset);
-		} else if ((qctx->qtype == dns_rdatatype_any ||
-			    qctx->rdataset->type == qctx->qtype) &&
-			   qctx->rdataset->type != 0)
-		{
+		} else if (qctx->rdataset->type != 0) {
 			if (NOQNAME(qctx->rdataset) && WANTDNSSEC(qctx->client))
 			{
 				qctx->noqname = qctx->rdataset;
@@ -7709,31 +7683,6 @@ query_respond_any(query_ctx_t *qctx) {
 		 * At least one matching rdataset was found
 		 */
 		query_addauth(qctx);
-	} else if (qctx->qtype == dns_rdatatype_rrsig) {
-		/*
-		 * No matching rdatasets were found, but we got
-		 * here on a search for RRSIG/SIG, so that's okay.
-		 */
-		if (!qctx->is_zone) {
-			qctx->authoritative = false;
-			qctx->client->attributes &= ~NS_CLIENTATTR_RA;
-			query_addauth(qctx);
-			return (ns_query_done(qctx));
-		}
-
-		if (qctx->qtype == dns_rdatatype_rrsig &&
-		    dns_db_issecure(qctx->db))
-		{
-			char namebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(qctx->client->query.qname, namebuf,
-					sizeof(namebuf));
-			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "missing signature for %s", namebuf);
-		}
-
-		qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-		return (query_sign_nodata(qctx));
 	} else if (!hidden) {
 		/*
 		 * No matching rdatasets were found and nothing was
@@ -11887,6 +11836,16 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	}
 
 	/*
+	 * Standalone RRSIG queries are not supported. Signatures are
+	 * returned with the RRsets they cover when DNSSEC is requested.
+	 * Return FORMERR on authoritative and recursive servers alike.
+	 */
+	if (qtype == dns_rdatatype_rrsig) {
+		query_error(client, DNS_R_FORMERR, __LINE__);
+		return;
+	}
+
+	/*
 	 * Turn on minimal response for (C)DNSKEY and (C)DS queries.
 	 */
 	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds ||
@@ -11927,9 +11886,7 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	 * We don't need to set DNS_DBFIND_PENDINGOK when validation is
 	 * disabled as there will be no pending data.
 	 */
-	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0 ||
-	    qtype == dns_rdatatype_rrsig)
-	{
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0) {
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 	} else if (!client->view->enablevalidation) {

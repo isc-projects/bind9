@@ -55,8 +55,10 @@ TIMEOUT = 5  # seconds, just a sanity check
 # Helpers
 def is_nonexpanding_rdtype(rdtype):
     """skip meta types to avoid weird rcodes caused by AXFR etc.; RFC 6895"""
+    # Standalone RRSIG queries are rejected with FORMERR.
     return not (
         rdtype == WILDCARD_RDTYPE
+        or rdtype == dns.rdatatype.RRSIG
         or dns.rdatatype.is_metatype(rdtype)  # known metatypes: OPT ...
         or 128 <= rdtype <= 255
     )  # unknown meta types

@@ -1724,7 +1724,7 @@ nextpart ns3/named.run >/dev/null
 echo_i "sending queries for tests $((n + 2))-$((n + 4))..."
 $DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 longttl.example TXT >dig.out.test$((n + 2)) &
 $DIG -p ${PORT} +tries=1 +timeout=10 @10.53.0.3 longttl.example TXT >dig.out.test$((n + 3)) &
-$DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 longttl.example RRSIG >dig.out.test$((n + 4)) &
+$DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 longttl.example ANY >dig.out.test$((n + 4)) &
 
 # Enable the authoritative name server after stale-answer-client-timeout.
 n=$((n + 1))
@@ -1764,7 +1764,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "check not in cache longttl.example RRSIG times out (stale-answer-client-timeout 1.8) ($n)"
+echo_i "check not in cache longttl.example ANY times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
 check_results() {
   [ -s "$1" ] || return 1
