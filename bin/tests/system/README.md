@@ -473,7 +473,7 @@ bytes, for malformed packets) and `CloseConnection` (TCP).  The zone-data
 response is prepared *before* the handlers run: it is what a handler finds in
 `qctx.response`, and it is what is sent when no handler matches.  For names
 outside the server's zones, as in the example above, which has no zone
-files, it is a stub carrying only the server's default rcode (REFUSED unless
+files, it is a stub carrying only the server's default RCODE (REFUSED unless
 configured otherwise).  `qctx.prepare_new_response(with_zone_data=False)`
 replaces the prepared answer with that stub; `with_zone_data=True` restores
 it.
@@ -615,7 +615,7 @@ dropedns         Recognize EDNS options in messages, but drop messages
                  containing them.
 
 ednsformerr, ednsnotimp, ednsrefused
-                 Answer EDNS queries with the given rcode, pretending to
+                 Answer EDNS queries with the given RCODE, pretending to
                  be an old server that doesn't understand EDNS.
 
 cookiealwaysvalid

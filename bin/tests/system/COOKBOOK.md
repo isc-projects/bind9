@@ -359,7 +359,7 @@ Send queries and check the responses with `isctest.query` and
 ```python
 msg = isctest.query.create("a.example.", "A")
 response = isctest.query.udp(msg, ns1.ip)     # or .tcp(), .tls()
-isctest.check.noerror(response)               # rcode checks: nxdomain,
+isctest.check.noerror(response)               # RCODE checks: nxdomain,
                                               #  servfail, refused, ...
 isctest.check.adflag(response)                # flag checks: rdflag,
                                               #  noraflag, ...
