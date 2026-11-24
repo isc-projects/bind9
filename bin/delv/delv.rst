@@ -93,9 +93,10 @@ where:
 
 .. option:: type
 
-   indicates what type of query is required - ANY, A, MX, etc.
-   ``type`` can be any valid query type. If no ``type`` argument is
-   supplied, :program:`delv` performs a lookup for an A record.
+   indicates the type to request - A, AAAA, MX, etc.  ``type`` can be
+   any valid DNS query type, excluding RRSIG and meta types such as ANY. If
+   no ``type`` argument is supplied, :program:`delv` performs a lookup for
+   an A record.
 
 Options
 ~~~~~~~

@@ -246,12 +246,11 @@ def test_q_m(delv, ns3):
 
 def test_any_query(delv, ns3):
     """
-    Check that delv -t ANY works.
+    Check that delv -t ANY fails; meta-type queries are never sent.
     """
     result = delv(f"@{ns3.ip} -t ANY example")
-    assert Re(r"^example\.") in result.out
-    assert check_ttl_range(result.out, "NS", 300)
-    assert check_ttl_range(result.out, "SOA", 300)
+    assert ";; resolution failed: REFUSED" in result.err
+    assert Re(r"^example\.") not in result.out
 
 
 def test_rrsig_query(delv, ns3):
@@ -302,7 +301,7 @@ def test_yaml_any(delv, ns3):
     """
     Check the structure of delv +yaml output.
     """
-    result = delv(f"+yaml @{ns3.ip} any ns2.example")
+    result = delv(f"+yaml @{ns3.ip} a ns2.example")
     data = parse_yaml(result.out)
     assert data["status"] == "success"
     assert data["query_name"] == "ns2.example"

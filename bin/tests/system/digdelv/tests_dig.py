@@ -1211,17 +1211,38 @@ def test_source_address_both_families_no_crash(dig, ns1):
     assert result.rc >= 0
 
 
-def test_yaml_any_output(dig, ns3):
+def test_yaml_any_output(dig, ns2):
     """
     Check the structure of dig +yaml output for an ANY query.
     """
-    result = dig(f"+qr +yaml @{ns3.ip} any ns2.example")
+    result = dig(f"+qr +yaml @{ns2.ip} any ns2.example")
     messages = parse_yaml(result.out)
     query = messages[0]["message"]["query_message_data"]
     assert query["status"] == "NOERROR"
     response = messages[1]["message"]["response_message_data"]
     assert response["status"] == "NOERROR"
     assert response["QUESTION_SECTION"][0] == "ns2.example. IN ANY"
+
+
+@pytest.mark.parametrize(
+    "args,recursive",
+    [
+        ("any ns2.example", False),
+        ("-t any ns2.example", False),
+        ("+rec any ns2.example", True),
+        ("any ns2.example +rd", True),
+        ("-t any +recurse ns2.example", True),
+        ("a ns2.example", True),
+    ],
+)
+def test_any_norecurse_by_default(dig, ns2, args, recursive):
+    """
+    Check that dig does not set the RD bit in ANY queries unless it is
+    asked to; resolvers refuse recursive ANY queries.
+    """
+    result = dig(f"+qr +yaml @{ns2.ip} {args}")
+    query = parse_yaml(result.out)[0]["message"]["query_message_data"]
+    assert ("rd" in (query["flags"] or "").split()) == recursive, result.out
 
 
 def test_yaml_ipv6_trailing_zeroes(dig, ns3):

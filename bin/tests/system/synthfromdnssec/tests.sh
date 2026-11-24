@@ -789,6 +789,27 @@ for ns in 2 4 5 6; do
   else
     echo_i "Skipping JSON statistics checks"
   fi
+
+  # This is checked last, because it bumps the statistics counters
+  # checked above.
+  echo_i "check non-recursive ANY query for a nonexistent name (synth-from-dnssec ${description};) ($n)"
+  ret=0
+  nextpart ns1/named.run >/dev/null
+  dig_with_opts +norec c.example. @10.53.0.${ns} any >dig.out.ns${ns}.test$n || ret=1
+  grep "ANSWER: 0," dig.out.ns${ns}.test$n >/dev/null || ret=1
+  if [ ${synth} = yes ]; then
+    # the cached NSEC proves that the name does not exist
+    check_status NXDOMAIN dig.out.ns${ns}.test$n || ret=1
+    check_synth_soa example. dig.out.ns${ns}.test$n || ret=1
+  else
+    # nothing is cached for the name and nothing can be synthesized
+    check_status NXDOMAIN dig.out.ns${ns}.test$n && ret=1
+  fi
+  # either way the cache is only inspected, nothing is sent upstream
+  nextpart ns1/named.run | grep c.example/ >/dev/null && ret=1
+  n=$((n + 1))
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 done
 
 echo_i "check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"

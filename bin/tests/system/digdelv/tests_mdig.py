@@ -84,11 +84,42 @@ def test_soa_norrcomments(mdig, ns3):
     assert "; serial" not in result.out
 
 
-def test_yaml_output(mdig, ns3):
+def test_yaml_output(mdig, ns2):
     """
     Check the structure of mdig +yaml output.
     """
-    result = mdig(f"+yaml @{ns3.ip} -t any ns2.example")
+    result = mdig(f"+yaml @{ns2.ip} -t any ns2.example")
     response = parse_yaml(result.out)[0]["message"]["response_message_data"]
     assert response["status"] == "NOERROR"
     assert response["QUESTION_SECTION"][0] == "ns2.example. IN ANY"
+
+
+@pytest.mark.parametrize(
+    "args,protocol,recursive",
+    [
+        ("-t any ns2.example", "TCP", False),
+        ("+recurse -t any ns2.example", "TCP", True),
+        ("+notcp -t any ns2.example", "UDP", False),
+        ("-t a ns2.example", "UDP", True),
+        ("-t any ns2.example -t a ns2.example", "TCP", None),
+    ],
+)
+def test_any_defaults(mdig, ns2, args, protocol, recursive):
+    """
+    Check that mdig sends ANY queries over TCP and without the RD bit
+    unless it is asked to do otherwise.  The transport is shared by all
+    the queries, RD is set per query.
+    """
+    result = mdig(f"+yaml @{ns2.ip} {args}")
+    messages = [entry["message"] for entry in parse_yaml(result.out)]
+    for message in messages:
+        assert message["socket_protocol"] == protocol, result.out
+    rd = {}
+    for message in messages:
+        response = message["response_message_data"]
+        qtype = response["QUESTION_SECTION"][0].split()[-1]
+        rd[qtype] = "rd" in (response["flags"] or "").split()
+    if recursive is None:
+        assert rd == {"ANY": False, "A": True}, result.out
+    else:
+        assert list(rd.values()) == [recursive], result.out

@@ -463,7 +463,7 @@ nxdomain a0-1s-cname.tld2s +dnssec    # 28 DNSSEC too early in CNAME chain
 nochange a0-1-scname.tld2 +dnssec     # 29 DNSSEC on target in CNAME chain
 nochange a0-1.tld2s srv +auth +dnssec # 30 no write for DNSSEC and no record
 nxdomain a0-1.tld2s srv +nodnssec     # 31
-drop a3-8.tld2 any                    # 32 drop
+drop a3-8.tld2 a                      # 32 drop
 nochange TCP a3-9.tld2                # 33 tcp-only
 here x.servfail <<'EOF'               # 34 qname-wait-recurse yes
     ;; status: SERVFAIL, x
@@ -497,7 +497,7 @@ addr 127.0.0.17 "a4-6-cname3.tld2 @$ns6" # 16 stop short in CNAME chain
 nxdomain c1.crash2.tld3 @$ns6            # 17 assert in rbtdb.c
 nxdomain a0-1.tld2 +dnssec @$ns6         # 18 simple DO=1 without sigs
 nxdomain a0-1s-cname.tld2s +dnssec @$ns6 # 19
-drop a3-8.tld2 any @$ns6                 # 20 drop
+drop a3-8.tld2 a @$ns6                   # 20 drop
 end_group
 ckstatsrange $ns3 test1 ns3 22 30
 ckstats $ns5 test1 ns5 0
@@ -512,7 +512,6 @@ nochange a4-1.tld2                  # 3 obsolete PASSTHRU record style
 nxdomain a4-2.tld2                  # 4
 nochange a4-2.tld2 -taaaa           # 5 no A => no policy rewrite
 nochange a4-2.tld2 -ttxt            # 6 no A => no policy rewrite
-nxdomain a4-2.tld2 -tany            # 7 no A => no policy rewrite
 nodata a4-3.tld2                    # 8
 nxdomain a3-1.tld2 -taaaa           # 9 IPv6 policy
 nochange a4-1-aaaa.tld2 -taaaa      # 10
@@ -537,7 +536,7 @@ ck_soa 3 bl.tld2 $ns3
 sleep 1            # there's an delay between "DNS" transfer and RPZ being active
 nxdomain a7-1.tld2 # 20 secondary policy zone (RT34450)
 end_group
-ckstats $ns3 test2 ns3 12
+ckstats $ns3 test2 ns3 11
 
 # check that IP addresses for previous group were deleted from the radix tree
 start_group "radix tree deletions"
@@ -547,7 +546,6 @@ nochange a4-1.tld2
 nochange a4-2.tld2
 nochange a4-2.tld2 -taaaa
 nochange a4-2.tld2 -ttxt
-nochange a4-2.tld2 -tany
 nochange a4-3.tld2
 nochange a3-1.tld2 -tAAAA
 nochange a4-1-aaaa.tld2 -tAAAA
@@ -562,7 +560,6 @@ nochange a3-1.tld2                     # 1
 nochange a3-1.tld2 +dnssec             # 2 this once caused problems
 nxdomain a3-1.sub1.tld2                # 3 NXDOMAIN *.sub1.tld2 by NSDNAME
 nxdomain a3-1.subsub.sub1.tld2         # 4
-nxdomain a3-1.subsub.sub1.tld2 -tany   # 5
 addr 12.12.12.12 a4-2.subsub.sub2.tld2 # 6 walled garden for *.sub2.tld2
 nochange a3-2.tld2.                    # 7 exempt rewrite by name
 nochange a0-1.tld2.                    # 8 exempt rewrite by address block
@@ -578,7 +575,7 @@ nochange_ns10 a3-1.static-stub-nomatch # 16
 nextpart ns3/named.run | grep -F "unrecognized NS rpz_rrset_find() failed: glue" >/dev/null \
   && setret "seen: unrecognized NS rpz_rrset_find() failed: glue"
 end_group
-ckstats $ns3 test3 ns3 9
+ckstats $ns3 test3 ns3 8
 
 # these tests assume "min-ns-dots 0"
 start_group "NSIP rewrites" test4
@@ -619,7 +616,7 @@ nxdomain a3-5.tld2 +norecurse @$ns5 # 8 bl-nodata global recursive-only no
 nxdomain a3-5.tld2s @$ns5           # 9 bl-nodata global break-dnssec
 nxdomain a3-5.tld2s +dnssec @$ns5   # 10 bl-nodata global break-dnssec
 nxdomain a3-6.tld2                  # 11 bl-nxdomain
-here a3-7.tld2 -tany <<'EOF'        # 12
+here a3-7.tld2 -ttxt <<'EOF'        # 12
     ;; status: NOERROR, x
     a3-7.tld2.	    x	IN	CNAME   txt-only.tld2.
     txt-only.tld2.  x	IN	TXT     "txt-only-tld2"
@@ -629,7 +626,7 @@ addr 59.59.59.59 a3-9.sub9.tld2        # 14 bl_wildcname
 addr 12.12.12.12 a3-15.tld2            # 15 bl-garden via CNAME to a12.tld2
 addr 127.0.0.16 a3-16.tld2 100         # 16 bl	max-policy-ttl 100
 addr 17.17.17.17 "a3-17.tld2 @$ns5" 90 # 17 ns5 bl max-policy-ttl 90
-drop a3-18.tld2 any                    # 18 bl-drop
+drop a3-18.tld2 a                      # 18 bl-drop
 nxdomain TCP a3-19.tld2                # 19 bl-tcp-only
 end_group
 ckstats $ns3 test5 ns3 12
@@ -650,8 +647,9 @@ done
 # resolving foo.
 # nxdomain 32.3.2.1.127.rpz-ip
 end_group
-# RRSIG queries are rejected before RPZ processing.
-ckstats $ns3 bugs ns3 6
+# only the SIG queries are resolved and rewritten by the policy;
+# RRSIG and ANY queries are rejected before RPZ processing
+ckstats $ns3 bugs ns3 2
 
 # Ensure ns3 manages to transfer the fast-expire zone before shutdown.
 nextpartreset ns3/named.run
@@ -762,8 +760,8 @@ $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.after || setret "failed"
 grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
 
 t=$((t + 1))
-echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
-$DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 >dig.out.$t || setret "failed"
+echo_i "checking that ttl values are not zeroed by rpz processing (${t})"
+$DIG +noall +answer -p ${PORT} @$ns3 txt a3-2.tld2 >dig.out.$t || setret "failed"
 ttl=$(awk '/a3-2 tld2 text/ {print $2}' dig.out.$t)
 if test ${ttl:=0} -eq 0; then setret "failed"; fi
 

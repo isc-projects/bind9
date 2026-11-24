@@ -614,12 +614,13 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "checking DNAME via ANY query ($n)"
+echo_i "checking ANY query is refused ($n)"
 ret=0
 $RNDCCMD 10.53.0.7 null --- start test$n --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
-$DIG $DIGOPTS @10.53.0.7 any short-dname.example >dig.out.7.$n 2>&1
-grep 'status: NOERROR' dig.out.7.$n >/dev/null 2>&1 || ret=1
+$DIG $DIGOPTS +rec @10.53.0.7 any short-dname.example >dig.out.7.$n 2>&1
+grep 'status: REFUSED' dig.out.7.$n >/dev/null 2>&1 || ret=1
+grep 'ANSWER: 0' dig.out.7.$n >/dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

@@ -81,8 +81,6 @@ def check(ns, qtype, dnssec, has_ad, rcode, has_answer):
         ("MX", False, False, dns.rcode.NOERROR, False),
         ("A", True, True, dns.rcode.NXDOMAIN, False),
         ("A", False, False, dns.rcode.NOERROR, True),
-        ("ANY", True, True, dns.rcode.NXDOMAIN, False),
-        ("ANY", False, False, dns.rcode.NOERROR, True),
     ],
 )
 def test_redirect_zone_qmin(ns11, qtype, dnssec, has_ad, rcode, has_answer):
@@ -92,6 +90,15 @@ def test_redirect_zone_qmin(ns11, qtype, dnssec, has_ad, rcode, has_answer):
     # will be allowed. if NXDOMAIN is expected, we'll only see it on the
     # second response.
     isctest.log.debug("cold cache")
-    check(ns11, qtype, dnssec, False, dns.rcode.NOERROR, qtype in ("A", "ANY"))
+    check(ns11, qtype, dnssec, False, dns.rcode.NOERROR, qtype == "A")
     isctest.log.debug("warm cache")
     check(ns11, qtype, dnssec, has_ad, rcode, has_answer)
+
+
+@pytest.mark.parametrize("dnssec", [True, False])
+def test_redirect_zone_qmin_any_refused(ns11, dnssec):
+    ns11.rndc("flush")
+    # recursive ANY queries are refused, with a cold or a warm cache,
+    # instead of being redirected
+    for _ in range(2):
+        check(ns11, "ANY", dnssec, False, dns.rcode.REFUSED, False)

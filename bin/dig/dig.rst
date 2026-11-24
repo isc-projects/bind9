@@ -93,9 +93,9 @@ where:
 
 .. option:: type
 
-   indicates what type of query is required - ANY, A, MX, SIG, etc.
-   ``type`` can be any valid query type. If no ``type`` argument is
-   supplied, :program:`dig` performs a lookup for an A record.
+   indicates the type to request - ANY, A, AAAA, MX, etc.  ``type`` can be
+   any valid query type. If no ``type`` argument is supplied,
+   :program:`dig` performs a lookup for an A record.
 
 Options
 ~~~~~~~
@@ -590,8 +590,9 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
 
    This option toggles the setting of the RD (recursion desired) bit in the query.
    This bit is set by default, which means :program:`dig` normally sends
-   recursive queries. Recursion is automatically disabled when the
-   :option:`+nssearch` or :option:`+trace` query option is used.
+   recursive queries, unless a type ANY query is requested, in which
+   case the default is not to set it. Recursion is automatically disabled
+   when the :option:`+nssearch` or :option:`+trace` query option is used.
 
 .. option:: +retry=T
 
@@ -688,10 +689,11 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
 .. option:: +tcp, +notcp
 
    This option indicates whether to use TCP when querying name
-   servers.  The default behavior is to use UDP unless a type ``any``
-   or ``ixfr=N`` query is requested, in which case the default is
-   TCP. AXFR queries always use TCP. To prevent retry over TCP when
-   TC=1 is returned from a UDP query, use ``+ignore``.
+   servers.  The default behavior is to use UDP unless a type ANY
+   or ``ixfr=N`` query is requested.  AXFR queries always use TCP;
+   ANY queries use TCP unless this is specifically overridden. To
+   prevent retry over TCP when TC=1 is returned from a UDP query,
+   use ``+ignore``.
 
 .. option:: +timeout=T
 

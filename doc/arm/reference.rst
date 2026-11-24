@@ -2086,6 +2086,19 @@ Boolean Options
    unnecessary records are added to the authority or additional
    sections. The default is ``yes``.
 
+   Queries of type ANY are never resolved recursively. When recursion
+   is requested and available to the client, a query of type ANY that
+   cannot be answered from authoritative data is refused with the
+   REFUSED response code and, when EDNS is used, Extended DNS Error
+   code 21 (Not Supported), even when records are already cached.
+   Response policy zones are not consulted for these queries. ANY
+   queries can still be answered from authoritative data, and
+   non-recursive ANY queries (for example, ``dig +norecurse``) are
+   still answered with whatever the cache holds for the name, subject
+   to this option. The resolver never sends queries of type ANY
+   or other meta types upstream. The ``delv`` utility also refuses
+   queries of type ANY.
+
 .. namedconf:statement:: notify
    :tags: transfer
    :short: Controls whether ``NOTIFY(SOA)`` messages are sent on zone changes.

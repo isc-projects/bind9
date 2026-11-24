@@ -90,6 +90,7 @@ static bool have_ipv4 = false;
 static bool have_ipv6 = false;
 static bool have_src = false;
 static bool tcp_mode = false;
+static bool tcp_mode_set = false;
 static bool besteffort = true;
 static bool display_short_form = false;
 static bool display_headers = true;
@@ -125,6 +126,7 @@ struct query {
 	char textname[MXNAME]; /*% Name we're going to be
 				* looking up */
 	bool recurse;
+	bool recurse_set;
 	bool have_aaonly;
 	bool have_adflag;
 	bool have_cdflag;
@@ -553,7 +555,12 @@ sendquery(struct query *query) {
 			   &message);
 
 	message->opcode = dns_opcode_query;
-	if (query->recurse) {
+	/*
+	 * ANY queries are not recursive unless +recurse was given.
+	 */
+	if (query->recurse &&
+	    (query->recurse_set || query->rdtype != dns_rdatatype_any))
+	{
 		message->flags |= DNS_MESSAGEFLAG_RD;
 	}
 	if (query->have_aaonly) {
@@ -1383,6 +1390,7 @@ plus_option(char *option, struct query *query, bool global) {
 			case 'c': /* recurse */
 				FULLCHECK("recurse");
 				query->recurse = state;
+				query->recurse_set = true;
 				break;
 			case 't': /* retry / retries */
 				FULLCHECK2("retry", "retries");
@@ -1488,6 +1496,7 @@ plus_option(char *option, struct query *query, bool global) {
 			FULLCHECK("tcp");
 			GLOBAL();
 			tcp_mode = state;
+			tcp_mode_set = true;
 			break;
 		case 'i': /* timeout */
 			FULLCHECK("timeout");
@@ -1573,6 +1582,7 @@ plus_option(char *option, struct query *query, bool global) {
 		FULLCHECK("vc");
 		GLOBAL();
 		tcp_mode = state;
+		tcp_mode_set = true;
 		break;
 	case 'y': /* yaml */
 		FULLCHECK("yaml");
@@ -1784,10 +1794,6 @@ clone_default_query(void) {
 		}
 	}
 
-	if (query->timeout == 0) {
-		query->timeout = tcp_mode ? TCPTIMEOUT : UDPTIMEOUT;
-	}
-
 	return query;
 }
 
@@ -1900,6 +1906,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	if (!is_batchfile) {
 		default_query.textname[0] = 0;
 		default_query.recurse = true;
+		default_query.recurse_set = false;
 		default_query.have_aaonly = false;
 		default_query.have_adflag = true; /*XXX*/
 		default_query.have_cdflag = false;
@@ -2112,6 +2119,24 @@ main(int argc, char *argv[]) {
 	parse_args(false, argc, argv);
 	if (server == NULL) {
 		fatal("a server '@xxx' is required");
+	}
+
+	/*
+	 * The transport is shared by all the queries: use TCP if any of
+	 * them is an ANY query, unless the transport was set explicitly.
+	 */
+	if (!tcp_mode_set) {
+		ISC_LIST_FOREACH(queries, query, link) {
+			if (query->rdtype == dns_rdatatype_any) {
+				tcp_mode = true;
+				break;
+			}
+		}
+	}
+	ISC_LIST_FOREACH(queries, query, link) {
+		if (query->timeout == 0) {
+			query->timeout = tcp_mode ? TCPTIMEOUT : UDPTIMEOUT;
+		}
 	}
 
 	ns = 0;

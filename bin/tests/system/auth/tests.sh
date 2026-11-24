@@ -143,7 +143,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that in-zone CNAME records does not return target data when QTYPE is ANY (rd=1/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -t any inzone.example.com >dig.out.test$n || ret=1
+$DIG $DIGOPTS +rec @10.53.0.2 -t any inzone.example.com >dig.out.test$n || ret=1
 grep 'ANSWER: 1,' dig.out.test$n >/dev/null || ret=1
 grep 'flags: qr aa rd ra;' dig.out.test$n >/dev/null || ret=1
 grep 'inzone\.example\.com\..*CNAME.a\.example\.com\.' dig.out.test$n >/dev/null || ret=1
@@ -167,7 +167,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check that in-zone DNAME records does not return target data when QTYPE is ANY (rd=1/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 -t any inzone.dname.example.com >dig.out.test$n || ret=1
+$DIG $DIGOPTS +rec @10.53.0.2 -t any inzone.dname.example.com >dig.out.test$n || ret=1
 grep 'ANSWER: 2,' dig.out.test$n >/dev/null || ret=1
 grep 'flags: qr aa rd ra;' dig.out.test$n >/dev/null || ret=1
 grep 'dname\.example\.com\..*DNAME.example\.com\.' dig.out.test$n >/dev/null || ret=1
