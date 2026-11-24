@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 
 import abc
 
@@ -82,6 +83,7 @@ def ixfr_diffs() -> list[dns.rrset.RRset]:
     ]
 
 
+@dataclass
 class TransferState:
     """
     Flag toggled once the initial AXFR (serial 1) has been served.  The SOA
@@ -89,8 +91,7 @@ class TransferState:
     after it, so the secondary's next refresh switches from AXFR to IXFR.
     """
 
-    def __init__(self) -> None:
-        self.initial_axfr_served = False
+    initial_axfr_served: bool = False
 
 
 class InitialAxfrServed(Matcher):

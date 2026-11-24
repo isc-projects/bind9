@@ -10,6 +10,7 @@
 # information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator, Collection
+from dataclasses import dataclass
 
 import abc
 
@@ -47,14 +48,14 @@ def dnskey(owner: str | dns.name.Name, keydata: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.DNSKEY, keydata)
 
 
+@dataclass
 class SerialCounter:
     """
     Shared SOA serial advanced by one after every completed AXFR, so each
     secondary refresh sees a newer serial and re-transfers the zone.
     """
 
-    def __init__(self) -> None:
-        self.serial = 0
+    serial: int = 0
 
 
 class SerialCounted(ResponseHandler, abc.ABC):
