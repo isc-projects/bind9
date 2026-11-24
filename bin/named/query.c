@@ -8768,7 +8768,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 */
 				dns_rdataset_disassociate(rdataset);
 			} else if (client->view->minimal_any &&
-				   !TCP(client) && !WANTDNSSEC(client) &&
+				   !WANTDNSSEC(client) &&
 				   qtype == dns_rdatatype_any &&
 				   (rdataset->type == dns_rdatatype_sig ||
 				    rdataset->type == dns_rdatatype_rrsig)) {
@@ -8776,7 +8776,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				       "minimal-any skip signature");
 				dns_rdataset_disassociate(rdataset);
 			} else if (client->view->minimal_any &&
-				   !TCP(client) && onetype != 0 &&
+				   onetype != 0 &&
 				   rdataset->type != onetype &&
 				   rdataset->covers != onetype) {
 				CTRACE(ISC_LOG_DEBUG(5), "query_find: "
@@ -9643,8 +9643,7 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Maybe turn on minimal responses for ANY queries.
 	 */
-	if (qtype == dns_rdatatype_any &&
-	    client->view->minimal_any && !TCP(client))
+	if (qtype == dns_rdatatype_any && client->view->minimal_any)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 
