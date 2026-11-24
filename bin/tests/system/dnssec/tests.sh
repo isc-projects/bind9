@@ -1839,35 +1839,6 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-# Check direct query for RRSIG.  If we first ask for normal (non RRSIG)
-# record, the corresponding RRSIG should be cached and subsequent query
-# for RRSIG will be returned with the cached record.
-echo_i "checking RRSIG query from cache ($n)"
-ret=0
-$DIG $DIGOPTS normalthenrrsig.secure.example. @10.53.0.4 a > /dev/null || ret=1
-ans=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.4 rrsig` || ret=1
-expect=`$DIG $DIGOPTS +short normalthenrrsig.secure.example. @10.53.0.3 rrsig | grep '^A' ` || ret=1
-test "$ans" = "$expect" || ret=1
-# also check that RA is set
-$DIG $DIGOPTS normalthenrrsig.secure.example. @10.53.0.4 rrsig > dig.out.ns4.test$n || ret=1
-grep "flags:.*ra.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-# Check direct query for RRSIG: If it's not cached with other records,
-# it should result in an empty response.
-echo_i "checking RRSIG query not in cache ($n)"
-ret=0
-ans=`$DIG $DIGOPTS +short rrsigonly.secure.example. @10.53.0.4 rrsig` || ret=1
-test -z "$ans" || ret=1
-# also check that RA is cleared
-$DIG $DIGOPTS rrsigonly.secure.example. @10.53.0.4 rrsig > dig.out.ns4.test$n || ret=1
-grep "flags:.*ra.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
 #
 # RT21868 regression test.
 #

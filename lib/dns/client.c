@@ -864,14 +864,8 @@ view_find(resctx_t *rctx, dns_db_t **dbp, dns_dbnode_t **nodep,
 {
 	isc_result_t result;
 	dns_name_t *name = dns_fixedname_name(&rctx->name);
-	dns_rdatatype_t type;
 
-	if (rctx->type == dns_rdatatype_rrsig)
-		type = dns_rdatatype_any;
-	else
-		type = rctx->type;
-
-	result = dns_view_find(rctx->view, name, type, 0, 0, false,
+	result = dns_view_find(rctx->view, name, rctx->type, 0, 0, false,
 			       dbp, nodep, foundname, rctx->rdataset,
 			       rctx->sigrdataset);
 
@@ -1392,6 +1386,14 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(transp != NULL && *transp == NULL);
+
+	/*
+	 * RRSIG queries are not supported by the resolver. Reject them
+	 * before looking in the local database as well.
+	 */
+	if (type == dns_rdatatype_rrsig) {
+		return (DNS_R_FORMERR);
+	}
 
 	LOCK(&client->lock);
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
