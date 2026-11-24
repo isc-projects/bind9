@@ -77,8 +77,8 @@ echo_i "checking ANY zone redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 any >dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n >/dev/null || ret=1
-grep "100.100.100.1" dig.out.ns2.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6401" dig.out.ns2.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.1" -e "2001:ffff:ffff::6464:6401" dig.out.ns2.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -133,8 +133,8 @@ echo_i "checking ANY zone redirect works for signed nonexist, DO=0 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.2 -b 10.53.0.2 any >dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n >/dev/null || ret=1
-grep "100.100.100.1" dig.out.ns2.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6401" dig.out.ns2.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.1" -e "2001:ffff:ffff::6464:6401" dig.out.ns2.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -220,8 +220,8 @@ echo_i "checking ANY zone redirect works for nonexist authoritative ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.1 -b 10.53.0.1 any >dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
-grep "100.100.100.2" dig.out.ns1.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6402" dig.out.ns1.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.2" -e "2001:ffff:ffff::6464:6402" dig.out.ns1.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -276,8 +276,8 @@ echo_i "checking ANY zone redirect works for signed nonexist, DO=0 authoritative
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.1 -b 10.53.0.1 any >dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
-grep "100.100.100.2" dig.out.ns1.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6402" dig.out.ns1.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.2" -e "2001:ffff:ffff::6464:6402" dig.out.ns1.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -409,8 +409,8 @@ echo_i "checking ANY nxdomain-redirect works for nonexist ($n)"
 ret=0
 $DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 any >dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
-grep "100.100.100.1" dig.out.ns4.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.1" -e "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -437,8 +437,8 @@ echo_i "checking ANY nxdomain-redirect works for signed nonexist, DO=0 ($n)"
 ret=0
 $DIG $DIGOPTS nonexist.signed. @10.53.0.4 -b 10.53.0.2 any >dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n >/dev/null || ret=1
-grep "100.100.100.1" dig.out.ns4.test$n >/dev/null || ret=1
-grep "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n >/dev/null || ret=1
+# the answer is minimized to a single RRset
+grep -e "100.100.100.1" -e "2001:ffff:ffff::6464:6401" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

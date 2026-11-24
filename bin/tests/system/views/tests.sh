@@ -29,10 +29,10 @@ RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 status=0
 
 echo_i "fetching a.example from ns2's initial configuration"
-dig_with_opts a.example. @10.53.0.2 any >dig.out.ns2.1 || status=1
+dig_with_opts a.example. @10.53.0.2 a >dig.out.ns2.1 || status=1
 
 echo_i "fetching a.example from ns3's initial configuration"
-dig_with_opts a.example. @10.53.0.3 any >dig.out.ns3.1 || status=1
+dig_with_opts a.example. @10.53.0.3 a >dig.out.ns3.1 || status=1
 
 echo_i "copying in new configurations for ns2 and ns3"
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
@@ -58,13 +58,13 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "fetching a.example from ns2's 10.53.0.4, source address 10.53.0.4"
-dig_with_opts -b 10.53.0.4 a.example. @10.53.0.4 any >dig.out.ns4.2 || status=1
+dig_with_opts -b 10.53.0.4 a.example. @10.53.0.4 a >dig.out.ns4.2 || status=1
 
 echo_i "fetching a.example from ns2's 10.53.0.2, source address 10.53.0.2"
-dig_with_opts -b 10.53.0.2 a.example. @10.53.0.2 any >dig.out.ns2.2 || status=1
+dig_with_opts -b 10.53.0.2 a.example. @10.53.0.2 a >dig.out.ns2.2 || status=1
 
 echo_i "fetching a.example from ns3's 10.53.0.3, source address defaulted"
-dig_with_opts @10.53.0.3 a.example. any >dig.out.ns3.2 || status=1
+dig_with_opts @10.53.0.3 a.example. a >dig.out.ns3.2 || status=1
 
 echo_i "comparing ns3's initial a.example to one from reconfigured 10.53.0.2"
 digcomp dig.out.ns3.1 dig.out.ns2.2 || status=1
