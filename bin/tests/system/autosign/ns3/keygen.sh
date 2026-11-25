@@ -239,7 +239,7 @@ cp $infile $zonefile
 setup ttl4.example
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -L 30 -fk $keytimes $zone >kg.out 2>&1 || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -L 30 $keytimes $zone >kg.out 2>&1 || dumpit kg.out
-cp $infile $zonefile
+cat $infile K${zone}.+*.key >$zonefile
 
 #
 # A zone with a DNSKEY RRset that is published before it's activated
