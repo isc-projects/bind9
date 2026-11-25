@@ -126,15 +126,15 @@ if ($server_arg) {
 
 # Start the servers we found.
 
+foreach my $name(@ans) {
+	&start_ans_server($name);
+}
+
 foreach my $name(@ns) {
 	my $instances_so_far = count_running_lines($name);
 	&check_ns_port($name);
 	&start_ns_server($name, $options_arg);
 	&verify_ns_server($name, $instances_so_far);
-}
-
-foreach my $name(@ans) {
-	&start_ans_server($name);
 }
 
 # Subroutines
