@@ -15,10 +15,13 @@ AsyncDnsServer responses built from zone data
 
 import dns.message
 import dns.rdatatype
+import pytest
 
 from isctest.template import ANS1
 
 import isctest
+
+pytestmark = pytest.mark.asyncserver_test
 
 
 def query(qname: str, qtype: str, dnssec: bool = False) -> dns.message.Message:

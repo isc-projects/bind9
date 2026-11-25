@@ -23,6 +23,8 @@ from isctest.template import ANS1
 
 import isctest
 
+pytestmark = pytest.mark.asyncserver_test
+
 
 def query(qname: str) -> dns.message.Message:
     msg = isctest.query.create(qname, "A", dnssec=False, rd=False)

@@ -99,6 +99,7 @@ def prime_parent_soa():
     _check_signed_rrset(response, response.answer, PARENT, dns.rdatatype.SOA, PARENT)
 
 
+@pytest.mark.asyncserver_test
 def test_malicious_replay():
     # Trigger query.
     response = _query(AUTH, QUERY, "MX")

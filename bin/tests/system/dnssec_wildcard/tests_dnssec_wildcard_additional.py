@@ -77,6 +77,7 @@ def _check_rrsig(response, section, owner, rdtype, signer, labels=None):
         assert rrsig[0].labels == labels, response.to_text()
 
 
+@pytest.mark.asyncserver_test
 def test_direct_fromwildcard_additional_fixture():
     carrier = _query(AUTH, QUERY, "MX")
     isctest.check.noerror(carrier)

@@ -86,6 +86,7 @@ def check_ds_response(zone):
     ), response
 
 
+@pytest.mark.asyncserver_test
 def test_attack_responses():
     check_dnskey_response("tld.test.")
     check_dnskey_response(ATTACKER)
