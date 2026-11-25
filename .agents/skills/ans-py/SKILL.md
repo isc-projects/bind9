@@ -2922,6 +2922,57 @@ A handler the server creates many times over with different values,
         ...
 ```
 
+### Change another handler's responses in a wrapper
+
+What a server does to the responses of another handler, signing them,
+changing a field or holding them back, goes in a
+`ResponseHandlerWrapper` around that handler when it helps readability
+and code reuse, rather than in a subclass that takes over its
+`get_responses()`.  The wrapper answers what the wrapped handler
+matches.  `_on_query_received()` is awaited before the wrapped handler
+answers a query, and `_modify_response()` changes each response it
+yields; a wrapper defines the ones it needs.  Wrappers are put around
+a handler where it is installed.
+
+#### Examples
+
+A wrapper that holds the answer until a control command releases it,
+`ncache/ans1/ans.py` as of fa22da84bd:
+
+```python
+# ncache/ans1/ans.py:64-75 as of fa22da84bd
+class UntilReleased(ResponseHandlerWrapper):
+    """
+    Hold the responses of the wrapped handler until the "release._control."
+    command has been received.
+    """
+
+    def __init__(self, inner: ResponseHandler, release: asyncio.Event) -> None:
+        super().__init__(inner)
+        self._release = release
+
+    async def _on_query_received(self, qctx: QueryContext) -> None:
+        await self._release.wait()
+
+# ncache/ans1/ans.py:100 as of fa22da84bd
+    server.install_response_handlers(UntilReleased(HeldAddressHandler(), release))
+```
+
+Wrappers that change each response, nested where the handler is
+installed, `xfer/ans5/ans.py` as of fa22da84bd:
+
+```python
+# xfer/ans5/ans.py:286-293 as of fa22da84bd
+            "badmessageid": (
+                SignResponses(SoaHandler()),
+                SignResponses(
+                    Add50ToMessageIdFromSecondResponse(
+                        XferAxfrHandler(txt_data="bad message id")
+                    ),
+                ),
+            ),
+```
+
 ### No wall of constants
 
 A value used once lives at its use site; a value that is an input of a
