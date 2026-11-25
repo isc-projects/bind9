@@ -23,7 +23,7 @@ import dns.update
 import pytest
 import yaml
 
-from dnstap.common import ARTIFACTS, check_counts, dnstap_read
+from dnstap.common import ARTIFACTS, check_counts, dnstap_read, query
 from isctest.util import param
 
 import isctest
@@ -34,11 +34,6 @@ pytestmark = [
     pytest.mark.requires_zones_loaded("ns1", "ns2", "ns3", "ns4", "ns5"),
     pytest.mark.extra_artifacts(ARTIFACTS),
 ]
-
-
-def query(server, qname="a.example.", qtype="A"):
-    msg = isctest.query.create(qname, qtype)
-    return isctest.query.udp(msg, server.ip)
 
 
 @pytest.fixture(scope="module", autouse=True)
