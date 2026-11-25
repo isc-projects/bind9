@@ -522,7 +522,7 @@ openssleddsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 				     &privpkey));
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	key->key_size = EVP_PKEY_bits(privpkey);
+	key->key_size = alginfo->key_size * 8;
 	key->keydata.pkeypair.priv = privpkey;
 	key->keydata.pkeypair.pub = pubpkey;
 	privpkey = NULL;
