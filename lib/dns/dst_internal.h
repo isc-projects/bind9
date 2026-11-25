@@ -95,7 +95,10 @@ struct dst_key {
 		struct {
 			EVP_PKEY *pub;
 			EVP_PKEY *priv;
-			uint8_t *seed; /*%< ML-DSA private key */
+			uint8_t *seed;	   /*%< ML-DSA private key */
+			bool rsa_shape_ok; /*%< RSA modulus size and
+					    *   public exponent were
+					    *   checked on load */
 		} pkeypair;
 	} keydata; /*%< pointer to key in crypto pkg fmt */
 
@@ -192,8 +195,6 @@ void
 dst__hmacsha512_init(struct dst_func **funcp);
 void
 dst__opensslrsa_init(struct dst_func **funcp, unsigned short algorithm);
-void
-dst__opensslrsa_shutdown(void);
 void
 dst__opensslecdsa_init(struct dst_func **funcp);
 void

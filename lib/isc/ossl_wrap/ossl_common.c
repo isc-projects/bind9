@@ -45,6 +45,48 @@ isc_ossl_wrap_rsa_components_cleanup(isc_ossl_wrap_rsa_components_t *c) {
 	c->needs_cleanup = false;
 }
 
+bool
+isc_ossl_wrap_rsa_exponent_in_range(const BIGNUM *e) {
+	int bits;
+
+	REQUIRE(e != NULL);
+
+	/*
+	 * The accepted public exponents are the odd numbers in the closed
+	 * range [3, 2^32 + 1].  The range is checked by looking at the bits
+	 * of the number, so no BIGNUM constants are needed to compare with.
+	 */
+	if (BN_is_negative(e) || !BN_is_odd(e)) {
+		return false;
+	}
+
+	bits = BN_num_bits(e);
+
+	/* One bit means e == 1, more than 33 bits mean e >= 2^33. */
+	if (bits < 2 || bits > 33) {
+		return false;
+	}
+
+	/* An odd number with 2 to 32 bits is within [3, 2^32 - 1]. */
+	if (bits <= 32) {
+		return true;
+	}
+
+	/*
+	 * That leaves the numbers with exactly 33 bits, [2^32, 2^33 - 1].
+	 * Bit 32 is set in all of them, and bit 0 is set because the number
+	 * is odd.  The only one still in the range is 2^32 + 1, which is the
+	 * one that has none of the bits in between set.
+	 */
+	for (int bit = 1; bit < 32; bit++) {
+		if (BN_is_bit_set(e, bit)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 isc_result_t
 isc_ossl_wrap_toresult(isc_result_t fallback) {
 	isc_result_t result = fallback;

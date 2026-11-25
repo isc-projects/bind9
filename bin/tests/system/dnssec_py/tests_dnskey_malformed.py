@@ -129,29 +129,22 @@ def test_malformed_ecdsa(ns9):
     log_validation_failed = Re(
         r"invalid-rrsig\.dnskey-malformed/A\): validation failed"
     )
-    log_openssl_failure = Re("EVP_PKEY_fromdata.*failed")
-    log_openssl_version = Re("linked to OpenSSL version: OpenSSL ([0-9]+)")
+    log_dnskey_failure = Re(r"failed to load DNSKEY \(keyid=[0-9]+\)")
 
     msg = isctest.query.create("invalid-rrsig.dnskey-malformed", "A")
 
-    openssl_vers = ns9.log.grep(log_openssl_version)
-    if (
-        openssl_vers
-        and int(openssl_vers[0].group(1)) >= 3
-        and os.getenv("FEATURE_QUERYTRACE") == "1"
-    ):
-        # extra check for OpenSSL 3.0.0+
+    if os.getenv("FEATURE_QUERYTRACE") == "1":
         with ns9.watch_log_from_here() as watcher:
             res = isctest.query.tcp(msg, ns9.ip)
 
-            # check the OpenSSL-specific log message appears just once
+            # check the malformed DNSKEY is loaded just once
             matches = watcher.wait_for_all(
                 [
-                    log_openssl_failure,
+                    log_dnskey_failure,
                     log_validation_failed,
                 ]
             )
-            assert len([m for m in matches if m.re == log_openssl_failure]) == 1
+            assert len([m for m in matches if m.re == log_dnskey_failure]) == 1
     else:
         res = isctest.query.tcp(msg, ns9.ip)
 
@@ -162,8 +155,7 @@ def test_multiple_rrsigs(ns2, ns9):
     log_validation_failed = Re(
         r"multiple-rrsigs\.dnskey-malformed/A\): validation failed"
     )
-    log_openssl_failure = Re("EVP_PKEY_fromdata.*failed")
-    log_openssl_version = Re("linked to OpenSSL version: OpenSSL ([0-9]+)")
+    log_dnskey_failure = Re(r"failed to load DNSKEY \(keyid=[0-9]+\)")
 
     msg = isctest.query.create("multiple-rrsigs.dnskey-malformed", "A")
 
@@ -185,25 +177,19 @@ def test_multiple_rrsigs(ns2, ns9):
     ):
         pytest.skip("valid RRSIG listed first in response, re-run test")
 
-    openssl_vers = ns9.log.grep(log_openssl_version)
-    if (
-        openssl_vers
-        and int(openssl_vers[0].group(1)) >= 3
-        and os.getenv("FEATURE_QUERYTRACE") == "1"
-    ):
-        # extra check for OpenSSL 3.0.0+
+    if os.getenv("FEATURE_QUERYTRACE") == "1":
         with ns9.watch_log_from_here() as watcher:
             res = isctest.query.tcp(msg, ns9.ip)
 
-            # check the OpenSSL-specific log message appears exactly twice:
+            # check the malformed DNSKEY is loaded exactly twice:
             # one failure is allowed by setting max-validation-failures-per-fetch 1;
             matches = watcher.wait_for_all(
                 [
-                    log_openssl_failure,
+                    log_dnskey_failure,
                     log_validation_failed,
                 ]
             )
-            assert len([m for m in matches if m.re == log_openssl_failure]) == 2
+            assert len([m for m in matches if m.re == log_dnskey_failure]) == 2
     else:
         res = isctest.query.tcp(msg, ns9.ip)
 

@@ -38,30 +38,6 @@ constexpr int rsa_min_modulus_bits = 512;
 constexpr unsigned int rsa_max_modulus_bytes = (rsa_max_modulus_bits + 7) / 8;
 constexpr unsigned int rsa_max_exponent_bytes = 5; /* 2^32 + 1 */
 
-static BIGNUM *rsa_exponent_min = NULL;
-static BIGNUM *rsa_exponent_max = NULL;
-
-/*
- * Accept odd public exponents in [3, 2^32 + 1].  That covers every Fermat
- * prime up to F5 and the odd intermediate values seen on the wire.
- */
-static bool
-rsa_exponent_in_range(const BIGNUM *e) {
-	if (!BN_is_odd(e)) {
-		return false;
-	}
-
-	if (BN_cmp(e, rsa_exponent_min) < 0) {
-		return false;
-	}
-
-	if (BN_cmp(e, rsa_exponent_max) > 0) {
-		return false;
-	}
-
-	return true;
-}
-
 /* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
 static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
 					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
@@ -259,10 +235,12 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.pub;
 
-	if (!isc_ossl_wrap_rsa_modulus_bits_in_range(pkey, rsa_min_modulus_bits,
-						     rsa_max_modulus_bits) ||
-	    !isc_ossl_wrap_rsa_exponent_is_allowed(pkey))
-	{
+	/*
+	 * Every key load path checks the modulus size and the public exponent
+	 * and records the outcome; this is the backstop against a load path
+	 * that does not.
+	 */
+	if (!key->keydata.pkeypair.rsa_shape_ok) {
 		return DST_R_VERIFYFAILURE;
 	}
 
@@ -348,6 +326,10 @@ opensslrsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	key->keydata.pkeypair.pub = pkey;
 	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.rsa_shape_ok =
+		isc_ossl_wrap_rsa_modulus_bits_in_range(
+			pkey, rsa_min_modulus_bits, rsa_max_modulus_bits) &&
+		isc_ossl_wrap_rsa_exponent_is_allowed(pkey);
 	pkey = NULL;
 	result = ISC_R_SUCCESS;
 
@@ -436,9 +418,6 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		CLEANUP(ISC_R_SUCCESS);
-	}
 
 	/*
 	 * Check identifying OID in front of public key material.
@@ -501,14 +480,15 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (!rsa_exponent_in_range(c.e)) {
+	if (!isc_ossl_wrap_rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 	isc_buffer_forward(data, length);
 
 	key->key_size = BN_num_bits(c.n);
-	result = isc_ossl_wrap_load_rsa_public_from_components(
-		&c, &key->keydata.pkeypair.pub);
+	CHECK(isc_ossl_wrap_load_rsa_public_from_components(
+		&c, &key->keydata.pkeypair.pub));
+	key->keydata.pkeypair.rsa_shape_ok = true;
 
 cleanup:
 	isc_ossl_wrap_rsa_components_cleanup(&c);
@@ -620,6 +600,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 cleanup:
 	for (i = 0; i < ARRAY_SIZE(bufs); i++) {
 		if (bufs[i] != NULL) {
+			isc_safe_memwipe(bufs[i], priv.elements[i].length);
 			isc_mem_put(key->mctx, bufs[i],
 				    priv.elements[i].length);
 		}
@@ -656,6 +637,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		}
 		key->keydata.pkeypair.pub = pub->keydata.pkeypair.pub;
 		key->keydata.pkeypair.priv = pub->keydata.pkeypair.priv;
+		key->keydata.pkeypair.rsa_shape_ok =
+			pub->keydata.pkeypair.rsa_shape_ok;
 		pub->keydata.pkeypair.pub = NULL;
 		pub->keydata.pkeypair.priv = NULL;
 		key->key_size = pub->key_size;
@@ -746,7 +729,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (!rsa_exponent_in_range(c.e)) {
+	if (!isc_ossl_wrap_rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 
@@ -761,14 +744,12 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	key->keydata.pkeypair.pub = pkey;
 	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.rsa_shape_ok = true;
 	pkey = NULL;
 
 cleanup:
 	isc_ossl_wrap_rsa_components_cleanup(&c);
 	EVP_PKEY_free(pkey);
-	if (result != ISC_R_SUCCESS) {
-		key->keydata.generic = NULL;
-	}
 
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
@@ -797,6 +778,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;
 	key->keydata.pkeypair.pub = pubpkey;
+	key->keydata.pkeypair.rsa_shape_ok = true;
 	privpkey = NULL;
 	pubpkey = NULL;
 
@@ -968,31 +950,4 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned short algorithm) {
 			*funcp = &opensslrsa_functions;
 		}
 	}
-
-	if (rsa_exponent_min == NULL) {
-		rsa_exponent_min = BN_new();
-		INSIST(rsa_exponent_min != NULL);
-
-		RUNTIME_CHECK(BN_set_word(rsa_exponent_min, 3) == 1);
-	}
-
-	if (rsa_exponent_max == NULL) {
-		rsa_exponent_max = BN_new();
-		INSIST(rsa_exponent_max != NULL);
-
-		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 0) == 1);
-		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 32) == 1);
-	}
-}
-
-void
-dst__opensslrsa_shutdown(void) {
-	REQUIRE(rsa_exponent_min != NULL);
-	REQUIRE(rsa_exponent_max != NULL);
-
-	BN_free(rsa_exponent_min);
-	rsa_exponent_min = NULL;
-
-	BN_free(rsa_exponent_max);
-	rsa_exponent_max = NULL;
 }

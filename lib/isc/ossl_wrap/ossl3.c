@@ -119,18 +119,6 @@ static const OSSL_PARAM p384_params[] = {
 };
 /* clang-format on */
 
-static void
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-}
-
 static int
 rsa_keygen_progress_cb(EVP_PKEY_CTX *ctx) {
 	void (*fptr)(int);
@@ -338,8 +326,14 @@ load_ec_public_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata_init"));
 	}
 
+	/*
+	 * The public key usually comes from the network, so an invalid one
+	 * is not worth a log message.
+	 */
 	if (EVP_PKEY_fromdata(pctx, pkeyp, EVP_PKEY_PUBLIC_KEY, params) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata"));
+		result = isc_ossl_wrap_toresult(DST_R_INVALIDPUBLICKEY);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
 	result = ISC_R_SUCCESS;
@@ -356,11 +350,13 @@ load_ec_secret_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 	OSSL_PARAM_BLD *bld = NULL;
 	OSSL_PARAM *params = NULL;
 	EVP_PKEY_CTX *pctx = NULL;
+	EVP_PKEY *pkey = NULL;
 	EC_POINT *pub_point = NULL;
 	EC_GROUP *group = NULL;
 	BIGNUM *private = NULL;
 	isc_result_t result;
 	size_t public_len;
+	int status;
 
 	/*
 	 * OpenSSL requires us to set the public key portion, but since our
@@ -430,13 +426,36 @@ load_ec_secret_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata_init"));
 	}
 
-	if (EVP_PKEY_fromdata(pctx, pkeyp, EVP_PKEY_KEYPAIR, params) != 1) {
+	if (EVP_PKEY_fromdata(pctx, &pkey, EVP_PKEY_KEYPAIR, params) != 1) {
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata"));
 	}
 
+	/*
+	 * EVP_PKEY_fromdata() accepts a private key outside of the [1, n-1]
+	 * range, so the loaded key pair needs to be checked explicitly.
+	 */
+	EVP_PKEY_CTX_free(pctx);
+	pctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL);
+	if (pctx == NULL) {
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_CTX_new_from_pkey"));
+	}
+
+	status = EVP_PKEY_pairwise_check(pctx);
+	switch (status) {
+	case 1: /* success */
+		break;
+	case -2: /* operation not supported */
+		break;
+	default:
+		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_pairwise_check"));
+	}
+
+	*pkeyp = pkey;
+	pkey = NULL;
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	EVP_PKEY_free(pkey);
 	OSSL_PARAM_free(params);
 	OSSL_PARAM_BLD_free(bld);
 	EC_POINT_free(pub_point);
@@ -460,8 +479,11 @@ ec_public_region(EVP_PKEY *pkey, isc_region_t pub) {
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_get_bn_param"));
 	}
 
-	BN_bn2bin_fixed(x, &pub.base[0], pub.length / 2);
-	BN_bn2bin_fixed(y, &pub.base[pub.length / 2], pub.length / 2);
+	if (BN_bn2binpad(x, &pub.base[0], pub.length / 2) < 0 ||
+	    BN_bn2binpad(y, &pub.base[pub.length / 2], pub.length / 2) < 0)
+	{
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 
@@ -476,11 +498,19 @@ ec_secret_region(EVP_PKEY *pkey, isc_region_t sec) {
 	isc_result_t result;
 	BIGNUM *priv = NULL;
 
+	/*
+	 * The private key of a key kept in an HSM cannot be exported; that is
+	 * expected and for the caller to handle, so it is not logged here.
+	 */
 	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_get_bn_param"));
+		result = isc_ossl_wrap_toresult(ISC_R_CRYPTOFAILURE);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
-	BN_bn2bin_fixed(priv, sec.base, sec.length);
+	if (BN_bn2binpad(priv, sec.base, sec.length) < 0) {
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 
@@ -630,28 +660,13 @@ cleanup:
 bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	BIGNUM *e = NULL;
-	BIGNUM *emin = NULL;
-	BIGNUM *emax = NULL;
 	bool ok = false;
 
-	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) != 1) {
-		goto cleanup;
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
+		ok = isc_ossl_wrap_rsa_exponent_in_range(e);
 	}
 
-	emin = BN_new();
-	if (emin == NULL || !BN_set_word(emin, 3)) {
-		goto cleanup;
-	}
-	if (BN_hex2bn(&emax, "100000001") == 0) {
-		goto cleanup;
-	}
-
-	ok = BN_is_odd(e) && BN_cmp(e, emin) >= 0 && BN_cmp(e, emax) <= 0;
-
-cleanup:
 	BN_free(e);
-	BN_free(emin);
-	BN_free(emax);
 	return ok;
 }
 

@@ -13,6 +13,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/ec.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 
@@ -35,8 +36,11 @@
 	}                                                                      \
 	isc_result_t isc_ossl_wrap_generate_pkcs11_##curve##_key(              \
 		char *uri, EVP_PKEY **pkeyp) {                                 \
+		REQUIRE(uri != NULL);                                          \
+		REQUIRE(pkeyp != NULL && *pkeyp == NULL);                      \
 		UNUSED(uri);                                                   \
-		return isc_ossl_wrap_generate_##curve##_key(pkeyp);            \
+		UNUSED(pkeyp);                                                 \
+		return ISC_R_NOTIMPLEMENTED;                                   \
 	}                                                                      \
 	isc_result_t isc_ossl_wrap_validate_##curve##_pkey(EVP_PKEY *pkey) {   \
 		REQUIRE(pkey != NULL);                                         \
@@ -80,19 +84,6 @@ constexpr size_t p384_public_key_size = 96;
 
 constexpr size_t p256_secret_key_size = 32;
 constexpr size_t p384_secret_key_size = 48;
-
-static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-	return size;
-}
 
 static int
 rsa_keygen_progress_cb(int p, int n, BN_GENCB *cb) {
@@ -186,12 +177,14 @@ load_ec_public_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 	memmove(buffer + 1, region.base, region.length);
 
 	buf_launder = buffer;
+	/*
+	 * The public key usually comes from the network, so an invalid one
+	 * is not worth a log message.
+	 */
 	if (o2i_ECPublicKey(&eckey, &buf_launder, region.length + 1) == NULL) {
-		CLEANUP(OSSL_WRAP_ERROR("o2i_ECPublicKey"));
-	}
-
-	if (EC_KEY_check_key(eckey) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_check_key"));
+		result = isc_ossl_wrap_toresult(DST_R_INVALIDPUBLICKEY);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
 	pkey = EVP_PKEY_new();
@@ -258,6 +251,14 @@ load_ec_secret_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 
 	if (EC_KEY_set_public_key(eckey, public) != 1) {
 		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_set_public_key"));
+	}
+
+	/*
+	 * EC_KEY_set_private_key() accepts a private key outside of the
+	 * [1, n-1] range, so the key pair needs to be checked explicitly.
+	 */
+	if (EC_KEY_check_key(eckey) != 1) {
+		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_check_key"));
 	}
 
 	pkey = EVP_PKEY_new();
@@ -335,7 +336,9 @@ ec_secret_region(EVP_PKEY *pkey, isc_region_t pub) {
 		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_get0_private_key"));
 	}
 
-	BN_bn2bin_fixed(private, pub.base, pub.length);
+	if (BN_bn2binpad(private, pub.base, pub.length) < 0) {
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 
@@ -443,9 +446,6 @@ bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	const RSA *rsa;
 	const BIGNUM *ce;
-	BIGNUM *emin = NULL;
-	BIGNUM *emax = NULL;
-	bool ok = false;
 
 	REQUIRE(pkey != NULL);
 
@@ -459,20 +459,7 @@ isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 		return false;
 	}
 
-	emin = BN_new();
-	if (emin == NULL || !BN_set_word(emin, 3)) {
-		goto cleanup;
-	}
-	if (BN_hex2bn(&emax, "100000001") == 0) {
-		goto cleanup;
-	}
-
-	ok = BN_is_odd(ce) && BN_cmp(ce, emin) >= 0 && BN_cmp(ce, emax) <= 0;
-
-cleanup:
-	BN_free(emin);
-	BN_free(emax);
-	return ok;
+	return isc_ossl_wrap_rsa_exponent_in_range(ce);
 }
 
 bool

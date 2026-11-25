@@ -74,6 +74,10 @@ isc_ossl_wrap_load_p256_public_from_region(isc_region_t region,
  * \li `*pkeyp == NULL`
  * \li `region.base != NULL`
  * \li `region.length == 64`
+ *
+ * Returns:
+ * \li #DST_R_INVALIDPUBLICKEY if `region` does not hold a valid public key;
+ *     this is not logged, as the key can come from the network
  */
 
 isc_result_t
@@ -164,7 +168,11 @@ isc_ossl_wrap_load_p384_public_from_region(isc_region_t region,
  * \li `pkeyp != NULL`
  * \li `*pkeyp == NULL`
  * \li `region.base != NULL`
- * \li `region.length == 64`
+ * \li `region.length == 96`
+ *
+ * Returns:
+ * \li #DST_R_INVALIDPUBLICKEY if `region` does not hold a valid public key;
+ *     this is not logged, as the key can come from the network
  */
 
 isc_result_t
@@ -251,13 +259,22 @@ isc_ossl_wrap_generate_pkcs11_rsa_key(char *uri, size_t bit_size,
  */
 
 bool
+isc_ossl_wrap_rsa_exponent_in_range(const BIGNUM *e);
+/*%
+ * Returns true if the RSA public exponent `e` is odd and lies within
+ * the closed range [3, 2^32 + 1].  This covers every Fermat prime up to
+ * F5 plus all odd intermediate values seen in deployed DNSSEC keys.
+ *
+ * Requires:
+ * \li `e != NULL`
+ */
+
+bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey);
 /*%
- * Returns true if the RSA public exponent of `pkey` is odd and lies
- * within the closed range [3, 2^32 + 1].  This covers every Fermat
- * prime up to F5 plus all odd intermediate values seen in deployed
- * DNSSEC keys.  Returns false if the exponent cannot be retrieved or
- * falls outside that range.
+ * Returns true if the RSA public exponent of `pkey` is accepted by
+ * isc_ossl_wrap_rsa_exponent_in_range().  Returns false if the exponent
+ * cannot be retrieved or falls outside that range.
  */
 
 bool

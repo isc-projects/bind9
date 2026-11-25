@@ -70,19 +70,6 @@ opensslecdsa_key_alg_to_publickey_size(unsigned int key_alg) {
 	}
 }
 
-static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-	return size;
-}
-
 static isc_result_t
 opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -233,15 +220,17 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	ECDSA_SIG_get0(ecdsasig, &r, &s);
-	BN_bn2bin_fixed(r, region.base, siglen / 2);
-	isc_region_consume(&region, siglen / 2);
-	BN_bn2bin_fixed(s, region.base, siglen / 2);
-	isc_region_consume(&region, siglen / 2);
-	ECDSA_SIG_free(ecdsasig);
+	if (BN_bn2binpad(r, region.base, siglen / 2) < 0 ||
+	    BN_bn2binpad(s, region.base + siglen / 2, siglen / 2) < 0)
+	{
+		CLEANUP(dst__openssl_toresult3(dctx->category, "BN_bn2binpad",
+					       ISC_R_FAILURE));
+	}
 	isc_buffer_add(sig, siglen);
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	ECDSA_SIG_free(ecdsasig);
 	if (sigder != NULL && sigder_alloced != 0) {
 		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
 	}
@@ -257,10 +246,10 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	unsigned char *cp = sig->base;
 	ECDSA_SIG *ecdsasig = NULL;
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	size_t siglen, sigder_len = 0, sigder_alloced = 0;
-	unsigned char *sigder = NULL;
-	unsigned char *sigder_copy;
-	BIGNUM *r = NULL, *s = NULL;
+	size_t siglen, sigder_len = 0;
+	void *sigder = NULL;
+	BIGNUM *r = NULL;
+	BIGNUM *s = NULL;
 
 	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	REQUIRE(dctx->use == DO_VERIFY);
@@ -283,27 +272,23 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	cp += siglen / 2;
 	s = BN_bin2bn(cp, siglen / 2, NULL);
 	/* cp += siglen / 2; */
-	ECDSA_SIG_set0(ecdsasig, r, s);
+	status = ECDSA_SIG_set0(ecdsasig, r, s);
+	if (status == 0) {
+		BN_free(r);
+		BN_free(s);
+		CLEANUP(dst__openssl_toresult3(dctx->category, "ECDSA_SIG_set0",
+					       DST_R_VERIFYFAILURE));
+	}
+	r = s = NULL;
 
-	status = i2d_ECDSA_SIG(ecdsasig, NULL);
-	if (status < 0) {
+	status = i2d_ECDSA_SIG(ecdsasig, (unsigned char **)&sigder);
+	if (status <= 0) {
 		CLEANUP(dst__openssl_toresult3(dctx->category, "i2d_ECDSA_SIG",
 					       DST_R_VERIFYFAILURE));
 	}
-
 	sigder_len = (size_t)status;
-	sigder = isc_mem_get(dctx->mctx, sigder_len);
-	sigder_alloced = sigder_len;
-
-	sigder_copy = sigder;
-	status = i2d_ECDSA_SIG(ecdsasig, &sigder_copy);
-	if (status < 0) {
-		CLEANUP(dst__openssl_toresult3(dctx->category, "i2d_ECDSA_SIG",
-					       DST_R_VERIFYFAILURE));
-	}
 
 	status = EVP_DigestVerifyFinal(evp_md_ctx, sigder, sigder_len);
-
 	switch (status) {
 	case 1:
 		result = ISC_R_SUCCESS;
@@ -318,14 +303,11 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		break;
 	}
 
+	OPENSSL_free(sigder);
 cleanup:
 	if (ecdsasig != NULL) {
 		ECDSA_SIG_free(ecdsasig);
 	}
-	if (sigder != NULL && sigder_alloced != 0) {
-		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
-	}
-
 	return result;
 }
 
@@ -420,9 +402,6 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	len = opensslecdsa_key_alg_to_publickey_size(key->key_alg);
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		return ISC_R_SUCCESS;
-	}
 	if (r.length != len) {
 		return DST_R_INVALIDPUBLICKEY;
 	}
@@ -492,6 +471,12 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].length = keylen;
 		priv.elements[i].data = buf;
 		i++;
+	} else if (key->label == NULL) {
+		/*
+		 * Only the private key of a key kept in an HSM is allowed to
+		 * be unavailable; such a key is written with just its label.
+		 */
+		CLEANUP(result);
 	}
 
 	if (key->label != NULL) {
@@ -601,9 +586,6 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 cleanup:
 	EVP_PKEY_free(pkey);
-	if (result != ISC_R_SUCCESS) {
-		key->keydata.generic = NULL;
-	}
 	dst__privstruct_free(&priv, key->mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 

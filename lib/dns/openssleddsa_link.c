@@ -133,29 +133,13 @@ openssleddsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
-	isc_buffer_t *nbuf = NULL;
-	isc_region_t r;
-	unsigned int length;
-	isc_result_t result;
 	const eddsa_alginfo_t *alginfo =
 		openssleddsa_alg_info(dctx->key->key_alg);
 
 	REQUIRE(alginfo != NULL);
 
-	result = isc_buffer_copyregion(buf, data);
-	if (result == ISC_R_SUCCESS) {
-		return ISC_R_SUCCESS;
-	}
-
-	length = isc_buffer_length(buf) + data->length + 64;
-	isc_buffer_allocate(dctx->mctx, &nbuf, length);
-	isc_buffer_usedregion(buf, &r);
-	(void)isc_buffer_copyregion(nbuf, &r);
-	(void)isc_buffer_copyregion(nbuf, data);
-	isc_buffer_free(&buf);
-	dctx->ctxdata.generic = nbuf;
-
-	return ISC_R_SUCCESS;
+	/* The buffer was allocated dynamically and grows as needed. */
+	return isc_buffer_copyregion(buf, data);
 }
 
 static isc_result_t
@@ -352,9 +336,6 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(alginfo != NULL);
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		return ISC_R_SUCCESS;
-	}
 
 	RETERR(raw_key_to_ossl(alginfo, 0, r.base, r.length, &pkey));
 
@@ -420,6 +401,7 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 
 cleanup:
 	if (buf != NULL) {
+		isc_safe_memwipe(buf, alginfo->key_size);
 		isc_mem_put(key->mctx, buf, alginfo->key_size);
 	}
 	return result;
@@ -521,7 +503,7 @@ openssleddsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 				     &privpkey));
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	key->key_size = EVP_PKEY_bits(privpkey);
+	key->key_size = alginfo->key_size * 8;
 	key->keydata.pkeypair.priv = privpkey;
 	key->keydata.pkeypair.pub = pubpkey;
 	privpkey = NULL;

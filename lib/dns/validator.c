@@ -1491,6 +1491,12 @@ select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
 			/* Continue with the next key */
 			continue;
 		}
+		if (result != ISC_R_SUCCESS) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "failed to load DNSKEY (keyid=%u): %s",
+				      siginfo->keyid,
+				      isc_result_totext(result));
+		}
 		return result;
 	}
 
