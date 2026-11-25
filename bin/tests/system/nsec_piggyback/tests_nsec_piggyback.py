@@ -78,11 +78,6 @@ def bootstrap():
     return {"PARENT_DNSKEY": parent_dnskey}
 
 
-def _query(server, qname, qtype):
-    query = isctest.query.create(qname, qtype)
-    return isctest.query.tcp(query, server)
-
-
 def _has_a(response, owner, address):
     rrset = response.get_rrset(
         response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
@@ -111,19 +106,19 @@ def _has_rrsig(response, owner, section, covers):
 def prime_resolver():
     # Caches parent SOA at dns_trust_secure
     # DNSKEY is queried and cached as part of this.
-    soa = _query(RESOLVER, PARENT, "SOA")
+    soa = isctest.query.tcp(isctest.query.create(PARENT, "SOA"), RESOLVER)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Caches real apex parent NSEC at dns_trust_secure
-    nx = _query(RESOLVER, PRIME_NX, "A")
+    nx = isctest.query.tcp(isctest.query.create(PRIME_NX, "A"), RESOLVER)
     isctest.check.nxdomain(nx)
     isctest.check.adflag(nx)
     assert _has_nsec(nx, PARENT), nx
 
 
 def test_malicious_referral():
-    referral = _query(AUTH_PARENT, TRIGGER, "A")
+    referral = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_PARENT)
     isctest.check.noerror(referral)
     assert referral.flags & dns.flags.AA
     assert _has_nsec(referral, CHILD), referral.to_text()
@@ -137,7 +132,7 @@ def test_malicious_referral():
         is None
     )
 
-    child = _query(AUTH_CHILD, TRIGGER, "A")
+    child = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_CHILD)
     isctest.check.noerror(child)
     assert _has_a(child, TRIGGER, CHILD_A), child.to_text()
 
@@ -159,13 +154,13 @@ def test_nsec_piggyback_cache_poisoning(qname, address):
     prime_resolver()
 
     # Trigger the malicious referral.
-    trigger = _query(RESOLVER, TRIGGER, "A")
+    trigger = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), RESOLVER)
     isctest.check.noerror(trigger)
     isctest.check.noadflag(trigger)
     assert _has_a(trigger, TRIGGER, CHILD_A), trigger.to_text()
 
     # Probing query.
-    response = _query(RESOLVER, qname, "A")
+    response = isctest.query.tcp(isctest.query.create(qname, "A"), RESOLVER)
     isctest.check.noerror(response)
     assert _has_a(response, qname, address), response.to_text()
     isctest.check.adflag(response)
