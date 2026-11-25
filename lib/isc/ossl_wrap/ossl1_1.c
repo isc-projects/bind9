@@ -446,9 +446,6 @@ bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	const RSA *rsa;
 	const BIGNUM *ce;
-	BIGNUM *emin = NULL;
-	BIGNUM *emax = NULL;
-	bool ok = false;
 
 	REQUIRE(pkey != NULL);
 
@@ -462,20 +459,7 @@ isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 		return false;
 	}
 
-	emin = BN_new();
-	if (emin == NULL || !BN_set_word(emin, 3)) {
-		goto cleanup;
-	}
-	if (BN_hex2bn(&emax, "100000001") == 0) {
-		goto cleanup;
-	}
-
-	ok = BN_is_odd(ce) && BN_cmp(ce, emin) >= 0 && BN_cmp(ce, emax) <= 0;
-
-cleanup:
-	BN_free(emin);
-	BN_free(emax);
-	return ok;
+	return isc_ossl_wrap_rsa_exponent_in_range(ce);
 }
 
 bool

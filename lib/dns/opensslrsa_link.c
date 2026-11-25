@@ -38,30 +38,6 @@ constexpr int rsa_min_modulus_bits = 512;
 constexpr unsigned int rsa_max_modulus_bytes = (rsa_max_modulus_bits + 7) / 8;
 constexpr unsigned int rsa_max_exponent_bytes = 5; /* 2^32 + 1 */
 
-static BIGNUM *rsa_exponent_min = NULL;
-static BIGNUM *rsa_exponent_max = NULL;
-
-/*
- * Accept odd public exponents in [3, 2^32 + 1].  That covers every Fermat
- * prime up to F5 and the odd intermediate values seen on the wire.
- */
-static bool
-rsa_exponent_in_range(const BIGNUM *e) {
-	if (!BN_is_odd(e)) {
-		return false;
-	}
-
-	if (BN_cmp(e, rsa_exponent_min) < 0) {
-		return false;
-	}
-
-	if (BN_cmp(e, rsa_exponent_max) > 0) {
-		return false;
-	}
-
-	return true;
-}
-
 /* length byte + 1.2.840.113549.1.1.11 BER encoded RFC 4055 */
 static unsigned char oid_rsasha256[] = { 0x0b, 0x06, 0x09, 0x2a, 0x86, 0x48,
 					 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b };
@@ -504,7 +480,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (!rsa_exponent_in_range(c.e)) {
+	if (!isc_ossl_wrap_rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 	isc_buffer_forward(data, length);
@@ -753,7 +729,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	{
 		CLEANUP(ISC_R_RANGE);
 	}
-	if (!rsa_exponent_in_range(c.e)) {
+	if (!isc_ossl_wrap_rsa_exponent_in_range(c.e)) {
 		CLEANUP(ISC_R_RANGE);
 	}
 
@@ -974,31 +950,4 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned short algorithm) {
 			*funcp = &opensslrsa_functions;
 		}
 	}
-
-	if (rsa_exponent_min == NULL) {
-		rsa_exponent_min = BN_new();
-		INSIST(rsa_exponent_min != NULL);
-
-		RUNTIME_CHECK(BN_set_word(rsa_exponent_min, 3) == 1);
-	}
-
-	if (rsa_exponent_max == NULL) {
-		rsa_exponent_max = BN_new();
-		INSIST(rsa_exponent_max != NULL);
-
-		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 0) == 1);
-		RUNTIME_CHECK(BN_set_bit(rsa_exponent_max, 32) == 1);
-	}
-}
-
-void
-dst__opensslrsa_shutdown(void) {
-	REQUIRE(rsa_exponent_min != NULL);
-	REQUIRE(rsa_exponent_max != NULL);
-
-	BN_free(rsa_exponent_min);
-	rsa_exponent_min = NULL;
-
-	BN_free(rsa_exponent_max);
-	rsa_exponent_max = NULL;
 }

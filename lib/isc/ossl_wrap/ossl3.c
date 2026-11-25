@@ -660,28 +660,13 @@ cleanup:
 bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey) {
 	BIGNUM *e = NULL;
-	BIGNUM *emin = NULL;
-	BIGNUM *emax = NULL;
 	bool ok = false;
 
-	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) != 1) {
-		goto cleanup;
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
+		ok = isc_ossl_wrap_rsa_exponent_in_range(e);
 	}
 
-	emin = BN_new();
-	if (emin == NULL || !BN_set_word(emin, 3)) {
-		goto cleanup;
-	}
-	if (BN_hex2bn(&emax, "100000001") == 0) {
-		goto cleanup;
-	}
-
-	ok = BN_is_odd(e) && BN_cmp(e, emin) >= 0 && BN_cmp(e, emax) <= 0;
-
-cleanup:
 	BN_free(e);
-	BN_free(emin);
-	BN_free(emax);
 	return ok;
 }
 

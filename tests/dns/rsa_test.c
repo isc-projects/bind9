@@ -397,10 +397,85 @@ ISC_RUN_TEST_IMPL(isc_rsa_fromdns_short_modulus) {
 	assert_null(key);
 }
 
+/*
+ * dst_key_fromdns accepts exactly the odd RSA public exponents in the
+ * closed range [3, 2^32 + 1].
+ */
+ISC_RUN_TEST_IMPL(isc_rsa_fromdns_exponent_bounds) {
+	const struct {
+		size_t len;
+		unsigned char e[5];
+		isc_result_t expect;
+	} testcases[] = {
+		/* 1 */
+		{ 1, { 0x01 }, ISC_R_RANGE },
+		/* 3 */
+		{ 1, { 0x03 }, ISC_R_SUCCESS },
+		/* 2^16 + 1 */
+		{ 3, { 0x01, 0x00, 0x01 }, ISC_R_SUCCESS },
+		/* 2^32 - 1 */
+		{ 4, { 0xff, 0xff, 0xff, 0xff }, ISC_R_SUCCESS },
+		/* 2^32 */
+		{ 5, { 0x01, 0x00, 0x00, 0x00, 0x00 }, ISC_R_RANGE },
+		/* 2^32 + 1 */
+		{ 5, { 0x01, 0x00, 0x00, 0x00, 0x01 }, ISC_R_SUCCESS },
+		/* 2^32 + 3 */
+		{ 5, { 0x01, 0x00, 0x00, 0x00, 0x03 }, ISC_R_RANGE },
+		/* 2^32 + 2^16 + 1 */
+		{ 5, { 0x01, 0x00, 0x01, 0x00, 0x01 }, ISC_R_RANGE },
+		/* 2^33 + 1 */
+		{ 5, { 0x02, 0x00, 0x00, 0x00, 0x01 }, ISC_R_RANGE },
+	};
+	isc_result_t result;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_buffer_t buf;
+
+	UNUSED(state);
+
+	name = dns_fixedname_initname(&fname);
+	isc_buffer_constinit(&buf, "rsa.", 4);
+	isc_buffer_add(&buf, 4);
+	result = dns_name_fromtext(name, &buf, NULL, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	for (size_t t = 0; t < ARRAY_SIZE(testcases); t++) {
+		unsigned char rdata[300] = { 0 };
+		dst_key_t *key = NULL;
+		size_t i = 0;
+
+		/* DNSKEY rdata: flags(2) + proto(1) + alg(1) + key */
+		rdata[i++] = 0x01; /* flags hi (KSK) */
+		rdata[i++] = 0x00; /* flags lo */
+		rdata[i++] = 0x03; /* protocol */
+		rdata[i++] = DST_ALG_RSASHA256;
+		/* RSA wire key: e_bytes + e + n. */
+		rdata[i++] = testcases[t].len;
+		for (size_t j = 0; j < testcases[t].len; j++) {
+			rdata[i++] = testcases[t].e[j];
+		}
+		/* 256 bytes of arbitrary modulus (2048-bit). */
+		for (size_t j = 0; j < 256; j++) {
+			rdata[i++] = 0xAB;
+		}
+
+		isc_buffer_init(&buf, rdata, i);
+		isc_buffer_add(&buf, i);
+
+		result = dst_key_fromdns(name, dns_rdataclass_in, &buf,
+					 isc_g_mctx, &key);
+		assert_int_equal(result, testcases[t].expect);
+		if (key != NULL) {
+			dst_key_free(&key);
+		}
+	}
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(isc_rsa_verify)
 ISC_TEST_ENTRY(isc_rsa_fromdns_oversized_exponent)
 ISC_TEST_ENTRY(isc_rsa_fromdns_even_exponent)
+ISC_TEST_ENTRY(isc_rsa_fromdns_exponent_bounds)
 ISC_TEST_ENTRY(isc_rsa_fromdns_oversized_modulus)
 ISC_TEST_ENTRY(isc_rsa_fromdns_short_modulus)
 ISC_TEST_LIST_END

@@ -259,13 +259,22 @@ isc_ossl_wrap_generate_pkcs11_rsa_key(char *uri, size_t bit_size,
  */
 
 bool
+isc_ossl_wrap_rsa_exponent_in_range(const BIGNUM *e);
+/*%
+ * Returns true if the RSA public exponent `e` is odd and lies within
+ * the closed range [3, 2^32 + 1].  This covers every Fermat prime up to
+ * F5 plus all odd intermediate values seen in deployed DNSSEC keys.
+ *
+ * Requires:
+ * \li `e != NULL`
+ */
+
+bool
 isc_ossl_wrap_rsa_exponent_is_allowed(EVP_PKEY *pkey);
 /*%
- * Returns true if the RSA public exponent of `pkey` is odd and lies
- * within the closed range [3, 2^32 + 1].  This covers every Fermat
- * prime up to F5 plus all odd intermediate values seen in deployed
- * DNSSEC keys.  Returns false if the exponent cannot be retrieved or
- * falls outside that range.
+ * Returns true if the RSA public exponent of `pkey` is accepted by
+ * isc_ossl_wrap_rsa_exponent_in_range().  Returns false if the exponent
+ * cannot be retrieved or falls outside that range.
  */
 
 bool
