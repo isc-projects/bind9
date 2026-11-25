@@ -113,7 +113,7 @@ register_algorithms(void) {
 	return ISC_R_SUCCESS;
 }
 
-#undef md_unregister_algorithm
+#undef md_register_algorithm
 
 /*
  * HMAC Notes
