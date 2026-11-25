@@ -850,6 +850,54 @@ ISC_RUN_TEST_IMPL(mldsa_noretain) {
 }
 #endif /* HAVE_OPENSSL_MLDSA44 */
 
+/* dst_key_fromdns rejects ECDSA public keys that are not on the curve */
+ISC_RUN_TEST_IMPL(ecdsa_fromdns_invalid_test) {
+	const struct {
+		unsigned int alg;
+		size_t len;
+		unsigned char fill;
+	} testcases[] = {
+		/* x = y = 0 is within the field, but not on the curve */
+		{ DST_ALG_ECDSA256, DNS_KEY_ECDSA256SIZE, 0x00 },
+		{ DST_ALG_ECDSA384, DNS_KEY_ECDSA384SIZE, 0x00 },
+		/* x and y are larger than the field prime */
+		{ DST_ALG_ECDSA256, DNS_KEY_ECDSA256SIZE, 0xff },
+		{ DST_ALG_ECDSA384, DNS_KEY_ECDSA384SIZE, 0xff },
+	};
+	dns_fixedname_t fname;
+	dns_name_t *name = dns_fixedname_initname(&fname);
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	UNUSED(state);
+
+	isc_buffer_constinit(&buf, "ecdsa.", 6);
+	isc_buffer_add(&buf, 6);
+	result = dns_name_fromtext(name, &buf, NULL, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	for (size_t i = 0; i < ARRAY_SIZE(testcases); i++) {
+		unsigned char rdata[4 + DNS_KEY_ECDSA384SIZE];
+		size_t len = 4 + testcases[i].len;
+		dst_key_t *key = NULL;
+
+		/* DNSKEY rdata: flags(2) + proto(1) + alg(1) + key */
+		rdata[0] = 0x01;
+		rdata[1] = 0x00;
+		rdata[2] = 0x03;
+		rdata[3] = testcases[i].alg;
+		memset(rdata + 4, testcases[i].fill, testcases[i].len);
+
+		isc_buffer_init(&buf, rdata, len);
+		isc_buffer_add(&buf, len);
+
+		result = dst_key_fromdns(name, dns_rdataclass_in, &buf,
+					 isc_g_mctx, &key);
+		assert_int_equal(result, DST_R_INVALIDPUBLICKEY);
+		assert_null(key);
+	}
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(algorithm_fromdata)
 ISC_TEST_ENTRY(algorithm_format)
@@ -862,6 +910,7 @@ ISC_TEST_ENTRY(mldsa_noretain)
 #endif /* HAVE_OPENSSL_MLDSA44 */
 ISC_TEST_ENTRY(cmp_test)
 ISC_TEST_ENTRY(ecdsa_determinism_test)
+ISC_TEST_ENTRY(ecdsa_fromdns_invalid_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

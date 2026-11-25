@@ -74,6 +74,10 @@ isc_ossl_wrap_load_p256_public_from_region(isc_region_t region,
  * \li `*pkeyp == NULL`
  * \li `region.base != NULL`
  * \li `region.length == 64`
+ *
+ * Returns:
+ * \li #DST_R_INVALIDPUBLICKEY if `region` does not hold a valid public key;
+ *     this is not logged, as the key can come from the network
  */
 
 isc_result_t
@@ -164,7 +168,11 @@ isc_ossl_wrap_load_p384_public_from_region(isc_region_t region,
  * \li `pkeyp != NULL`
  * \li `*pkeyp == NULL`
  * \li `region.base != NULL`
- * \li `region.length == 64`
+ * \li `region.length == 96`
+ *
+ * Returns:
+ * \li #DST_R_INVALIDPUBLICKEY if `region` does not hold a valid public key;
+ *     this is not logged, as the key can come from the network
  */
 
 isc_result_t

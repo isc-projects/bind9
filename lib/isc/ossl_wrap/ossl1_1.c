@@ -13,6 +13,7 @@
 
 #include <openssl/bn.h>
 #include <openssl/ec.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
 
@@ -189,8 +190,14 @@ load_ec_public_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 	memmove(buffer + 1, region.base, region.length);
 
 	buf_launder = buffer;
+	/*
+	 * The public key usually comes from the network, so an invalid one
+	 * is not worth a log message.
+	 */
 	if (o2i_ECPublicKey(&eckey, &buf_launder, region.length + 1) == NULL) {
-		CLEANUP(OSSL_WRAP_ERROR("o2i_ECPublicKey"));
+		result = isc_ossl_wrap_toresult(DST_R_INVALIDPUBLICKEY);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
 	pkey = EVP_PKEY_new();

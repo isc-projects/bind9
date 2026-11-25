@@ -338,8 +338,14 @@ load_ec_public_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata_init"));
 	}
 
+	/*
+	 * The public key usually comes from the network, so an invalid one
+	 * is not worth a log message.
+	 */
 	if (EVP_PKEY_fromdata(pctx, pkeyp, EVP_PKEY_PUBLIC_KEY, params) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_fromdata"));
+		result = isc_ossl_wrap_toresult(DST_R_INVALIDPUBLICKEY);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
 	result = ISC_R_SUCCESS;
