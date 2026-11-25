@@ -627,6 +627,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 cleanup:
 	for (i = 0; i < ARRAY_SIZE(bufs); i++) {
 		if (bufs[i] != NULL) {
+			isc_safe_memwipe(bufs[i], priv.elements[i].length);
 			isc_mem_put(key->mctx, bufs[i],
 				    priv.elements[i].length);
 		}
