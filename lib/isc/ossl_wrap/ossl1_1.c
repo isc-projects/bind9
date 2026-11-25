@@ -190,10 +190,6 @@ load_ec_public_from_region(isc_region_t region, EVP_PKEY **pkeyp,
 		CLEANUP(OSSL_WRAP_ERROR("o2i_ECPublicKey"));
 	}
 
-	if (EC_KEY_check_key(eckey) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_check_key"));
-	}
-
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_new"));
