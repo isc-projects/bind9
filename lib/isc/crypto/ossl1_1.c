@@ -280,6 +280,7 @@ isc_hmac_final(isc_hmac_t *hmac, isc_buffer_t *out) {
 	}
 
 	if (HMAC_Final(hmac, isc_buffer_used(out), &len) != 1) {
+		ERR_clear_error();
 		return ISC_R_CRYPTOFAILURE;
 	}
 
