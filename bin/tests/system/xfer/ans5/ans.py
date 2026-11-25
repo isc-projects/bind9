@@ -59,7 +59,7 @@ class SignResponses(ResponseHandlerWrapper):
         self._key = key
         self._tsig_ctx: dns.tsig.GSSTSig | dns.tsig.HMACTSig | None = None
 
-    def _on_query_received(self, qctx: QueryContext) -> None:
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         self._tsig_ctx = None
 
     def _apply_tsig_context(self, response: dns.message.Message) -> None:
@@ -94,7 +94,7 @@ class SignFirstAndLastResponses(ResponseHandlerWrapper):
         self._response_number = 0
         self._tsig_ctx: dns.tsig.GSSTSig | dns.tsig.HMACTSig | None = None
 
-    def _on_query_received(self, qctx: QueryContext) -> None:
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         self._response_number = 0
         self._tsig_ctx = None
 
@@ -126,7 +126,7 @@ class Add50ToMessageIdFromSecondResponse(ResponseHandlerWrapper):
         super().__init__(inner)
         self._first_yielded = False
 
-    def _on_query_received(self, qctx: QueryContext) -> None:
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         self._first_yielded = False
 
     def _modify_response(
