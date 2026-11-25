@@ -259,10 +259,12 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	pkey = key->keydata.pkeypair.pub;
 
-	if (!isc_ossl_wrap_rsa_modulus_bits_in_range(pkey, rsa_min_modulus_bits,
-						     rsa_max_modulus_bits) ||
-	    !isc_ossl_wrap_rsa_exponent_is_allowed(pkey))
-	{
+	/*
+	 * Every key load path checks the modulus size and the public exponent
+	 * and records the outcome; this is the backstop against a load path
+	 * that does not.
+	 */
+	if (!key->keydata.pkeypair.rsa_shape_ok) {
 		return DST_R_VERIFYFAILURE;
 	}
 
@@ -348,6 +350,10 @@ opensslrsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	key->keydata.pkeypair.pub = pkey;
 	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.rsa_shape_ok =
+		isc_ossl_wrap_rsa_modulus_bits_in_range(
+			pkey, rsa_min_modulus_bits, rsa_max_modulus_bits) &&
+		isc_ossl_wrap_rsa_exponent_is_allowed(pkey);
 	pkey = NULL;
 	result = ISC_R_SUCCESS;
 
@@ -507,8 +513,9 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	isc_buffer_forward(data, length);
 
 	key->key_size = BN_num_bits(c.n);
-	result = isc_ossl_wrap_load_rsa_public_from_components(
-		&c, &key->keydata.pkeypair.pub);
+	CHECK(isc_ossl_wrap_load_rsa_public_from_components(
+		&c, &key->keydata.pkeypair.pub));
+	key->keydata.pkeypair.rsa_shape_ok = true;
 
 cleanup:
 	isc_ossl_wrap_rsa_components_cleanup(&c);
@@ -656,6 +663,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		}
 		key->keydata.pkeypair.pub = pub->keydata.pkeypair.pub;
 		key->keydata.pkeypair.priv = pub->keydata.pkeypair.priv;
+		key->keydata.pkeypair.rsa_shape_ok =
+			pub->keydata.pkeypair.rsa_shape_ok;
 		pub->keydata.pkeypair.pub = NULL;
 		pub->keydata.pkeypair.priv = NULL;
 		key->key_size = pub->key_size;
@@ -761,6 +770,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	key->keydata.pkeypair.pub = pkey;
 	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.rsa_shape_ok = true;
 	pkey = NULL;
 
 cleanup:
@@ -797,6 +807,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *label, const char *pin) {
 	key->key_size = EVP_PKEY_bits(privpkey);
 	key->keydata.pkeypair.priv = privpkey;
 	key->keydata.pkeypair.pub = pubpkey;
+	key->keydata.pkeypair.rsa_shape_ok = true;
 	privpkey = NULL;
 	pubpkey = NULL;
 

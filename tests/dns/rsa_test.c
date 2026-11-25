@@ -201,6 +201,29 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 
 	dst_context_destroy(&ctx);
 
+	/*
+	 * A key that did not have its shape checked when it was loaded must
+	 * not verify anything.
+	 */
+
+	key->keydata.pkeypair.rsa_shape_ok = false;
+
+	result = dst_context_create(key, isc_g_mctx, DNS_LOGCATEGORY_DNSSEC,
+				    false, &ctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	r.base = d;
+	r.length = 10;
+	result = dst_context_adddata(ctx, &r);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	r.base = sigsha512;
+	r.length = 256;
+	result = dst_context_verify(ctx, &r);
+	assert_int_equal(result, DST_R_VERIFYFAILURE);
+
+	dst_context_destroy(&ctx);
+
 	dst_key_free(&key);
 }
 
