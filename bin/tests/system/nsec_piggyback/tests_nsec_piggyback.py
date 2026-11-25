@@ -17,7 +17,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
 import dns.dnssec
-import dns.flags
 import dns.rdataclass
 import dns.rdatatype
 import pytest
@@ -120,16 +119,15 @@ def prime_resolver():
 def test_malicious_referral():
     referral = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_PARENT)
     isctest.check.noerror(referral)
-    assert referral.flags & dns.flags.AA
+    isctest.check.aaflag(referral)
     assert _has_nsec(referral, CHILD), referral.to_text()
     assert _has_rrsig(referral, CHILD, referral.authority, dns.rdatatype.NSEC)
     assert _has_nsec(referral, STUFFED_ENT), referral.to_text()
     assert _has_nsec(referral, STUFFED_RANGE), referral.to_text()
     assert _has_rrsig(referral, STUFFED_ENT, referral.authority, dns.rdatatype.NSEC)
     assert _has_rrsig(referral, STUFFED_RANGE, referral.authority, dns.rdatatype.NSEC)
-    assert (
-        referral.get_rrset(referral.answer, TRIGGER, dns.rdataclass.IN, dns.rdatatype.A)
-        is None
+    assert not referral.get_rrset(
+        referral.answer, TRIGGER, dns.rdataclass.IN, dns.rdatatype.A
     )
 
     child = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_CHILD)
