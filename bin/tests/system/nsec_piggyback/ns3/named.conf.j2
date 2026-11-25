@@ -15,6 +15,4 @@ zone "p22.hack" {
 	server-addresses { 10.53.0.1; };
 };
 
-trust-anchors {
-	p22.hack. static-key 257 3 13 "@PARENT_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
