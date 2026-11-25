@@ -35,8 +35,11 @@
 	}                                                                      \
 	isc_result_t isc_ossl_wrap_generate_pkcs11_##curve##_key(              \
 		char *uri, EVP_PKEY **pkeyp) {                                 \
+		REQUIRE(uri != NULL);                                          \
+		REQUIRE(pkeyp != NULL && *pkeyp == NULL);                      \
 		UNUSED(uri);                                                   \
-		return isc_ossl_wrap_generate_##curve##_key(pkeyp);            \
+		UNUSED(pkeyp);                                                 \
+		return ISC_R_NOTIMPLEMENTED;                                   \
 	}                                                                      \
 	isc_result_t isc_ossl_wrap_validate_##curve##_pkey(EVP_PKEY *pkey) {   \
 		REQUIRE(pkey != NULL);                                         \
