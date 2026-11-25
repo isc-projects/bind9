@@ -776,9 +776,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 cleanup:
 	isc_ossl_wrap_rsa_components_cleanup(&c);
 	EVP_PKEY_free(pkey);
-	if (result != ISC_R_SUCCESS) {
-		key->keydata.generic = NULL;
-	}
 
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));

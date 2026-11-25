@@ -594,9 +594,6 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 cleanup:
 	EVP_PKEY_free(pkey);
-	if (result != ISC_R_SUCCESS) {
-		key->keydata.generic = NULL;
-	}
 	dst__privstruct_free(&priv, key->mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 
