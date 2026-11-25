@@ -11,4 +11,4 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-exec "${2}" "${1}/$(basename "${2}").in" -max_total_time=5 -print_pcs=1 -print_final_stats=1 -print_corpus_stats=1 -print_coverage=1
+exec "${2}" "${1}/$(basename "${2}").in" -runs=0 -error_exitcode=1 -print_pcs=1 -print_final_stats=1 -print_corpus_stats=1 -print_coverage=1

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,6 +11,24 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-echo "The AFL log compiler is not implemented yet."
+# The AFL main() reads a single input from stdin, so replay the corpus
+# one file per process.
 
-exit 1
+corpus="${1}/$(basename "${2}").in"
+tested=0
+
+for input in "${corpus}"/*; do
+  [ -f "${input}" ] || continue
+  if ! "${2}" <"${input}"; then
+    echo "Failed on corpus input: ${input}" >&2
+    exit 1
+  fi
+  tested=$((tested + 1))
+done
+
+if [ "${tested}" -eq 0 ]; then
+  echo "No corpus inputs tested in ${corpus}" >&2
+  exit 1
+fi
+
+echo "Tested ${tested} corpus inputs from ${corpus}"

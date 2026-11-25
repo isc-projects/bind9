@@ -17,7 +17,6 @@
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/string.h>
 #include <isc/util.h>
 
 #include "fuzz.h"
@@ -31,35 +30,35 @@ int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 
 static isc_mem_t *mctx = NULL;
-static isc_lex_t *lex = NULL;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_mem_create(&mctx);
-	isc_lex_create(mctx, 1024, &lex);
 
 	return 0;
 }
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
+	isc_lex_t *lex = NULL;
 	isc_buffer_t buf;
 	isc_result_t result;
 	isc_token_t token;
 	isc_tokentype_t expect;
 	bool eol;
 
-	if (size < sizeof(expect) + sizeof(eol)) {
+	/* One byte selects the token type; one byte enables end-of-line tokens.
+	 */
+	if (size < 2) {
 		return 0;
 	}
 
-	(void)memmove(&expect, data, sizeof(expect));
-	data += sizeof(expect);
-	size -= sizeof(expect);
+	expect = (isc_tokentype_t)(data[0] % (isc_tokentype_qvpair + 1));
+	eol = data[1] != 0;
+	data += 2;
+	size -= 2;
 
-	eol = *data != 0;
-	data += 1;
-	size -= 1;
+	isc_lex_create(mctx, 1024, &lex);
 
 	isc_buffer_constinit(&buf, data, size);
 	isc_buffer_add(&buf, size);
@@ -72,5 +71,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	} while (result == ISC_R_SUCCESS && token.type != isc_tokentype_eof);
 
 cleanup:
+	isc_lex_destroy(&lex);
 	return 0;
 }
