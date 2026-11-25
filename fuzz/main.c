@@ -161,7 +161,7 @@ main(int argc, char **argv) {
 	return test_all_from(corpusdir);
 }
 
-#elif __AFL_COMPILER
+#elif defined(ENABLE_AFL) && __AFL_COMPILER
 
 int
 main(int argc, char **argv) {
