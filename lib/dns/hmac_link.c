@@ -107,7 +107,7 @@
 			isc_log_write(DNS_LOGCATEGORY_GENERAL,                 \
 				      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,   \
 				      "%s: Use of K* file pairs for HMAC is "  \
-				      "deprecated\n",                          \
+				      "deprecated",                            \
 				      file);                                   \
 		}                                                              \
 		return (result);                                               \

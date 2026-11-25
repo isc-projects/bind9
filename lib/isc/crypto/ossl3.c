@@ -266,6 +266,10 @@ isc_hmac(isc_md_type_t type, const void *key, const size_t keylen,
 		return ISC_R_NOTIMPLEMENTED;
 	}
 
+	if (*digestlen < (unsigned int)EVP_MD_size(isc__crypto_md[type])) {
+		return ISC_R_NOSPACE;
+	}
+
 	ctx = EVP_MAC_CTX_new(evp_hmac);
 	RUNTIME_CHECK(ctx != NULL);
 
@@ -329,6 +333,9 @@ isc_hmac_key_create(isc_md_type_t type, const void *secret, const size_t len,
 	};
 	memmove(key->secret, secret, key_len);
 	isc_mem_attach(mctx, &key->mctx);
+
+	/* The digest of a long secret is as good as the secret itself. */
+	isc_safe_memwipe(digest, sizeof(digest));
 
 	*keyp = key;
 

@@ -201,6 +201,34 @@ ISC_RUN_TEST_IMPL(isc_hmac_final) {
 	isc_hmac_key_destroy(&key);
 }
 
+ISC_RUN_TEST_IMPL(isc_hmac_oneshot) {
+	const unsigned char data[] = "data";
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen;
+
+	UNUSED(state);
+
+	/* The output buffer is large enough */
+	digestlen = sizeof(digest);
+	assert_int_equal(
+		isc_hmac(ISC_MD_SHA256, "key", 3, data, 4, digest, &digestlen),
+		ISC_R_SUCCESS);
+	assert_int_equal(digestlen, ISC_SHA256_DIGESTLENGTH);
+
+	/* The output buffer has exactly the size of the digest */
+	digestlen = ISC_SHA256_DIGESTLENGTH;
+	assert_int_equal(
+		isc_hmac(ISC_MD_SHA256, "key", 3, data, 4, digest, &digestlen),
+		ISC_R_SUCCESS);
+	assert_int_equal(digestlen, ISC_SHA256_DIGESTLENGTH);
+
+	/* The output buffer is too small */
+	digestlen = ISC_SHA256_DIGESTLENGTH - 1;
+	assert_int_equal(
+		isc_hmac(ISC_MD_SHA256, "key", 3, data, 4, digest, &digestlen),
+		ISC_R_NOSPACE);
+}
+
 ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 	isc_hmac_t *hmac_st = *state;
 
@@ -895,6 +923,7 @@ ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(isc_hmac_new)
 ISC_TEST_ENTRY(isc_hmac_key_create)
+ISC_TEST_ENTRY(isc_hmac_oneshot)
 ISC_TEST_ENTRY(isc_hmac_md5)
 ISC_TEST_ENTRY(isc_hmac_sha1)
 ISC_TEST_ENTRY(isc_hmac_sha224)

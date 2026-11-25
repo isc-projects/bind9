@@ -113,7 +113,7 @@ register_algorithms(void) {
 	return ISC_R_SUCCESS;
 }
 
-#undef md_unregister_algorithm
+#undef md_register_algorithm
 
 /*
  * HMAC Notes
@@ -135,6 +135,11 @@ isc_hmac(isc_md_type_t type, const void *key, const size_t keylen,
 	md = isc__crypto_md[type];
 	if (md == NULL) {
 		return ISC_R_NOTIMPLEMENTED;
+	}
+
+	/* HMAC() is not told how large the output buffer is. */
+	if (*digestlen < (unsigned int)EVP_MD_size(md)) {
+		return ISC_R_NOSPACE;
 	}
 
 	if (HMAC(md, key, keylen, buf, len, digest, digestlen) == NULL) {
@@ -275,6 +280,7 @@ isc_hmac_final(isc_hmac_t *hmac, isc_buffer_t *out) {
 	}
 
 	if (HMAC_Final(hmac, isc_buffer_used(out), &len) != 1) {
+		ERR_clear_error();
 		return ISC_R_CRYPTOFAILURE;
 	}
 
