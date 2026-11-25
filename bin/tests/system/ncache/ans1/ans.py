@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import asyncio
 
 import dns.flags
@@ -18,13 +16,8 @@ import dns.rcode
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    ControlCommand,
-    ControllableAsyncDnsServer,
-    QueryContext,
-    ResponseAction,
-)
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver import ControlCommand, ControllableAsyncDnsServer, QueryContext
+from isctest.asyncserver.handlers import ResponseHandlerWrapper, StaticResponseHandler
 from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 
 NAME = "nodata.example."
@@ -61,12 +54,15 @@ class HeldAddressHandler(StaticResponseHandler):
     ]
     authoritative = True
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
+
+class UntilReleased(ResponseHandlerWrapper):
+    """
+    Hold the responses of the wrapped handler until the "release._control."
+    command has been received.
+    """
+
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         await RELEASE.wait()
-        async for action in super().get_responses(qctx):
-            yield action
 
 
 class ReleaseCommand(ControlCommand):
@@ -85,7 +81,7 @@ class ReleaseCommand(ControlCommand):
 
 def main() -> None:
     server = ControllableAsyncDnsServer()
-    server.install_response_handler(HeldAddressHandler())
+    server.install_response_handler(UntilReleased(HeldAddressHandler()))
     server.install_control_command(ReleaseCommand())
     server.run()
 
