@@ -34,7 +34,7 @@ $SIGNER -P -g -o $zone $zonefile >/dev/null
 # this seems to be ignored when signing the zone.)
 sed -E '/^example\./{
     n
-    s/.*300[[:space:]]\+DS/ 2 DS/
+    s/.*300[[:space:]]+DS/ 2 DS/
 }' "$zonefile.signed" >"$zonefile.signed.tmp"
 mv "$zonefile.signed.tmp" "$zonefile.signed"
 

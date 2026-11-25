@@ -42,6 +42,7 @@ for i in 1 2 3 4 5 6 7 8 9 0; do
   test "$nsec3param" = "1 0 0 -" && break
   sleep 1
 done
+test "$nsec3param" = "1 0 0 -" || ret=1
 
 if [ $ret != 0 ]; then
   echo_i "pre-condition failed, test aborted"

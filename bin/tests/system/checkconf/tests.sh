@@ -194,9 +194,14 @@ $CHECKCONF deprecated.conf >checkconf.out$n.1 2>&1 || ret=1
 grep "option 'max-zone-ttl' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'nxdomain-redirect' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "type 'redirect' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
-# set -i to ignore deprecate warnings
-$CHECKCONF -i deprecated.conf >checkconf.out$n.2 2>&1
-[ -s checkconf.out$n.2 ] && ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking named-checkconf -i ignores deprecate warnings ($n)"
+ret=0
+$CHECKCONF -i deprecated.conf >checkconf.out$n 2>&1 || ret=1
+[ -s checkconf.out$n ] && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

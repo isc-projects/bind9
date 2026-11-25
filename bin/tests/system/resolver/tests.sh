@@ -43,17 +43,16 @@ grep "status: NOERROR" dig.out.ns1.test${n} >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-rndccmd 10.53.0.1 stats || ret=1 # Get the responses, RTT and timeout statistics before the following timeout tests
-grep -F 'responses received' ns1/named.stats >ns1/named.stats.responses-before || true
-grep -F 'queries with RTT' ns1/named.stats >ns1/named.stats.rtt-before || true
-grep -F 'query timeouts' ns1/named.stats >ns1/named.stats.timeouts-before || true
-mv ns1/named.stats ns1/named.stats-before
-
 # 'resolver-query-timeout' is set to 5 seconds in ns1, so dig with a lower
 # timeout value should give up earlier than that.
 n=$((n + 1))
 echo_i "checking no response handling with a shorter than resolver-query-timeout timeout ($n)"
 ret=0
+rndccmd 10.53.0.1 stats || ret=1 # Get the responses, RTT and timeout statistics before the following timeout tests
+grep -F 'responses received' ns1/named.stats >ns1/named.stats.responses-before || true
+grep -F 'queries with RTT' ns1/named.stats >ns1/named.stats.rtt-before || true
+grep -F 'query timeouts' ns1/named.stats >ns1/named.stats.timeouts-before || true
+mv ns1/named.stats ns1/named.stats-before
 dig_with_opts +tcp +tries=1 +timeout=3 noresponse.example.net @10.53.0.1 a >dig.out.ns1.test${n} && ret=1
 grep -F "no servers could be reached" dig.out.ns1.test${n} >/dev/null || ret=1
 grep -F "EDE: 22 (No Reachable Authority)" dig.out.ns1.test${n} >/dev/null && ret=1
@@ -262,13 +261,12 @@ done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-stop_server ns4
-touch ns4/named.noaa
-start_server --noclean --restart --port ${PORT} ns4 || ret=1
-
 n=$((n + 1))
 echo_i "RT21594 regression test check setup ($n)"
 ret=0
+stop_server ns4
+touch ns4/named.noaa
+start_server --noclean --restart --port ${PORT} ns4 || ret=1
 # Check that "aa" is not being set by the authoritative server.
 dig_with_opts +tcp . @10.53.0.4 soa >dig.ns4.out.${n} || ret=1
 grep 'flags: qr rd;' dig.ns4.out.${n} >/dev/null || ret=1
@@ -302,10 +300,6 @@ grep "status: NXDOMAIN" dig.ns5.out.${n} >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-stop_server ns4
-rm ns4/named.noaa
-start_server --noclean --restart --port ${PORT} ns4 || ret=1
-
 # Check whether the cache dump in file $2 has an RRSIG covering A at the
 # name $1; the dump prints the owner name only with the first RRset.
 cached_rrsig_a() {
@@ -319,6 +313,10 @@ cached_rrsig_a() {
 n=$((n + 1))
 echo_i "check that replacement of additional data by a negative cache no data entry clears the additional RRSIGs ($n)"
 ret=0
+stop_server ns4
+rm ns4/named.noaa
+start_server --noclean --restart --port ${PORT} ns4 || ret=8
+if [ $ret = 8 ]; then echo_i "ns4 restart failed"; fi
 dig_with_opts +tcp mx example.net @10.53.0.7 >dig.ns7.out.${n} || ret=1
 grep "status: NOERROR" dig.ns7.out.${n} >/dev/null || ret=1
 rndc_dumpdb ns7 -cache || ret=1

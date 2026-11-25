@@ -487,7 +487,6 @@ echo_i "check that named restarts with previously deleted normal.example zone ($
 ret=0
 stop_server ns2
 start_server --noclean --restart --port ${PORT} ns2 || ret=1
-ret=0
 $RNDCCMD 10.53.0.2 showzone normal.example >rndc.out.ns2.$n
 expected='zone "normal.example" { type primary; file "normal.db"; };'
 [ "$(cat rndc.out.ns2.$n)" = "$expected" ] || ret=1
