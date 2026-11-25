@@ -1,0 +1,4 @@
+{% include "_common/zones/template.db.j2.manual" %}
+
+aac	A	192.0.2.77
+victim	A	192.0.2.99

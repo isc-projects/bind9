@@ -9,23 +9,17 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from pathlib import Path
-
-import json
-
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
-
-import dns.dnssec
 import dns.rdataclass
 import dns.rdatatype
 import pytest
 
 import isctest
 import isctest.mark
+import isctest.template
+import isctest.zone
 
 PARENT = "p22.hack."
-CHILD = f"c.{PARENT}"
+CHILD = f"child.{PARENT}"
 TRIGGER = f"www.{CHILD}"
 PRIME_NX = f"0.{PARENT}"
 VICTIM = f"victim.{PARENT}"
@@ -43,38 +37,28 @@ pytestmark = [
     isctest.mark.with_ecdsa_deterministic,
     pytest.mark.extra_artifacts(
         [
-            "ans*/keys.json",
+            "ans*/dsset-*",
+            "ans*/zones/*.db",
+            "ans*/zones/*.db.signed",
             "ns2/managed-keys.bind.jnl",
+            "ns*/zones/*.db",
         ]
     ),
 ]
 
 
-def _make_key():
-    private_key = ec.generate_private_key(ec.SECP256R1())
-    dnskey = dns.dnssec.make_dnskey(
-        private_key.public_key(),
-        algorithm="ECDSAP256SHA256",
-        flags=257,
-    )
-    private_pem = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    ).decode("ascii")
-    return {
-        "private_pem": private_pem,
-        "dnskey": dnskey.to_text(),
-    }
-
-
 def bootstrap():
-    keys = {PARENT: _make_key()}
+    child = isctest.zone.Zone(CHILD, isctest.template.NS2)
+    child.configure()
 
-    Path("ans1/keys.json").write_text(json.dumps(keys, indent=2), encoding="ascii")
+    parent = isctest.zone.Zone(PARENT, isctest.template.ANS1, signed=True)
+    parent.delegations = [child]
+    parent.configure(csk=True)
 
-    parent_dnskey = "".join(keys[PARENT]["dnskey"].split()[3:])
-    return {"PARENT_DNSKEY": parent_dnskey}
+    return {
+        "trust_anchors": parent.trust_anchors(),
+        "zones": isctest.template.zones([parent, child]),
+    }
 
 
 def _has_a(response, owner, address):
