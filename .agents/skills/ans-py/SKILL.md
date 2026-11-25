@@ -2087,6 +2087,34 @@ def main() -> None:
     server.run()
 ```
 
+### A test of the server itself is marked `asyncserver_test`
+
+A test may check the `ansN` server itself, querying it directly for
+what the reproducer sends.  Such a test carries
+`@pytest.mark.asyncserver_test`.
+
+#### Examples
+
+A self-check of the forged response, 490665aa69:
+
+```python
+# nsec_wildcard_wrong_zone/tests_nsec_wildcard_wrong_zone.py:52-65 at 490665aa69
+@pytest.mark.asyncserver_test
+def test_forged_response_contains_cross_zone_nsec(ans1):
+    response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ans1.ip)
+    isctest.check.nxdomain(response)
+
+    signers = {
+        rrsig[0].signer
+        for rrsig in response.authority
+        if rrsig.rdtype == dns.rdatatype.RRSIG and rrsig.covers == dns.rdatatype.NSEC
+    }
+    assert signers == {
+        dns.name.from_text(VICTIM),
+        dns.name.from_text(ATTACKER),
+    }, response.to_text()
+```
+
 ### dnspython types, and names converted on construction
 
 `dns.rdatatype.A` and `dns.rdataclass.IN`, not `"A"` and `"IN"`, in
