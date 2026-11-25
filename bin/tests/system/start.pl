@@ -122,14 +122,14 @@ if ($server_arg) {
 
 # Start the servers we found.
 
+foreach my $name(@ans) {
+	&start_ans_server($name);
+}
+
 foreach my $name(@ns) {
 	&check_ns_port($name);
 	&start_ns_server($name, $options_arg);
 	&verify_ns_server($name);
-}
-
-foreach my $name(@ans) {
-	&start_ans_server($name);
 }
 
 foreach my $name(@lwresd) {
