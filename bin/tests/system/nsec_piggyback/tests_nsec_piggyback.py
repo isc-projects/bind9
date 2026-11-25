@@ -18,7 +18,6 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 import dns.dnssec
 import dns.flags
-import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import pytest
@@ -84,42 +83,26 @@ def _query(server, qname, qtype):
     return isctest.query.tcp(query, server)
 
 
-def _rrset(response, section, owner, rdtype, covers=None):
-    if covers is None:
-        return response.get_rrset(
-            section,
-            dns.name.from_text(owner),
-            dns.rdataclass.IN,
-            rdtype,
-        )
-    return response.get_rrset(
-        section,
-        dns.name.from_text(owner),
-        dns.rdataclass.IN,
-        rdtype,
-        covers=covers,
-    )
-
-
 def _has_a(response, owner, address):
-    rrset = _rrset(response, response.answer, owner, dns.rdatatype.A)
+    rrset = response.get_rrset(
+        response.answer, owner, dns.rdataclass.IN, dns.rdatatype.A
+    )
     return rrset is not None and any(rdata.address == address for rdata in rrset)
 
 
-def _has_nsec(response, owner, section=None):
-    if section is None:
-        section = response.authority
-    return _rrset(response, section, owner, dns.rdatatype.NSEC) is not None
+def _has_nsec(response, owner):
+    return (
+        response.get_rrset(
+            response.authority, owner, dns.rdataclass.IN, dns.rdatatype.NSEC
+        )
+        is not None
+    )
 
 
 def _has_rrsig(response, owner, section, covers):
     return (
-        _rrset(
-            response,
-            section,
-            owner,
-            dns.rdatatype.RRSIG,
-            covers=covers,
+        response.get_rrset(
+            section, owner, dns.rdataclass.IN, dns.rdatatype.RRSIG, covers=covers
         )
         is not None
     )
@@ -149,7 +132,10 @@ def test_malicious_referral():
     assert _has_nsec(referral, STUFFED_RANGE), referral.to_text()
     assert _has_rrsig(referral, STUFFED_ENT, referral.authority, dns.rdatatype.NSEC)
     assert _has_rrsig(referral, STUFFED_RANGE, referral.authority, dns.rdatatype.NSEC)
-    assert _rrset(referral, referral.answer, TRIGGER, dns.rdatatype.A) is None
+    assert (
+        referral.get_rrset(referral.answer, TRIGGER, dns.rdataclass.IN, dns.rdatatype.A)
+        is None
+    )
 
     child = _query(AUTH_CHILD, TRIGGER, "A")
     isctest.check.noerror(child)
