@@ -23,7 +23,7 @@ import dns.rcode
 import dns.update
 import pytest
 
-from dnstap.common import ARTIFACTS, check_counts
+from dnstap.common import ARTIFACTS, check_counts, query
 
 import isctest
 import isctest.mark
@@ -57,55 +57,60 @@ class Capture:
 
         isctest.run.retry_with_timeout(check, 10)
 
+    def stop(self):
+        self.proc.terminate()
+        self.proc.wait()
 
-@pytest.fixture(name="capture")
-def capture_fixture(request, ns4):
+
+@pytest.fixture(name="start_capture")
+def start_capture_fixture(ns4):
     """
-    Run fstrm_capture on ns4's dnstap socket for the duration of the test
-    and make named connect to it.
+    Return a function that runs fstrm_capture on ns4's dnstap socket and
+    makes named connect to it.  Captures still running at the end of the
+    test are stopped.
     """
-    output = f"dnstap.out.{request.node.originalname}"
-    logfile = f"fstrm_capture.out.{request.node.originalname}"
-    args = [
-        os.environ["FSTRM_CAPTURE"],
-        "-t",
-        "protobuf:dnstap.Dnstap",
-        "-u",
-        "ns4/dnstap.out",
-        "-w",
-        output,
-    ]
-    with open(logfile, "wb") as log, subprocess.Popen(
-        args, stdout=log, stderr=subprocess.STDOUT
-    ) as proc:
-        try:
-            with isctest.log.WatchLogFromStart(logfile, timeout=10) as watcher:
-                watcher.wait_for_line("socket path ns4/dnstap.out")
-            ns4.rndc("dnstap -reopen")
-            yield Capture(proc, output)
-        finally:
-            proc.terminate()
+    captures = []
 
+    def start_capture(name):
+        output = f"dnstap.out.{name}"
+        logfile = f"fstrm_capture.out.{name}"
+        args = [
+            os.environ["FSTRM_CAPTURE"],
+            "-t",
+            "protobuf:dnstap.Dnstap",
+            "-u",
+            "ns4/dnstap.out",
+            "-w",
+            output,
+        ]
+        with open(logfile, "wb") as log:
+            # pylint: disable-next=consider-using-with
+            proc = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
+        capture = Capture(proc, output)
+        captures.append(capture)
+        with isctest.log.WatchLogFromStart(logfile, timeout=10) as watcher:
+            watcher.wait_for_line("socket path ns4/dnstap.out")
+        ns4.rndc("dnstap -reopen")
+        return capture
 
-def query(ns4):
-    msg = isctest.query.create("a.example.", "A")
-    isctest.query.udp(msg, ns4.ip, expected_rcode=dns.rcode.SERVFAIL)
+    yield start_capture
+
+    for capture in captures:
+        capture.stop()
 
 
 @isctest.mark.with_fstrm_capture
-def test_unix_socket(ns4, capture):
-    query(ns4)
+def test_unix_socket(ns4, start_capture):
+    capture = start_capture("first")
+    query(ns4, expected_rcode=dns.rcode.SERVFAIL)
     update = dns.update.Update("example")
     update.add("b.example.", 3600, "A", "10.10.10.10")
     ns4.nsupdate(update, expected_rcode=dns.rcode.NOTAUTH)
     capture.wait_for_counts({"UDP": 4, "CQ": 1, "CR": 1, "UQ": 1, "UR": 1})
+    capture.stop()
 
-
-@isctest.mark.with_fstrm_capture
-def test_unix_socket_reopen(ns4, capture):
-    """
-    Check that named reconnects to a new listener on the socket after the
-    previous one (from the test above) has gone away.
-    """
-    query(ns4)
+    # Check that named reconnects to a new listener on the socket after
+    # the previous one has gone away.
+    capture = start_capture("reopen")
+    query(ns4, expected_rcode=dns.rcode.SERVFAIL)
     capture.wait_for_counts({"UDP": 2, "CQ": 1, "CR": 1})
