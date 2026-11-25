@@ -229,13 +229,19 @@ bool
 dns_rdataslab_equalx(dns_slabheader_t *header1, dns_slabheader_t *header2,
 		     dns_rdataclass_t rdclass, dns_rdatatype_t type);
 /*%<
- * Compare two rdataslabs for DNSSEC equality.
+ * Compare two positive rdataslabs for DNSSEC equality, normalizing
+ * the rdata.
+ *
+ * If either slab contains negative records, compare them using
+ * dns_rdataslab_equal(), because they have no positive rdata for the type,
+ * so rdata comparison isn't meaningful.
  *
  * Requires:
  *\li	'header1' and 'header2' point to slab headers followed by slabs.
  *
  * Returns:
- *\li	true if the slabs are equal, #false otherwise.
+ *\li	true iff. both slabs are positive and they are DNSSEC-equal,
+ *	or if either slab is negative and they are byte-equal.
  */
 
 #define dns_slabheader_reset(header, node) \

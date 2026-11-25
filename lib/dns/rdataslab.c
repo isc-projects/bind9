@@ -479,6 +479,14 @@ dns_rdataslab_equalx(dns_slabheader_t *slab1, dns_slabheader_t *slab2,
 	unsigned char *current1 = NULL, *current2 = NULL;
 	unsigned int count1, count2;
 
+	/*
+	 * Comparing negative slabs for DNSSEC equality isn't meaningful;
+	 * they don't contain rdata for the type.
+	 */
+	if (NEGATIVE(slab1) || NEGATIVE(slab2)) {
+		return dns_rdataslab_equal(slab1, slab2);
+	}
+
 	current1 = (unsigned char *)slab1 + sizeof(dns_slabheader_t);
 	count1 = slab1->nitems;
 
