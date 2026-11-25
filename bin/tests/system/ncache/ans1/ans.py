@@ -25,7 +25,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.handlers import ResponseHandlerWrapper, SingleResponseHandler
-from isctest.asyncserver.matchers import Matcher, Qname, Qtype
+from isctest.asyncserver.matchers import Flags, Qname, Qtype
 
 NAME = "nodata.example."
 
@@ -39,15 +39,6 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, *rdata)
 
 
-class CdFlag(Matcher):
-    """
-    Match queries with the CD flag set.
-    """
-
-    def match(self, qctx: QueryContext) -> bool:
-        return bool(qctx.query.flags & dns.flags.CD)
-
-
 class HeldAddressHandler(SingleResponseHandler):
     """
     Answer a CD=1 A query for nodata.example with unsigned addresses, but
@@ -59,7 +50,7 @@ class HeldAddressHandler(SingleResponseHandler):
     comparing the two does not stop at the record count.
     """
 
-    matcher = Qname(NAME) & Qtype(dns.rdatatype.A) & CdFlag()
+    matcher = Qname(NAME) & Qtype(dns.rdatatype.A) & Flags(dns.flags.CD)
     rcode = dns.rcode.NOERROR
     answer = [
         rrset(NAME, dns.rdatatype.A, "192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4")
