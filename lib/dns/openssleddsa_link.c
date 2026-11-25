@@ -336,9 +336,6 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(alginfo != NULL);
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		return ISC_R_SUCCESS;
-	}
 
 	RETERR(raw_key_to_ossl(alginfo, 0, r.base, r.length, &pkey));
 

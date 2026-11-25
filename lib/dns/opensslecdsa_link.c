@@ -413,9 +413,6 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	len = opensslecdsa_key_alg_to_publickey_size(key->key_alg);
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		return ISC_R_SUCCESS;
-	}
 	if (r.length != len) {
 		return DST_R_INVALIDPUBLICKEY;
 	}

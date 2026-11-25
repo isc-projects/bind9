@@ -442,9 +442,6 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
 	isc_buffer_remainingregion(data, &r);
-	if (r.length == 0) {
-		CLEANUP(ISC_R_SUCCESS);
-	}
 
 	/*
 	 * Check identifying OID in front of public key material.
