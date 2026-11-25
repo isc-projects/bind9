@@ -1,5 +1,7 @@
 // validating resolver
 
+{% set ans1 = Nameserver("ans1") %}
+
 options {
 	{% include_indented "_common/options.conf.j2" %}
 	dnssec-validation yes;
@@ -12,9 +14,7 @@ options {
 
 zone "p22.hack" {
 	type static-stub;
-	server-addresses { 10.53.0.1; };
+	server-addresses { @ans1.ip@; };
 };
 
-trust-anchors {
-	p22.hack. static-key 257 3 13 "@PARENT_DNSKEY@";
-};
+{% include "_common/trusted.conf.j2" %}
