@@ -26,6 +26,16 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
+/* ASAN will usually also enable LSAN */
+#if @BIND_ASAN_ENABLED@ || @BIND_LSAN_ENABLED@
+/* QP trie nodes contain pointers that are not always naturally aligned. */
+__attribute__((no_sanitize("address", "leak", "thread", "undefined")))
+const char *
+__lsan_default_options(void) {
+	return "@BIND_LSAN_OPTIONS@";
+}
+#endif
+
 #if @BIND_ASAN_ENABLED@
 __attribute__((no_sanitize("address", "leak", "thread", "undefined")))
 const char *

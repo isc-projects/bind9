@@ -35,6 +35,7 @@ fs = import('fs')
 ss = import('sourceset')
 
 cc = meson.get_compiler('c')
+afl_compiler = cc.get_define('__AFL_COMPILER') != ''
 
 ### Check if autoconf is mixed
 if fs.exists(meson.project_source_root() / 'config.h')
@@ -62,7 +63,7 @@ fuzzing_opt = get_option('fuzzing')
 geoip_opt = get_option('geoip')
 gssapi_opt = get_option('gssapi')
 idn_opt = get_option('idn')
-jemalloc_opt = get_option('jemalloc').disable_auto_if(sanitizer != 'none')
+jemalloc_opt = get_option('jemalloc')
 leak_opt = get_option('leak-detection')
 line_opt = get_option('line')
 locktype_opt = get_option('locktype')
@@ -208,7 +209,6 @@ if optimization != 'plain'
 
     add_project_arguments(
         cc.get_supported_arguments(
-            '-fcf-protection=full',
             '-fstack-clash-protection',
             '-fstack-protector-strong',
 
@@ -216,6 +216,16 @@ if optimization != 'plain'
         ),
         language: 'c',
     )
+
+    # Older AFL++ wrappers mistake -fcf-protection for a CFISAN request and
+    # inject LTO flags; upstream fixed this in a9e8587ee86c (5.04a development).
+    # Apply the compatibility workaround to AFL compilers regardless of backend.
+    if not afl_compiler
+        add_project_arguments(
+            cc.get_supported_arguments('-fcf-protection=full'),
+            language: 'c',
+        )
+    endif
 
     add_project_link_arguments(
         cc.get_supported_link_arguments(
@@ -271,17 +281,83 @@ add_project_arguments(sys_defines, language: 'c')
 
 ### Sanitizer
 asan_options = 'abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1:detect_odr_violation=0'
+lsan_options = 'use_unaligned=1'
 tsan_options = 'disable_coredump=0:second_deadlock_stack=1:atexit_sleep_ms=1000:history_size=7:log_exe_name=true:log_path=tsan'
 ubsan_options = 'halt_on_error=1:abort_on_error=1:disable_coredump=0'
+
+# A sanitizer does not have to come from -Db_sanitize: the libfuzzer backend
+# turns ASan and UBSan on with project arguments of its own, and OSS-Fuzz hands
+# the flags over in CFLAGS.  The runtimes have to be configured either way.
+asan_enabled = sanitizer.contains('address')
+lsan_enabled = sanitizer.contains('leak')
+tsan_enabled = sanitizer.contains('thread')
+ubsan_enabled = sanitizer.contains('undefined')
+
+if fuzzing_backend_opt == 'libfuzzer'
+    asan_enabled = true
+    ubsan_enabled = true
+endif
+
+foreach arg : get_option('c_args')
+    if arg.startswith('-fsanitize=')
+        asan_enabled = asan_enabled or arg.contains('address')
+        lsan_enabled = lsan_enabled or arg.contains('leak')
+        tsan_enabled = tsan_enabled or arg.contains('thread')
+        ubsan_enabled = ubsan_enabled or arg.contains('undefined')
+    endif
+endforeach
+
+# Compiler wrappers can add sanitizer flags without exposing them in c_args.
+# Keep the option/argument checks above for compilers without __has_feature.
+compiler_sanitizers = []
+foreach name, feature : {
+    'address': 'address_sanitizer',
+    'leak': 'leak_sanitizer',
+    'thread': 'thread_sanitizer',
+    'memory': 'memory_sanitizer',
+    'undefined': 'undefined_behavior_sanitizer',
+}
+    sanitizer_probe = '''
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+#if defined(__SANITIZE_@0@__) || __has_feature(@1@)
+#define BIND_SANITIZER_ENABLED 1
+#else
+#define BIND_SANITIZER_ENABLED 0
+#endif
+'''.format(name.to_upper(), feature)
+    if cc.get_define('BIND_SANITIZER_ENABLED', prefix: sanitizer_probe) == '1'
+        compiler_sanitizers += name
+    endif
+endforeach
+asan_enabled = asan_enabled or compiler_sanitizers.contains('address')
+lsan_enabled = lsan_enabled or compiler_sanitizers.contains('leak')
+tsan_enabled = tsan_enabled or compiler_sanitizers.contains('thread')
+ubsan_enabled = ubsan_enabled or compiler_sanitizers.contains('undefined')
+msan_enabled = sanitizer.contains('memory') or compiler_sanitizers.contains('memory')
+
+# The sanitizers cannot see through jemalloc: allocations made by it are
+# invisible to LeakSanitizer, which then reports whatever it can no longer
+# reach through them, and AddressSanitizer stops checking most of the heap.
+jemalloc_opt = jemalloc_opt.disable_auto_if(
+    sanitizer != 'none'
+    or asan_enabled
+    or lsan_enabled
+    or tsan_enabled
+    or ubsan_enabled
+    or msan_enabled,
+)
 
 # Refer to sanitize.c.in for the justification
 config_sanitize = configuration_data()
 
-config_sanitize.set10('BIND_ASAN_ENABLED', sanitizer.contains('address'))
-config_sanitize.set10('BIND_LSAN_ENABLED', sanitizer.contains('leak'))
-config_sanitize.set10('BIND_TSAN_ENABLED', sanitizer.contains('thread'))
-config_sanitize.set10('BIND_UBSAN_ENABLED', sanitizer.contains('undefined'))
+config_sanitize.set10('BIND_ASAN_ENABLED', asan_enabled)
+config_sanitize.set10('BIND_LSAN_ENABLED', lsan_enabled)
+config_sanitize.set10('BIND_TSAN_ENABLED', tsan_enabled)
+config_sanitize.set10('BIND_UBSAN_ENABLED', ubsan_enabled)
 config_sanitize.set('BIND_ASAN_OPTIONS', asan_options)
+config_sanitize.set('BIND_LSAN_OPTIONS', lsan_options)
 config_sanitize.set('BIND_TSAN_OPTIONS', tsan_options)
 config_sanitize.set('BIND_UBSAN_OPTIONS', ubsan_options)
 
@@ -450,6 +526,15 @@ endif
 
 fuzz_link_args = []
 if fuzzing_backend_opt == 'afl'
+    # Without an AFL compiler wrapper, __AFL_COMPILER is not defined,
+    # fuzz/main.c compiles to nothing and the fuzz binaries fail to link with
+    # a bare "undefined reference to `main'".  Say so while it can still be
+    # explained.
+    assert(
+        afl_compiler,
+        'the "afl" fuzzing backend requires an AFL compiler, e.g. CC=afl-cc',
+    )
+
     config.set('FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION', 1)
     config.set('ENABLE_AFL', 1)
 elif fuzzing_backend_opt == 'libfuzzer'
@@ -1972,9 +2057,34 @@ foreach name, sources : fuzz_binaries
         dependencies: fuzz_deps,
     )
 
+    corpus_dir = meson.project_source_root() / 'fuzz' / (name.substring(5) + '.in')
+    assert(
+        fs.is_dir(corpus_dir),
+        'missing fuzz corpus directory: ' + corpus_dir,
+    )
+    replay_bin = fuzz_bin
+    replay_args = ['--corpus', corpus_dir]
+    if fuzzing_backend_opt == 'libfuzzer'
+        replay_args = [corpus_dir, '-runs=0']
+    elif fuzzing_backend_opt in ['afl', 'oss-fuzz']
+        # Replay seeds without relying on the engine's command-line interface.
+        replay_bin = executable(
+            name + '_replay',
+            sources,
+            export_dynamic: true,
+            implicit_include_directories: true,
+            install: false,
+            c_args: ['-Wno-vla', '-DFUZZING_REPLAY=1'],
+            include_directories: test_inc,
+            sources: default_sanitize_options,
+            dependencies: fuzz_deps,
+        )
+    endif
+
     test(
         name,
-        fuzz_bin,
+        replay_bin,
+        args: replay_args,
         protocol: 'exitcode',
         suite: 'fuzz',
         timeout: 60,

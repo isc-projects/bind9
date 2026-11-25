@@ -40,21 +40,28 @@ bool debug = false;
  */
 
 static isc_mem_t *mctx = NULL;
-static isc_lex_t *lex = NULL;
+static dns_rdatatype_t typelist[256] = { 65333 }; /* private use, unknown */
+static unsigned int types = 1;
 
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
-	isc_lexspecials_t specials;
-
 	isc_mem_create("fuzz", &mctx);
-	isc_lex_create(mctx, 64, &lex);
 
-	memset(specials, 0, sizeof(specials));
-	specials['('] = 1;
-	specials[')'] = 1;
-	specials['"'] = 1;
-	isc_lex_setspecials(lex, specials);
-	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+	/*
+	 * Append known types to list.
+	 */
+	for (unsigned int t = 1; t <= UINT16_MAX; t++) {
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
+		if (dns_rdatatype_ismeta(t)) {
+			continue;
+		}
+		dns_rdatatype_format(t, typebuf, sizeof(typebuf));
+		if (!isc_string_hasprefix(typebuf, "TYPE")) {
+			/* Assert when we need to grow typelist. */
+			assert(types < sizeof(typelist) / sizeof(typelist[0]));
+			typelist[types++] = t;
+		}
+	}
 
 	return 0;
 }
@@ -75,11 +82,16 @@ nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-	char totext[64 * 1044 * 4];
+	isc_lex_t *lex = NULL;
+	isc_lexspecials_t specials;
+	/*
+	 * Room for 4x expansion of the largest RDATA, plus a full type bitmap
+	 * with every type printed as the longest mnemonic and a separator.
+	 */
+	static char totext[64 * 1044 * 4 + (11 + 1) * 65536];
 	dns_compress_t cctx;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	dns_rdatatype_t typelist[256] = { 1000 }; /* unknown */
 	dns_rdataclass_t classlist[] = { dns_rdataclass_in, dns_rdataclass_hs,
 					 dns_rdataclass_ch, dns_rdataclass_any,
 					 60 };
@@ -88,11 +100,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_rdatacallbacks_t callbacks;
 	isc_buffer_t source, target;
 	isc_result_t result;
-	unsigned char fromtext[1024];
-	unsigned char fromwire[1024];
-	unsigned char towire[1024];
+	unsigned char fromtext[UINT16_MAX];
+	unsigned char fromwire[UINT16_MAX];
+	unsigned char towire[UINT16_MAX];
 	unsigned int classes = (sizeof(classlist) / sizeof(classlist[0]));
-	unsigned int types = 1, flags, t;
+	unsigned int flags;
 
 	/*
 	 * First 2 bytes are used to select type and class.
@@ -100,22 +112,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 */
 	if (size < 2 || size > 0xffff + 2) {
 		return 0;
-	}
-
-	/*
-	 * Append known types to list.
-	 */
-	for (t = 1; t <= 0x10000; t++) {
-		char typebuf[256];
-		if (dns_rdatatype_ismeta(t)) {
-			continue;
-		}
-		dns_rdatatype_format(t, typebuf, sizeof(typebuf));
-		if (!isc_string_hasprefix(typebuf, "TYPE")) {
-			/* Assert when we need to grow typelist. */
-			assert(types < sizeof(typelist) / sizeof(typelist[0]));
-			typelist[types++] = t;
-		}
 	}
 
 	/*
@@ -162,6 +158,14 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	/*
 	 * Convert to wire from text.
 	 */
+	isc_lex_create(mctx, 64, &lex);
+	memset(specials, 0, sizeof(specials));
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
 	isc_buffer_constinit(&source, totext, isc_buffer_usedlength(&target));
 	isc_buffer_add(&source, isc_buffer_usedlength(&target));
 	CHECK(isc_lex_openbuffer(lex, &source));
@@ -169,6 +173,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata2, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	isc_lex_close(lex);
 	if (debug && result != ISC_R_SUCCESS) {
 		fprintf(stderr, "'%s'\n", totext);
 	}
@@ -195,6 +200,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_init(&target, fromtext, sizeof(fromtext));
 	result = dns_rdata_fromtext(&rdata3, rdclass, rdtype, lex, dns_rootname,
 				    0, mctx, &target, &callbacks);
+	isc_lex_close(lex);
 	assert(result == ISC_R_SUCCESS);
 	assert(rdata3.length == size);
 	assert(!memcmp(rdata3.data, data, size));
@@ -211,5 +217,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	assert(!memcmp(target.base, data, size));
 
 cleanup:
+	if (lex != NULL) {
+		isc_lex_destroy(&lex);
+	}
 	return 0;
 }

@@ -102,12 +102,32 @@ LLVMFuzzerInitialize(int *argc, char ***argv) {
 	UNUSED(argc);
 	UNUSED(argv);
 
+	/*
+	 * The fuzzer relies on a one-to-one mapping between keys and items.
+	 * In fuzzing builds isc_random32() is a deterministic counter (see
+	 * lib/isc/random.c), so the random bytes below can repeat and two
+	 * items could end up with the same key.  Encode the item index into
+	 * the first key bytes to guarantee the keys are distinct; 3 key
+	 * positions hold (SHIFT_OFFSET - SHIFT_NOBYTE) ^ 3 values each.
+	 */
+	STATIC_ASSERT(ARRAY_SIZE(item) <=
+			      (SHIFT_OFFSET - SHIFT_NOBYTE) *
+				      (SHIFT_OFFSET - SHIFT_NOBYTE) *
+				      (SHIFT_OFFSET - SHIFT_NOBYTE),
+		      "item index does not fit in 3 key bytes");
+
 	for (size_t i = 0; i < ARRAY_SIZE(item); i++) {
 		size_t len = isc_random_uniform(100) + 16;
 		item[i].len = len + 1;
 		item[i].key[0] = 0;
 		for (size_t off = 1; off < len; off++) {
 			item[i].key[off] = random_byte();
+		}
+		uint32_t idx = i;
+		for (size_t off = 1; off <= 3; off++) {
+			item[i].key[off] = SHIFT_NOBYTE +
+					   idx % (SHIFT_OFFSET - SHIFT_NOBYTE);
+			idx /= (SHIFT_OFFSET - SHIFT_NOBYTE);
 		}
 		memmove(item[i].ascii, item[i].key, item[i].len);
 		qp_test_keytoascii(item[i].ascii, item[i].len);
