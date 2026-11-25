@@ -86,19 +86,6 @@ constexpr size_t p256_secret_key_size = 32;
 constexpr size_t p384_secret_key_size = 48;
 
 static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-	return size;
-}
-
-static int
 rsa_keygen_progress_cb(int p, int n, BN_GENCB *cb) {
 	void (*fptr)(int);
 
@@ -349,7 +336,9 @@ ec_secret_region(EVP_PKEY *pkey, isc_region_t pub) {
 		CLEANUP(OSSL_WRAP_ERROR("EC_KEY_get0_private_key"));
 	}
 
-	BN_bn2bin_fixed(private, pub.base, pub.length);
+	if (BN_bn2binpad(private, pub.base, pub.length) < 0) {
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 

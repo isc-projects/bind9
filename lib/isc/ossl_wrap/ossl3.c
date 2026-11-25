@@ -119,18 +119,6 @@ static const OSSL_PARAM p384_params[] = {
 };
 /* clang-format on */
 
-static void
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-}
-
 static int
 rsa_keygen_progress_cb(EVP_PKEY_CTX *ctx) {
 	void (*fptr)(int);
@@ -491,8 +479,11 @@ ec_public_region(EVP_PKEY *pkey, isc_region_t pub) {
 		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_get_bn_param"));
 	}
 
-	BN_bn2bin_fixed(x, &pub.base[0], pub.length / 2);
-	BN_bn2bin_fixed(y, &pub.base[pub.length / 2], pub.length / 2);
+	if (BN_bn2binpad(x, &pub.base[0], pub.length / 2) < 0 ||
+	    BN_bn2binpad(y, &pub.base[pub.length / 2], pub.length / 2) < 0)
+	{
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 
@@ -517,7 +508,9 @@ ec_secret_region(EVP_PKEY *pkey, isc_region_t sec) {
 		goto cleanup;
 	}
 
-	BN_bn2bin_fixed(priv, sec.base, sec.length);
+	if (BN_bn2binpad(priv, sec.base, sec.length) < 0) {
+		CLEANUP(OSSL_WRAP_ERROR("BN_bn2binpad"));
+	}
 
 	result = ISC_R_SUCCESS;
 

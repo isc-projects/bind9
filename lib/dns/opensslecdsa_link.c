@@ -70,19 +70,6 @@ opensslecdsa_key_alg_to_publickey_size(unsigned int key_alg) {
 	}
 }
 
-static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	INSIST(bytes >= 0);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-	return size;
-}
-
 static isc_result_t
 opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -233,15 +220,17 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	ECDSA_SIG_get0(ecdsasig, &r, &s);
-	BN_bn2bin_fixed(r, region.base, siglen / 2);
-	isc_region_consume(&region, siglen / 2);
-	BN_bn2bin_fixed(s, region.base, siglen / 2);
-	isc_region_consume(&region, siglen / 2);
-	ECDSA_SIG_free(ecdsasig);
+	if (BN_bn2binpad(r, region.base, siglen / 2) < 0 ||
+	    BN_bn2binpad(s, region.base + siglen / 2, siglen / 2) < 0)
+	{
+		CLEANUP(dst__openssl_toresult3(dctx->category, "BN_bn2binpad",
+					       ISC_R_FAILURE));
+	}
 	isc_buffer_add(sig, siglen);
 	result = ISC_R_SUCCESS;
 
 cleanup:
+	ECDSA_SIG_free(ecdsasig);
 	if (sigder != NULL && sigder_alloced != 0) {
 		isc_mem_put(dctx->mctx, sigder, sigder_alloced);
 	}
