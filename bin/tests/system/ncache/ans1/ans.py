@@ -18,13 +18,16 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import ControlCommand, ControllableAsyncDnsServer, QueryContext
+from isctest.asyncserver import (
+    ControlCommand,
+    ControllableAsyncDnsServer,
+    QueryContext,
+    ResponseHandler,
+)
 from isctest.asyncserver.handlers import ResponseHandlerWrapper, SingleResponseHandler
 from isctest.asyncserver.matchers import Matcher, Qname, Qtype
 
 NAME = "nodata.example."
-
-RELEASE = asyncio.Event()
 
 
 def rrset(
@@ -70,8 +73,12 @@ class UntilReleased(ResponseHandlerWrapper):
     command has been received.
     """
 
+    def __init__(self, inner: ResponseHandler, release: asyncio.Event) -> None:
+        super().__init__(inner)
+        self._release = release
+
     async def _on_query_received(self, qctx: QueryContext) -> None:
-        await RELEASE.wait()
+        await self._release.wait()
 
 
 class ReleaseCommand(ControlCommand):
@@ -81,17 +88,21 @@ class ReleaseCommand(ControlCommand):
 
     control_subdomain = "release"
 
+    def __init__(self, release: asyncio.Event) -> None:
+        self._release = release
+
     def handle(
         self, args: list[str], server: ControllableAsyncDnsServer, qctx: QueryContext
     ) -> str | None:
-        RELEASE.set()
+        self._release.set()
         return "released"
 
 
 def main() -> None:
     server = ControllableAsyncDnsServer()
-    server.install_response_handlers(UntilReleased(HeldAddressHandler()))
-    server.install_control_command(ReleaseCommand())
+    release = asyncio.Event()
+    server.install_response_handlers(UntilReleased(HeldAddressHandler(), release))
+    server.install_control_command(ReleaseCommand(release))
     server.run()
 
 
