@@ -29,9 +29,6 @@ STUFFED_RANGE = f"aab.{PARENT}"
 CHILD_A = "192.0.2.50"
 VICTIM_A = "192.0.2.99"
 AAC_A = "192.0.2.77"
-AUTH_PARENT = "10.53.0.1"
-AUTH_CHILD = "10.53.0.2"
-RESOLVER = "10.53.0.3"
 
 pytestmark = [
     isctest.mark.with_ecdsa_deterministic,
@@ -86,22 +83,22 @@ def _has_rrsig(response, owner, section, covers):
     )
 
 
-def prime_resolver():
+def prime_resolver(ns3):
     # Caches parent SOA at dns_trust_secure
     # DNSKEY is queried and cached as part of this.
-    soa = isctest.query.tcp(isctest.query.create(PARENT, "SOA"), RESOLVER)
+    soa = isctest.query.tcp(isctest.query.create(PARENT, "SOA"), ns3.ip)
     isctest.check.noerror(soa)
     isctest.check.adflag(soa)
 
     # Caches real apex parent NSEC at dns_trust_secure
-    nx = isctest.query.tcp(isctest.query.create(PRIME_NX, "A"), RESOLVER)
+    nx = isctest.query.tcp(isctest.query.create(PRIME_NX, "A"), ns3.ip)
     isctest.check.nxdomain(nx)
     isctest.check.adflag(nx)
     assert _has_nsec(nx, PARENT), nx
 
 
-def test_malicious_referral():
-    referral = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_PARENT)
+def test_malicious_referral(ans1, ns2):
+    referral = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), ans1.ip)
     isctest.check.noerror(referral)
     isctest.check.aaflag(referral)
     assert _has_nsec(referral, CHILD), referral.to_text()
@@ -114,7 +111,7 @@ def test_malicious_referral():
         referral.answer, TRIGGER, dns.rdataclass.IN, dns.rdatatype.A
     )
 
-    child = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), AUTH_CHILD)
+    child = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), ns2.ip)
     isctest.check.noerror(child)
     assert _has_a(child, TRIGGER, CHILD_A), child.to_text()
 
@@ -127,22 +124,22 @@ def test_malicious_referral():
     ],
     ids=["nodata", "nxdomain"],
 )
-def test_nsec_piggyback_cache_poisoning(qname, address):
+def test_nsec_piggyback_cache_poisoning(qname, address, ns3):
     """
     Reproducer for #5977:
     F-022 NODATA/NXDOMAIN synthesises from piggy-backed NSEC RRs
     """
     # Prime the cache.
-    prime_resolver()
+    prime_resolver(ns3)
 
     # Trigger the malicious referral.
-    trigger = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), RESOLVER)
+    trigger = isctest.query.tcp(isctest.query.create(TRIGGER, "A"), ns3.ip)
     isctest.check.noerror(trigger)
     isctest.check.noadflag(trigger)
     assert _has_a(trigger, TRIGGER, CHILD_A), trigger.to_text()
 
     # Probing query.
-    response = isctest.query.tcp(isctest.query.create(qname, "A"), RESOLVER)
+    response = isctest.query.tcp(isctest.query.create(qname, "A"), ns3.ip)
     isctest.check.noerror(response)
     assert _has_a(response, qname, address), response.to_text()
     isctest.check.adflag(response)
