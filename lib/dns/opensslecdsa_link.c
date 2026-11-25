@@ -485,6 +485,12 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		priv.elements[i].length = keylen;
 		priv.elements[i].data = buf;
 		i++;
+	} else if (key->label == NULL) {
+		/*
+		 * Only the private key of a key kept in an HSM is allowed to
+		 * be unavailable; such a key is written with just its label.
+		 */
+		CLEANUP(result);
 	}
 
 	if (key->label != NULL) {

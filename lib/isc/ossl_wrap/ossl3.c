@@ -507,8 +507,14 @@ ec_secret_region(EVP_PKEY *pkey, isc_region_t sec) {
 	isc_result_t result;
 	BIGNUM *priv = NULL;
 
+	/*
+	 * The private key of a key kept in an HSM cannot be exported; that is
+	 * expected and for the caller to handle, so it is not logged here.
+	 */
 	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1) {
-		CLEANUP(OSSL_WRAP_ERROR("EVP_PKEY_get_bn_param"));
+		result = isc_ossl_wrap_toresult(ISC_R_CRYPTOFAILURE);
+		ERR_clear_error();
+		goto cleanup;
 	}
 
 	BN_bn2bin_fixed(priv, sec.base, sec.length);
