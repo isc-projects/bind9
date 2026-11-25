@@ -213,9 +213,10 @@ n=$((n + 1))
 echo_i "check that error report queries are logged and no Report-Channel option is present in the response ($n)"
 ret=0
 nextpart ns1/named.run >/dev/null
-$DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.example.rad TXT >dig.out.test$n
-nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.example.rad/IN'" >/dev/null || ret=1
-grep "; Report-Channel: \"example.rad\"" dig.out.test$n >/dev/null && ret=1
+$DIG $DIGOPTS -b 10.53.0.9 @10.53.0.1 _er.0.example.1._er.example.rad TXT >dig.out.test$n
+nextpart ns1/named.run | grep -F "dns-reporting-agent '_er.0.example.1._er.example.rad/IN' from 10.53.0.9" >/dev/null || ret=1
+grep -F "\"Report received\"" dig.out.test$n >/dev/null || ret=1
+grep -F "; Report-Channel: \"example.rad\"" dig.out.test$n >/dev/null && ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
@@ -224,8 +225,9 @@ echo_i "check that error report queries to non-logging zones are not logged ($n)
 ret=0
 nextpart ns1/named.run >/dev/null
 $DIG $DIGOPTS @10.53.0.1 _er.0.example.1._er.example.com TXT >dig.out.test$n
-nextpart ns1/named.run | grep "dns-reporting-agent '_er.0.example.1._er.example.com/IN'" >/dev/null && ret=1
-grep "; Report-Channel: \"rad.example.net\"" dig.out.test$n >/dev/null || ret=1
+nextpart ns1/named.run | grep -F "dns-reporting-agent '_er.0.example.1._er.example.com/IN'" >/dev/null && ret=1
+grep -F "\"Report received\"" dig.out.test$n >/dev/null && ret=1
+grep -F "; Report-Channel: \"rad.example.net\"" dig.out.test$n >/dev/null || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
