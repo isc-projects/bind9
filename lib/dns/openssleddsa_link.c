@@ -133,29 +133,13 @@ openssleddsa_destroyctx(dst_context_t *dctx) {
 static isc_result_t
 openssleddsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
-	isc_buffer_t *nbuf = NULL;
-	isc_region_t r;
-	unsigned int length;
-	isc_result_t result;
 	const eddsa_alginfo_t *alginfo =
 		openssleddsa_alg_info(dctx->key->key_alg);
 
 	REQUIRE(alginfo != NULL);
 
-	result = isc_buffer_copyregion(buf, data);
-	if (result == ISC_R_SUCCESS) {
-		return ISC_R_SUCCESS;
-	}
-
-	length = isc_buffer_length(buf) + data->length + 64;
-	isc_buffer_allocate(dctx->mctx, &nbuf, length);
-	isc_buffer_usedregion(buf, &r);
-	(void)isc_buffer_copyregion(nbuf, &r);
-	(void)isc_buffer_copyregion(nbuf, data);
-	isc_buffer_free(&buf);
-	dctx->ctxdata.generic = nbuf;
-
-	return ISC_R_SUCCESS;
+	/* The buffer was allocated dynamically and grows as needed. */
+	return isc_buffer_copyregion(buf, data);
 }
 
 static isc_result_t
