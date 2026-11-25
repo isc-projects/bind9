@@ -173,10 +173,7 @@ def test_sig_axfr_stored_opaque(ns6):
     owner = f"host.{zone}."
     dump_path = ns6.directory / "named_dump.db"
 
-    # ns6 may have tried to SOA-poll ans11 before it was listening; force
-    # a fresh refresh attempt and wait for the transfer to complete.
-    with ns6.watch_log_from_here() as watcher:
-        ns6.rndc(f"refresh {zone}")
+    with ns6.watch_log_from_start() as watcher:
         watcher.wait_for_line(f"zone {zone}/IN: transferred serial 1")
 
     # Remove any stale dump and ask named for a fresh one.
