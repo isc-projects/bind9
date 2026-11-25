@@ -137,6 +137,11 @@ isc_hmac(isc_md_type_t type, const void *key, const size_t keylen,
 		return ISC_R_NOTIMPLEMENTED;
 	}
 
+	/* HMAC() is not told how large the output buffer is. */
+	if (*digestlen < (unsigned int)EVP_MD_size(md)) {
+		return ISC_R_NOSPACE;
+	}
+
 	if (HMAC(md, key, keylen, buf, len, digest, digestlen) == NULL) {
 		ERR_clear_error();
 		return ISC_R_CRYPTOFAILURE;

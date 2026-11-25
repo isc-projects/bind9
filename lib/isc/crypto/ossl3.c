@@ -266,6 +266,10 @@ isc_hmac(isc_md_type_t type, const void *key, const size_t keylen,
 		return ISC_R_NOTIMPLEMENTED;
 	}
 
+	if (*digestlen < (unsigned int)EVP_MD_size(isc__crypto_md[type])) {
+		return ISC_R_NOSPACE;
+	}
+
 	ctx = EVP_MAC_CTX_new(evp_hmac);
 	RUNTIME_CHECK(ctx != NULL);
 

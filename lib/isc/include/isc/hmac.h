@@ -45,6 +45,8 @@ typedef struct isc_hmac_key isc_hmac_key_t;
  * for the hash function output (use ISC_MAX_MD_SIZE if unsure). @digestlen
  * is used to pass in the length of the digest buffer and returns the length
  * of digest written to @digest.
+ *
+ * Returns ISC_R_NOSPACE when @digest is too small for the output.
  */
 isc_result_t
 isc_hmac(isc_md_type_t type, const void *key, const size_t keylen,
