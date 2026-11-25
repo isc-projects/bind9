@@ -417,8 +417,8 @@ behavior also makes it easier to follow the idea behind each test.
 
 A handler declares the queries it handles in its `matcher`, built from the
 matchers in `isctest/asyncserver/matchers.py` (`Qname`, `Qtype`, `Domain`,
-...) combined with `&`, `|` and `~`; the first installed handler whose
-matcher matches a query handles it.  Please see
+`Flags`, ...) combined with `&`, `|` and `~`; the first installed handler
+whose matcher matches a query handles it.  Please see
 `isctest/asyncserver/handlers.py` for up-to-date information on available handler classes
 and existing `ans.py` files for how they can be used in practice.  Consult the
 log files (`ans.run`) in case a query is not matched by its intended handler.
