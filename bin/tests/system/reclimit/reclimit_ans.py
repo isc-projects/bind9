@@ -146,7 +146,7 @@ def ns(owner: str | dns.name.Name, target: str | dns.name.Name) -> dns.rrset.RRs
 
 
 class DirectExampleHandler(ReclimitHandler):
-    matcher = Qname("direct.example.org", "direct.example.net")
+    matcher = Qname("direct.example.org.", "direct.example.net.")
 
     def __init__(self, state: ReclimitState, local_ns_number: int) -> None:
         self._local_ns_number = local_ns_number
@@ -161,7 +161,7 @@ class DirectExampleHandler(ReclimitHandler):
 
 
 class IndirectExampleOrgHandler(ReclimitHandler):
-    matcher = Qname(*[f"indirect{i}.example.org" for i in range(1, 9)])
+    matcher = Qname(*[f"indirect{i}.example.org." for i in range(1, 9)])
 
     def __init__(self, state: ReclimitState, local_ns_number: int) -> None:
         self._local_ns_number = local_ns_number

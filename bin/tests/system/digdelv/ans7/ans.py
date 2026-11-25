@@ -24,7 +24,7 @@ class CloseHandler(ResponseHandler):
     Handler that doesn't respond and closes TCP connection.
     """
 
-    matcher = Domain("close.example")
+    matcher = Domain("close.example.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -58,7 +58,7 @@ class SilentEverySecondQueryHandler(IgnoreAllQueries):
     one gets the server's SERVFAIL.
     """
 
-    matcher = EverySecond(Domain("silent-then-servfail.example"))
+    matcher = EverySecond(Domain("silent-then-servfail.example."))
 
 
 class SilentHandler(IgnoreAllQueries):
@@ -66,7 +66,7 @@ class SilentHandler(IgnoreAllQueries):
     Handler that doesn't respond.
     """
 
-    matcher = Domain("silent.example")
+    matcher = Domain("silent.example.")
 
 
 def main() -> None:

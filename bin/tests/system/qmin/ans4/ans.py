@@ -56,7 +56,7 @@ class StaleHandler(ResponseHandler):
     handler implemented below.
     """
 
-    matcher = Domain("b.stale", "a.b.stale")
+    matcher = Domain("b.stale.", "a.b.stale.")
 
     async def get_responses(
         self, qctx: QueryContext
