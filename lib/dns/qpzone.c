@@ -3641,7 +3641,6 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	isc_rwlock_t *nlock = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	bool de = (options & DNS_DBFIND_DELEGOK) != 0;
-	bool atparent = dns_rdatatype_atparent_deleg(type, de);
 
 	REQUIRE(VALID_QPZONE((qpzonedb_t *)db));
 	INSIST(version == NULL ||
@@ -3660,6 +3659,15 @@ qpzone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	qpz_search_t search;
 	qpz_search_init(&search, (qpzonedb_t *)db, (qpz_version_t *)version,
 			options);
+
+	/*
+	 * DS records (and DELEG, for DE=1 queries) live above the zone
+	 * cut in an ordinary zone, but stub zones don't have anything
+	 * above the delegation, so we don't count those as "at parent"
+	 * queries.
+	 */
+	bool atparent = (dns_rdatatype_atparent_deleg(type, de) &&
+			 !IS_STUB(search.qpdb));
 
 	if ((options & DNS_DBFIND_FORCENSEC3) != 0) {
 		nsec3 = true;

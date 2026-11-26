@@ -97,3 +97,14 @@ def test_stub_glue_record_with_minimal_response():
     assert res_aaaa.answer[0] == dns.rrset.from_text(
         "ns4.example.", "300", "IN", "AAAA", "fd92:7065:b8e:ffff::4"
     )
+
+
+@pytest.mark.parametrize("dnssec", [False, True])
+def test_stub_origin_ds_referral(dnssec, ns5):
+    msg = isctest.query.create("example.", "DS", dnssec=dnssec, rd=False)
+    res = isctest.query.tcp(msg, ns5.ip)
+    isctest.check.noerror(res)
+    isctest.check.empty_answer(res)
+    assert res.authority[0] == dns.rrset.from_text(
+        "example.", "300", "IN", "NS", "ns4.example."
+    )
