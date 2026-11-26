@@ -10,34 +10,25 @@
 # information regarding copyright ownership.
 
 import dns.rcode
-import dns.rdataclass
-import dns.rdatatype
-import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS3
+
+from ..fwdfirst_ans import a, ns
 
 
-class PoisonReferralForwarder(StaticResponseHandler):
+class PoisonReferralForwarder(SingleResponseHandler):
     matcher = Domain("fwd.hack.")
-    authority = [
-        dns.rrset.from_text(
-            "hack.", 300, dns.rdataclass.IN, dns.rdatatype.NS, "ns.fwd.hack."
-        )
-    ]
-    additional = [
-        dns.rrset.from_text(
-            "ns.fwd.hack.", 300, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.3"
-        )
-    ]
+    authority = [ns(matcher.domain.parent(), f"ns.{matcher.domain}")]
+    additional = [a(f"ns.{matcher.domain}", ANS3.ip)]
     rcode = dns.rcode.NOERROR
-    authoritative = False
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(PoisonReferralForwarder())
+    server.install_response_handlers(PoisonReferralForwarder())
     server.run()
 
 

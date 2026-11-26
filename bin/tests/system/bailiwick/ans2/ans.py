@@ -9,91 +9,35 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
 
-import dns.rdatatype
-import dns.rrset
+from isctest.template import ANS3
 
-from isctest.asyncserver import QueryContext
-from isctest.asyncserver.actions import DnsResponseSend
+from ..bailiwick_ans import ResponseSpoofer, a, cname, dname, ns, spoofing_server, txt
 
-from ..bailiwick_ans import ResponseSpoofer, spoofing_server
-
-ATTACKER_IP = "10.53.0.3"
-TTL = 3600
+ATTACKER_IP = ANS3.ip
 
 
 class UnsolicitedNsSpoofer(ResponseSpoofer, mode="unsolicited-ns"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        txt_rrset = dns.rrset.from_text(
-            qctx.qname,
-            TTL,
-            qctx.qclass,
-            dns.rdatatype.TXT,
-            '"spoofed answer with extra NS"',
-        )
-        response.answer.append(txt_rrset)
-
-        ns_rrset = dns.rrset.from_text(
-            "victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.attacker."
-        )
-        response.authority.append(ns_rrset)
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [txt(qname, "spoofed answer with extra NS")]
+    authority = [ns("victim.", "ns.attacker.")]
+    authoritative = True
 
 
 class ParentGlueSpoofer(ResponseSpoofer, mode="parent-glue"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        ns_rrset = dns.rrset.from_text(
-            "trigger.victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.victim."
-        )
-        response.authority.append(ns_rrset)
-
-        glue_rrset = dns.rrset.from_text(
-            "ns.victim.", TTL, qctx.qclass, dns.rdatatype.A, ATTACKER_IP
-        )
-        response.additional.append(glue_rrset)
-
-        yield DnsResponseSend(response, authoritative=False)
+    authority = [ns("trigger.victim.", "ns.victim.")]
+    additional = [a("ns.victim.", ATTACKER_IP)]
+    authoritative = False
 
 
 class DnameSpoofer(ResponseSpoofer, mode="dname"):
-
     qname = "trigger.victim."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        cname_rrset = dns.rrset.from_text(
-            qctx.qname,
-            TTL,
-            qctx.qclass,
-            dns.rdatatype.CNAME,
-            "trigger.attacker.",
-        )
-        dname_rrset = dns.rrset.from_text(
-            "victim.", TTL, qctx.qclass, dns.rdatatype.DNAME, "attacker."
-        )
-        response.answer.append(cname_rrset)
-        response.answer.append(dname_rrset)
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [
+        cname(qname, "trigger.attacker."),
+        dname("victim.", "attacker."),
+    ]
+    authoritative = True
 
 
 def main() -> None:

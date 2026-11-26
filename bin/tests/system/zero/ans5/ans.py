@@ -13,12 +13,24 @@ from collections.abc import AsyncGenerator
 
 import ipaddress
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.matchers import Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class IncrementARecordHandler(ResponseHandler):
@@ -27,25 +39,23 @@ class IncrementARecordHandler(ResponseHandler):
     time we get queried.
     """
 
+    matcher = Qtype(dns.rdatatype.A)
+
     def __init__(self):
         self._ip_address = ipaddress.ip_address("192.0.2.0")
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype == dns.rdatatype.A:
-            rrset = dns.rrset.from_text(
-                qctx.qname, 0, qctx.qclass, dns.rdatatype.A, str(self._ip_address)
-            )
-            qctx.response.answer.append(rrset)
-            self._ip_address += 1
-
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, str(self._ip_address), ttl=0)
+        qctx.response.answer.append(a_rrset)
+        self._ip_address += 1
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handler(IncrementARecordHandler())
+    server.install_response_handlers(IncrementARecordHandler())
     server.run()
 
 

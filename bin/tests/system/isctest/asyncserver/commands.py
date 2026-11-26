@@ -44,7 +44,7 @@ class ToggleResponsesCommand(ControlCommand):
             if self._current_handler:
                 return "sending responses already disabled"
             self._current_handler = IgnoreAllQueries()
-            server.install_response_handler(self._current_handler, prepend=True)
+            server.prepend_response_handler(self._current_handler)
             return "sending responses disabled"
 
         if mode == "enable":

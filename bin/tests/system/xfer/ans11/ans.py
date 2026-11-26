@@ -10,12 +10,12 @@
 # information regarding copyright ownership.
 
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 
 import abc
 
 import dns.flags
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -26,36 +26,33 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Matcher, Protocol, Qtype
+
+from ..xfer_ans import rrset
 
 ZONE = "ixfr-race."
 NS_NAME = f"ns.{ZONE}"
+TTL = 3600
 FIRST_DIFF_RECORDS = 50
 SECOND_DIFF_RECORDS = 200
-
-
-def rrset(
-    owner: str, ttl: int, rdtype: dns.rdatatype.RdataType, rdata: str
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 def soa(serial: int) -> dns.rrset.RRset:
     return rrset(
         ZONE,
-        3600,
         dns.rdatatype.SOA,
         f"{NS_NAME} admin.{ZONE} {serial} 3600 900 604800 86400",
+        ttl=TTL,
     )
 
 
 def a(owner: str, address: str) -> dns.rrset.RRset:
-    return rrset(owner, 3600, dns.rdatatype.A, address)
+    return rrset(owner, dns.rdatatype.A, address, ttl=TTL)
 
 
 def ns() -> dns.rrset.RRset:
-    return rrset(ZONE, 3600, dns.rdatatype.NS, NS_NAME)
+    return rrset(ZONE, dns.rdatatype.NS, NS_NAME, ttl=TTL)
 
 
 def host_a_records(prefix: str, second_octet: int, count: int) -> list[dns.rrset.RRset]:
@@ -86,6 +83,7 @@ def ixfr_diffs() -> list[dns.rrset.RRset]:
     ]
 
 
+@dataclass
 class TransferState:
     """
     Flag toggled once the initial AXFR (serial 1) has been served.  The SOA
@@ -93,8 +91,7 @@ class TransferState:
     after it, so the secondary's next refresh switches from AXFR to IXFR.
     """
 
-    def __init__(self) -> None:
-        self.initial_axfr_served = False
+    initial_axfr_served: bool = False
 
 
 class InitialAxfrServed(Matcher):
@@ -122,20 +119,12 @@ class TransferHandler(ResponseHandler, abc.ABC):
         self._progress = progress
 
 
-class InitialSoaHandler(TransferHandler, StaticResponseHandler):
+class InitialSoaHandler(TransferHandler, SingleResponseHandler):
     answer = [soa(1)]
 
     def __init__(self, progress: TransferState) -> None:
         super().__init__(progress)
         self.matcher = Qtype(dns.rdatatype.SOA) & ~InitialAxfrServed(progress)
-
-
-class RefreshSoaHandler(TransferHandler, StaticResponseHandler):
-    answer = [soa(4)]
-
-    def __init__(self, progress: TransferState) -> None:
-        super().__init__(progress)
-        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
 
 
 class InitialAxfrHandler(TransferHandler, AxfrHandler):
@@ -156,6 +145,14 @@ class InitialAxfrHandler(TransferHandler, AxfrHandler):
         self._progress.initial_axfr_served = True
         async for action in super().get_responses(qctx):
             yield action
+
+
+class RefreshSoaHandler(TransferHandler, SingleResponseHandler):
+    answer = [soa(4)]
+
+    def __init__(self, progress: TransferState) -> None:
+        super().__init__(progress)
+        self.matcher = Qtype(dns.rdatatype.SOA) & InitialAxfrServed(progress)
 
 
 class TruncatedIxfrHandler(ResponseHandler):
@@ -202,8 +199,8 @@ def main() -> None:
     progress = TransferState()
     server.install_response_handlers(
         InitialSoaHandler(progress),
-        RefreshSoaHandler(progress),
         InitialAxfrHandler(progress),
+        RefreshSoaHandler(progress),
         TruncatedIxfrHandler(),
         RaceIxfrHandler(),
     )

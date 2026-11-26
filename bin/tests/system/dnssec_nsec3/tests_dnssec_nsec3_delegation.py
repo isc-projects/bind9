@@ -94,6 +94,7 @@ def _has_forged_optout_nsec3(response):
     return False
 
 
+@pytest.mark.asyncserver_test
 def test_forged_bogus_inner_nsec3():
     cut_ds = _query(AUTH, CUT, "DS")
     isctest.check.noerror(cut_ds)

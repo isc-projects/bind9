@@ -12,7 +12,6 @@
 from collections.abc import AsyncGenerator
 
 import dns.rdatatype
-import dns.rrset
 
 from isctest.asyncserver import (
     ControllableAsyncDnsServer,
@@ -21,7 +20,10 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.matchers import Domain
+from isctest.asyncserver.matchers import Domain, Qtype
+from isctest.template import ANS11
+
+from ..forward_ans import rrset
 
 
 class ExtraAnswersHandler(ResponseHandler):
@@ -29,28 +31,23 @@ class ExtraAnswersHandler(ResponseHandler):
     Answer from zone data, inserting extra RRsets into responses to A queries.
     """
 
-    matcher = Domain("attackSecureDomain.net3.")
+    matcher = Domain("attackSecureDomain.net3.") & Qtype(dns.rdatatype.A)
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype == dns.rdatatype.A:
-            ns_rrset = dns.rrset.from_text(
-                "net3.", 300, qctx.qclass, dns.rdatatype.NS, "local.net3."
-            )
-            qctx.response.answer.append(ns_rrset)
-            a_rrset = dns.rrset.from_text(
-                "local.net3.", 300, qctx.qclass, dns.rdatatype.A, "10.53.0.11"
-            )
-            qctx.response.additional.append(a_rrset)
-
+        parent = self.matcher.of(Domain).domain.parent()
+        ns_rrset = rrset(parent, dns.rdatatype.NS, f"local.{parent}")
+        qctx.response.answer.append(ns_rrset)
+        a_rrset = rrset(f"local.{parent}", dns.rdatatype.A, ANS11.ip)
+        qctx.response.additional.append(a_rrset)
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = ControllableAsyncDnsServer()
     server.install_control_command(ToggleResponsesCommand())
-    server.install_response_handler(ExtraAnswersHandler())
+    server.install_response_handlers(ExtraAnswersHandler())
     server.run()
 
 

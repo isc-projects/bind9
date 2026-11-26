@@ -11,20 +11,52 @@
 
 import abc
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
+import dns.rrset
 
 from isctest.asyncserver import (
     ControlCommand,
     ControllableAsyncDnsServer,
     DnsProtocol,
     QueryContext,
-    ResponseHandler,
 )
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Protocol, Qname, Qtype
 
 
-class ResponseSpoofer(ResponseHandler, abc.ABC):
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 3600,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+def a(owner: str | dns.name.Name, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
+def txt(owner: str | dns.name.Name, text: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.TXT, f'"{text}"')
+
+
+def cname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.CNAME, target)
+
+
+def dname(owner: str | dns.name.Name, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.DNAME, target)
+
+
+class ResponseSpoofer(SingleResponseHandler, abc.ABC):
 
     spoofers: dict[str, type["ResponseSpoofer"]] = {}
 
@@ -84,7 +116,7 @@ class SetSpoofingModeCommand(ControlCommand):
 
         if self._current_handler:
             server.uninstall_response_handler(self._current_handler)
-        server.install_response_handler(spoofer)
+        server.install_response_handlers(spoofer)
         self._current_handler = spoofer
 
         return f"response spoofing enabled (mode: {mode})"

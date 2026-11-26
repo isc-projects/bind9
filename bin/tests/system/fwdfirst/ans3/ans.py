@@ -10,32 +10,25 @@
 # information regarding copyright ownership.
 
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
-VICTIM = "victim.sibling.hack."
+from ..fwdfirst_ans import a
+
 POISON_ADDRESS = "6.6.6.6"
 
 
-def a(name: str) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        name, 300, dns.rdataclass.IN, dns.rdatatype.A, POISON_ADDRESS
-    )
-
-
-class PoisonedAHandler(StaticResponseHandler):
-    matcher = Qname(VICTIM) & Qtype(dns.rdatatype.A)
-    answer = [a(VICTIM)]
+class PoisonedAHandler(SingleResponseHandler):
+    matcher = Qname("victim.sibling.hack.") & Qtype(dns.rdatatype.A)
+    answer = [a(matcher.of(Qname).qname, POISON_ADDRESS)]
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handler(PoisonedAHandler())
+    server.install_response_handlers(PoisonedAHandler())
     server.run()
 
 

@@ -151,6 +151,15 @@ class Qname(Matcher):
             for name in qnames
         ]
 
+    @property
+    def qname(self) -> dns.name.Name:
+        """
+        The one name this matcher holds; a matcher of several names is read
+        through `qnames`.
+        """
+        assert len(self.qnames) == 1, f"{self} holds more than one name"
+        return self.qnames[0]
+
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qname in self.qnames
 
@@ -165,6 +174,15 @@ class Qtype(Matcher):
 
     def __init__(self, *qtypes: dns.rdatatype.RdataType) -> None:
         self.qtypes = qtypes
+
+    @property
+    def qtype(self) -> dns.rdatatype.RdataType:
+        """
+        The one type this matcher holds; a matcher of several types is read
+        through `qtypes`.
+        """
+        assert len(self.qtypes) == 1, f"{self} holds more than one type"
+        return self.qtypes[0]
 
     def match(self, qctx: QueryContext) -> bool:
         return qctx.qtype in self.qtypes
@@ -182,14 +200,21 @@ class Domain(Matcher):
     """
 
     def __init__(self, *domains: str | dns.name.Name) -> None:
-        self._domains = sorted(
-            (
-                name if isinstance(name, dns.name.Name) else dns.name.from_text(name)
-                for name in domains
-            ),
-            reverse=True,
-        )
+        self.domains = [
+            name if isinstance(name, dns.name.Name) else dns.name.from_text(name)
+            for name in domains
+        ]
+        self._sorted_domains = sorted(self.domains, reverse=True)
         self._matched_domain: dns.name.Name | None = None
+
+    @property
+    def domain(self) -> dns.name.Name:
+        """
+        The one domain this matcher holds; the domain a query matched is
+        `matched_domain`.
+        """
+        assert len(self.domains) == 1, f"{self} holds more than one domain"
+        return self.domains[0]
 
     @property
     def matched_domain(self) -> dns.name.Name:
@@ -197,14 +222,14 @@ class Domain(Matcher):
         return self._matched_domain
 
     def match(self, qctx: QueryContext) -> bool:
-        for domain in self._domains:
+        for domain in self._sorted_domains:
             if qctx.qname.is_subdomain(domain):
                 self._matched_domain = domain
                 return True
         return False
 
     def __str__(self) -> str:
-        return f"QNAME under [{', '.join(str(name) for name in self._domains)}]"
+        return f"QNAME under [{', '.join(str(name) for name in self.domains)}]"
 
 
 class Protocol(Matcher):
@@ -265,6 +290,9 @@ class LabelPredicate(Matcher):
     """
     Match queries whose QNAME label at the given index passes the given test,
     described for the log; a QNAME without such a label does not match.
+
+    The label the last match passed is kept in `matched_label` for the
+    handler to read.
     """
 
     def __init__(
@@ -273,13 +301,22 @@ class LabelPredicate(Matcher):
         self._index = index
         self._test = test
         self._description = description
+        self._matched_label: bytes | None = None
+
+    @property
+    def matched_label(self) -> bytes:
+        assert self._matched_label is not None, f"{self} has not matched yet"
+        return self._matched_label
 
     def match(self, qctx: QueryContext) -> bool:
         try:
             label = qctx.qname.labels[self._index]
         except IndexError:
             return False
-        return self._test(label)
+        if not self._test(label):
+            return False
+        self._matched_label = label
+        return True
 
     def __str__(self) -> str:
         return f"label {self._index} {self._description}"

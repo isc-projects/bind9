@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator, Collection
+from collections.abc import Sequence
 
 import abc
 
@@ -18,14 +18,9 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-from isctest.asyncserver import (
-    ControllableAsyncDnsServer,
-    QueryContext,
-    ResponseHandler,
-)
-from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver import ControllableAsyncDnsServer
 from isctest.asyncserver.commands import SwitchControlCommand
-from isctest.asyncserver.handlers import AxfrHandler
+from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Qtype
 
 
@@ -71,40 +66,18 @@ def txt(data: str, *, owner: str = "nil.") -> dns.rrset.RRset:
     )
 
 
-class SoaHandler(ResponseHandler):
+class SoaHandler(SingleResponseHandler):
     def __init__(self, serial: int):
         self._serial = serial
 
     matcher = Qtype(dns.rdatatype.SOA)
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(soa(self._serial))
-        yield DnsResponseSend(qctx.response)
-
-
-class IxfrHandler(ResponseHandler, abc.ABC):
     @property
-    @abc.abstractmethod
-    def answer(self) -> Collection[dns.rrset.RRset]:
-        """
-        Answer section of a response packet sent in response to
-        IXFR queries.
-        """
-        raise NotImplementedError
-
-    matcher = Qtype(dns.rdatatype.IXFR)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        for rrset_ in self.answer:
-            qctx.response.answer.append(rrset_)
-        yield DnsResponseSend(qctx.response)
+    def answer(self) -> Sequence[dns.rrset.RRset]:
+        return [soa(self._serial)]
 
 
-class InitialAfxrHandler(AxfrHandler):
+class InitialAxfrHandler(AxfrHandler):
     initial_soa = soa(1)
     zone_contents = (
         ns(),
@@ -115,7 +88,11 @@ class InitialAfxrHandler(AxfrHandler):
     final_soa = soa(1)
 
 
-class SuccessfulIfxrHandler(IxfrHandler):
+class IxfrHandler(SingleResponseHandler, abc.ABC):
+    matcher = Qtype(dns.rdatatype.IXFR)
+
+
+class SuccessfulIxfrHandler(IxfrHandler):
     answer = (
         soa(3),
         soa(1),
@@ -201,11 +178,11 @@ def main() -> None:
         {
             "initial_axfr": (
                 SoaHandler(1),
-                InitialAfxrHandler(),
+                InitialAxfrHandler(),
             ),
             "successful_ixfr": (
                 SoaHandler(3),
-                SuccessfulIfxrHandler(),
+                SuccessfulIxfrHandler(),
             ),
             "not_exact": (
                 SoaHandler(4),

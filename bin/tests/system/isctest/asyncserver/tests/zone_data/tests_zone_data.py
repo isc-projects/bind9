@@ -11,10 +11,13 @@
 
 import dns.message
 import dns.rdatatype
+import pytest
 
 from isctest.template import ANS1
 
 import isctest
+
+pytestmark = pytest.mark.asyncserver_test
 
 
 def query(qname: str, qtype: str) -> dns.message.Message:

@@ -9,48 +9,36 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import dns.rcode
 import dns.rdatatype
-import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver import AsyncDnsServer
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
+from ..rpzrecurse_ans import AHandler, rrset
 
-class ReplyA(ResponseHandler):
+
+class ReplyA(AHandler):
     matcher = Qname("trigger.cve-2026-97313.test.") & Qtype(dns.rdatatype.A)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        a_rrset = dns.rrset.from_text(
-            qctx.qname, 300, qctx.qclass, dns.rdatatype.A, "10.53.0.99"
-        )
-        qctx.response.answer.append(a_rrset)
-        yield DnsResponseSend(qctx.response)
+    address = "10.53.0.99"
 
 
-class ReplyDefault(ResponseHandler):
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        soa_rrset = dns.rrset.from_text(
+class ReplyDefault(SingleResponseHandler):
+    authority = [
+        rrset(
             ".",
-            1,  # Important: this should be 1 so it expires early
-            qctx.qclass,
             dns.rdatatype.SOA,
             "a.root-servers.test. root.test. 1 3600 1200 604800 1",
+            ttl=1,  # Important: this should be 1 so it expires early
         )
-        qctx.response.authority.append(soa_rrset)
-        yield DnsResponseSend(qctx.response)
+    ]
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(ReplyA(), ReplyDefault())
+    server.install_response_handlers(ReplyA())
+    server.install_response_handlers(ReplyDefault())
     server.run()
 
 

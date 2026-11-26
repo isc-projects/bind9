@@ -9,12 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import asyncio
 
 import dns.flags
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -22,26 +22,22 @@ from isctest.asyncserver import (
     ControlCommand,
     ControllableAsyncDnsServer,
     QueryContext,
-    ResponseAction,
+    ResponseHandler,
 )
-from isctest.asyncserver.handlers import StaticResponseHandler
-from isctest.asyncserver.matchers import Matcher, Qname, Qtype
-
-NAME = "nodata.example."
-
-RELEASE = asyncio.Event()
+from isctest.asyncserver.handlers import ResponseHandlerWrapper, SingleResponseHandler
+from isctest.asyncserver.matchers import Flags, Qname, Qtype
 
 
-class CdFlag(Matcher):
-    """
-    Match queries with the CD flag set.
-    """
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    *rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, *rdata)
 
-    def match(self, qctx: QueryContext) -> bool:
-        return bool(qctx.query.flags & dns.flags.CD)
 
-
-class HeldAddressHandler(StaticResponseHandler):
+class HeldAddressHandler(SingleResponseHandler):
     """
     Answer a CD=1 A query for nodata.example with unsigned addresses, but
     only once the "release._control." command has been received.  CD=0
@@ -52,21 +48,31 @@ class HeldAddressHandler(StaticResponseHandler):
     comparing the two does not stop at the record count.
     """
 
-    matcher = Qname(NAME) & Qtype(dns.rdatatype.A) & CdFlag()
-    rcode = dns.rcode.NOERROR
+    matcher = Qname("nodata.example.") & Qtype(dns.rdatatype.A) & Flags(dns.flags.CD)
     answer = [
-        dns.rrset.from_text(
-            NAME, 300, "IN", "A", "192.0.2.1", "192.0.2.2", "192.0.2.3", "192.0.2.4"
+        rrset(
+            matcher.of(Qname).qname,
+            dns.rdatatype.A,
+            "192.0.2.1",
+            "192.0.2.2",
+            "192.0.2.3",
+            "192.0.2.4",
         )
     ]
-    authoritative = True
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[ResponseAction, None]:
-        await RELEASE.wait()
-        async for action in super().get_responses(qctx):
-            yield action
+
+class UntilReleased(ResponseHandlerWrapper):
+    """
+    Hold the responses of the wrapped handler until the "release._control."
+    command has been received.
+    """
+
+    def __init__(self, inner: ResponseHandler, release: asyncio.Event) -> None:
+        super().__init__(inner)
+        self._release = release
+
+    async def _on_query_received(self, qctx: QueryContext) -> None:
+        await self._release.wait()
 
 
 class ReleaseCommand(ControlCommand):
@@ -76,17 +82,23 @@ class ReleaseCommand(ControlCommand):
 
     control_subdomain = "release"
 
+    def __init__(self, release: asyncio.Event) -> None:
+        self._release = release
+
     def handle(
         self, args: list[str], server: ControllableAsyncDnsServer, qctx: QueryContext
     ) -> str | None:
-        RELEASE.set()
+        self._release.set()
         return "released"
 
 
 def main() -> None:
-    server = ControllableAsyncDnsServer()
-    server.install_response_handler(HeldAddressHandler())
-    server.install_control_command(ReleaseCommand())
+    server = ControllableAsyncDnsServer(
+        default_aa=True, default_rcode=dns.rcode.NOERROR
+    )
+    release = asyncio.Event()
+    server.install_response_handlers(UntilReleased(HeldAddressHandler(), release))
+    server.install_control_command(ReleaseCommand(release))
     server.run()
 
 

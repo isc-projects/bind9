@@ -14,17 +14,9 @@ from collections.abc import AsyncGenerator
 import dns.rcode
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import CloseConnection, DnsResponseSend, ResponseDrop
+from isctest.asyncserver.actions import CloseConnection
 from isctest.asyncserver.handlers import IgnoreAllQueries
-from isctest.asyncserver.matchers import Domain
-
-
-class SilentHandler(IgnoreAllQueries):
-    """
-    Handler that doesn't respond.
-    """
-
-    matcher = Domain("silent.example")
+from isctest.asyncserver.matchers import Domain, Matcher
 
 
 class CloseHandler(ResponseHandler):
@@ -32,7 +24,7 @@ class CloseHandler(ResponseHandler):
     Handler that doesn't respond and closes TCP connection.
     """
 
-    matcher = Domain("close.example")
+    matcher = Domain("close.example.")
 
     async def get_responses(
         self, qctx: QueryContext
@@ -40,31 +32,49 @@ class CloseHandler(ResponseHandler):
         yield CloseConnection()
 
 
-class SilentThenServfailHandler(ResponseHandler):
+class EverySecond(Matcher):
     """
-    Handler that drops one query and response to the next one with SERVFAIL.
+    Match every second query the given matcher matches, the first one
+    included.
     """
 
-    matcher = Domain("silent-then-servfail.example")
-    counter = 0
+    def __init__(self, matcher: Matcher) -> None:
+        self._matcher = matcher
+        self._count = 0
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend | ResponseDrop, None]:
-        if self.counter % 2 == 0:
-            yield ResponseDrop()
-        else:
-            qctx.response.set_rcode(dns.rcode.SERVFAIL)
-            yield DnsResponseSend(qctx.response, authoritative=False)
-        self.counter += 1
+    def match(self, qctx: QueryContext) -> bool:
+        if not self._matcher.match(qctx):
+            return False
+        self._count += 1
+        return self._count % 2 == 1
+
+    def __str__(self) -> str:
+        return f"every second query where {self._matcher}"
+
+
+class SilentEverySecondQueryHandler(IgnoreAllQueries):
+    """
+    Handler that doesn't respond to every second query, so that the next
+    one gets the server's SERVFAIL.
+    """
+
+    matcher = EverySecond(Domain("silent-then-servfail.example."))
+
+
+class SilentHandler(IgnoreAllQueries):
+    """
+    Handler that doesn't respond.
+    """
+
+    matcher = Domain("silent.example.")
 
 
 def main() -> None:
-    server = AsyncDnsServer()
+    server = AsyncDnsServer(default_rcode=dns.rcode.SERVFAIL)
     server.install_response_handlers(
         CloseHandler(),
+        SilentEverySecondQueryHandler(),
         SilentHandler(),
-        SilentThenServfailHandler(),
     )
     server.run()
 

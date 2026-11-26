@@ -49,6 +49,7 @@ def autouse_flush_resolver_cache(ns2):
     ns2.rndc("flush")
 
 
+@pytest.mark.asyncserver_test
 def test_forged_response_contains_cross_zone_nsec(ans1):
     response = isctest.query.tcp(isctest.query.create(ATTACK, "A"), ans1.ip)
     isctest.check.nxdomain(response)

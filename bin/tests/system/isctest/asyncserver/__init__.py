@@ -431,28 +431,25 @@ class AsyncDnsServer(_AsyncServer):
         self._keyring = keyring
         self._acknowledge_manual_dname_handling = acknowledge_manual_dname_handling
 
-    def install_response_handler(
-        self, handler: ResponseHandler, prepend: bool = False
-    ) -> None:
+    def install_response_handlers(self, *handlers: ResponseHandler) -> None:
         """
-        Add a response handler that will be used to handle matching queries.
+        Add response handlers that will be used to handle matching queries.
 
         Response handlers can modify, replace, or suppress the answers prepared
-        from zone file contents.
-
-        The provided handler is installed at the end of the response handler
-        list unless `prepend` is set to True, in which case it is installed at
-        the beginning of the response handler list.
+        from zone file contents.  The first installed handler whose matcher
+        matches a query handles it.  The handlers are installed after the
+        ones installed so far.
         """
-        logging.info("Installing response handler: %s", handler)
-        if prepend:
-            self._response_handlers.insert(0, handler)
-        else:
+        for handler in handlers:
+            logging.info("Installing response handler: %s", handler)
             self._response_handlers.append(handler)
 
-    def install_response_handlers(self, *handlers: ResponseHandler) -> None:
-        for handler in handlers:
-            self.install_response_handler(handler)
+    def prepend_response_handler(self, handler: ResponseHandler) -> None:
+        """
+        Add a response handler ahead of the ones installed so far.
+        """
+        logging.info("Prepending response handler: %s", handler)
+        self._response_handlers.insert(0, handler)
 
     def replace_response_handlers(self, *new_handlers: ResponseHandler) -> None:
         """

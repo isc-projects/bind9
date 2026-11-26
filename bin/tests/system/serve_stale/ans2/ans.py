@@ -14,56 +14,49 @@ import dns.rdatatype
 
 from isctest.asyncserver import ControllableAsyncDnsServer, ResponseHandler
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
 
 from ..serve_stale_ans import (
     a_handler,
+    caa,
     cname_a_handler,
     cname_handler,
     fallback_handler,
     ns_handler,
     other_types_handler,
-    rrset,
     soa,
     soa_handler,
     txt_handler,
 )
 
 
-class NxdomainExampleHandler(StaticResponseHandler):
+class NxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
-    authority = [soa("example.", ttl=2)]
+    authority = [soa(matcher.qname.parent(), ttl=2)]
 
 
 # A negative answer that stays fresh for the whole run of a test, so that a
 # resolver refreshing it can only be doing so because it wrongly considers
 # the cached entry stale.
-class LongttlNodataExampleHandler(StaticResponseHandler):
+class LongttlNodataExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nodata.example.")
-    authority = [soa("example.", ttl=600, minimum=600)]
+    authority = [soa(matcher.qname.parent(), ttl=600, minimum=600)]
 
 
-class LongttlNxdomainExampleHandler(StaticResponseHandler):
+class LongttlNxdomainExampleHandler(SingleResponseHandler):
     matcher = Qname("longttl-nxdomain.example.")
     rcode = dns.rcode.NXDOMAIN
-    authority = [soa("example.", ttl=600, minimum=600)]
+    authority = [soa(matcher.qname.parent(), ttl=600, minimum=600)]
 
 
-class OthertypeExampleCaaHandler(StaticResponseHandler):
+class OthertypeExampleCaaHandler(SingleResponseHandler):
     matcher = Qname("othertype.example.") & Qtype(dns.rdatatype.CAA)
-    answer = [
-        rrset(
-            "othertype.example.",
-            2,
-            dns.rdatatype.CAA,
-            '0 issue "ca1.example.net"',
-        )
-    ]
+    answer = [caa(matcher.of(Qname).qname, '0 issue "ca1.example.net"', ttl=2)]
 
 
-class SourceStaleFallbackHandler(StaticResponseHandler):
+class SourceStaleFallbackHandler(SingleResponseHandler):
     matcher = Qname("source.stale.")
 
 

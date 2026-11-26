@@ -41,13 +41,16 @@ from isctest.template import ANS1, NS2
 import isctest
 import isctest.zone
 
-pytestmark = pytest.mark.extra_artifacts(
-    [
-        "ans*/dsset-*",
-        "ans*/zones/*.db",
-        "ans*/zones/*.db.signed",
-    ]
-)
+pytestmark = [
+    pytest.mark.asyncserver_test,
+    pytest.mark.extra_artifacts(
+        [
+            "ans*/dsset-*",
+            "ans*/zones/*.db",
+            "ans*/zones/*.db.signed",
+        ]
+    ),
+]
 
 NSEC_ZONE = "nsec.test."
 NSEC3_ZONE = "nsec3.test."

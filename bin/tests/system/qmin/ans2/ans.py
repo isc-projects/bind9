@@ -13,12 +13,14 @@ from collections.abc import AsyncGenerator
 
 import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Domain
+from isctest.template import ANS3, ANS4
 
 from ..qmin_ans import (
     DelayedResponseHandler,
@@ -28,23 +30,13 @@ from ..qmin_ans import (
 )
 
 
-class QueryLogger(QueryLogHandler):
-    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.")
-
-
-class BadHandler(EntRcodeChanger):
-    matcher = Domain("bad.")
-    rcode = dns.rcode.NXDOMAIN
-
-
-class UglyHandler(EntRcodeChanger):
-    matcher = Domain("ugly.")
-    rcode = dns.rcode.FORMERR
-
-
-class SlowHandler(DelayedResponseHandler):
-    matcher = Domain("slow.")
-    delay = 0.2
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 def send_delegation(
@@ -56,8 +48,8 @@ def send_delegation(
     ADDITIONAL section.
     """
     ns_name = "ns." + zone_cut.to_text()
-    ns_rrset = dns.rrset.from_text(zone_cut, 2, qctx.qclass, dns.rdatatype.NS, ns_name)
-    a_rrset = dns.rrset.from_text(ns_name, 2, qctx.qclass, dns.rdatatype.A, target_addr)
+    ns_rrset = rrset(zone_cut, dns.rdatatype.NS, ns_name, ttl=2)
+    a_rrset = rrset(ns_name, dns.rdatatype.A, target_addr, ttl=2)
 
     response = qctx.prepare_new_response(with_zone_data=False)
     response.set_rcode(dns.rcode.NOERROR)
@@ -67,37 +59,63 @@ def send_delegation(
     return DnsResponseSend(response, authoritative=False)
 
 
-class StaleHandler(ResponseHandler):
+class StaleDelegationHandler(ResponseHandler):
     """
     `a.b.stale` is a subdomain of `b.stale` and these two subdomains need to be
     delegated to different name servers.  Therefore, their delegations cannot
     be placed in the zone file because the zone cut at `b.stale` would occlude
-    the one at `a.b.stale`.  Generate these delegations dynamically depending
-    on the QNAME.
+    the one at `a.b.stale`, so each cut is delegated by a handler of its own.
     """
 
-    matcher = Domain("stale.")
+    address: str
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         log_query(qctx)
-        a_b_stale = dns.name.from_text("a.b.stale.")
-        b_stale = dns.name.from_text("b.stale.")
-        if qctx.qname.is_subdomain(a_b_stale):
-            yield send_delegation(qctx, a_b_stale, "10.53.0.3")
-        elif qctx.qname.is_subdomain(b_stale):
-            yield send_delegation(qctx, b_stale, "10.53.0.4")
+        yield send_delegation(
+            qctx, self.matcher.of(Domain).matched_domain, self.address
+        )
+
+
+class ABStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("a.b.stale.")
+    address = ANS3.ip
+
+
+class BStaleDelegationHandler(StaleDelegationHandler):
+    matcher = Domain("b.stale.")
+    address = ANS4.ip
+
+
+class BadHandler(EntRcodeChanger):
+    matcher = Domain("bad.")
+    rcode = dns.rcode.NXDOMAIN
+
+
+class QueryLogger(QueryLogHandler):
+    matcher = Domain("1.0.0.2.ip6.arpa.", "fwd.", "good.", "stale.")
+
+
+class SlowHandler(DelayedResponseHandler):
+    matcher = Domain("slow.")
+    delay = 0.2
+
+
+class UglyHandler(EntRcodeChanger):
+    matcher = Domain("ugly.")
+    rcode = dns.rcode.FORMERR
 
 
 def main() -> None:
     server = AsyncDnsServer()
+    server.install_response_handlers(ABStaleDelegationHandler())
+    server.install_response_handlers(BStaleDelegationHandler())
     server.install_response_handlers(
-        QueryLogger(),
         BadHandler(),
-        UglyHandler(),
+        QueryLogger(),
         SlowHandler(),
-        StaleHandler(),
+        UglyHandler(),
     )
     server.run()
 

@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Sequence
 
 import dns.name
 import dns.rcode
@@ -20,6 +20,7 @@ import dns.zone
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Matcher, Qname, Qtype
 
 # 'example.' answers DNSKEY/NSEC/NSEC3 queries with a CNAME (the
@@ -79,10 +80,6 @@ class ExampleMetatypeCnameHandler(CnameHandler):
     )
 
 
-class SecureDsCnameHandler(CnameHandler):
-    matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
-
-
 class InsecureApexCnameHandler(CnameHandler):
     """
     Synthesize an apex CNAME, which conflicts with SOA/NS in a zone file.
@@ -91,41 +88,45 @@ class InsecureApexCnameHandler(CnameHandler):
     matcher = Qname("insecure.parent.") & Qtype(dns.rdatatype.A)
 
 
-class SignedZoneHandler(ResponseHandler):
+class SecureDsCnameHandler(CnameHandler):
+    matcher = Domain("secure.") & Qtype(dns.rdatatype.DS)
+
+
+def soa_with_rrsig(zone: dns.zone.Zone) -> list[dns.rrset.RRset]:
+    assert zone.origin
+    return rrset_with_rrsig(zone, zone.origin, dns.rdatatype.SOA)
+
+
+class NoNameIn(Matcher):
     """
-    Serve a signed zone faithfully.
+    Match queries for a name the given zone has no node for.
     """
 
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
+
+    def match(self, qctx: QueryContext) -> bool:
+        return self._zone.get_node(qctx.qname) is None
+
+    def __str__(self) -> str:
+        return f"no name in {self._zone.origin}"
+
+
+class NxdomainHandler(SingleResponseHandler):
+    """
+    Answer NXDOMAIN from a signed zone, with its SOA.
+    """
+
+    rcode = dns.rcode.NXDOMAIN
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
         assert self._zone.origin
-        self.matcher = Domain(self._zone.origin)
+        self.matcher = Domain(self._zone.origin) & NoNameIn(zone)
 
-    def _soa(self) -> list[dns.rrset.RRset]:
-        return rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.prepare_new_response(with_zone_data=False)
-
-        node = self._zone.get_node(qctx.qname)
-        if node is None:
-            qctx.response.set_rcode(dns.rcode.NXDOMAIN)
-            qctx.response.authority.extend(self._soa())
-            yield DnsResponseSend(qctx.response)
-            return
-
-        rds = node.get_rdataset(dns.rdataclass.IN, qctx.qtype)
-        if rds is None:
-            qctx.response.authority.extend(self._soa())
-            yield DnsResponseSend(qctx.response)
-            return
-
-        qctx.response.answer.extend(
-            rrset_with_rrsig(self._zone, qctx.qname, qctx.qtype)
-        )
-        yield DnsResponseSend(qctx.response)
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
+        return soa_with_rrsig(self._zone)
 
 
 class NoDataIn(Matcher):
@@ -146,41 +147,81 @@ class NoDataIn(Matcher):
         return f"no data in {self._zone.origin}"
 
 
-class StuffedNxdomainHandler(ResponseHandler):
+class StuffedNxdomainHandler(SingleResponseHandler):
     """
     Answer NXDOMAIN with every NSEC3 RRset from a signed zone.
+    """
+
+    rcode = dns.rcode.NXDOMAIN
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
+
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
+        assert self._zone.origin
+        authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
+        for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
+            authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
+        return authority
+
+
+class NodataHandler(SingleResponseHandler):
+    """
+    Answer a name the signed zone has, but not the type, with its SOA.
     """
 
     def __init__(self, zone: dns.zone.Zone) -> None:
         self._zone = zone
         assert self._zone.origin
         self.matcher = Domain(self._zone.origin) & NoDataIn(zone)
-        self._nsec3_authority = self._build_authority()
 
-    def _build_authority(self) -> list[dns.rrset.RRset]:
-        authority = rrset_with_rrsig(self._zone, self._zone.origin, dns.rdatatype.SOA)
-        for name, _ in self._zone.iterate_rdatasets(dns.rdatatype.NSEC3):
-            authority.extend(rrset_with_rrsig(self._zone, name, dns.rdatatype.NSEC3))
-        return authority
+    @property
+    def authority(self) -> Sequence[dns.rrset.RRset]:
+        return soa_with_rrsig(self._zone)
+
+
+class SignedZoneHandler(ResponseHandler):
+    """
+    Serve a signed zone faithfully.
+    """
+
+    def __init__(self, zone: dns.zone.Zone) -> None:
+        self._zone = zone
+        assert self._zone.origin
+        self.matcher = Domain(self._zone.origin)
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         qctx.prepare_new_response(with_zone_data=False)
-        qctx.response.set_rcode(dns.rcode.NXDOMAIN)
-        qctx.response.authority.extend(self._nsec3_authority)
+        qctx.response.answer.extend(
+            rrset_with_rrsig(self._zone, qctx.qname, qctx.qtype)
+        )
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(
-        InsecureApexCnameHandler(),
         ExampleMetatypeCnameHandler(),
-        SignedZoneHandler(EXAMPLE),
+        InsecureApexCnameHandler(),
         SecureDsCnameHandler(),
-        SignedZoneHandler(SECURE),
+    )
+    server.install_response_handlers(
+        NxdomainHandler(EXAMPLE),
+        NxdomainHandler(SECURE),
         StuffedNxdomainHandler(STUFFED),
+    )
+    server.install_response_handlers(
+        NodataHandler(EXAMPLE),
+        NodataHandler(SECURE),
+    )
+    server.install_response_handlers(
+        SignedZoneHandler(EXAMPLE),
+        SignedZoneHandler(SECURE),
         SignedZoneHandler(STUFFED),
     )
     server.run()

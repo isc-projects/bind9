@@ -11,12 +11,35 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+class AddNsecToTxtHandler(ResponseHandler):
+    matcher = Qtype(dns.rdatatype.TXT)
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        nsec = f"{qctx.qname.to_text()} A NS SOA RRSIG NSEC"
+        nsec_rrset = rrset(qctx.qname, dns.rdatatype.NSEC, nsec, ttl=1)
+        qctx.response.authority.append(nsec_rrset)
+        yield DnsResponseSend(qctx.response)
 
 
 class AddRrsigToAHandler(ResponseHandler):
@@ -29,30 +52,17 @@ class AddRrsigToAHandler(ResponseHandler):
             f"A 13 2 60 {2**32-1} 0 12345 {qctx.qname.to_text()} "
             "gB+eISXAhSPZU2i/II0W9ZUhC2SCIrb94mlNvP5092WAeXxqN/vG43/1nmDly2Qs7y5VCjSMOGn85bnaMoAc7w=="
         )
-        rrsig_rrset = dns.rrset.from_text(
-            qctx.qname, 1, qctx.qclass, dns.rdatatype.RRSIG, rrsig
-        )
+        rrsig_rrset = rrset(qctx.qname, dns.rdatatype.RRSIG, rrsig, ttl=1)
         qctx.response.answer.append(rrsig_rrset)
-        yield DnsResponseSend(qctx.response)
-
-
-class AddNsecToTxtHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.TXT)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        nsec = f"{qctx.qname.to_text()} A NS SOA RRSIG NSEC"
-        nsec_rrset = dns.rrset.from_text(
-            qctx.qname, 1, qctx.qclass, dns.rdatatype.NSEC, nsec
-        )
-        qctx.response.authority.append(nsec_rrset)
         yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handlers(AddNsecToTxtHandler(), AddRrsigToAHandler())
+    server.install_response_handlers(
+        AddNsecToTxtHandler(),
+        AddRrsigToAHandler(),
+    )
     server.run()
 
 

@@ -174,6 +174,7 @@ def _check_refusal_logged(server, qname, expected_log):
         watcher.wait_for_line(f"validating {qname.rstrip('.')}/A: {expected_log}")
 
 
+@pytest.mark.asyncserver_test
 def test_auth_serves_forged_grandparent_nsec(ans1):
     """
     Check the attacker's server, not the resolver.
@@ -265,6 +266,7 @@ def test_resolver_rejects_sibling_zone_nsec3(ns2):
     _check_refusal_logged(ns2, ATTACK3_SIBLING, IGNORED_NSEC3_LOG)
 
 
+@pytest.mark.asyncserver_test
 def test_auth_serves_mixed_signer_grandparent_nsec(ans1):
     """
     Premise check for the #6321 reproducers below, again against ans1
@@ -370,6 +372,7 @@ def test_resolver_rejects_mixed_signer_nsec_from_cache(ns2, ans1):
     assert _ans_query_count(ans1, ATTACK_DUMMY_FIRST_CACHED, "DS") == 0
 
 
+@pytest.mark.asyncserver_test
 def test_auth_serves_many_rrsig_grandparent_nsec(ans1):
     """
     Premise check for the RRSIG-count tests below, against ans1 directly.

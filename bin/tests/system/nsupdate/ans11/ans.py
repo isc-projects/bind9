@@ -16,12 +16,12 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import AxfrHandler, StaticResponseHandler
+from isctest.asyncserver.handlers import AxfrHandler, SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.template import ANS11
 
 ZONE = "sigaxfr.nil."
-NS_NAME = "ns.sigaxfr.nil."
-HOST = "host.sigaxfr.nil."
+NS_NAME = f"ns.{ZONE}"
 
 
 def rrset(name: str, rdtype: dns.rdatatype.RdataType, *rdata: str) -> dns.rrset.RRset:
@@ -32,7 +32,7 @@ def soa() -> dns.rrset.RRset:
     return rrset(
         ZONE,
         dns.rdatatype.SOA,
-        "ns.sigaxfr.nil. hostmaster.sigaxfr.nil. 1 3600 1200 604800 3600",
+        f"{NS_NAME} hostmaster.{ZONE} 1 3600 1200 604800 3600",
     )
 
 
@@ -48,16 +48,16 @@ def sig_rdata(covers: dns.rdatatype.RdataType) -> dns.rdata.Rdata:
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.SIG, wire, 0, len(wire))
 
 
-def sig() -> dns.rrset.RRset:
+def sig(owner: str = f"host.{ZONE}") -> dns.rrset.RRset:
     return dns.rrset.from_rdata(
-        HOST,
+        owner,
         600,
         sig_rdata(dns.rdatatype.A),
         sig_rdata(dns.rdatatype.MX),
     )
 
 
-class SoaHandler(StaticResponseHandler):
+class SoaHandler(SingleResponseHandler):
     matcher = Qname(ZONE) & Qtype(dns.rdatatype.SOA)
     answer = [soa()]
 
@@ -74,7 +74,7 @@ class SigAxfrHandler(AxfrHandler):
     initial_soa = soa()
     zone_contents = [
         rrset(ZONE, dns.rdatatype.NS, NS_NAME),
-        rrset(NS_NAME, dns.rdatatype.A, "10.53.0.11"),
+        rrset(NS_NAME, dns.rdatatype.A, ANS11.ip),
         sig(),
     ]
     final_soa = soa()
@@ -82,7 +82,10 @@ class SigAxfrHandler(AxfrHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(SoaHandler(), SigAxfrHandler())
+    server.install_response_handlers(
+        SoaHandler(),
+        SigAxfrHandler(),
+    )
     server.run()
 
 

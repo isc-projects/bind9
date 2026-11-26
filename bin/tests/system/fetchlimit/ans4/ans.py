@@ -11,7 +11,9 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -22,19 +24,50 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
+from isctest.asyncserver.matchers import LeftmostLabelPrefix, Matcher, Qtype
 
 
-class MaybeDelayedAddressAnswerHandler(ResponseHandler):
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
+
+
+class AHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.A)
+    delay = 0.0
+
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if qctx.qtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
-            addr = "192.0.2.1" if qctx.qtype == dns.rdatatype.A else "2001:db8:beef::1"
-            rrset = dns.rrset.from_text(qctx.qname, 300, qctx.qclass, qctx.qtype, addr)
-            qctx.response.answer.append(rrset)
+        a_rrset = rrset(qctx.qname, dns.rdatatype.A, "192.0.2.1")
+        qctx.response.answer.append(a_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay)
 
-        delay = 0.05 if qctx.qname.labels[0].startswith(b"latency") else 0.00
-        yield DnsResponseSend(qctx.response, delay=delay)
+
+class DelayedAHandler(AHandler):
+    matcher = LeftmostLabelPrefix(b"latency") & Qtype(dns.rdatatype.A)
+    delay = 0.05
+
+
+class AaaaHandler(ResponseHandler):
+    matcher: Matcher = Qtype(dns.rdatatype.AAAA)
+    delay = 0.0
+
+    async def get_responses(
+        self, qctx: QueryContext
+    ) -> AsyncGenerator[DnsResponseSend, None]:
+        aaaa_rrset = rrset(qctx.qname, dns.rdatatype.AAAA, "2001:db8:beef::1")
+        qctx.response.answer.append(aaaa_rrset)
+        yield DnsResponseSend(qctx.response, delay=self.delay)
+
+
+class DelayedAaaaHandler(AaaaHandler):
+    matcher = LeftmostLabelPrefix(b"latency") & Qtype(dns.rdatatype.AAAA)
+    delay = 0.05
 
 
 def main() -> None:
@@ -42,7 +75,14 @@ def main() -> None:
         default_aa=True, default_rcode=dns.rcode.NOERROR
     )
     server.install_control_command(ToggleResponsesCommand())
-    server.install_response_handler(MaybeDelayedAddressAnswerHandler())
+    server.install_response_handlers(
+        DelayedAHandler(),
+        DelayedAaaaHandler(),
+    )
+    server.install_response_handlers(
+        AHandler(),
+        AaaaHandler(),
+    )
     server.run()
 
 

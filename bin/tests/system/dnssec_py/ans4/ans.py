@@ -30,13 +30,13 @@ from isctest.asyncserver import AsyncDnsServer
 def main() -> None:
     server = AsyncDnsServer()
 
-    server.install_response_handler(sibling_ds_ans.SiblingDsInjectionHandler())
+    server.install_response_handlers(sibling_ds_ans.SiblingDsInjectionHandler())
     if noqname_mismatch.PEM_PATH.exists():
         server.install_response_handlers(noqname_mismatch.RuntimeCheckHandler())
     if rrsig_labels_signer_ans.PEM_PATH.exists():
-        server.install_response_handler(rrsig_labels_signer_ans.AttackerZoneHandler())
+        server.install_response_handlers(rrsig_labels_signer_ans.AttackerZoneHandler())
     if delegationtrap_ans.PEM_PATH.exists():
-        server.install_response_handler(delegationtrap_ans.DelegationTrapHandler())
+        server.install_response_handlers(delegationtrap_ans.DelegationTrapHandler())
 
     server.run()
 

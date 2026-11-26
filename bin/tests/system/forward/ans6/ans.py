@@ -13,7 +13,6 @@ from collections.abc import AsyncGenerator
 
 import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
@@ -24,25 +23,22 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import ToggleResponsesCommand
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.template import NS2
+
+from ..forward_ans import rrset
 
 SLD = "sld.tld."
 NS1 = f"ns1.{SLD}"
 
 
-def rrset(
-    owner: dns.name.Name | str, rdtype: dns.rdatatype.RdataType, rdata: str
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(owner, 300, dns.rdataclass.IN, rdtype, rdata)
-
-
 def a(owner: dns.name.Name | str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.A, "10.53.0.2")
+    return rrset(owner, dns.rdatatype.A, NS2.ip)
 
 
 def aaaa(owner: dns.name.Name | str) -> dns.rrset.RRset:
-    return rrset(owner, dns.rdatatype.AAAA, "fd92:7065:b8e:ffff::2")
+    return rrset(owner, dns.rdatatype.AAAA, NS2.ip6)
 
 
 def ns(owner: dns.name.Name | str) -> dns.rrset.RRset:
@@ -51,18 +47,6 @@ def ns(owner: dns.name.Name | str) -> dns.rrset.RRset:
 
 def soa(owner: dns.name.Name | str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.SOA, ". . 0 0 0 0 0")
-
-
-class Ns1AHandler(StaticResponseHandler):
-    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
-    answer = [a(NS1)]
-    edns = None
-
-
-class Ns1AaaaHandler(StaticResponseHandler):
-    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
-    answer = [aaaa(NS1)]
-    edns = None
 
 
 class SldDelegationHandler(ResponseHandler):
@@ -83,6 +67,18 @@ class SldDelegationHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
+class Ns1AHandler(SingleResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.A)
+    answer = [a(NS1)]
+    edns = None
+
+
+class Ns1AaaaHandler(SingleResponseHandler):
+    matcher = Qname(NS1) & Qtype(dns.rdatatype.AAAA)
+    answer = [aaaa(NS1)]
+    edns = None
+
+
 class NegativeSoaHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
@@ -98,11 +94,11 @@ def main() -> None:
     )
     server.install_control_command(ToggleResponsesCommand())
     server.install_response_handlers(
+        SldDelegationHandler(),
         Ns1AHandler(),
         Ns1AaaaHandler(),
-        SldDelegationHandler(),
-        NegativeSoaHandler(),
     )
+    server.install_response_handlers(NegativeSoaHandler())
     server.run()
 
 

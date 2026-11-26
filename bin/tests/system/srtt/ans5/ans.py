@@ -17,17 +17,15 @@ from isctest.asyncserver.handlers import IgnoreAllQueries
 from ..srtt_ans import DelayedQnameRangeHandler
 
 
-class Foo1ToFoo399Handler(DelayedQnameRangeHandler):
+class Delay150msHandler(DelayedQnameRangeHandler):
     max_qname = 399
     delay = 0.15
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(
-        Foo1ToFoo399Handler(),
-        IgnoreAllQueries(),
-    )
+    server.install_response_handlers(Delay150msHandler())
+    server.install_response_handlers(IgnoreAllQueries())
     server.run()
 
 

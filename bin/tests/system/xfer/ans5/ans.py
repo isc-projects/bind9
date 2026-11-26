@@ -9,12 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator, Collection
+from collections.abc import Collection, Sequence
 
 import dns.message
 import dns.name
 import dns.rcode
-import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 import dns.tsig
@@ -28,17 +27,18 @@ from isctest.asyncserver import (
 )
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.commands import SwitchControlCommand
-from isctest.asyncserver.handlers import AxfrHandler, ResponseHandlerWrapper
+from isctest.asyncserver.handlers import (
+    AxfrHandler,
+    ResponseHandlerWrapper,
+    SingleResponseHandler,
+)
 from isctest.asyncserver.matchers import Edns, Qtype
 from isctest.vars.algorithms import ALG_VARS
 
+from ..xfer_ans import rrset
+
 GOOD_KEY_DATA = "LSAnCU+Z"
 DEFAULT_KEY = dns.tsig.Key("tsig_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
-BAD_KEY = dns.tsig.Key("bad_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
-UNUSED_KEY = dns.tsig.Key("unused_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
-KEYRING = {key.name: key for key in (DEFAULT_KEY, BAD_KEY, UNUSED_KEY)}
-
-KEY_WITH_BAD_DATA = dns.tsig.Key("tsig_key", "abcd1234ffff", ALG_VARS["DEFAULT_HMAC"])
 
 
 class SignResponses(ResponseHandlerWrapper):
@@ -59,7 +59,7 @@ class SignResponses(ResponseHandlerWrapper):
         self._key = key
         self._tsig_ctx: dns.tsig.GSSTSig | dns.tsig.HMACTSig | None = None
 
-    def _on_query_received(self, qctx: QueryContext) -> None:
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         self._tsig_ctx = None
 
     def _apply_tsig_context(self, response: dns.message.Message) -> None:
@@ -94,7 +94,7 @@ class SignFirstAndLastResponses(ResponseHandlerWrapper):
         self._response_number = 0
         self._tsig_ctx: dns.tsig.GSSTSig | dns.tsig.HMACTSig | None = None
 
-    def _on_query_received(self, qctx: QueryContext) -> None:
+    async def _on_query_received(self, qctx: QueryContext) -> None:
         self._response_number = 0
         self._tsig_ctx = None
 
@@ -121,26 +121,6 @@ class SignFirstAndLastResponses(ResponseHandlerWrapper):
         return f"SignFirstAndLastResponses({self._inner}, key={self._key})"
 
 
-class Add50ToMessageIdFromSecondResponse(ResponseHandlerWrapper):
-    def __init__(self, inner: ResponseHandler) -> None:
-        super().__init__(inner)
-        self._first_yielded = False
-
-    def _on_query_received(self, qctx: QueryContext) -> None:
-        self._first_yielded = False
-
-    def _modify_response(
-        self, qctx: QueryContext, response_action: ResponseAction
-    ) -> None:
-        if self._first_yielded:
-            assert isinstance(
-                response_action, DnsResponseSend
-            ), "Add50ToMessageIdFromSecondResponse can only wrap handlers that yield DnsResponseSend from the second response onward"
-            response_action.response.id = (response_action.response.id + 50) % 65536
-        else:
-            self._first_yielded = True
-
-
 class ClearTsig(ResponseHandlerWrapper):
     def _modify_response(
         self, qctx: QueryContext, response_action: ResponseAction
@@ -151,19 +131,11 @@ class ClearTsig(ResponseHandlerWrapper):
         response_action.response.tsig = None
 
 
-def rrset(
-    owner: str | dns.name.Name,
-    ttl: int,
-    rdtype: dns.rdatatype.RdataType,
-    rdata: str,
-) -> dns.rrset.RRset:
-    return dns.rrset.from_text(
-        owner,
-        ttl,
-        dns.rdataclass.IN,
-        rdtype,
-        rdata,
-    )
+BAD_KEY = dns.tsig.Key("bad_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
+UNUSED_KEY = dns.tsig.Key("unused_key", GOOD_KEY_DATA, ALG_VARS["DEFAULT_HMAC"])
+KEYRING = {key.name: key for key in (DEFAULT_KEY, BAD_KEY, UNUSED_KEY)}
+
+KEY_WITH_BAD_DATA = dns.tsig.Key("tsig_key", "abcd1234ffff", ALG_VARS["DEFAULT_HMAC"])
 
 
 def soa(
@@ -174,60 +146,35 @@ def soa(
     rname: str = "root.nil.",
 ) -> dns.rrset.RRset:
     return rrset(
-        owner,
-        300,
-        dns.rdatatype.SOA,
-        f"{mname} {rname} {serial} 300 300 604800 300",
+        owner, dns.rdatatype.SOA, f"{mname} {rname} {serial} 300 300 604800 300"
     )
 
 
-class SoaHandler(ResponseHandler):
+class SoaHandler(SingleResponseHandler):
     def __init__(self, serial: int = 1) -> None:
         self._serial = serial
 
     matcher = Qtype(dns.rdatatype.SOA)
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.answer.append(soa(self._serial))
-        yield DnsResponseSend(qctx.response)
+    @property
+    def answer(self) -> Sequence[dns.rrset.RRset]:
+        return [soa(self._serial)]
 
 
 def ns() -> dns.rrset.RRset:
-    return rrset(
-        "nil.",
-        300,
-        dns.rdatatype.NS,
-        "ns.nil.",
-    )
+    return rrset("nil.", dns.rdatatype.NS, "ns.nil.")
 
 
 def txt(data: str) -> dns.rrset.RRset:
-    return rrset(
-        "nil.",
-        300,
-        dns.rdatatype.TXT,
-        f'"{data}"',
-    )
+    return rrset("nil.", dns.rdatatype.TXT, f'"{data}"')
 
 
 def a() -> dns.rrset.RRset:
-    return rrset(
-        "a.nil.",
-        60,
-        dns.rdatatype.A,
-        "10.0.0.61",
-    )
+    return rrset("a.nil.", dns.rdatatype.A, "10.0.0.61", ttl=60)
 
 
 def extra_a() -> dns.rrset.RRset:
-    return rrset(
-        "b.nil.",
-        60,
-        dns.rdatatype.A,
-        "10.0.0.62",
-    )
+    return rrset("b.nil.", dns.rdatatype.A, "10.0.0.62", ttl=60)
 
 
 class XferAxfrHandler(AxfrHandler):
@@ -262,14 +209,49 @@ class XferAxfrHandler(AxfrHandler):
         return soa(self._soa_serial)
 
 
+class Add50ToMessageIdFromSecondResponse(ResponseHandlerWrapper):
+    def __init__(self, inner: ResponseHandler) -> None:
+        super().__init__(inner)
+        self._first_yielded = False
+
+    async def _on_query_received(self, qctx: QueryContext) -> None:
+        self._first_yielded = False
+
+    def _modify_response(
+        self, qctx: QueryContext, response_action: ResponseAction
+    ) -> None:
+        if self._first_yielded:
+            assert isinstance(
+                response_action, DnsResponseSend
+            ), "Add50ToMessageIdFromSecondResponse can only wrap handlers that yield DnsResponseSend from the second response onward"
+            response_action.response.id = (response_action.response.id + 50) % 65536
+        else:
+            self._first_yielded = True
+
+
 class AboveApexAxfrHandler(XferAxfrHandler):
     @property
     def zone_contents(self) -> Collection[dns.rrset.RRset]:
-        return [
-            *super().zone_contents,
-            # The root is the parent of the nil. zone.
-            rrset(".", 300, dns.rdatatype.NS, "ns.attacker."),
-        ]
+        # The root is the parent of the nil. zone.
+        above_apex_ns = rrset(".", dns.rdatatype.NS, "ns.attacker.")
+        return [*super().zone_contents, above_apex_ns]
+
+
+class AxfrEdnsRcodeHandler(SingleResponseHandler):
+    matcher = Qtype(dns.rdatatype.AXFR) & Edns()
+
+
+class AxfrEdnsFormerrHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.FORMERR
+
+
+class AxfrEdnsNotimpHandler(AxfrEdnsRcodeHandler):
+    rcode = dns.rcode.NOTIMP
+
+
+class IxfrNotimpHandler(SingleResponseHandler):
+    matcher = Qtype(dns.rdatatype.IXFR)
+    rcode = dns.rcode.NOTIMP
 
 
 class WrongQnameInFinalSoa(ResponseHandlerWrapper):
@@ -283,32 +265,9 @@ class WrongQnameInFinalSoa(ResponseHandlerWrapper):
         if self._messages_until_final_soa == 0:
             assert isinstance(
                 response_action, DnsResponseSend
-            ), "WrongQnameInFinalSoaAxfrHandler can only wrap handlers that yield DnsResponseSend from the final SOA response"
+            ), "WrongQnameInFinalSoa can only wrap handlers that yield DnsResponseSend from the final SOA response"
             response_action.response.question[0].name = dns.name.from_text("ns.wrong.")
         self._messages_until_final_soa -= 1
-
-
-class IxfrNotimpHandler(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.IXFR)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.set_rcode(dns.rcode.NOTIMP)
-        yield DnsResponseSend(qctx.response)
-
-
-class AxfrEdnsRcodeHandler(ResponseHandler):
-    def __init__(self, rcode: dns.rcode.Rcode) -> None:
-        self._rcode = rcode
-
-    matcher = Qtype(dns.rdatatype.AXFR) & Edns()
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.set_rcode(self._rcode)
-        yield DnsResponseSend(qctx.response)
 
 
 def main() -> None:
@@ -338,12 +297,12 @@ def main() -> None:
             ),
             "ednsformerr": (
                 SignResponses(SoaHandler()),
-                SignResponses(AxfrEdnsRcodeHandler(rcode=dns.rcode.FORMERR)),
+                SignResponses(AxfrEdnsFormerrHandler()),
                 SignResponses(XferAxfrHandler(txt_data="EDNS FORMERR")),
             ),
             "ednsnotimp": (
                 SignResponses(SoaHandler()),
-                SignResponses(AxfrEdnsRcodeHandler(rcode=dns.rcode.NOTIMP)),
+                SignResponses(AxfrEdnsNotimpHandler()),
                 SignResponses(XferAxfrHandler(txt_data="EDNS NOTIMP")),
             ),
             "goodaxfr": (

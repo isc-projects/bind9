@@ -18,8 +18,8 @@ tests when a given server is only required to return zone-based data.
  BEWARE!  THIS SERVER DOES NOT NECESSARILY RETURN PROTOCOL-COMPLIANT ANSWERS!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-See AsyncDnsServer._abort_if_*() methods in isctests/asyncserver.py for more
-details.  Use a regular named instance for anything non-trivial.
+See AsyncDnsServer._abort_if_*() methods in isctest/asyncserver/__init__.py
+for more details.  Use a regular named instance for anything non-trivial.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  DO NOT ADD CUSTOM LOGIC TO THIS FILE.  IT IS ONLY MEANT TO BE SYMLINKED INTO
@@ -29,7 +29,7 @@ ansX/ SUBDIRECTORIES IN SYSTEM TESTS TO REDUCE THE AMOUNT OF BOILERPLATE CODE.
 If you need to customize server behavior, implement it in a dedicated ans.py
 server in the system test at hand.  If an extension you are working on can be
 useful in other system tests, please consider opening a merge request extending
-isctest/asyncserver.py.
+the isctest/asyncserver package.
 """
 
 from isctest.asyncserver import AsyncDnsServer

@@ -23,6 +23,8 @@ from isctest.template import ANS1, ANS2, Nameserver
 
 import isctest
 
+pytestmark = pytest.mark.asyncserver_test
+
 TIMEOUT = 3
 GARBAGE = b"\x00\x03\x00\x01\x02"  # three bytes of nonsense, framed for TCP
 

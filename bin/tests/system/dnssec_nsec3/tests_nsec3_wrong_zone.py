@@ -100,6 +100,7 @@ def _check_rrsig(response, section, owner, rdtype, signer, labels=None):
         assert rrsig[0].labels == labels, response.to_text()
 
 
+@pytest.mark.asyncserver_test
 def test_forged_response():
     response = _query(AUTH, ATTACK, "A")
     isctest.check.noerror(response)

@@ -9,50 +9,30 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
-
 import dns.rcode
-import dns.rdatatype
-import dns.rrset
 
-from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
-from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.matchers import Qtype
+from isctest.asyncserver import AsyncDnsServer
+from isctest.template import ANS6
 
-
-class ReplyA(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.A)
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        a_rrset = dns.rrset.from_text(
-            qctx.qname, 300, qctx.qclass, dns.rdatatype.A, "10.53.0.6"
-        )
-        qctx.response.answer.append(a_rrset)
-        yield DnsResponseSend(qctx.response)
+from ..rpzrecurse_ans import AHandler, DelayedNsHandler
 
 
-class DelayNs(ResponseHandler):
-    matcher = Qtype(dns.rdatatype.NS)
+class WwwBarDelegationHandler(DelayedNsHandler):
+    owner = "www.bar."
+    nameserver = "ns6.foo."
+    delay = 1
 
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        ns_rrset = dns.rrset.from_text(
-            "www.bar.",
-            300,
-            qctx.qclass,
-            dns.rdatatype.NS,
-            "ns6.foo.",
-        )
-        qctx.response.answer.append(ns_rrset)
-        yield DnsResponseSend(qctx.response, delay=1)
+
+class Ns6FooAHandler(AHandler):
+    address = ANS6.ip
 
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(ReplyA(), DelayNs())
+    server.install_response_handlers(
+        WwwBarDelegationHandler(),
+        Ns6FooAHandler(),
+    )
     server.run()
 
 

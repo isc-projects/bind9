@@ -20,8 +20,9 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
-from isctest.asyncserver.matchers import Domain, Qname, Qtype
+from isctest.asyncserver.handlers import SingleResponseHandler
+from isctest.asyncserver.matchers import Domain, Matcher, Qname, Qtype
+from isctest.template import ANS3
 
 
 def rrset(
@@ -33,48 +34,77 @@ def rrset(
     return dns.rrset.from_text(qname, ttl, dns.rdataclass.IN, rtype, rdata)
 
 
-class RootNsHandler(StaticResponseHandler):
+def a(owner: dns.name.Name | str, address: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.A, address)
+
+
+def ns(owner: dns.name.Name | str, target: str) -> dns.rrset.RRset:
+    return rrset(owner, dns.rdatatype.NS, target)
+
+
+class RootNsHandler(SingleResponseHandler):
     matcher = Qname(".") & Qtype(dns.rdatatype.NS)
-    answer = [rrset(".", dns.rdatatype.NS, "a.root-servers.nil.")]
-    additional = [rrset("a.root-servers.nil.", dns.rdatatype.A, "10.53.0.3")]
+    answer = [ns(".", "a.root-servers.nil.")]
+    additional = [a("a.root-servers.nil.", ANS3.ip)]
 
 
-class ExampleNsHandler(StaticResponseHandler):
+class ExampleNsHandler(SingleResponseHandler):
     matcher = Qname("example.") & Qtype(dns.rdatatype.NS)
-    answer = [rrset("example.", dns.rdatatype.NS, "ns.example.")]
-    additional = [rrset("ns.example.", dns.rdatatype.A, "10.53.0.3")]
+    answer = [ns(matcher.of(Qname).qname, f"ns.{matcher.of(Qname).qname}")]
+    additional = [a(f"ns.{matcher.of(Qname).qname}", ANS3.ip)]
 
 
-class ExampleCookieHandler(ResponseHandler):
-    matcher = Domain("example.")
+class TestDotComServFailHandler(SingleResponseHandler):
+    matcher = Qname("test.com.")
+    authoritative = False
+    rcode = dns.rcode.SERVFAIL
 
-    def _get_cookie(self, qctx: QueryContext) -> dns.edns.CookieOption | None:
-        for o in qctx.query.options:
-            if o.otype == dns.edns.OptionType.COOKIE:
-                cookie = o
-                cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
-                return cookie
 
-        return None
+class WithCookie(Matcher):
+    """
+    Match queries carrying an EDNS COOKIE option; the option of the last
+    match is kept in `matched_cookie`.
+    """
+
+    def __init__(self) -> None:
+        self._matched_cookie: dns.edns.CookieOption | None = None
+
+    @property
+    def matched_cookie(self) -> dns.edns.CookieOption:
+        assert self._matched_cookie is not None, f"{self} has not matched yet"
+        return self._matched_cookie
+
+    def match(self, qctx: QueryContext) -> bool:
+        for option in qctx.query.options:
+            if isinstance(option, dns.edns.CookieOption):
+                self._matched_cookie = option
+                return True
+        return False
+
+    def __str__(self) -> str:
+        return "with a COOKIE option"
+
+
+class BadCookieHandler(ResponseHandler):
+    """
+    Answer a query that carries a client cookie with BADCOOKIE and a server
+    cookie, to trigger the resend loop logic.
+    """
+
+    matcher = Domain("example.") & WithCookie()
 
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        if cookie := self._get_cookie(qctx):
-            # If there is a client cookie, mock BADCOOKIE to trigger
-            # the resend loop logic.
-            qctx.response.use_edns(options=[cookie])
-            qctx.response.set_rcode(dns.rcode.BADCOOKIE)
-            yield DnsResponseSend(qctx.response)
-        else:
-            # If missing cookie entirely, just return SERVFAIL
-            qctx.response.set_rcode(dns.rcode.SERVFAIL)
-            yield DnsResponseSend(qctx.response)
+        cookie = self.matcher.of(WithCookie).matched_cookie
+        cookie.server = b"\x11\x22\x33\x44\x55\x66\x77\x88"
+        qctx.response.use_edns(options=[cookie])
+        qctx.response.set_rcode(dns.rcode.BADCOOKIE)
+        yield DnsResponseSend(qctx.response)
 
 
-class TestDotComServFailHandler(StaticResponseHandler):
-    matcher = Qname("test.com.")
-    authoritative = False
+class ExampleServfailHandler(SingleResponseHandler):
+    matcher = Domain("example.")
     rcode = dns.rcode.SERVFAIL
 
 
@@ -83,9 +113,10 @@ def main() -> None:
     server.install_response_handlers(
         RootNsHandler(),
         ExampleNsHandler(),
-        ExampleCookieHandler(),
         TestDotComServFailHandler(),
     )
+    server.install_response_handlers(BadCookieHandler())
+    server.install_response_handlers(ExampleServfailHandler())
     server.run()
 
 

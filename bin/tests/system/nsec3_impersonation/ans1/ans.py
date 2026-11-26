@@ -14,12 +14,22 @@ from collections.abc import AsyncGenerator
 import dns.dnssec
 import dns.name
 import dns.rcode
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class Nsec3ParentImpersonationHandler(ResponseHandler):
@@ -54,10 +64,8 @@ class Nsec3ParentImpersonationHandler(ResponseHandler):
         child_origin = dns.name.from_text(parent_apex_hash, origin=qctx.zone.origin)
         child_signing_key = qctx.keys[child_origin][0]
 
-        nsec3_rrset = dns.rrset.from_text(
+        nsec3_rrset = rrset(
             child_origin,
-            300,
-            qctx.qclass,
             dns.rdatatype.NSEC3,
             f"1 0 0 - {parent_apex_hash} NS SOA RRSIG DNSKEY NSEC3PARAM",
         )

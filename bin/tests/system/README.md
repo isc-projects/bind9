@@ -44,7 +44,7 @@ DNS.  Generally, one of the test servers (usually ns1) is set up as a root
 nameserver and is listed in the hints file of the others.
 
 For task-oriented recipes (adding a new test directory, writing a regression
-reproducer, mocking a misbehaving server, setting up zones), see
+reproducer, setting up zones), see
 [the cookbook](COOKBOOK.md).
 
 
@@ -93,7 +93,9 @@ running the command
 sh ifconfig.sh up
 ```
 
-as root.  The interfaces can be removed by executing the command:
+as root (the script is generated from `ifconfig.sh.in` by the build, so it
+only exists once the source tree has been configured and built).  The
+interfaces can be removed by executing the command:
 
 ```sh
 sh ifconfig.sh down
@@ -175,7 +177,7 @@ set.
 
 Each test module is executed inside a unique temporary directory which contains
 all the artifacts from the test run. If the tests succeed, they are deleted by
-default. To override this behaviour, pass `--noclean` to pytest.
+default. To override this behavior, pass `--noclean` to pytest.
 
 The directory name starts with the system test name, followed by `-tmp-XXXXXX`,
 i.e. `dns64-tmp-r07vei9s` for `dns64` test run. Since this name changes each
@@ -212,7 +214,7 @@ system test directories may contain the following standard files:
   captured in the file "named.run".
 
 - `ans<N>`: Like ns<N>, but these are mock name servers implemented in python
-  (`ans.py`), usually with the `isctest.asyncserver` module.  They are
+  (`ans.py`) with the `isctest.asyncserver` module.  They are
   generally programmed to misbehave in ways named would not, so as to exercise
   named's ability to interoperate with badly behaved name servers.
 
@@ -313,11 +315,15 @@ calls `templates.render()` explicitly, and no defaults are needed.
 
 Fixtures defined in `conftest.py` provide the test context:
 
-- `servers` is a dictionary of all started `isctest.instance.NamedInstance`
-  servers, keyed by directory name; the shortcut fixtures `ns1` through `ns11`
-  return the corresponding instance directly. A `NamedInstance` is the
-  interface for driving a server: `ns1.rndc("...")`, `ns1.reconfigure()`,
-  `ns1.nsupdate(...)`, `ns1.watch_log_from_here()`, `ns1.ip`, ...
+- `servers` is a dictionary of all started servers, keyed by directory name:
+  an `isctest.instance.NamedInstance` for each `nsN` and an
+  `isctest.instance.AnsInstance` for each `ansN`; the shortcut fixtures `ns1`
+  through `ns11` and `ans1` through `ans11` return the corresponding instance
+  directly. A `NamedInstance` is the interface for driving a server:
+  `ns1.rndc("...")`, `ns1.reconfigure()`, `ns1.nsupdate(...)`,
+  `ns1.watch_log_from_here()`, `ns1.ip`, ...  An `AnsInstance` has `ip`, `log`
+  and the `watch_log_*()` methods of that interface, with `ans1.log` being
+  the server's `ans.run`.
 - `templates` renders jinja2 templates at runtime (see above).
 - `named_port`, `named_tlsport`, `control_port`, ... return the assigned port
   numbers.
@@ -384,38 +390,6 @@ comes to naming files and test functions).  New system test directories are
 discovered automatically; no registration in the build system is needed.
 
 
-### Writing a regression reproducer
-
-The goal: turn "issue #NNNN" into a failing test with minimal ceremony.
-
-1. **Decide the server topology.** Most reproducers need one of:
-   - a single authoritative `named` (answer content bugs) — the skeleton
-     recipe above;
-   - a resolver plus a mock server that misbehaves (resolver bugs) — see
-     the mock server recipe below;
-   - signed zones and a validating resolver (DNSSEC bugs) — see the zone
-     setup recipe below.
-
-2. **Find the closest existing test and copy its shape.**  Good exemplars:
-   `cyclic_glue` (resolver + python mock server), `dnssec_py` (signed zones,
-   validator, multiple modules sharing one server set), `nsec3` (multi-module
-   family), `kasp`/`rollover_*` (key management state machines).
-
-3. **Decide where the test lives.**  If an existing directory already has the
-   server set you need, add a new `tests_*.py` module there; otherwise create
-   a new directory.  Each module gets its own temporary directory, port
-   range, and parallel slot, so you are not entangled with the other modules.
-   Test functions *within* a module, however, run in file order against the
-   same live servers: a new test inherits whatever state the tests above it
-   left behind (cache contents, dynamic updates) and can disturb the tests
-   below it.
-
-4. **Write the test to fail first.**  Run it against an unfixed build and
-   make sure it fails for the reason the issue describes — `ns*/named.run`
-   in the kept temporary directory is the place to verify that.  Then apply
-   the fix and watch it pass.
-
-
 ### Mock a misbehaving server
 
 When a test needs a server that answers in ways named never would (bogus
@@ -443,19 +417,18 @@ behavior also makes it easier to follow the idea behind each test.
 
 A handler declares the queries it handles in its `matcher`, built from the
 matchers in `isctest/asyncserver/matchers.py` (`Qname`, `Qtype`, `Domain`,
-...) combined with `&`, `|` and `~`; the first installed handler whose
-matcher matches a query handles it.  Please see
+`Flags`, ...) combined with `&`, `|` and `~`; the first installed handler
+whose matcher matches a query handles it.  Please see
 `isctest/asyncserver/handlers.py` for up-to-date information on available handler classes
 and existing `ans.py` files for how they can be used in practice.  Consult the
 log files (`ans.run`) in case a query is not matched by its intended handler.
+An exception raised by a handler stops the whole server, not just that
+response: later queries go unanswered, the traceback ends up in `ans.run`, and
+the stale `ans.pid` causes a test failure at teardown.
 
 **NOTE:** For readability (of both code and logs), defining separate handler
 classes for distinct queries is strongly preferred over using a single handler
 containing an `if`/`elif`/`else` chain.
-
-**NOTE:** If you find yourself implementing an `__init__()` method in your
-handler subclass, it often indicates that you're approaching the problem at hand
-from the wrong side; contact QA for guidance in such a case.
 
 When a query is matched to a handler, the latter is expected to yield a response
 action through its `get_responses()` method, an async generator that inspects
@@ -485,7 +458,7 @@ class TruncateHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer()
-    server.install_response_handler(TruncateHandler())
+    server.install_response_handlers(TruncateHandler())
     server.run()
 
 
@@ -495,22 +468,51 @@ if __name__ == "__main__":
 
 The available response actions are `DnsResponseSend` (optionally with a
 `delay`), `ResponseDrop` (don't answer at all), `BytesResponseSend` (raw
-bytes, for malformed packets) and `CloseConnection` (TCP).  Queries that no
-handler matches are answered from zone data — `AsyncDnsServer` loads every
-`*.db` zone file found in the `ansN/zones/` directory at startup — or with the
-server's default rcode (REFUSED unless configured otherwise).
+bytes, for malformed packets) and `CloseConnection` (TCP).  The zone-data
+response is prepared *before* the handlers run: it is what a handler finds in
+`qctx.response`, and it is what is sent when no handler matches.  For names
+outside the server's zones, as in the example above, which has no zone
+files, it is a stub carrying only the server's default RCODE (REFUSED unless
+configured otherwise).  `qctx.prepare_new_response(with_zone_data=False)`
+replaces the prepared answer with that stub; `with_zone_data=True` restores
+it.
 
-**NOTE:** For returning static responses, subclassing `StaticResponseHandler` is
+A signed zone is served the way `named` would serve it.  The zone is
+`zones/<origin>.db.signed` with its keys in `ansN/keys/`; the test's
+`bootstrap()` puts both in place, see [the
+cookbook](COOKBOOK.md#set-up-zones-in-bootstrap).  When the query sets DO, the
+prepared response carries the RRSIGs, the DS records at delegations, and the
+NSEC or NSEC3 records proving non-existence, wildcard expansion and empty
+non-terminals, Opt-Out and closest-encloser proofs included.  A handler that
+forges records of its own signs them with `qctx.sign(rrset)` (any key from
+`qctx.keys`, or `bogus=True` for an invalid signature), reads a stored
+signature with `qctx.get_rrsig(rrset)` and adds denial-of-existence records
+with the `qctx.nsecx.prove_*()` methods; see `isctest/asyncserver/dnssec.py`
+and the tests under `isctest/asyncserver/tests/dnssec/`.
+
+**NOTE:** For returning static responses, subclassing `SingleResponseHandler` is
 strongly recommended instead of implementing the `get_responses()` generator
-manually; see `resolver/ans3/ans.py` for practical examples.
+manually; see `fwdfirst/ans3/ans.py` for a practical example.
 
 **NOTE:** Calling `yield` does **NOT** make `get_responses()` return!  This is
 by design: `get_responses()` can yield multiple DNS messages in response to a
 single query, so that it can also handle AXFR/IXFR queries, among others.  Be
 careful not to unintentionally cause multiple DNS messages to be returned for a
-single query.  If your handler's `get_responses()` method contains multiple
-`yield` statements, it might be a sign that it needs to be refactored into
-multiple separate handlers.
+single query.  A `get_responses()` that yields different responses from the
+branches of an `if`/`else` is dispatching, which is discouraged: give each
+branch a handler of its own, with its criterion in the matcher.
+
+A server whose behavior has to change while the test runs is a
+`ControllableAsyncDnsServer`.  It answers TXT queries for names under
+`_control.` by running the `ControlCommand` installed for the subdomain, with
+the labels in front of it as the arguments.  Two commands come with the
+framework, in `isctest/asyncserver/commands.py`:
+`disable.send-responses._control.` makes the `ToggleResponsesCommand` ignore
+every query until `enable.send-responses._control.`, and
+`<key>.switch._control.` makes the `SwitchControlCommand` replace the whole
+handler set with the one registered under `<key>`.  A server may define its
+own: a command may install, uninstall or replace response handlers and returns
+the text of the TXT answer; see `chain/ans4/ans.py` for a practical example.
 
 If multiple `ansN` instances used in a given system test need to share common
 logic, extract that logic into a `<test-name>_ans.py` module in the system test
@@ -528,60 +530,15 @@ compared to regular `named` instances.  If the number of `ansN` instances used
 in a given system test is becoming unwieldy, it usually indicates the need to
 start adding/moving code to a new system test directory.
 
-In some rare cases, it may be useful to reuse a common set of `nsN` server
-instances to reproduce a whole class of related issues, triggering which relies
-on some non-standard behavior and therefore needs a custom `ansN` server to be
-implemented.  If the logic necessary for reproducing each of these issues is
-complex and the amount of those issues makes it impractical to add a separate
-`ansN` server for each issue (as recommended in the previous paragraph), it is
-acceptable to split up the test logic for each issue into separate `ans_*.py`
-modules inside a single `ansN` directory and reduce `ans.py` itself to a loader
-that imports and installs handlers defined in those separate modules:
-
-```python
-from mytest.ans1 import ans_some_bug, ans_some_other_bug
-from isctest.asyncserver import AsyncDnsServer
-
-
-def main() -> None:
-    server = AsyncDnsServer()
-    server.install_response_handler(ans_some_bug.SomeBugHandler())
-    server.install_response_handler(ans_some_other_bug.SomeOtherBugHandler())
-    server.run()
-
-
-if __name__ == "__main__":
-    main()
-```
-
-However, in such a case it is particularly important to ensure consistency
-between the names of all the Python files related to a given issue - otherwise,
-chaos ensues.  Furthermore, avoid using cryptic file names (e.g. numeric bug
-identifiers).  The recommended naming scheme is:
-
-```
-mytest/
-├── ans1
-│   ├── ans.py
-│   ├── ans_some_bug.py
-│   └── ans_some_other_bug.py
-├── ns2
-│   └── ...
-├── tests_some_bug.py
-└── tests_some_other_bug.py
-```
-
 To point a resolver at the mock, delegate to it from the test's root zone
 (served by ns1) or list it as a forwarder; `cyclic_glue` shows the
 delegation pattern end to end.
 
-The existing mock servers are the best reference.  To find them, grep for
-what you're about to use:
-`git grep -l isctest.asyncserver -- '*/ans*/ans.py'` lists every python
-mock, and a grep for the matcher (`Domain`, `Qname`, ...), the base class
-(`StaticResponseHandler`, `ConnectionHandler`) or the response
-action (`ResponseDrop`, `BytesResponseSend`, ...) you need usually turns
-up a test already doing something similar.  The full toolbox lives in
+The existing mock servers are the best reference.  A grep for the matcher,
+base class or response action you need (`Qname`, `SingleResponseHandler`,
+`ResponseDrop`, ...), e.g.
+`git grep -l SingleResponseHandler -- '*/ans*/*.py' '*/*_ans.py'`, usually
+turns up a test already doing something similar.  The full toolbox lives in
 `isctest/asyncserver/` (query matching, TCP connection handling, TSIG
 keyrings).
 
@@ -622,13 +579,17 @@ By default, `named` server is started with the following options:
 
 -D <name>       The "-D" option sets a string used to identify the
                 nameserver in a process listing.  In this case, the string
-                is the name of the subdirectory.
+                is the test and subdirectory names, e.g. "dns64-ns1".
 
 -g              Runs the server in the foreground and logs everything to
                 stderr.
 
 -m record
                 Turns on these memory usage debugging flags.
+
+-T maxcachesize=2097152
+                Sets "max-cache-size" to 2 MB, overriding any value in
+                named.conf, to keep the memory of a test run small.
 ```
 
 All output is sent to a file called `named.run` in the nameserver directory.
@@ -649,11 +610,11 @@ ARM.  The presence of a file called `named.<flag>` in the "nsN" directory adds
 - it is only the presence that counts).  The recognized flags are:
 
 ```
-dropedns         Recognise EDNS options in messages, but drop messages
+dropedns         Recognize EDNS options in messages, but drop messages
                  containing them.
 
 ednsformerr, ednsnotimp, ednsrefused
-                 Answer EDNS queries with the given rcode, pretending to
+                 Answer EDNS queries with the given RCODE, pretending to
                  be an old server that doesn't understand EDNS.
 
 cookiealwaysvalid
@@ -713,9 +674,9 @@ complex solution.
 
 ### Compatibility with older pytest version
 
-The minimum supported versions of python and the required python packages are
-declared in [requirements.txt](requirements.txt) and in the
-`pytest_configure()` check in `conftest.py`.  When implementing new runner
+The minimum supported versions of the required python packages are declared
+in [requirements.txt](requirements.txt), and the minimum python version in
+the `pytest_configure()` check in `conftest.py`.  When implementing new runner
 features, check feature support in the pytest and pytest-xdist versions
 available in the oldest distributions covered by CI first; we may need to add
 compat code to handle breaking upstream changes in either direction.

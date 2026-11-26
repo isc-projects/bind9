@@ -9,49 +9,20 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from collections.abc import AsyncGenerator
 
-import dns.rdatatype
-import dns.rrset
+from isctest.template import ANS3
 
-from isctest.asyncserver import QueryContext
-from isctest.asyncserver.actions import DnsResponseSend
+from ..bailiwick_ans import ResponseSpoofer, a, ns, spoofing_server, txt
 
-from ..bailiwick_ans import ResponseSpoofer, spoofing_server
-
-ATTACKER_IP = "10.53.0.3"
-TTL = 3600
+ATTACKER_IP = ANS3.ip
 
 
 class SiblingNsSpoofer(ResponseSpoofer, mode="sibling-ns"):
-
     qname = "trigger."
-
-    async def get_responses(
-        self, qctx: QueryContext
-    ) -> AsyncGenerator[DnsResponseSend, None]:
-        response = qctx.prepare_new_response(with_zone_data=False)
-
-        txt_rrset = dns.rrset.from_text(
-            qctx.qname,
-            TTL,
-            qctx.qclass,
-            dns.rdatatype.TXT,
-            '"spoofed answer with extra NS"',
-        )
-        response.answer.append(txt_rrset)
-
-        ns_rrset = dns.rrset.from_text(
-            "victim.", TTL, qctx.qclass, dns.rdatatype.NS, "ns.attacker."
-        )
-        response.authority.append(ns_rrset)
-
-        a_rrset = dns.rrset.from_text(
-            "ns.attacker.", TTL, qctx.qclass, dns.rdatatype.A, ATTACKER_IP
-        )
-        response.additional.append(a_rrset)
-
-        yield DnsResponseSend(response, authoritative=True)
+    answer = [txt(qname, "spoofed answer with extra NS")]
+    authority = [ns("victim.", "ns.attacker.")]
+    additional = [a("ns.attacker.", ATTACKER_IP)]
+    authoritative = True
 
 
 def main() -> None:

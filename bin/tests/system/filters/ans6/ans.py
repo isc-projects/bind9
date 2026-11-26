@@ -16,7 +16,7 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import IgnoreAllQueries, StaticResponseHandler
+from isctest.asyncserver.handlers import IgnoreAllQueries, SingleResponseHandler
 from isctest.asyncserver.matchers import FirstN, Once, Qname, Qtype
 
 DNS64_TRIGGER = "nodata.test."
@@ -60,7 +60,7 @@ class IgnoreFirstTwoAHandler(IgnoreAllQueries):
     matcher = FirstN(2, Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.A))
 
 
-class NodataOnceHandler(StaticResponseHandler):
+class NodataOnceHandler(SingleResponseHandler):
     """
     Answer only the first AAAA query, with NODATA, so the DNS64 resolver looks
     up an A record.  If the NODATA expires from the cache before the A answer
@@ -72,17 +72,17 @@ class NodataOnceHandler(StaticResponseHandler):
     authority = [soa()]
 
 
-class AHandler(StaticResponseHandler):
+class AHandler(SingleResponseHandler):
     matcher = Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.A)
     answer = [a()]
 
 
-class AaaaHandler(StaticResponseHandler):
+class AaaaHandler(SingleResponseHandler):
     matcher = Qname(DNS64_TRIGGER) & Qtype(dns.rdatatype.AAAA)
     answer = [aaaa()]
 
 
-class FallbackHandler(StaticResponseHandler):
+class FallbackHandler(SingleResponseHandler):
     rcode = dns.rcode.NXDOMAIN
     authority = [soa()]
 

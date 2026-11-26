@@ -42,7 +42,7 @@ def rrset_from_list(
     return dns.rrset.from_text_list(qname, ttl, dns.rdataclass.IN, rtype, rdata_list)
 
 
-def soa_rrset(qname: dns.name.Name | str) -> dns.rrset.RRset:
+def soa(qname: dns.name.Name | str) -> dns.rrset.RRset:
     return rrset(qname, dns.rdatatype.SOA, ". . 0 0 0 0 0")
 
 
@@ -99,7 +99,7 @@ class Gl6412AHandler(ResponseHandler):
     async def get_responses(
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
-        qctx.response.authority.append(soa_rrset(qctx.qname))
+        qctx.response.authority.append(soa(qctx.qname))
         yield DnsResponseSend(qctx.response)
 
 
@@ -110,14 +110,14 @@ class Gl6412Handler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         if qctx.qtype == dns.rdatatype.SOA:
-            qctx.response.answer.append(soa_rrset(qctx.qname))
+            qctx.response.answer.append(soa(qctx.qname))
         elif qctx.qtype == dns.rdatatype.NS:
             ns2_rrset = rrset(qctx.qname, dns.rdatatype.NS, f"ns2.{qctx.qname}")
             ns3_rrset = rrset(qctx.qname, dns.rdatatype.NS, f"ns3.{qctx.qname}")
             qctx.response.answer.append(ns2_rrset)
             qctx.response.answer.append(ns3_rrset)
         else:
-            qctx.response.authority.append(soa_rrset(qctx.qname))
+            qctx.response.authority.append(soa(qctx.qname))
         yield DnsResponseSend(qctx.response)
 
 
@@ -131,7 +131,7 @@ class Gl6412Ns2Handler(ResponseHandler):
             a_rrset = rrset(qctx.qname, dns.rdatatype.A, "10.53.0.2")
             qctx.response.answer.append(a_rrset)
         else:
-            qctx.response.authority.append(soa_rrset(qctx.qname))
+            qctx.response.authority.append(soa(qctx.qname))
         yield DnsResponseSend(qctx.response)
 
 
@@ -145,5 +145,5 @@ class Gl6412Ns3Handler(ResponseHandler):
             a_rrset = rrset(qctx.qname, dns.rdatatype.A, "10.53.0.3")
             qctx.response.answer.append(a_rrset)
         else:
-            qctx.response.authority.append(soa_rrset(qctx.qname))
+            qctx.response.authority.append(soa(qctx.qname))
         yield DnsResponseSend(qctx.response)

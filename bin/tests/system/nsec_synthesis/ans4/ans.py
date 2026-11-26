@@ -30,7 +30,7 @@ class AttackChildNsecHandler(AttackNsecHandler):
 
 
 def main() -> None:
-    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR)
+    server = AsyncDnsServer(default_rcode=dns.rcode.NOERROR, default_aa=True)
     server.install_response_handlers(AttackChildNsecHandler())
     server.run()
 

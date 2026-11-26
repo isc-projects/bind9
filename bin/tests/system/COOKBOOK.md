@@ -144,6 +144,38 @@ Notes:
   artifact check at teardown will fail.  Most real test modules carry one.
 
 
+## Write a regression reproducer
+
+The goal: turn "issue #NNNN" into a failing test with minimal ceremony.
+
+1. **Decide the server topology.** Most reproducers need one of:
+   - a single authoritative `named` (answer content bugs) — the skeleton
+     recipe above;
+   - a resolver plus a mock server that misbehaves (resolver bugs) — see
+     "Mock a misbehaving server" in [the README](README.md);
+   - signed zones and a validating resolver (DNSSEC bugs) — see the zone
+     setup recipe below.
+
+2. **Find the closest existing test and copy its shape.**  Good exemplars:
+   `cyclic_glue` (resolver + python mock server), `dnssec_wildcard` (signed
+   zones, validator, multiple modules sharing one server set), `nsec3`
+   (multi-module family), `kasp`/`rollover_*` (key management state machines).
+
+3. **Decide where the test lives.**  If an existing directory already has the
+   server set you need, add a new `tests_*.py` module there; otherwise create
+   a new directory.  Each module gets its own temporary directory, port
+   range, and parallel slot, so you are not entangled with the other modules.
+   Test functions *within* a module, however, run in file order against the
+   same live servers: a new test inherits whatever state the tests above it
+   left behind (cache contents, dynamic updates) and can disturb the tests
+   below it.
+
+4. **Write the test to fail first.**  Run it against an unfixed build and
+   make sure it fails for the reason the issue describes — `ns*/named.run`
+   in the kept temporary directory is the place to verify that.  Then apply
+   the fix and watch it pass.
+
+
 ## Set up zones in bootstrap()
 
 A module-level `bootstrap()` function runs before the config templates are
@@ -260,6 +292,23 @@ pytestmark = pytest.mark.extra_artifacts(
 )
 ```
 
+A mock server (see "Mock a misbehaving server" in the README) takes the same
+setup: for `Zone("f043.test.", ANS1, signed=True)`, `configure()` generates the
+keys in `ans1/keys/`, renders `ans1/zones/f043.test.db` and signs it, and
+`ans1` serves the result with its RRSIGs and proofs.  `dnssec_wildcard` is the
+example; its artifacts are the `ans*/` counterparts, `ans*/keys/` included:
+
+```python
+pytestmark = pytest.mark.extra_artifacts(
+    [
+        "ans*/dsset-*",
+        "ans*/keys/",
+        "ans*/zones/*.db",
+        "ans*/zones/*.db.signed",
+    ]
+)
+```
+
 
 ## Drive named and watch its logs
 
@@ -310,7 +359,7 @@ Send queries and check the responses with `isctest.query` and
 ```python
 msg = isctest.query.create("a.example.", "A")
 response = isctest.query.udp(msg, ns1.ip)     # or .tcp(), .tls()
-isctest.check.noerror(response)               # rcode checks: nxdomain,
+isctest.check.noerror(response)               # RCODE checks: nxdomain,
                                               #  servfail, refused, ...
 isctest.check.adflag(response)                # flag checks: rdflag,
                                               #  noraflag, ...

@@ -23,6 +23,7 @@ from isctest.asyncserver import (
     ResponseAction,
     ResponseHandler,
 )
+from isctest.template import ANS9
 
 from ..serve_stale_ans import (
     StaticHandler,
@@ -34,8 +35,6 @@ from ..serve_stale_ans import (
     soa_handler,
     txt,
 )
-
-ANS9_ADDR = "10.53.0.9"
 
 
 class SlowdownState:
@@ -103,9 +102,9 @@ class SerializedHandler(ResponseHandler):
 
 def handlers(slowdown: SlowdownState) -> list[ResponseHandler]:
     return [
-        a_handler("NsSlow", "ns.slow.", address=ANS9_ADDR),
+        a_handler("NsSlow", "ns.slow.", address=ANS9.ip),
         other_types_handler("NsSlow", "ns.slow.", "slow."),
-        ns_handler("SlowZone", "slow.", "ns.slow.", address=ANS9_ADDR),
+        ns_handler("SlowZone", "slow.", "ns.slow.", address=ANS9.ip),
         soa_handler("SlowZone", "slow."),
         other_types_handler("SlowZone", "slow.", "slow."),
         StaticHandler(

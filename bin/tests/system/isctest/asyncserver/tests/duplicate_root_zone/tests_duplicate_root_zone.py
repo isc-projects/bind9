@@ -9,6 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.asyncserver_test
+
 
 def test_two_zone_files_with_the_same_origin_are_refused(ans1):
     with ans1.watch_log_from_start() as watcher:

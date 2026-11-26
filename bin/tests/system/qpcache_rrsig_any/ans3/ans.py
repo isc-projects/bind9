@@ -19,8 +19,9 @@ import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname
+from isctest.template import ANS3
 
 
 def rrsig_covering(
@@ -42,12 +43,10 @@ def address(owner: dns.name.Name | str) -> dns.rrset.RRset:
     recursive ANY queries are rejected before any fetch is made), so every
     answer carries an address record for the RRSIGs to ride along with.
     """
-    return dns.rrset.from_text(
-        owner, 3600, dns.rdataclass.IN, dns.rdatatype.A, "10.53.0.3"
-    )
+    return dns.rrset.from_text(owner, 3600, dns.rdataclass.IN, dns.rdatatype.A, ANS3.ip)
 
 
-class RrsigCoversRrsigHandler(StaticResponseHandler):
+class RrsigCoversRrsigHandler(SingleResponseHandler):
     """
     An RRSIG covering RRSIG only trips the QP-cache RRSIG-pairing assertion when
     a second RRSIG header shares the owner name, so serve two ordinary RRSIGs
@@ -57,10 +56,10 @@ class RrsigCoversRrsigHandler(StaticResponseHandler):
 
     matcher = Qname("rrsig.attacker.test.")
     answer = [
-        address(matcher.qnames[0]),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.A),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.AAAA),
-        rrsig_covering(matcher.qnames[0], dns.rdatatype.RRSIG),
+        address(matcher.qname),
+        rrsig_covering(matcher.qname, dns.rdatatype.A),
+        rrsig_covering(matcher.qname, dns.rdatatype.AAAA),
+        rrsig_covering(matcher.qname, dns.rdatatype.RRSIG),
     ]
 
 
@@ -84,10 +83,8 @@ class RrsigCoversTypeHandler(ResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(
-        RrsigCoversRrsigHandler(),
-        RrsigCoversTypeHandler(),
-    )
+    server.install_response_handlers(RrsigCoversRrsigHandler())
+    server.install_response_handlers(RrsigCoversTypeHandler())
     server.run()
 
 

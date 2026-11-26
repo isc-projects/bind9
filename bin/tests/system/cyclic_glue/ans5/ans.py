@@ -16,8 +16,9 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Qname, Qtype
+from isctest.template import NS3, NS4
 
 
 def rrset(
@@ -37,7 +38,7 @@ def a(owner: str, address: str) -> dns.rrset.RRset:
     return rrset(owner, dns.rdatatype.A, address)
 
 
-class BrokenFooHandler(StaticResponseHandler):
+class FooForeignGlueReferralHandler(SingleResponseHandler):
     matcher = Qname("a.foo.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("foo.test.", "ns.foo.test."),
@@ -45,17 +46,17 @@ class BrokenFooHandler(StaticResponseHandler):
         ns("foo.test.", "ns.test2."),
     ]
     additional = [
-        a("ns.foo.test.", "10.53.0.3"),
+        a("ns.foo.test.", NS3.ip),
         # These glues don't belong, as they're outside the
         # delegated domain. However, only the latest will be
         # ignored by the resolver (the former, being a sibling
         # glue, is still used.)
-        a("ns.bar.test.", "10.53.0.3"),
+        a("ns.bar.test.", NS3.ip),
         a("ns.test2.", "10.10.10.10"),
     ]
 
 
-class BrokenBarHandler(StaticResponseHandler):
+class BarForeignNsReferralHandler(SingleResponseHandler):
     matcher = Qname("a.bar.test.") & Qtype(dns.rdatatype.A)
     authority = [
         ns("bar.test.", "ns.bar.test."),
@@ -66,8 +67,8 @@ class BrokenBarHandler(StaticResponseHandler):
         ns("bar.test2.", "ns.test2."),
     ]
     additional = [
-        a("ns.bar.test.", "10.53.0.3"),
-        a("ns2.foo.test.", "10.53.0.4"),
+        a("ns.bar.test.", NS3.ip),
+        a("ns2.foo.test.", NS4.ip),
         # The glue is then ignored as well, as it doesn't match
         # any of the valid NS above.
         a("ns.test2.", "10.10.10.10"),
@@ -76,7 +77,10 @@ class BrokenBarHandler(StaticResponseHandler):
 
 def main() -> None:
     server = AsyncDnsServer(default_aa=True, default_rcode=dns.rcode.NOERROR)
-    server.install_response_handlers(BrokenFooHandler(), BrokenBarHandler())
+    server.install_response_handlers(
+        FooForeignGlueReferralHandler(),
+        BarForeignNsReferralHandler(),
+    )
     server.run()
 
 

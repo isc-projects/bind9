@@ -25,7 +25,7 @@ from isctest.asyncserver import (
     ResponseHandler,
 )
 from isctest.asyncserver.actions import DnsResponseSend
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Domain, Protocol, Qname, Qtype
 
 from ..resolver_ans import rrset
@@ -71,23 +71,21 @@ class TcpFallbackHandler(ResponseHandler):
         yield DnsResponseSend(qctx.response)
 
 
-class FormerrToAllHandler(StaticResponseHandler):
+class FormerrToAllHandler(SingleResponseHandler):
     matcher = Domain("formerr-to-all.")
     rcode = dns.rcode.FORMERR
 
 
-class NoQuestionsNSHandler(StaticResponseHandler):
+class NoQuestionsNSHandler(SingleResponseHandler):
     matcher = Qname("no-questions.") & Qtype(dns.rdatatype.NS)
     answer = [
         rrset(
-            matcher.of(Qname).qnames[0],
+            matcher.of(Qname).qname,
             dns.rdatatype.NS,
-            f"ns.{matcher.of(Qname).qnames[0]}",
+            f"ns.{matcher.of(Qname).qname}",
         )
     ]
-    additional = [
-        rrset(f"ns.{matcher.of(Qname).qnames[0]}", dns.rdatatype.A, "10.53.0.8")
-    ]
+    additional = [rrset(f"ns.{matcher.of(Qname).qname}", dns.rdatatype.A, "10.53.0.8")]
 
 
 class NsNoQuestionsAHandler(ResponseHandler):
@@ -134,7 +132,7 @@ def main() -> None:
         TcpalsoNoQuestionsHandler(),
         TruncatedNoQuestionsHandler(),
     )
-    server.install_response_handler(FallbackHandler())
+    server.install_response_handlers(FallbackHandler())
 
     server.run()
 

@@ -17,6 +17,14 @@ Only format C lines you wrote or edited yourself. If the working-tree
 diff was authored by the user (their editor, their patch), do NOT run
 clang-format over it — it is not your code to reformat.
 
+## Custom mock servers (`ans.py`)
+
+A commit that touches an `ansN/ans.py`, a `<test>_ans.py` or
+`bin/tests/system/isctest/asyncserver/` follows the ans-py skill: the
+server keeps its house rules and passes the checks the skill lists,
+and a rewrite of an existing server is verified with `ans_diff.py`
+before it is committed.
+
 ## Message shape
 
 - ≤3 paragraphs; a single short paragraph is usually enough. Focus on

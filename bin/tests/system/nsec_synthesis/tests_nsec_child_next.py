@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
 from nsec_synthesis.common import (
     F023_ZONE,
     SIGNED_ZONE_MARKS,
@@ -48,6 +50,7 @@ def _prime_parent_for_aggressive_nsec(resolver):
     isctest.check.adflag(nsec)
 
 
+@pytest.mark.asyncserver_test
 def test_direct_insecure_child_nsec_next_fixture(ans4, f023_key_tags):
     poison = isctest.query.tcp(isctest.query.create(POISON, "NSEC"), ans4.ip)
     isctest.check.noerror(poison)

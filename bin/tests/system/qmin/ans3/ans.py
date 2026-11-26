@@ -26,14 +26,14 @@ class ZoopBoingBadHandler(EntRcodeChanger):
     rcode = dns.rcode.NXDOMAIN
 
 
-class ZoopBoingUglyHandler(EntRcodeChanger):
-    matcher = Domain("zoop.boing.ugly.")
-    rcode = dns.rcode.FORMERR
-
-
 class ZoopBoingSlowHandler(DelayedResponseHandler):
     matcher = Domain("zoop.boing.slow.")
     delay = 0.4
+
+
+class ZoopBoingUglyHandler(EntRcodeChanger):
+    matcher = Domain("zoop.boing.ugly.")
+    rcode = dns.rcode.FORMERR
 
 
 def main() -> None:
@@ -41,8 +41,8 @@ def main() -> None:
     server.install_response_handlers(
         QueryLogger(),
         ZoopBoingBadHandler(),
-        ZoopBoingUglyHandler(),
         ZoopBoingSlowHandler(),
+        ZoopBoingUglyHandler(),
     )
     server.run()
 

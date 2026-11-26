@@ -11,12 +11,23 @@
 
 from collections.abc import AsyncGenerator
 
+import dns.name
+import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import AsyncDnsServer, QueryContext, ResponseHandler
 from isctest.asyncserver.actions import DnsResponseSend
 from isctest.asyncserver.matchers import Qname, Qtype
+
+
+def rrset(
+    owner: str | dns.name.Name,
+    rdtype: dns.rdatatype.RdataType,
+    rdata: str,
+    ttl: int = 300,
+) -> dns.rrset.RRset:
+    return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
 class AncestorAdditionalHandler(ResponseHandler):
@@ -26,9 +37,7 @@ class AncestorAdditionalHandler(ResponseHandler):
         self, qctx: QueryContext
     ) -> AsyncGenerator[DnsResponseSend, None]:
         # Append a forged record from the child zone to the response.
-        forged_a_rrset = dns.rrset.from_text(
-            "svc.child.f044.test.", 300, qctx.qclass, dns.rdatatype.A, "6.6.6.6"
-        )
+        forged_a_rrset = rrset("svc.child.f044.test.", dns.rdatatype.A, "6.6.6.6")
         qctx.response.additional.append(forged_a_rrset)
 
         # Sign the forged child zone record using the parent zone's key.

@@ -18,12 +18,13 @@ import dns.rdatatype
 import dns.rrset
 
 from isctest.asyncserver import ResponseHandler
-from isctest.asyncserver.handlers import StaticResponseHandler
+from isctest.asyncserver.handlers import SingleResponseHandler
 from isctest.asyncserver.matchers import Always, Qname, Qtype
+from isctest.template import ANS2
 
 
 def rrset(
-    owner: str,
+    owner: str | dns.name.Name,
     ttl: int,
     rdtype: dns.rdatatype.RdataType,
     rdata: str,
@@ -31,7 +32,9 @@ def rrset(
     return dns.rrset.from_text(owner, ttl, dns.rdataclass.IN, rdtype, rdata)
 
 
-def soa(owner: str, ttl: int = 300, minimum: int = 300) -> dns.rrset.RRset:
+def soa(
+    owner: str | dns.name.Name, ttl: int = 300, minimum: int = 300
+) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.SOA, f". . 0 0 0 0 {minimum}")
 
 
@@ -47,6 +50,10 @@ def txt(owner: str, data: str, ttl: int = 2) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.TXT, f'"{data}"')
 
 
+def caa(owner: str | dns.name.Name, data: str, ttl: int = 300) -> dns.rrset.RRset:
+    return rrset(owner, ttl, dns.rdatatype.CAA, data)
+
+
 def cname(owner: str, target: str, ttl: int) -> dns.rrset.RRset:
     return rrset(owner, ttl, dns.rdatatype.CNAME, target)
 
@@ -56,7 +63,7 @@ def cname(owner: str, target: str, ttl: int) -> dns.rrset.RRset:
 Delay = float | Callable[[], float]
 
 
-class StaticHandler(StaticResponseHandler):
+class StaticHandler(SingleResponseHandler):
     """
     A response handler answering with statically configured content.
 
@@ -125,7 +132,7 @@ def a_handler(
     name_prefix: str,
     owner: str,
     ttl: int = 300,
-    address: str = "10.53.0.2",
+    address: str = ANS2.ip,
 ) -> ResponseHandler:
     return StaticHandler(
         f"{name_prefix}AHandler",
@@ -141,7 +148,7 @@ def ns_handler(
     target: str,
     ttl: int = 300,
     glue_ttl: int = 300,
-    address: str = "10.53.0.2",
+    address: str = ANS2.ip,
     in_answer: bool = False,
 ) -> ResponseHandler:
     ns_rrsets = [ns(owner, target, ttl=ttl)]
