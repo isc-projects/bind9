@@ -86,6 +86,7 @@ TESTS =				\
 	cdnxdomain		\
 	cds			\
 	chain			\
+	chase_ds		\
 	checkconf		\
 	checkconf_keys		\
 	checkds			\
