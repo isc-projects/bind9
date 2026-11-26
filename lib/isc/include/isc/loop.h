@@ -183,6 +183,12 @@ isc_loopmgr_nonblocking(void);
  * isc_loopmgr_blocking() stops the SIGINT and SIGTERM signal handlers
  * during blocking operations, for example while waiting for user
  * interaction; isc_loopmgr_nonblocking() restarts them.
+ *
+ * Because of this, `isc_loopmgr_nonblocking()` also internally calls
+ * `uv_update_time()` from the current loop which ensures that code running
+ * after `_nonblocking()` call would have the updated current time. (It's
+ * important, for instance, if there are network IO to avoid wrong timeout
+ * detections.)
  */
 
 isc_time_t
