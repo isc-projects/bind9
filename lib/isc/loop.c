@@ -607,10 +607,22 @@ isc_loopmgr_blocking(isc_loopmgr_t *loopmgr) {
 
 void
 isc_loopmgr_nonblocking(isc_loopmgr_t *loopmgr) {
+	isc_loop_t *loop = isc_loop();
+
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
 	isc_signal_start(loopmgr->sigint);
 	isc_signal_start(loopmgr->sigterm);
+
+	/*
+	 * If an event-loop is set-up at this stage, then update the current
+	 * time of the current loop. Avoid the caller depending on uv time (i.e.
+	 * network IO) to use an old time cached at the beginning of the loop
+	 * event.
+	 */
+	if (loop != NULL) {
+		uv_update_time(&loop->loop);
+	}
 }
 
 isc_loopmgr_t *
