@@ -300,16 +300,51 @@ else:
 #   remind developers about the need to set the latter on merge requests which
 #   passed review.)
 
-approved = mr.approvals.get().approved
+approvals = mr.approvals.get()
 if "Review" not in mr_labels:
     warn(
         "This merge request does not have the *Review* label set. "
         "Please set it if you would like the merge request to be reviewed."
     )
-elif not approved:
+elif not approvals.approved:
     warn(
         "This merge request is currently in review. "
         "It should not be merged until it is approved."
+    )
+
+###############################################################################
+# ANS.PY SERVERS
+###############################################################################
+
+ans_py_regex = re.compile(
+    r"""
+    bin/tests/system/
+    (
+        [^/]+/ans\d+/ans\.py    # ans.py servers
+      | [^/]+/\w+_ans\.py       # shared ans.py helpers
+      | isctest/asyncserver/    # core AsyncDnsServer code
+    )
+    """,
+    re.VERBOSE,
+)
+ans_py_changes = list(
+    filter(ans_py_regex.match, danger.git.created_files + danger.git.modified_files)
+)
+
+try:
+    ans_py_reviewers = re.split(r"[,\s]+", os.environ["DANGER_ANS_PY_REVIEWERS"])
+except KeyError:
+    ans_py_reviewers = []
+approved_by = [u["user"]["username"] for u in approvals.approved_by if "user" in u]
+approved_by_ans_py_reviewers = set(ans_py_reviewers) & set(approved_by)
+needs_review = ans_py_changes and ans_py_reviewers and not approved_by_ans_py_reviewers
+
+if needs_review and not is_backport:
+    message(
+        "This merge request modifies `ans.py` server code.  Please ensure "
+        "it is approved by "
+        f"{' or '.join('@' + username for username in ans_py_reviewers)} "
+        "before merging."
     )
 
 ###############################################################################
