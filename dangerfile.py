@@ -226,6 +226,42 @@ elif 'LGTM (Merge OK)' not in mr_labels:
          'It should not be merged until it is marked with the *LGTM* label.')
 
 ###############################################################################
+# ANS.PY SERVERS
+###############################################################################
+
+ans_py_regex = re.compile(
+    r"""
+    bin/tests/system/
+    (
+        [^/]+/ans\d+/ans\.py    # ans.py servers
+      | [^/]+/\w+_ans\.py       # shared ans.py helpers
+      | isctest/asyncserver/    # core AsyncDnsServer code
+    )
+    """,
+    re.VERBOSE,
+)
+ans_py_changes = list(
+    filter(ans_py_regex.match, danger.git.created_files + danger.git.modified_files)
+)
+
+try:
+    ans_py_reviewers = re.split(r"[,\s]+", os.environ["DANGER_ANS_PY_REVIEWERS"])
+except KeyError:
+    ans_py_reviewers = []
+approvals = mr.approvals.get()
+approved_by = [u["user"]["username"] for u in approvals.approved_by if "user" in u]
+approved_by_ans_py_reviewers = set(ans_py_reviewers) & set(approved_by)
+needs_review = ans_py_changes and ans_py_reviewers and not approved_by_ans_py_reviewers
+
+if needs_review and not is_backport:
+    message(
+        "This merge request modifies `ans.py` server code.  Please ensure "
+        "it is approved by "
+        f"{' or '.join('@' + username for username in ans_py_reviewers)} "
+        "before merging."
+    )
+
+###############################################################################
 # ISSUE IDENTIFIERS
 ###############################################################################
 #
