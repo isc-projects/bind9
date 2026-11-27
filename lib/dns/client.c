@@ -75,7 +75,7 @@ struct dns_client {
 	unsigned int find_timeout;
 	unsigned int find_udpretries;
 	uint8_t max_restarts;
-	uint8_t max_queries;
+	unsigned int max_queries;
 
 	isc_refcount_t references;
 
@@ -388,7 +388,7 @@ dns_client_setmaxrestarts(dns_client_t *client, uint8_t max_restarts) {
 }
 
 void
-dns_client_setmaxqueries(dns_client_t *client, uint8_t max_queries) {
+dns_client_setmaxqueries(dns_client_t *client, uint32_t max_queries) {
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(max_queries > 0);
 

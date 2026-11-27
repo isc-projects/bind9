@@ -342,7 +342,7 @@ assign values to options like the timeout interval. They have the form
    When name server mode (``delv +ns``) is in use, this option sets the
    maximum number of CNAME queries to follow before terminating resolution.
    This prevents ``delv`` from hanging in the event of a CNAME loop.
-   The default is 11.
+   The maximum value is 255. The default is 11.
 
 .. option:: +maxqueries
 
