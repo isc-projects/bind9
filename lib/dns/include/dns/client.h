@@ -188,7 +188,7 @@ dns_client_setmaxrestarts(dns_client_t *client, uint8_t max_restarts);
  */
 
 void
-dns_client_setmaxqueries(dns_client_t *client, uint8_t max_queries);
+dns_client_setmaxqueries(dns_client_t *client, uint32_t max_queries);
 /*%<
  * Set the number of permissible outgoing queries before we give up,
  * This defaults to 200.
